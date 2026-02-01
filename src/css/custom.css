@@ -973,3 +973,13 @@ code,
     display: none !important;
   }
 }
+
+/* ============================================
+   PLUGIN ADJUSTMENTS
+   ============================================ */
+
+/* Hide copy page button on homepage only */
+body:not([class*="docs-doc-"]) .copy-page-button,
+body:not([class*="docs-doc-"]) [class*="copyPageButton"] {
+  display: none !important;
+}
