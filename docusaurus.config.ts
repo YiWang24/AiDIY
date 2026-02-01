@@ -98,6 +98,8 @@ const config = {
         logo: {
           alt: "Yi Wang Logo",
           src: "img/favicon.svg",
+          href: "https://www.yiw.me",
+          target: "_self",
         },
         items: [
           {
@@ -125,6 +127,11 @@ const config = {
             label: "Case Studies",
           },
           { to: "/blog", label: "Blog", position: "left" },
+          {
+            href: "https://www.yiw.me",
+            label: "Homepage",
+            position: "right",
+          },
           {
             href: "https://github.com/YiWang24/portfolio",
             label: "GitHub",
