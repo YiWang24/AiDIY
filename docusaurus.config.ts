@@ -129,11 +129,11 @@ const config = {
           { to: "/blog", label: "Blog", position: "left" },
           {
             href: "https://www.yiw.me",
-            label: "Homepage",
+            label: "Portfolio",
             position: "right",
           },
           {
-            href: "https://github.com/YiWang24/portfolio",
+            href: "https://github.com/YiWang24/AiDIY",
             label: "GitHub",
             position: "right",
           },

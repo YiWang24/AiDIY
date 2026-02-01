@@ -13,14 +13,21 @@ export default function Home(): JSX.Element {
             <div className="builderCard__wrapper">
               {/* Avatar Section */}
               <div className="builderCard__avatar">
-                <div className="avatar__container">
-                  <img
-                    src="https://cdn-icons-png.freepik.com/512/763/763775.png"
-                    alt="Yi Wang"
-                    className="avatar__image"
-                  />
-                  <span className="avatar__status" title="Open to Work">🟢</span>
-                </div>
+                <a
+                  href="https://www.yiw.me"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="avatar__container">
+                    <img
+                      src="https://cdn-icons-png.freepik.com/512/763/763775.png"
+                      alt="Yi Wang"
+                      className="avatar__image"
+                    />
+                    <span className="avatar__status" title="Open to Work">🟢</span>
+                  </div>
+                </a>
               </div>
 
               {/* Content Section */}
@@ -49,6 +56,17 @@ export default function Home(): JSX.Element {
 
                 {/* Social Links */}
                 <div className="builderCard__links">
+                  <a
+                    href="https://www.yiw.me"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="social__link social__link--website"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zM5.78 8.58a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm2.5 0a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm2.5 0a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zM8 1a7 7 0 0 1 5.2 2.32l-.47.47a.5.5 0 0 1-.71 0L11 2.64a.5.5 0 0 1 0-.71l.14-.14A7 7 0 0 1 8 1zM1 8a7 7 0 0 1 2.32-5.2l.47.47a.5.5 0 0 1 0 .71L2.64 5a.5.5 0 0 1-.71 0l-.14-.14A7 7 0 0 1 1 8zm0 0a7 7 0 0 0 2.32 5.2l.47-.47a.5.5 0 0 0 0-.71L2.64 11a.5.5 0 0 0-.71 0l-.14.14A7 7 0 0 0 1 8zm7 7a7 7 0 0 1-5.2-2.32l.47-.47a.5.5 0 0 1 .71 0L5 13.36a.5.5 0 0 1 0 .71l-.14.14A7 7 0 0 1 8 15zm0 0a7 7 0 0 0 5.2-2.32l-.47-.47a.5.5 0 0 0-.71 0L11 13.36a.5.5 0 0 0 0 .71l.14.14A7 7 0 0 0 8 15z" />
+                    </svg>
+                    Portfolio
+                  </a>
                   <a
                     href="https://github.com/YiWang24"
                     target="_blank"
