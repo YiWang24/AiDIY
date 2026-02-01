@@ -16,7 +16,7 @@ This chapter covers retrieval fundamentals, query transformation, routing strate
 
 ## 4.1 Background & Fundamentals
 
-### 3.1.1 What is Retrieval?
+### 4.1.1 What is Retrieval?
 
 **Retrieval** is the process of efficiently filtering relevant information from a large corpus based on a query's semantic intent. In RAG systems, retrieval serves as the critical bridge between the LLM's static training knowledge and your dynamic, private data.
 
@@ -24,7 +24,7 @@ This chapter covers retrieval fundamentals, query transformation, routing strate
 flowchart LR
     subgraph WithoutRetrieval["Without Retrieval"]
         LLM1["Frozen LLM<br/>Training data cutoff<br/>No private data access"]
-        Q1["User Question: How do I configure<br/>our internal deployment system?"]
+        Q1["User Question: How do I configure<br/>our internal deployment system"]
         LLM1 -.->|Cannot answer| Q1
     end
 
@@ -49,7 +49,7 @@ flowchart LR
 - No access to private/internal information
 - Hallucinations when answering beyond its knowledge
 
-### 3.1.2 Why Do We Need Retrieval? The Context Window Problem
+### 4.1.2 Why Do We Need Retrieval? The Context Window Problem
 
 Even with modern LLMs supporting 128K+ token context windows, retrieval remains essential due to three fundamental constraints:
 
@@ -113,7 +113,7 @@ flowchart LR
 
 **Solution**: Retrieval ensures only highly relevant documents (top 5-10) are included, maintaining high signal-to-noise ratio throughout the context.
 
-### 3.1.3 Vector Space Model
+### 4.1.3 Vector Space Model
 
 The foundation of modern retrieval is the **Vector Space Model**, which maps all text to a high-dimensional geometric space.
 
@@ -144,12 +144,12 @@ Given a query $q$ and documents $d_1, d_2, ..., d_n$:
 ```mermaid
 flowchart TB
     subgraph VectorSpace["High-Dimensional Vector Space (simplified to 2D)"]
-        Q["Query: 'machine learning'<br/>[0.82, 0.45]"]
+        Q["Query: machine learning<br/>[0.82, 0.45]"]
 
-        D1["Doc 1: 'Neural networks'<br/>[0.85, 0.42]"]
-        D2["Doc 2: 'Deep learning'<br/>[0.79, 0.48]"]
-        D3["Doc 3: 'Recipe: chocolate cake'<br/>[-0.65, 0.72]"]
-        D4["Doc 4: 'Football scores'<br/>[0.12, -0.88]"]
+        D1["Doc 1: Neural networks<br/>[0.85, 0.42]"]
+        D2["Doc 2: Deep learning<br/>[0.79, 0.48]"]
+        D3["Doc 3: Recipe chocolate cake<br/>[-0.65, 0.72]"]
+        D4["Doc 4: Football scores<br/>[0.12, -0.88]"]
     end
 
     Q -->|0.98 similarity| D1
@@ -167,7 +167,7 @@ flowchart TB
 - "machine learning" ≈ "ML" (close vectors)
 - "machine learning" ≈ "recipe" (distant vectors)
 
-### 3.1.4 Dense vs Sparse Vectors
+### 4.1.4 Dense vs Sparse Vectors
 
 Retrieval systems use two fundamentally different vector representations:
 
@@ -246,7 +246,7 @@ sparse_vector = [
 
 **Best Practice**: Production systems use **hybrid retrieval** (Dense + Sparse + Reranker) to combine strengths of both approaches.
 
-### 3.1.5 The Evolution of Retrieval
+### 4.1.5 The Evolution of Retrieval
 
 Retrieval technology has evolved through three distinct generations:
 
@@ -368,7 +368,7 @@ Real-world problem: User queries are often:
 
 Query translation techniques transform raw queries into optimized search requests.
 
-### 3.2.1 Multi-Query & RAG-Fusion
+### 4.2.1 Multi-Query & RAG-Fusion
 
 #### Concept
 
@@ -488,7 +488,7 @@ Output format:
 | Specific error codes | ⭐⭐ Low - single query sufficient |
 | Simple factual queries | ⭐ Low - adds latency without benefit |
 
-### 3.2.2 Decomposition
+### 4.2.2 Decomposition
 
 #### Concept
 
@@ -501,8 +501,8 @@ flowchart TB
     end
 
     subgraph Decompose["Decomposition"]
-        D1["Sub-query 1:<br/>What is X's performance?"]
-        D2["Sub-query 2:<br/>What is Y's performance?"]
+        D1["Sub-query 1:<br/>What is X performance"]
+        D2["Sub-query 2:<br/>What is Y performance"]
         D3["Sub-query 3:<br/>Compare X vs Y costs"]
     end
 
@@ -594,7 +594,7 @@ Decomposition:
 | "Compare X and Y" | ⭐⭐⭐⭐ High - need separate retrieval for each |
 | Simple fact queries | ⭐ Low - unnecessary overhead |
 
-### 3.2.3 Step-Back Prompting
+### 4.2.3 Step-Back Prompting
 
 #### Concept
 
@@ -665,7 +665,7 @@ def step_back_retrieval(specific_query):
 | Version-specific questions | ⭐⭐⭐⭐ High - principles apply across versions |
 | General concepts | ⭐ Low - abstraction unnecessary |
 
-### 3.2.4 HyDE (Hypothetical Document Embeddings)
+### 4.2.4 HyDE (Hypothetical Document Embeddings)
 
 #### Concept
 
@@ -674,15 +674,15 @@ HyDE uses a **"fake answer"** to search for the **"real answer."** Counterintuit
 ```mermaid
 flowchart LR
     subgraph Traditional["Traditional Retrieval"]
-        Q1["Query: 'How do I fix<br/>AdGuard DNS?'"] --> E1["Embed Query<br/>(short, vague)"]
-        E1 --> S1["Search<br/>(poor matches)"]
+        Q1["Query: How do I fix<br/>AdGuard DNS"] --> E1["Embed Query<br/>short, vague"]
+        E1 --> S1["Search<br/>poor matches"]
     end
 
     subgraph HyDE["HyDE Retrieval"]
-        Q2["Query: 'How do I fix<br/>AdGuard DNS?'"] --> G["LLM Generate<br/>Hypothetical Answer"]
-        G --> H["Hypothetical:<br/>'To fix AdGuard DNS,<br/>check upstream DNS<br/>configuration in<br/>/etc/adguard/config.yaml...'"]
-        H --> E2["Embed Fake Answer<br/>(long, detailed)"]
-        E2 --> S2["Search<br/>(better matches)"]
+        Q2["Query: How do I fix<br/>AdGuard DNS"] --> G["LLM Generate<br/>Hypothetical Answer"]
+        G --> H["Hypothetical:<br/>To fix AdGuard DNS,<br/>check upstream DNS<br/>configuration in<br/>/etc/adguard/config.yaml"]
+        H --> E2["Embed Fake Answer<br/>long, detailed"]
+        E2 --> S2["Search<br/>better matches"]
     end
 
     style H fill:#ff9800,stroke:#e65100,color:#fff
@@ -765,7 +765,7 @@ Search (Chinese docs):
 
 **Goal**: Precisely control "where to search" (which data sources) and "how to search" (query structure and filters).
 
-### 3.3.1 Logical Routing
+### 4.3.1 Logical Routing
 
 #### Concept
 
@@ -774,7 +774,7 @@ Not all queries should search the same data. A question about code should search
 ```mermaid
 flowchart TB
     subgraph Input["User Query"]
-        Q["'How do I implement<br/>authentication in Spring Boot?'"]
+        Q["How do I implement<br/>authentication in Spring Boot"]
     end
 
     subgraph Router["LLM Router"]
@@ -882,7 +882,7 @@ flowchart TB
 | Single monolithic index | ⭐ Low - no routing benefit |
 | Performance-critical applications | ⭐⭐⭐⭐ High - reduce search scope |
 
-### 3.3.2 Semantic Routing
+### 4.3.2 Semantic Routing
 
 #### Concept
 
@@ -891,7 +891,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph Input["User Query"]
-        Q["'How do I fix<br/>port 53 binding error?'"]
+        Q["How do I fix<br/>port 53 binding error"]
     end
 
     subgraph Embed["Embedding"]
@@ -905,13 +905,13 @@ flowchart TB
     end
 
     subgraph Compare["Similarity Comparison"]
-        S1["similarity(Q, R1) = 0.94"]
-        S2["similarity(Q, R2) = 0.67"]
-        S3["similarity(Q, R3) = 0.23"]
+        S1["similarity Q, R1 = 0.94"]
+        S2["similarity Q, R2 = 0.67"]
+        S3["similarity Q, R3 = 0.23"]
     end
 
     subgraph Output["Selected Route"]
-        Selected["Troubleshooting Index<br/>(highest similarity)"]
+        Selected["Troubleshooting Index<br/>highest similarity"]
     end
 
     Q --> E
@@ -1162,7 +1162,7 @@ routes = {
 | Dynamic route addition | ⭐⭐⭐⭐ Good - just add new embeddings |
 | Edge cases handling | ⭐⭐⭐ Medium - may miss nuanced queries |
 
-### 3.3.3 Query Construction & Metadata Filtering
+### 4.3.3 Query Construction & Metadata Filtering
 
 #### Concept: Self-Querying
 
@@ -1310,7 +1310,7 @@ def milvus_filtered_search(query, filters):
 
 **Goal**: Extract the most relevant information from coarse-ranked retrieval results and fix "semantic drift" issues.
 
-### 3.4.1 Reranking Strategies
+### 4.4.1 Reranking Strategies
 
 Reranking is the **precision optimization layer** of RAG systems. After initial retrieval produces a candidate set (50-100 documents), reranking refines the ranking to ensure the top-K results are truly relevant.
 
@@ -1446,11 +1446,11 @@ flowchart TB
         Q --> P2["Rank Doc 2"]
         Q --> P3["Rank Doc 3"]
         Q --> P4["Rank Doc 4"]
-        Q --> P5["Rank Doc 5]
+        Q --> P5["Rank Doc 5"]
     end
 
     subgraph Output["Ranked Results"]
-        R["Reordered by LLM scores"]
+        R["Final ranked documents"]
     end
 
     D1 --> P1
@@ -1677,11 +1677,11 @@ def cross_encoder_rerank(query, candidates, cross_encoder, top_k=10):
 ```mermaid
 flowchart TB
     subgraph Tokenization["Tokenization"]
-        Q[Query: "How to fix DNS?"]
-        D[Doc: "DNS configuration..."]
+        Q[Query: How to fix DNS]
+        D[Doc: DNS configuration]
 
-        Q --> QT["Query tokens:<br/>[How, to, fix, DNS, ?]"]
-        D --> DT["Doc tokens:<br/>[DNS, config, ..., bind, error]"]
+        Q --> QT["Query tokens:<br/>How, to, fix, DNS"]
+        D --> DT["Doc tokens:<br/>DNS, config, bind, error"]
     end
 
     subgraph ColBERT["ColBERT Model"]
@@ -1691,7 +1691,7 @@ flowchart TB
         E1 --> QL[Query Representations]
         E2 --> DL[Doc Representations]
 
-        QL --> LI[Multi-Head Attention<br/>(Late Interaction)]
+        QL --> LI[Multi-Head Attention<br/>Late Interaction]
         DL --> LI
 
         LI --> S[Relevance Score]
@@ -1834,7 +1834,7 @@ def flashrank_rerank(query, candidates, top_k=10):
 
 ---
 
-### Comparison: Reranking Methods
+**Comparison: Reranking Methods**
 
 | Method | Latency (100 docs) | Accuracy (nDCG@10) | Cost | Complexity | Production Readiness |
 |--------|---------------------|-------------------|------|------------|---------------------|
@@ -1846,7 +1846,7 @@ def flashrank_rerank(query, candidates, top_k=10):
 
 ---
 
-### Decision Guide: Choosing the Right Reranking Method
+**Decision Guide: Choosing the Right Reranking Method**
 
 ```mermaid
 flowchart TB
@@ -1861,8 +1861,8 @@ flowchart TB
     Complex -->|No| Rank[RankLLM]
     Complex -->|Yes| Advanced[Advanced Strategy]
 
-    Q2 -->|High (>1000/s)| RRF_Hybrid[RRF + Lightweight Reranker]
-    Q2 -->|Low (<100/s)| Choice{Accuracy critical?}
+    Q2 -->|High volume| RRF_Hybrid[RRF + Lightweight Reranker]
+    Q2 -->|Low volume| Choice{Accuracy critical?}
 
     Choice -->|Yes| CE[Cross-Encoder]
     Choice -->|No| Simple[No Reranking]
@@ -1871,9 +1871,9 @@ flowchart TB
 
     Advanced --> Q3{Latency constraint?}
 
-    Q3 -->|< 100ms| Flash[FlashRank]
-    Q3 -->|100-500ms| CE[Cross-Encoder]
-    Q3 -->|> 500ms| ColBERT[ColBERT]
+    Q3 -->|Fast| Flash[FlashRank]
+    Q3 -->|Medium| CE[Cross-Encoder]
+    Q3 -->|Slow| ColBERT[ColBERT]
 
     RRF_Hybrid --> Hybrid[Hybrid RRF + Reranker]
     CE --> Final[Cross-Encoder]
@@ -1913,7 +1913,7 @@ flowchart TB
 
 ---
 
-### Production Implementation: Hybrid Reranking Pipeline
+**Production Implementation: Hybrid Reranker Pipeline**
 
 ```python
 class HybridReranker:
@@ -1981,30 +1981,7 @@ class HybridReranker:
         return flashrank_rerank(query, candidates, self.flashrank, top_k)
 ```
 
----
-
-### Key Takeaways
-
-**1. No One-Size-Fits-All**
-- Different use cases require different reranking strategies
-- Consider query complexity, latency, and volume
-
-**2. Two-Stage Approach is Standard**
-- Stage 1: Fast bi-encoder retrieval (high recall)
-- Stage 2: Accurate reranking (high precision)
-- Achieves both 85-95% recall and 80-90% precision
-
-**3. Trade-offs Matter**
-- More accurate ≠ always better (consider latency cost)
-- RankLLM provides highest quality but slowest
-- FlashRank enables edge deployment of reranking
-
-**4. Hybrid Approaches Win**
-- Combine RRF (for fusion) with cross-encoder (for refinement)
-- Use lightweight rerankers for high-volume systems
-- Deploy multiple strategies and route intelligently
-
-### 3.4.2 Context Selection & Compression
+### 4.4.2 Context Selection & Compression
 
 #### Problem: Context Window Budget
 

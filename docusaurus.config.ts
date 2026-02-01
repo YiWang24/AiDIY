@@ -5,7 +5,7 @@ const math = require('remark-math');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: "CS Docs",
+  title: "Ai DIY",
   tagline: "Documentation for Full Stack & AI Engineering",
   favicon: "img/favicon.svg",
 
@@ -94,7 +94,7 @@ const config = {
       // Replace with your project's social card
       image: "img/opengraph-image.png",
       navbar: {
-        title: "CS Docs",
+        title: "Ai DIY",
         logo: {
           alt: "Yi Wang Logo",
           src: "img/favicon.svg",

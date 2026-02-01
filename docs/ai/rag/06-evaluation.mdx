@@ -16,7 +16,7 @@ This chapter covers the RAG Triad evaluation framework, retrieval and generation
 
 ## 6.1 Why Evaluation Matters?
 
-### 5.1.1 The RAG Quality Gap
+### 6.1.1 The RAG Quality Gap
 
 **The Fundamental Problem**: Retrieved documents are not the final answer, and generated answers may not be faithful or relevant. Without evaluation, you cannot measure or improve RAG system quality.
 
@@ -59,7 +59,7 @@ flowchart LR
    - Cause: Query misunderstanding, incomplete retrieval
    - Impact: User dissatisfaction, system abandonment
 
-### 5.1.2 Production vs Development
+### 6.1.2 Production vs Development
 
 **RAG systems degrade over time**. A system that performs well in development often fails in production due to:
 
@@ -100,7 +100,7 @@ Evaluation transforms subjective "seems good" assessments into quantifiable metr
 
 ## 6.2 The RAG Triad (Core Framework)
 
-### 5.2.1 Context Relevance
+### 6.2.1 Context Relevance
 
 **Definition**: Are retrieved chunks actually relevant to the user's query?
 
@@ -158,7 +158,7 @@ def evaluate_context_relevance(query, retrieved_context):
 - **0.7 - 0.9**: Good - Strong retrieval
 - **> 0.9**: Excellent - Minimal noise
 
-### 5.2.2 Faithfulness
+### 6.2.2 Faithfulness
 
 **Definition**: Is the generated answer grounded in the retrieved context, or does it hallucinate?
 
@@ -243,7 +243,7 @@ def evaluate_faithfulness(generated_answer, retrieved_context):
 
 Research shows that **faithfulness is the strongest predictor of user trust** in RAG systems. Users prefer "I don't know" over confident hallucinations.
 
-### 5.2.3 Answer Relevance
+### 6.2.3 Answer Relevance
 
 **Definition**: Does the generated answer actually address the user's question and solve their problem?
 
@@ -305,7 +305,7 @@ def evaluate_answer_relevance(query, generated_answer):
 - **0.7 - 0.9**: Good - Addresses most needs
 - **> 0.9**: Excellent - Fully satisfies user
 
-### 5.2.4 Triad Integration
+### 6.2.4 Triad Integration
 
 The RAG Triad provides a comprehensive view of system quality:
 
@@ -374,7 +374,7 @@ def rag_triad_score(context_relevance, faithfulness, answer_relevance, weights=N
 
 ## 6.3 Retrieval Metrics
 
-### 5.3.1 Hit Rate / Recall@K
+### 6.3.1 Hit Rate / Recall@K
 
 **Definition**: In the top-K retrieved documents, does at least one relevant document appear?
 
@@ -445,7 +445,7 @@ hit_rate_5 = calculate_hit_rate(queries, ground_truth, retrieval_results, k=5)
 - Doesn't measure how many relevant docs found
 - All-or-nothing (partial credit not given)
 
-### 5.3.2 MRR (Mean Reciprocal Rank)
+### 6.3.2 MRR (Mean Reciprocal Rank)
 
 **Definition**: Average of the reciprocal ranks of the first relevant document.
 
@@ -532,7 +532,7 @@ LLMs pay more attention to documents at the beginning of context. High MRR ensur
 - Doesn't reward finding multiple relevant docs
 - Sensitive to ranking errors
 
-### 5.3.3 NDCG (Normalized Discounted Cumulative Gain)
+### 6.3.3 NDCG (Normalized Discounted Cumulative Gain)
 
 **Definition**: Ranking quality assessment that considers:
 1. **Relevance grades** (not just binary relevant/not relevant)
@@ -655,7 +655,7 @@ ndcg_5 = calculate_ndcg(["Query 1"], ground_truth_relevance, retrieval_results, 
 - Requires relevance grades (harder to annotate)
 - May be overkill for simple RAG systems
 
-### 5.3.4 Metric Selection Guide
+### 6.3.4 Metric Selection Guide
 
 Choose the right retrieval metric based on your use case:
 
@@ -707,7 +707,7 @@ For RAG systems, **MRR is often the most practical metric** because:
 
 ## 6.4 Generation Metrics
 
-### 5.4.1 Hallucination Rate
+### 6.4.1 Hallucination Rate
 
 **Definition**: Percentage of claims in the generated answer that are NOT supported by the retrieved context.
 
@@ -793,7 +793,7 @@ def is_supported_in_context(claim, context):
 3. **Post-Generation Verification**: Run faithfulness check before returning answer
 4. **Confidence Thresholds**: Reject low-confidence answers
 
-### 5.4.2 Correctness (Fact Accuracy)
+### 6.4.2 Correctness (Fact Accuracy)
 
 **Definition**: Semantic similarity between generated answer and ground truth answer.
 
@@ -852,7 +852,7 @@ def evaluate_correctness(generated_answer, ground_truth_answer):
 
 **Correctness metrics require golden datasets**, which are expensive to create. For many RAG systems, **faithfulness (hallucination rate) is more practical** because it doesn't require ground truth answers.
 
-### 5.4.3 Conciseness & Coherence
+### 6.4.3 Conciseness & Coherence
 
 **Conciseness**: Information density - how much useful information per token.
 
@@ -1000,7 +1000,7 @@ def generation_scorecard(generated_answer, retrieved_context, ground_truth=None)
 
 ## 6.5 Evaluation Methodologies
 
-### 5.5.1 Golden Dataset
+### 6.5.1 Golden Dataset
 
 **What**: Curated set of high-quality query-context-answer triples created by domain experts.
 
@@ -1107,7 +1107,7 @@ def create_golden_dataset(documents, num_queries=100):
 | **Production** | 100-500 queries | Comprehensive coverage |
 | **Regulatory** | 500-1000+ queries | Extensive validation |
 
-### 5.5.2 Synthetic Data Generation
+### 6.5.2 Synthetic Data Generation
 
 **What**: Use LLMs to automatically generate query-context-answer triples from documents.
 
@@ -1229,7 +1229,7 @@ def generate_synthetic_qa(doc_chunk, num_variants=3):
 - Regression testing (catching degradation)
 - Complement to golden dataset (breadth)
 
-### 5.5.3 LLM-as-a-Judge
+### 6.5.3 LLM-as-a-Judge
 
 **Concept**: Use a stronger LLM (GPT-4o, Claude 3.5, DeepSeek-R1) to evaluate the outputs of a RAG system.
 
@@ -1379,7 +1379,7 @@ print(f"Monthly cost: ${monthly_cost}")
 
 ## 6.6 Tools & Observability
 
-### 5.6.1 Ragas Framework
+### 6.6.1 Ragas Framework
 
 **Ragas** is the industry standard for RAG evaluation, implementing the RAG Triad metrics.
 
@@ -1468,7 +1468,7 @@ testset.to_csv("ragas_testset.csv")
 - Teams starting with RAG evaluation
 - Research and experimentation
 
-### 5.6.2 DeepEval
+### 6.6.2 DeepEval
 
 **DeepEval** takes a PyTest-style approach to LLM testing, treating RAG evaluation like unit tests.
 
@@ -1543,7 +1543,7 @@ jobs:
 - Teams familiar with unit testing
 - Regression testing
 
-### 5.6.3 TruLens
+### 6.6.3 TruLens
 
 **TruLens** (by TruEra) focuses on trace-based evaluation with feedback functions.
 
@@ -1600,7 +1600,7 @@ tru.run_dashboard()
 - Custom evaluation logic
 - Teams needing trace inspection
 
-### 5.6.4 Online Monitoring Tools
+### 6.6.4 Online Monitoring Tools
 
 **LangSmith** (by LangChain):
 
@@ -1689,7 +1689,7 @@ answer = rag_application("How do I configure DNS?")
 | **Weights & Biases** | SaaS | Experiment tracking, ML-focused | Paid | ML teams |
 | **Helicone** | SaaS | LLM API proxy, simple setup | Paid | API monitoring |
 
-### 5.6.5 Production Monitoring Strategy
+### 6.6.5 Production Monitoring Strategy
 
 **Comprehensive Monitoring Architecture**:
 

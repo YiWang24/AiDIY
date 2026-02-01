@@ -1,13 +1,11 @@
 import Layout from "@theme/Layout";
 import Heading from "@theme/Heading";
 import Link from "@docusaurus/Link";
-import { Analytics } from "@vercel/analytics/next"
 import { JSX } from "react";
 
 export default function Home(): JSX.Element {
   return (
     <Layout title="AI Engineering Knowledge Base" description="Building AI Agents in Public • Computer Science & Engineering Documentation">
-      <Analytics />
       <main>
         {/* Hero Section - Builder Card */}
         <section className="builderCard">

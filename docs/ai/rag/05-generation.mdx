@@ -16,7 +16,7 @@ This chapter covers generation fundamentals, prompt construction strategies, con
 
 ## 5.1 Generation Fundamentals
 
-### 4.1.1 What is Generation?
+### 5.1.1 What is Generation?
 
 **Generation** in RAG systems is the process of synthesizing a coherent, natural language answer by combining a user's query with retrieved context documents. It is the critical bridge between raw retrieved information and actionable intelligence.
 
@@ -52,7 +52,7 @@ flowchart LR
 - **Contextualized**: Information framed within the user's specific situation
 - **Validated**: Conflicting information reconciled or acknowledged
 
-### 4.1.2 Why Generation Matters
+### 5.1.2 Why Generation Matters
 
 Without effective generation, retrieval systems provide raw documents that users must manually parse and synthesize. Generation transforms information into intelligence:
 
@@ -104,7 +104,7 @@ timeline
 
 ## 5.2 Prompt Construction Strategies
 
-### 4.2.1 Standard RAG Template
+### 5.2.1 Standard RAG Template
 
 The foundation of effective RAG generation is a well-designed prompt template that structures the interaction between query, context, and LLM.
 
@@ -174,7 +174,7 @@ def build_rag_prompt(query, retrieved_docs, system_message=None):
 | **Query Position** | Place query after context | Place query first | Matches LLM's attention pattern |
 | **Context Length** | Limit to 3-5 most relevant docs | Include all retrieved docs | Reduces "lost in the middle" |
 
-### 4.2.2 Defensive Prompting (Anti-Hallucination)
+### 5.2.2 Defensive Prompting (Anti-Hallucination)
 
 **Defensive prompting** explicitly instructs the LLM to avoid hallucinations and prioritize faithfulness.
 
@@ -273,7 +273,7 @@ def evaluate_faithfulness(generated_answer, retrieved_docs):
 # Tools: Ragas, TruLens, DeepEval
 ```
 
-### 4.2.3 Context Engineering Best Practices
+### 5.2.3 Context Engineering Best Practices
 
 **Context Ordering Strategies**
 
@@ -460,7 +460,7 @@ def deduplicate_context(docs, similarity_threshold=0.9):
 
 ## 5.3 Context Assembly & Optimization
 
-### 4.3.1 Token Count Management
+### 5.3.1 Token Count Management
 
 Effective RAG generation requires careful token budget management to balance context completeness with model constraints.
 
@@ -569,7 +569,7 @@ def dynamic_truncation(docs, max_context_tokens, query):
     return selected
 ```
 
-### 4.3.2 Lost in the Middle Phenomenon
+### 5.3.2 Lost in the Middle Phenomenon
 
 **Research Finding**: LLMs exhibit a **U-shaped performance curve** when retrieving information from context. Information at the beginning and end is recalled accurately, while information in the middle is often missed.
 
@@ -633,7 +633,7 @@ def mitigate_lost_in_middle(docs, top_n=5):
     return first_half + remaining + second_half
 ```
 
-### 4.3.3 Context Window Optimization
+### 5.3.3 Context Window Optimization
 
 **Chunking Strategy Comparison**
 
@@ -727,7 +727,7 @@ def hierarchical_context(docs, query):
 
 ## 5.4 Generation Control Parameters
 
-### 4.4.1 Temperature Settings
+### 5.4.1 Temperature Settings
 
 **Temperature** controls the randomness of LLM generation. For RAG systems, lower temperatures are generally preferred to maximize faithfulness.
 
@@ -808,7 +808,7 @@ flowchart LR
     style P1 fill:#4caf50,stroke:#1b5e20,color:#fff
 ```
 
-### 4.4.2 Top-p (Nucleus Sampling) and Top-k
+### 5.4.2 Top-p (Nucleus Sampling) and Top-k
 
 **Top-p (Nucleus Sampling)**: Limits generation to the smallest set of tokens whose cumulative probability exceeds p.
 
@@ -860,7 +860,7 @@ def configure_sampling(mode='rag'):
 | **Top-p** | 0.9 - 0.95 | 0.1 - 1.0 | Nucleus sampling threshold |
 | **Top-k** | 40 - 50 | 1 - 100 | Vocabulary limit |
 
-### 4.4.3 Citations and Source Attribution
+### 5.4.3 Citations and Source Attribution
 
 **Citation Formats**
 
@@ -1003,7 +1003,7 @@ def generate_verifiable_answer(query, docs):
 
 ## 5.5 Framework Comparison
 
-### 4.5.1 LangChain Generation Approach
+### 5.5.1 LangChain Generation Approach
 
 **Design Philosophy**: **Fast prototyping** with flexible chains and templates.
 
@@ -1057,7 +1057,7 @@ print("Sources:", [doc.metadata for doc in source_docs])
 - 📦 **Heavy dependencies**: Large package size
 - 🎯 **Not RAG-specific**: General-purpose framework
 
-### 4.5.2 LlamaIndex Generation Approach
+### 5.5.2 LlamaIndex Generation Approach
 
 **Design Philosophy**: **Production-optimized** RAG with efficient response synthesizers.
 
@@ -1119,7 +1119,7 @@ for node in response.source_nodes:
 - 📚 **Steeper learning curve**: More concepts to learn
 - 🔧 **Less flexible**: More opinionated structure
 
-### 4.5.3 Haystack Generation Approach
+### 5.5.3 Haystack Generation Approach
 
 **Design Philosophy**: **Enterprise-ready** with pipeline-based architecture.
 
@@ -1164,7 +1164,7 @@ documents = result["retriever"]["documents"]
 - 🐌 **More verbose**: Pipeline setup requires more code
 - 📚 **Smaller community**: Fewer examples than LangChain
 
-### 4.5.4 DSPy Generation Approach
+### 5.5.4 DSPy Generation Approach
 
 **Design Philosophy**: **Programmatic prompting** with trainable, reproducible components.
 
@@ -1213,7 +1213,7 @@ print(result.answer)
 - 🆕 **Newer framework**: Less mature ecosystem
 - 📚 **Learning curve**: Requires understanding of DSPy concepts
 
-### 4.5.5 Framework Selection Guide
+### 5.5.5 Framework Selection Guide
 
 **Comprehensive Comparison**
 
@@ -1257,7 +1257,7 @@ flowchart TB
 
 ## 5.6 Advanced Generation Patterns
 
-### 4.6.1 Refine (Iterative Optimization)
+### 5.6.1 Refine (Iterative Optimization)
 
 **Concept**: Process retrieved chunks sequentially, refining the answer incrementally with each new chunk.
 
@@ -1349,7 +1349,7 @@ def refine_generation(query, chunks, llm):
 | **Large chunk counts** (> 20) | ⭐ Low - too slow |
 | **Real-time applications** | ⭐ Low - latency prohibitive |
 
-### 4.6.2 Tree Summarize
+### 5.6.2 Tree Summarize
 
 **Concept**: Build hierarchical tree of summaries, then summarize the summaries.
 
@@ -1435,7 +1435,7 @@ def tree_summarize(query, chunks, llm, group_size=4):
 | **Detail-critical queries** | ⭐⭐ Low - loses granularity |
 | **Real-time applications** | ⭐⭐ Low - slower than simple |
 
-### 4.6.3 Agentic RAG
+### 5.6.3 Agentic RAG
 
 **Concept**: LLM acts as an autonomous agent that decides: **Answer directly** OR **Retrieve more** OR **Refine query**.
 
@@ -1634,7 +1634,7 @@ class AgenticRAG:
 | **Simple factual queries** | ⭐ Low - overkill, adds latency |
 | **Real-time applications** | ⭐⭐ Low - variable latency |
 
-### 4.6.4 RAPTOR (Recursive Abstractive Processing)
+### 5.6.4 RAPTOR (Recursive Abstractive Processing)
 
 **Concept**: Build hierarchical tree of summaries, enabling retrieval at multiple levels of abstraction.
 
@@ -1762,7 +1762,7 @@ def raptor_retrieve(query, tree, embed_model, top_k=5):
 | **Simple queries** | ⭐⭐ Medium - overhead may not be worth it |
 | **Real-time applications** | ⭐⭐ Low - expensive preprocessing |
 
-### 4.6.5 GraphRAG (Graph-Based Generation)
+### 5.6.5 GraphRAG (Graph-Based Generation)
 
 **Concept**: Build knowledge graph from entities, detect communities, generate summaries per community, enabling global context generation.
 
@@ -1959,7 +1959,7 @@ class GraphRAG:
 
 ## 5.7 Generation Strategy Selection
 
-### 4.7.1 Decision Framework
+### 5.7.1 Decision Framework
 
 Choose the appropriate generation strategy based on query characteristics and constraints:
 
@@ -2024,7 +2024,7 @@ flowchart TB
 | **RAPTOR** | 🔴 High | ⚖️ 2-5s | 🟢 High | 20-100 docs | Long documents |
 | **GraphRAG** | 🔴 High | 🐌 10-30s | 🟢 Very High | Unlimited | Relationship-heavy |
 
-### 4.7.2 Production Checklist
+### 5.7.2 Production Checklist
 
 Use this checklist when implementing RAG generation in production:
 

@@ -6,203 +6,203 @@ description: Foundational concepts, core principles, and architectural understan
 slug: /ai/rag/introduction
 ---
 
-# 1. RAG Foundation (基础理论与核心架构)
+# 1. RAG Foundation
 
 This chapter establishes the foundational understanding of Retrieval-Augmented Generation (RAG) systems, focusing on core concepts, theoretical principles, and architectural intuition. We'll build from first principles to understand why RAG works, how it fits into the AI landscape, and what makes it an essential pattern for production AI systems.
 
 ---
 
-## 1.1 RAG 的核心定义与直觉 (Definition & Intuition)
+## 1.1 Definition and Intuition
 
-### 1.1.1 RAG 的标准定义
+### 1.1.1 Standard Definition
 
-**Retrieval-Augmented Generation (RAG)** 是一种通过检索外部知识库来增强大语言模型生成能力的 AI 架构模式。该方法由 Facebook AI Research (现 Meta AI) 于 2020 年首次提出，核心思想是将**信息检索**与**文本生成**相结合，让 LLM 在生成答案时能够访问实时、准确的外部知识。
+**Retrieval-Augmented Generation (RAG)** is an AI architectural pattern that enhances Large Language Model capabilities by retrieving relevant context from external knowledge bases. First introduced by Facebook AI Research (now Meta AI) in 2020, the core idea is to combine **information retrieval** with **text generation**, enabling LLMs to access real-time, accurate external knowledge when generating answers.
 
-RAG 由三个核心组件构成：
+RAG consists of three core components:
 
-1. **Retriever (检索器)**: 从知识库中检索与查询相关的内容
-2. **Knowledge Source (知识源)**: 结构化或非结构化的外部数据存储
-3. **Generator (生成器)**: 基于检索到的上下文生成最终答案
+1. **Retriever**: Retrieves content relevant to the query from the knowledge base
+2. **Knowledge Source**: External data storage (structured or unstructured)
+3. **Generator**: Generates the final answer based on retrieved context
 
-**标准工作流程**:
+**Standard Workflow**:
 ```
-用户查询 → 检索相关文档 → 将文档注入 Prompt → LLM 生成答案
+User Query → Retrieve Documents → Inject into Prompt → LLM Generates Answer
 ```
 
-### 1.1.2 核心隐喻：从 LLM 的"闭卷考试"到"开卷考试"
+### 1.1.2 Core Metaphor: From "Closed-book" to "Open-book" Exam
 
-要理解 RAG 的价值，最直观的方式是通过考试隐喻：
+The most intuitive way to understand RAG's value is through the exam metaphor:
 
-**LLM without RAG = 闭卷考试 (Closed-book Exam)**
+**LLM without RAG = Closed-book Exam**
 
-想象你参加一场闭卷考试：
-- 你只能依靠记忆中的知识来回答问题
-- 如果考试包含你从未学过的内容，你只能猜测或胡编
-- 你的知识截止于备考结束的那一天（训练数据截止）
-- 对于超冷门的知识点，你可能完全没见过
+Imagine taking a closed-book exam:
+- You can only rely on knowledge memorized in your mind
+- If the exam covers content you've never learned, you can only guess or fabricate
+- Your knowledge is frozen as of the day you finished studying (training data cutoff)
+- You may have never seen obscure knowledge points
 
-**LLM with RAG = 开卷考试 (Open-book Exam)**
+**LLM with RAG = Open-book Exam**
 
-现在想象同一场考试，但允许你参考教科书：
-- 你可以查找相关章节来准确回答问题
-- 即使是新知识，只要在教科书中，你就能回答
-- 你可以引用来源，展示答案的依据
-- 压力大幅降低，答案更准确可靠
+Now imagine the same exam, but allowing you to reference textbooks:
+- You can look up relevant sections to answer questions accurately
+- Even for new knowledge, as long as it's in the textbook, you can answer
+- You can cite sources, showing the basis for your answers
+- Much lower pressure, more accurate and reliable answers
 
 ```mermaid
 flowchart LR
-    subgraph A["闭卷考试 (LLM Only)"]
-        A1["问题"] --> A2["仅靠记忆回答"]
-        A2 --> A3["可能产生幻觉"]
+    subgraph A["Closed-book Exam (LLM Only)"]
+        A1["Question"] --> A2["Answer from Memory"]
+        A2 --> A3["May Hallucinate"]
     end
 
-    subgraph B["开卷考试 (LLM + RAG)"]
-        B1["问题"] --> B2["查阅教科书"]
-        B2 --> B3["基于证据回答"]
+    subgraph B["Open-book Exam (LLM + RAG)"]
+        B1["Question"] --> B2["Consult Textbook"]
+        B2 --> B3["Evidence-based Answer"]
     end
 
     style A fill:#ffeeee
     style B fill:#eeffee
 ```
 
-**关键洞察**: RAG 本质上给了 LLM 一个"参考书库"，让它从"闭卷"变成"开卷"，从而大幅提升答案的准确性和可信度。
+**Key Insight**: RAG essentially gives the LLM a "reference library", transforming it from "closed-book" to "open-book", significantly improving answer accuracy and credibility.
 
-### 1.1.3 第一性原理：RAG 不是学习，而是基于语义距离的信息搬运
+### 1.1.3 First Principles: RAG is Information Transfer, Not Learning
 
-从第一性原理看，RAG 解决的核心问题是：**如何在不改变模型参数的情况下，让 LLM 访问外部知识？**
+From a first-principles perspective, the core problem RAG solves is: **How to enable LLMs to access external knowledge without changing model parameters?**
 
-**RAG 不是学习 (Learning)**:
-- 微调 (Fine-tuning) 是学习：通过修改模型权重来内化知识
-- RAG 不是学习：模型参数保持不变，知识通过 Prompt 临时注入
+**RAG is NOT Learning**:
+- Fine-tuning is learning: internalizing knowledge by modifying model weights
+- RAG is NOT learning: model parameters remain unchanged, knowledge is temporarily injected via Prompt
 
-**RAG 是信息搬运 (Information Retrieval + Context Injection)**:
+**RAG IS Information Transfer (Information Retrieval + Context Injection)**:
 
 ```
-核心方程:
+Core Equation:
 
 Answer = LLM(Context(Query) + Query)
 
-其中:
-- Context(Query) = 从知识库检索到的 Top-K 相关片段
-- 语义距离通过向量相似度衡量
-- 知识不存储在模型中，而是按需检索
+Where:
+- Context(Query) = Top-K relevant fragments retrieved from knowledge base
+- Semantic distance measured via vector similarity
+- Knowledge not stored in model, but retrieved on-demand
 ```
 
-**第一性原理拆解**:
+**First-Principles Breakdown**:
 
-1. **语义映射**: 文本 → 向量（将人类语言映射到数学空间）
-2. **距离计算**: Query 向量与 Document 向量的相似度
-3. **信息搬运**: 将最相关的文本片段注入 LLM 的上下文窗口
-4. **生成合成**: LLM 基于注入的上下文生成答案
+1. **Semantic Mapping**: Text → Vector (mapping human language to mathematical space)
+2. **Distance Calculation**: Similarity between Query vector and Document vectors
+3. **Information Transfer**: Injecting most relevant text fragments into LLM's context window
+4. **Generation Synthesis**: LLM generates answer based on injected context
 
 ```mermaid
 flowchart TB
-    A["用户查询: "什么是 RAG?""]
-    B["查询向量化: [0.2, -0.5, 0.8, ...]"]
-    C{"向量数据库"}
-    D["文档 1 向量"]
-    E["文档 2 向量: 距离 0.12"]
-    F["文档 3 向量"]
+    A["User Query: 'What is RAG?'"]
+    B["Query Vectorization: [0.2, -0.5, 0.8, ...]"]
+    C{"Vector Database"}
+    D["Document 1 Vector"]
+    E["Document 2 Vector: Distance 0.12"]
+    F["Document 3 Vector"]
 
-    C -->|相似度计算| D
-    C -->|相似度计算| E
-    C -->|相似度计算| F
+    C -->|Similarity Calculation| D
+    C -->|Similarity Calculation| E
+    C -->|Similarity Calculation| F
 
-    E --> G["Top-K 检索结果"]
-    G --> H["上下文注入"]
-    H --> I["LLM 生成答案"]
+    E --> G["Top-K Retrieved Results"]
+    G --> H["Context Injection"]
+    H --> I["LLM Generates Answer"]
 
     style E fill:#90EE90
     style I fill:#87CEEB
 ```
 
-**与微调的本质区别**:
+**Essential Difference from Fine-tuning**:
 
-| 维度 | RAG | 微调 (Fine-tuning) |
-|------|-----|-------------------|
-| 知识存储 | 外部向量数据库 | 模型参数权重 |
-| 更新方式 | 添加文档即可 | 需要重新训练 |
-| 知识截止 | 无（实时更新） | 训练数据截止 |
-| 成本 | 低（存储成本） | 高（计算成本） |
-| 可解释性 | 高（可追溯来源） | 低（黑盒） |
+| Dimension | RAG | Fine-tuning |
+|-----------|-----|-------------|
+| Knowledge Storage | External vector database | Model parameter weights |
+| Update Method | Add documents | Requires retraining |
+| Knowledge Cutoff | None (real-time updates) | Training data cutoff |
+| Cost | Low (storage cost) | High (computation cost) |
+| Interpretability | High (traceable sources) | Low (black box) |
 
 ---
 
-## 1.2 为什么我们需要 RAG (Why RAG?)
+## 1.2 Why RAG?
 
-### 1.2.1 LLM 的先天缺陷：幻觉、知识截止与长尾知识缺失
+### 1.2.1 LLM Limitations: Hallucinations, Knowledge Cutoff, and Long-tail Knowledge Gaps
 
-尽管 LLM 在生成文本方面表现出色，但它们存在几个根本性缺陷，这些缺陷限制了它们在生产环境中的直接应用。
+Despite LLMs' excellence in text generation, they have several fundamental limitations that restrict their direct application in production environments.
 
-**缺陷 1: 幻觉 (Hallucinations)**
+**Limitation 1: Hallucinations**
 
-**什么是幻觉？**
-LLM 有时会"编造"听起来合理但完全错误的信息。这不是因为模型"撒谎"，而是因为它的训练目标是"生成 plausible text"，而非"保证事实正确"。
+**What are hallucinations?**
+LLMs sometimes "fabricate" information that sounds plausible but is completely incorrect. This isn't because the model "lies", but because its training objective is "generate plausible text", not "guarantee factual correctness".
 
-**幻觉的根源**:
-- LLM 是概率模型，基于统计规律预测下一个词
-- 当知识不足时，它会基于语言模式"补全"答案
-- 模型无法区分"我记得的内容"和"我猜测的内容"
+**Root Causes of Hallucinations**:
+- LLMs are probabilistic models, predicting next tokens based on statistical patterns
+- When knowledge is insufficient, they "complete" answers based on language patterns
+- Models cannot distinguish between "what I remember" and "what I guess"
 
-**幻觉的表现形式**:
+**Manifestations of Hallucinations**:
 ```
-用户: "请告诉我 2024 年诺贝尔物理学奖得主"
-LLM: "2024 年诺贝尔物理学奖授予了 Dr. Smith，
-      以表彰他在量子引力方面的贡献。"
-      ← 完全编造（可能是 2023 年得主的混合）
-```
-
-**缺陷 2: 知识截止 (Knowledge Cutoff)**
-
-**什么是知识截止？**
-LLM 的知识局限于训练数据的时间范围。例如，GPT-4 的训练数据截止到 2023 年，它无法"知道"这之后发生的事件。
-
-**为什么会有知识截止？**
-- 训练数据快照：模型在某个时间点后不再更新
-- 重新训练成本高昂：无法频繁更新知识
-- 世界持续变化：新事件、新知识不断涌现
-
-**知识截止的影响**:
-```
-用户: "最新的 TypeScript 版本是什么？"
-LLM: "根据我的知识，TypeScript 5.0 于 2023 年发布。"
-      ← 实际可能已经 5.4 或更高版本
+User: "Tell me the 2024 Nobel Prize winner in Physics"
+LLM: "The 2024 Nobel Prize in Physics was awarded to Dr. Smith,
+      for his contributions to quantum gravity."
+      ← Completely fabricated (possibly a mix of 2023 winners)
 ```
 
-**缺陷 3: 长尾知识缺失 (Long-tail Knowledge Missing)**
+**Limitation 2: Knowledge Cutoff**
 
-**什么是长尾知识？**
-指那些在训练数据中出现频率极低的知识点：
-- 企业内部文档
-- 个人笔记
-- 专业领域的小众知识
-- 私有数据集
+**What is knowledge cutoff?**
+LLM knowledge is limited to the time range of training data. For example, GPT-4's training data cuts off in 2023, so it cannot "know" events after that time.
 
-**为什么 LLM 无法获取长尾知识？**
-- 训练数据采样偏差：互联网数据 ≠ 全部人类知识
-- 数据不可得：私有数据未公开
-- 频率惩罚：罕见知识在训练中被"稀释"
+**Why does knowledge cutoff exist?**
+- Training data snapshot: model stops updating at a certain point
+- Expensive retraining: cannot frequently update knowledge
+- World constantly changing: new events and knowledge emerge
 
-**缺陷 4: 无可追溯性 (No Attribution)**
+**Impact of Knowledge Cutoff**:
+```
+User: "What's the latest TypeScript version?"
+LLM: "According to my knowledge, TypeScript 5.0 was released in 2023."
+      ← Actually might be 5.4 or higher
+```
 
-LLM 无法告诉你答案的来源，这在需要引用的场景中是致命缺陷：
-- 学术研究需要引用来源
-- 企业应用需要证据支持
-- 法律场景需要法规依据
+**Limitation 3: Long-tail Knowledge Missing**
+
+**What is long-tail knowledge?**
+Knowledge points that appear extremely rarely in training data:
+- Internal enterprise documents
+- Personal notes
+- Niche domain knowledge
+- Private datasets
+
+**Why can't LLMs access long-tail knowledge?**
+- Training data sampling bias: internet data ≠ all human knowledge
+- Data unavailable: private data not public
+- Frequency penalty: rare knowledge "diluted" in training
+
+**Limitation 4: No Attribution**
+
+LLMs cannot tell you the source of answers, which is fatal in scenarios requiring citations:
+- Academic research requires source citations
+- Enterprise applications need evidence support
+- Legal scenarios require regulatory basis
 
 ```mermaid
 flowchart TB
-    subgraph LLM_Defects["LLM 的四大缺陷"]
-        A["幻觉<br/>Hallucinations"]
-        B["知识截止<br/>Knowledge Cutoff"]
-        C["长尾知识缺失<br/>Long-tail Missing"]
-        D["无可追溯性<br/>No Attribution"]
+    subgraph LLM_Defects["Four Major LLM Limitations"]
+        A["Hallucinations"]
+        B["Knowledge Cutoff"]
+        C["Long-tail Missing"]
+        D["No Attribution"]
     end
 
-    A --> A1["编造事实<br/>无恶意但有害"]
-    B --> B1["知识过时<br/>无法实时更新"]
-    C --> C1["私有数据<br/>训练时未见"]
-    D --> D1["无法引用<br/>来源不明"]
+    A --> A1["Fabricates facts<br/>Unintentional but harmful"]
+    B --> B1["Outdated knowledge<br/>Cannot update in real-time"]
+    C --> C1["Private data<br/>Unseen during training"]
+    D --> D1["Cannot cite<br/>Unknown sources"]
 
     style A fill:#ffcccc
     style B fill:#ffddaa
@@ -210,219 +210,219 @@ flowchart TB
     style D fill:#ccccff
 ```
 
-### 1.2.2 RAG 的核心价值：数据扎根、实时性与隐私保护
+### 1.2.2 Core Value of RAG: Data Grounding, Real-time Updates, and Privacy Protection
 
-RAG 通过引入外部知识库，系统性解决了上述 LLM 的缺陷。
+RAG systematically addresses the above LLM limitations by introducing external knowledge bases.
 
-**价值 1: 数据扎根 (Data Grounding)**
+**Value 1: Data Grounding**
 
-**什么是扎根？**
-让 LLM 的答案基于检索到的事实，而非"猜测"或"记忆"。
+**What is grounding?**
+Making LLM answers based on retrieved facts, rather than "guessing" or "memory".
 
-**扎根机制**:
+**Grounding Mechanism**:
 ```mermaid
 flowchart LR
-    A["用户查询"] --> B["检索相关文档"]
-    B --> C["文档注入 Prompt"]
-    C --> D["LLM 基于文档生成"]
-    D --> E["答案扎根于事实"]
+    A["User Query"] --> B["Retrieve Relevant Documents"]
+    B --> C["Inject Documents into Prompt"]
+    C --> D["LLM Generates Based on Documents"]
+    D --> E["Answer Grounded in Facts"]
 
     style E fill:#90EE90
 ```
 
-**扎根效果**:
-- 事实性答案：基于检索到的文档
-- 减少幻觉：模型"看到"了证据
-- 可验证性：可以检查原文
+**Grounding Effects**:
+- Factual answers: based on retrieved documents
+- Reduced hallucinations: model "sees" evidence
+- Verifiability: can check original text
 
-**价值 2: 实时更新 (Real-time Updates)**
+**Value 2: Real-time Updates**
 
-**无需重新训练**:
-- 添加新文档到知识库 → 立即可检索
-- 更新现有文档 → 下次查询生效
-- 删除过期文档 → 停止检索
+**No retraining needed**:
+- Add new documents to knowledge base → immediately retrievable
+- Update existing documents → effective on next query
+- Delete outdated documents → stops retrieval
 
-**与传统方法的对比**:
+**Comparison with Traditional Methods**:
 
-| 方法 | 知识更新方式 | 时间成本 | 货币成本 |
-|------|------------|---------|---------|
-| 微调模型 | 重新训练 | 天-周 | 高（GPU 时间） |
-| Prompt Engineering | 手动更新 Prompt | 实时 | 低（但有限） |
-| **RAG** | 添加/更新文档 | 实时 | 极低 |
+| Method | Knowledge Update | Time Cost | Monetary Cost |
+|--------|-----------------|-----------|---------------|
+| Fine-tuning | Retrain | Days-Weeks | High (GPU time) |
+| Prompt Engineering | Manual prompt update | Real-time | Low (but limited) |
+| **RAG** | Add/update documents | Real-time | Very low |
 
-**实时更新的场景**:
-- 新闻网站：每日添加新闻文章
-- 法律合规：法规更新后立即入库
-- 产品文档：新功能发布后同步更新
+**Real-time Update Scenarios**:
+- News sites: adding news articles daily
+- Legal compliance: regulations added immediately after update
+- Product docs: sync updates after new feature releases
 
-**价值 3: 隐私保护 (Privacy Protection)**
+**Value 3: Privacy Protection**
 
-**数据不离开你的控制**:
-- 敏感文档存储在本地向量数据库
-- 检索发生在你的基础设施上
-- 只有查询片段发送给 LLM（可使用私有 LLM）
+**Data stays under your control**:
+- Sensitive documents stored in local vector database
+- Retrieval happens on your infrastructure
+- Only query fragments sent to LLM (can use private LLM)
 
-**隐私保护的优势**:
+**Privacy Protection Advantages**:
 ```
-企业场景:
-财务报表 + RAG → 答案基于真实数据
+Enterprise Scenario:
+Financial Reports + RAG → Answers based on real data
             ↓
-文档不离开企业内网
+Documents never leave enterprise network
             ↓
-符合数据合规要求（GDPR, SOC2）
+Compliant with data regulations (GDPR, SOC2)
 ```
 
-**价值 4: 成本效率 (Cost Efficiency)**
+**Value 4: Cost Efficiency**
 
-**RAG + 小模型 > 仅大模型**:
+**RAG + Small Model > Large Model Only**:
 
-| 方案 | 模型大小 | 知识质量 | 成本 |
-|------|---------|---------|------|
-| 仅大模型 (GPT-4) | 1.8T 参数 | 依赖训练数据 | 高 |
-| **RAG + 小模型** (Llama-3-8B) | 8B 参数 | 实时外部知识 | 低 |
+| Approach | Model Size | Knowledge Quality | Cost |
+|----------|------------|-------------------|------|
+| Large Model Only (GPT-4) | 1.8T parameters | Depends on training data | High |
+| **RAG + Small Model** (Llama-3-8B) | 8B parameters | Real-time external knowledge | Low |
 
-**经济学原理**:
-- 小模型 + RAG: 检索准确知识 + 便宜推理
-- 大模型: 内化知识 → 昂贵训练 + 昂贵推理
+**Economic Principle**:
+- Small model + RAG: retrieve accurate knowledge + cheap inference
+- Large model: internalized knowledge → expensive training + expensive inference
 
-**价值 5: 可追溯性 (Attribution)**
+**Value 5: Attribution**
 
-**来源引用**:
+**Source Citation**:
 ```
-用户: "公司的退款政策是什么？"
-RAG 回答:
-"根据退款政策文档（来源: docs/refund-policy.pdf），
-    我们的退款政策是..."
+User: "What is the company's refund policy?"
+RAG Answer:
+"According to the refund policy document (source: docs/refund-policy.pdf),
+    our refund policy is..."
 
-优势:
-✓ 用户可以验证答案
-✓ 可以进一步阅读原文
-✓ 建立信任
+Advantages:
+✓ Users can verify answers
+✓ Can read original text
+✓ Builds trust
 ```
 
-### 1.2.3 关键技术决策：RAG vs. 模型微调的区别与适用边界
+### 1.2.3 Key Technical Decision: RAG vs. Fine-tuning Differences and Boundaries
 
-RAG 和微调是互补的技术，而非互斥。理解它们的适用边界是架构设计的关键。
+RAG and fine-tuning are complementary technologies, not mutually exclusive. Understanding their applicable boundaries is key to architectural design.
 
-**RAG vs. 微调的本质对比**:
+**RAG vs. Fine-tuning: Essential Comparison**:
 
 ```mermaid
 flowchart TB
-    subgraph RAG["RAG: 外部知识检索"]
-        R1["知识存储<br/>向量数据库"]
-        R2["更新方式<br/>添加文档"]
-        R3["知识类型<br/>事实性、结构化"]
-        R4["适用场景<br/>动态知识"]
+    subgraph RAG["RAG: External Knowledge Retrieval"]
+        R1["Knowledge Storage<br/>Vector Database"]
+        R2["Update Method<br/>Add Documents"]
+        R3["Knowledge Type<br/>Factual, Structured"]
+        R4["Use Case<br/>Dynamic Knowledge"]
     end
 
-    subgraph FT["微调: 模型参数内化"]
-        F1["知识存储<br/>模型权重"]
-        F2["更新方式<br/>重新训练"]
-        F3["知识类型<br/>模式、风格、格式"]
-        F4["适用场景<br/>静态行为"]
+    subgraph FT["Fine-tuning: Model Parameter Internalization"]
+        F1["Knowledge Storage<br/>Model Weights"]
+        F2["Update Method<br/>Retrain"]
+        F3["Knowledge Type<br/>Patterns, Style, Format"]
+        F4["Use Case<br/>Static Behavior"]
     end
 
     style RAG fill:#e3f2fd
     style FT fill:#fff3e0
 ```
 
-**决策矩阵: 何时使用哪种技术？**
+**Decision Matrix: When to Use Which Technology?**
 
-| 场景 | 推荐方案 | 理由 |
-|------|---------|------|
-| 企业知识库（实时更新） | **RAG** | 文档频繁更新，需要实时性 |
-| 医疗诊断（高度专业） | **RAG + 微调** | 微调学习诊断模式，RAG 提供最新研究 |
-| 代码生成（特定框架） | **微调** | 需要内化框架的代码模式 |
-| 客服助手（公司政策） | **RAG** | 政策频繁变化，需要可追溯 |
-| 创意写作（特定风格） | **微调** | 需要学习风格模式，而非事实 |
-| 法律合规（法规查询） | **RAG** | 必须准确引用原文 |
-| 个性化推荐（用户偏好） | **微调 + RAG** | 微调学习偏好，RAG 提供实时内容 |
+| Scenario | Recommended Approach | Reason |
+|----------|---------------------|--------|
+| Enterprise knowledge base (real-time updates) | **RAG** | Documents frequently updated, need real-time |
+| Medical diagnosis (highly specialized) | **RAG + Fine-tuning** | Fine-tuning learns diagnostic patterns, RAG provides latest research |
+| Code generation (specific framework) | **Fine-tuning** | Need to internalize framework code patterns |
+| Customer service assistant (company policies) | **RAG** | Policies frequently change, need traceability |
+| Creative writing (specific style) | **Fine-tuning** | Need to learn style patterns, not facts |
+| Legal compliance (regulation queries) | **RAG** | Must accurately cite original text |
+| Personalized recommendations (user preferences) | **Fine-tuning + RAG** | Fine-tuning learns preferences, RAG provides real-time content |
 
-**RAG 的适用边界**:
+**RAG Applicability Boundaries**:
 
-**最适合 RAG 的场景**:
-- 知识频繁变化（新闻、法规、文档）
-- 需要准确性证明（法律、医疗、金融）
-- 数据私密性要求高（企业内部数据）
-- 成本敏感（需要高效推理）
+**Best Scenarios for RAG**:
+- Knowledge frequently changes (news, regulations, documents)
+- Need accuracy proof (legal, medical, finance)
+- High data privacy requirements (enterprise internal data)
+- Cost-sensitive (need efficient inference)
 
-**RAG 不是最佳选择**:
-- 需要学习复杂模式（代码风格、写作风格）
-- 知识极其稳定（历史事实、基础科学）
-- 延迟敏感极低（检索需要 50-200ms）
-- 知识已经是模型权重的一部分（常识）
+**RAG NOT Optimal When**:
+- Need to learn complex patterns (code style, writing style)
+- Knowledge extremely stable (historical facts, basic science)
+- Extremely latency-sensitive (retrieval takes 50-200ms)
+- Knowledge already part of model weights (common sense)
 
-**组合使用策略**:
+**Combination Strategy**:
 
 ```mermaid
 flowchart LR
-    A["用户查询"] --> B{"查询类型?"}
+    A["User Query"] --> B{"Query Type?"}
 
-    B -->|事实查询| C["RAG 检索"]
-    B -->|风格/模式| D["微调模型"]
-    B -->|混合需求| E["RAG + 微调"]
+    B -->|Factual Query| C["RAG Retrieval"]
+    B -->|Style/Pattern| D["Fine-tuned Model"]
+    B -->|Mixed Needs| E["RAG + Fine-tuning"]
 
-    C --> F["基于文档的答案"]
-    D --> G["基于模式的输出"]
-    E --> H["准确 + 风格化的答案"]
+    C --> F["Document-based Answer"]
+    D --> G["Pattern-based Output"]
+    E --> H["Accurate + Styled Answer"]
 ```
 
-**实践建议**:
-- 从 RAG 开始（低风险、低成本）
-- 评估是否需要微调补充
-- 优先考虑 RAG + 小模型，而非大模型
-- 记录成本-效益比，指导未来决策
+**Practice Recommendations**:
+- Start with RAG (low risk, low cost)
+- Evaluate if fine-tuning supplementation is needed
+- Prioritize RAG + small model over large model
+- Document cost-benefit ratio to guide future decisions
 
 ---
 
-## 1.3 核心技术概念与原理 (Core Concepts & Principles)
+## 1.3 Core Technical Concepts and Principles
 
-### 1.3.1 向量空间模型：语义的高维几何表示
+### 1.3.1 Vector Space Model: High-Dimensional Geometric Representation of Semantics
 
-**什么是向量空间？**
+**What is a Vector Space?**
 
-从直觉上理解，向量空间就是一个多维坐标系，只是维度远超我们日常经验的 3D：
-- 文本向量通常是 512、1024、2048 或 3072 维
-- 每个维度代表一个"语义特征"
-- 类似 RGB 颜色空间，只是维度更多
+Intuitively, a vector space is a multi-dimensional coordinate system, but with far more dimensions than our everyday 3D experience:
+- Text vectors typically have 512, 1024, 2048, or 3072 dimensions
+- Each dimension represents a "semantic feature"
+- Similar to RGB color space, but with many more dimensions
 
-**高维几何的核心洞察**:
+**Core Insight of High-Dimensional Geometry**:
 
-在向量空间中，**语义关系 = 几何关系**：
-- **距离** = 语义差异度
-- **方向** = 语义关系
-- **聚类** = 主题相似性
+In vector space, **semantic relationships = geometric relationships**:
+- **Distance** = semantic difference
+- **Direction** = semantic relationship
+- **Clustering** = topic similarity
 
-**为什么需要高维？**
+**Why High Dimensions?**
 
-人类语言极其复杂：
-- 词汇量：数万到数十万
-- 语义关系：同义、反义、上下位、因果...
-- 上下文依赖：同一词在不同句子有不同含义
+Human language is extremely complex:
+- Vocabulary: tens to hundreds of thousands
+- Semantic relationships: synonymy, antonymy, hypernymy, causality...
+- Context dependence: same word has different meanings in different sentences
 
-**维度 vs. 表达能力**:
+**Dimensions vs. Expressive Power**:
 
-| 维度 | 表达能力 | 典型用途 |
-|------|---------|---------|
-| 128-256 | 基础语义 | 简单分类、去重 |
-| 512-768 | 中等语义 | 文档检索、相似度计算 |
-| 1024-1536 | 高级语义 | 复杂检索、语义搜索 |
-| 2048-3072 | 细粒度语义 | 多语言、跨模态、专业领域 |
+| Dimensions | Expressive Power | Typical Use |
+|------------|-----------------|-------------|
+| 128-256 | Basic semantics | Simple classification, deduplication |
+| 512-768 | Medium semantics | Document retrieval, similarity calculation |
+| 1024-1536 | Advanced semantics | Complex retrieval, semantic search |
+| 2048-3072 | Fine-grained semantics | Multilingual, cross-modal, specialized domains |
 
-**向量空间的几何直觉**:
+**Geometric Intuition of Vector Space**:
 
 ```mermaid
 graph TB
-    subgraph VectorSpace["高维向量空间 (简化为 2D 可视化)"]
-        A["'狗' [0.8, 0.2]"]
-        B["'猫' [0.7, 0.3]"]
-        C["'汽车' [0.1, 0.9]"]
-        D["'公交车' [0.15, 0.85]"]
-        E["'香蕉' [-0.5, -0.7]"]
+    subgraph VectorSpace["High-Dimensional Vector Space (simplified 2D visualization)"]
+        A["'dog' [0.8, 0.2]"]
+        B["'cat' [0.7, 0.3]"]
+        C["'car' [0.1, 0.9]"]
+        D["'bus' [0.15, 0.85]"]
+        E["'banana' [-0.5, -0.7]"]
 
-        A ---|"语义距离近"| B
-        C ---|"语义距离近"| D
-        E ---|"语义距离远"| A
+        A ---|"Semantically Close"| B
+        C ---|"Semantically Close"| D
+        E ---|"Semantically Distant"| A
     end
 
     style A fill:#ffb3ba
@@ -432,451 +432,451 @@ graph TB
     style E fill:#bae1ff
 ```
 
-**在向量空间中**:
-- "狗"和"猫"很近（都是宠物）
-- "汽车"和"公交车"很近（都是交通工具）
-- "香蕉"离它们都很远（不同类别）
+**In Vector Space**:
+- "dog" and "cat" are close (both pets)
+- "car" and "bus" are close (both vehicles)
+- "banana" is distant from both (different category)
 
-**向量空间的聚类现象**:
+**Clustering Phenomenon in Vector Space**:
 
-语义相似的词汇会自动聚类：
+Semantically similar words automatically cluster:
 ```
-动物簇:
-  狗、猫、鸟、鱼... [语义密集区域]
+Animal Cluster:
+  dog, cat, bird, fish... [dense semantic region]
 
-交通工具簇:
-  汽车、飞机、火车、船... [另一个语义区域]
+Vehicle Cluster:
+  car, airplane, train, ship... [another semantic region]
 
-科技簇:
-  计算机、手机、AI、芯片... [独立区域]
+Technology Cluster:
+  computer, phone, AI, chip... [separate region]
 ```
 
-**为什么聚类很重要？**
+**Why Clustering Matters?**
 
-RAG 的核心原理：**查询会在向量空间中找到最近的语义簇，然后检索该簇的文档**。
+RAG's core principle: **queries find the nearest semantic clusters in vector space, then retrieve documents from those clusters**.
 
 ```
-查询: "如何训练机器学习模型？"
+Query: "How to train machine learning models?"
       ↓
-向量化后落在"机器学习"语义簇附近
+After vectorization, lands near "machine learning" semantic cluster
       ↓
-检索该簇内的相关文档
+Retrieve relevant documents from that cluster
       ↓
-返回关于 ML 训练的文档
+Return documents about ML training
 ```
 
-### 1.3.2 嵌入：将非结构化文本映射为数学向量
+### 1.3.2 Embeddings: Mapping Unstructured Text to Mathematical Vectors
 
-**什么是嵌入 (Embedding)？**
+**What are Embeddings?**
 
-嵌入是将人类符号（文本、图像、音频）映射到数学空间（向量）的技术。嵌入模型的目标是：**让语义相似的内容在向量空间中距离更近**。
+Embeddings are techniques for mapping human symbols (text, images, audio) to mathematical space (vectors). The goal of embedding models is: **make semantically similar content closer together in vector space**.
 
-**嵌入的本质 = 意义到数字的翻译**:
+**Essence of Embeddings = Translation from Meaning to Numbers**:
 
 ```
-文本 (人类可读)
-    ↓ 嵌入模型
-向量 (机器可计算)
+Text (Human-readable)
+    ↓ Embedding Model
+Vector (Machine-computable)
 
-例子:
-"我很高兴"  → [0.5, -0.2, 0.8, 0.1, ...]
+Example:
+"I'm very happy"  → [0.5, -0.2, 0.8, 0.1, ...]
 "I'm happy" → [0.48, -0.18, 0.82, 0.12, ...]
-              ↑ 距离很近，因为语义相似
+              ↑ Close distance, because semantically similar
 ```
 
-**好嵌入的核心属性**:
+**Core Properties of Good Embeddings**:
 
-**属性 1: 语义相似度保持 (Semantic Similarity Preservation)**
+**Property 1: Semantic Similarity Preservation**
 
-语义相似的内容 → 向量距离近
-
-```
-例子:
-"苹果" vs "橙子" → 距离 0.3 (都是水果)
-"苹果" vs "汽车"  → 距离 1.2 (不同类别)
-"苹果" vs "Apple" → 距离 0.15 (同一实体，不同语言)
-```
-
-**属性 2: 类比推理能力 (Analogical Reasoning)**
-
-嵌入空间支持向量运算：
+Semantically similar content → closer vector distance
 
 ```
-经典例子 (Word2Vec):
+Example:
+"apple" vs "orange" → distance 0.3 (both fruits)
+"apple" vs "car"  → distance 1.2 (different categories)
+"apple" vs "Apple" → distance 0.15 (same entity, different languages)
+```
+
+**Property 2: Analogical Reasoning**
+
+Embedding space supports vector arithmetic:
+
+```
+Classic Example (Word2Vec):
   king - man + woman = queen
 
-直觉:
-  "国王" - "男性" + "女性" = "女王"
+Intuition:
+  "king" - "male" + "female" = "queen"
 
-工作原理:
-  (king 的向量) - (man 的向量) + (woman 的向量)
-  ≈ queen 的向量
+How it works:
+  (king vector) - (man vector) + (woman vector)
+  ≈ queen vector
 ```
 
-**属性 3: 上下文感知 (Context Awareness)**
+**Property 3: Context Awareness**
 
-现代嵌入模型（如 BERT、GPT 嵌入）考虑上下文：
+Modern embedding models (like BERT, GPT embeddings) consider context:
 
 ```
-句子 1: "我去了银行存钱"
+Sentence 1: "I went to the bank to deposit money"
          ↓
-      "银行" (金融机构) 的向量
+      "bank" (financial institution) vector
 
-句子 2: "我在河岸边散步"
+Sentence 2: "I walked along the river bank"
          ↓
-      "银行" (河岸) 的向量
+      "bank" (riverbank) vector
 
-结果: 同一个词，不同上下文 → 不同向量
+Result: same word, different contexts → different vectors
 ```
 
-**嵌入的训练目标（直觉理解）**:
+**Embedding Training Objective (Intuitive Understanding)**:
 
-现代嵌入模型使用**对比学习 (Contrastive Learning)**：
+Modern embedding models use **Contrastive Learning**:
 
-**核心思想**:
-- 正样本对（相似文本）→ 距离更近
-- 负样本对（不相似文本）→ 距离更远
+**Core Idea**:
+- Positive pairs (similar text) → pull closer
+- Negative pairs (dissimilar text) → push further apart
 
-**训练过程**:
+**Training Process**:
 ```
-查询: "什么是机器学习？"
+Query: "What is machine learning?"
 
-正样本: "机器学习是 AI 的一个分支..."
-        ↓ 拉近
+Positive: "Machine learning is a branch of AI..."
+        ↓ Pull closer
 
-负样本: "今天天气很好，适合散步..."
-        ↓ 推远
+Negative: "The weather is nice today, good for walking..."
+        ↓ Push further apart
 
-目标: 查询向量与正样本的距离 << 查询向量与负样本的距离
+Goal: Query-Positive distance << Query-Negative distance
 ```
 
-**为什么这个目标有效？**
+**Why This Objective Works?**
 
-模型通过数百万次对比学习，逐渐掌握：
-- 什么样的文本是相似的（语义、主题、意图）
-- 什么样的文本是不相似的（无关内容）
-- 如何将这种相似性编码到向量中
+Through millions of contrastive learning iterations, models gradually master:
+- What makes text similar (semantics, topics, intent)
+- What makes text dissimilar (irrelevant content)
+- How to encode this similarity into vectors
 
-**嵌入模型的选择**:
+**Embedding Model Selection**:
 
-| 模型 | 维度 | 特点 | 适用场景 |
-|------|------|------|---------|
-| text-embedding-3-small | 1536 | 速度快、成本低 | 一般检索 |
-| text-embedding-3-large | 3072 | 质量高、多语言 | 复杂语义、跨语言 |
-| bge-base-zh | 768 | 中文优化 | 中文为主的应用 |
-| e5-large-v2 | 1024 | 开源、均衡 | 成本敏感场景 |
-| bge-m3 | 1024 | 多语言、多功能 | 国际化应用 |
+| Model | Dimensions | Characteristics | Use Case |
+|-------|------------|------------------|----------|
+| text-embedding-3-small | 1536 | Fast, low cost | General retrieval |
+| text-embedding-3-large | 3072 | High quality, multilingual | Complex semantics, cross-language |
+| bge-base-zh | 768 | Chinese optimized | Chinese-focused applications |
+| e5-large-v2 | 1024 | Open-source, balanced | Cost-sensitive scenarios |
+| bge-m3 | 1024 | Multilingual, multi-functional | International applications |
 
-### 1.3.3 相似度度量：余弦相似度与距离计算
+### 1.3.3 Similarity Metrics: Cosine Similarity and Distance Calculation
 
-在向量空间中，我们需要数学方法来衡量两个向量的"相似度"。三种常用度量各有适用场景。
+In vector space, we need mathematical methods to measure the "similarity" between two vectors. Three common metrics each have their use cases.
 
-**余弦相似度 (Cosine Similarity)**
+**Cosine Similarity**
 
-**定义**: 衡量两个向量之间的角度，而非绝对距离
+**Definition**: Measures the angle between two vectors, not absolute distance
 
-**直观理解**:
-- 只看方向，不看长度
-- 相似度 ∈ [-1, 1]，1 表示完全相同方向，0 表示正交，-1 表示相反方向
-- 对文本长度不敏感
+**Intuitive Understanding**:
+- Focuses on direction, not length
+- Similarity ∈ [-1, 1], 1 means identical direction, 0 means orthogonal, -1 means opposite
+- Insensitive to text length
 
 ```mermaid
 flowchart TB
-    subgraph CosineDiagram["余弦相似度几何直觉"]
-        A["原点 (0, 0)"]
-        B["向量 1: 查询"]
-        C["向量 2: 文档"]
-        D["角度 θ: 相似度"]
+    subgraph CosineDiagram["Cosine Similarity Geometric Intuition"]
+        A["Origin (0, 0)"]
+        B["Vector 1: Query"]
+        C["Vector 2: Document"]
+        D["Angle θ: Similarity"]
 
         A --> B
         A --> C
 
-        B -.->|"θ 越小<br/>相似度越高"| C
+        B -.->|"θ smaller<br/>higher similarity"| C
     end
 
     style B fill:#90EE90
     style C fill:#87CEEB
 ```
 
-**为什么余弦相似度适合文本？**
+**Why Cosine Similarity for Text?**
 
 ```
-例子:
-文本 1: "机器学习"
-      向量: [1.0, 2.0, 1.5]
+Example:
+Text 1: "machine learning"
+      Vector: [1.0, 2.0, 1.5]
 
-文本 2: "机器学习是人工智能的一个分支"
-      向量: [2.0, 4.0, 3.0] (长度加倍，但方向相同)
+Text 2: "machine learning is a branch of artificial intelligence"
+      Vector: [2.0, 4.0, 3.0] (doubled length, same direction)
 
-余弦相似度: 1.0 (完全相同方向，长度忽略)
-直觉: 语义完全相同，尽管长度不同
+Cosine Similarity: 1.0 (identical direction, length ignored)
+Intuition: Semantically identical, despite different lengths
 ```
 
-**实际意义**:
-- 长文档不会因为词汇多而"占优势"
-- 专注于"是否在说同一件事"，而非"说了多少"
+**Practical Significance**:
+- Long documents don't "dominate" due to more words
+- Focuses on "talking about the same thing", not "how much said"
 
-**欧几里得距离 (Euclidean Distance)**
+**Euclidean Distance**
 
-**定义**: 两点之间的直线距离（我们日常理解的"距离"）
+**Definition**: Straight-line distance between two points (our everyday understanding of "distance")
 
-**公式直觉**:
+**Formula Intuition**:
 ```
 distance = √[(x1-x2)² + (y1-y2)² + ...]
 
-类比: 3D 空间中的直线距离
+Analogy: Straight-line distance in 3D space
 ```
 
-**何时使用欧几里得距离？**
-- 需要考虑向量幅值（长度）的场景
-- 图像嵌入（像素强度重要）
-- 某些特定的专业嵌入模型
+**When to Use Euclidean Distance?**
+- Scenarios needing vector magnitude (length) consideration
+- Image embeddings (pixel intensity matters)
+- Certain specialized embedding models
 
-**点积 (Dot Product)**
+**Dot Product**
 
-**定义**: 对应元素相乘后求和
+**Definition**: Sum of element-wise multiplication
 
-**与余弦相似度的关系**:
+**Relationship to Cosine Similarity**:
 ```
-点积 = 余弦相似度 × 向量长度乘积
+Dot Product = Cosine Similarity × Vector Length Product
 
-如果向量归一化（长度 = 1）:
-  点积 = 余弦相似度
-```
-
-**为什么点积很快？**
-- 现代硬件（GPU、TPU）对矩阵乘法优化极好
-- 向量数据库常用点积来加速检索
-
-**三种度量对比**:
-
-| 度量 | 范围 | 关注点 | 速度 | 常用场景 |
-|------|------|--------|------|---------|
-| **余弦相似度** | [-1, 1] | 方向（语义） | 中等 | 文本检索（默认选择） |
-| **欧几里得距离** | [0, ∞] | 绝对距离 | 慢 | 图像、需要考虑幅值 |
-| **点积** | (-∞, ∞) | 方向 × 长度 | 快 | 向量归一化后等价于余弦 |
-
-**相似度阈值选择**:
-
-实践中如何判断"足够相似"？
-
-```
-余弦相似度阈值指南:
-
-≥ 0.95: 几乎完全相同（重复文档、同义改写）
-≥ 0.85: 高度相似（同一主题，不同表述）
-≥ 0.70: 中等相关（相关但不完全匹配）
-≥ 0.50: 弱相关（可能有用，需要人工判断)
-< 0.50: 不相关（通常应该过滤掉）
+If vectors normalized (length = 1):
+  Dot Product = Cosine Similarity
 ```
 
-**实际检索示例**:
+**Why Dot Product is Fast?**
+- Modern hardware (GPU, TPU) highly optimized for matrix multiplication
+- Vector databases commonly use dot product to accelerate retrieval
+
+**Three Metrics Comparison**:
+
+| Metric | Range | Focus | Speed | Common Use |
+|--------|-------|-------|-------|------------|
+| **Cosine Similarity** | [-1, 1] | Direction (semantics) | Medium | Text retrieval (default) |
+| **Euclidean Distance** | [0, ∞] | Absolute distance | Slow | Images, magnitude-critical |
+| **Dot Product** | (-∞, ∞) | Direction × Length | Fast | Equivalent to cosine when normalized |
+
+**Similarity Threshold Selection**:
+
+How to judge "similar enough" in practice?
 
 ```
-查询: "如何训练机器学习模型？"
+Cosine Similarity Threshold Guide:
 
-检索结果:
-1. "机器学习模型训练指南"     → 相似度 0.92 ✓
-2. "深度学习训练技巧"          → 相似度 0.88 ✓
-3. "机器学习算法原理"          → 相似度 0.76 ✓
-4. "如何训练宠物狗"            → 相似度 0.35 ✗
-5. "今天的天气"               → 相似度 0.12 ✗
+≥ 0.95: Almost identical (duplicate documents, paraphrasing)
+≥ 0.85: Highly similar (same topic, different expression)
+≥ 0.70: Moderately related (relevant but not perfect match)
+≥ 0.50: Weakly related (potentially useful, needs human judgment)
+< 0.50: Not relevant (should typically be filtered)
+```
 
-Top-3 选择: 前三个文档
+**Practical Retrieval Example**:
+
+```
+Query: "How to train machine learning models?"
+
+Retrieval Results:
+1. "Machine Learning Model Training Guide"     → Similarity 0.92 ✓
+2. "Deep Learning Training Techniques"         → Similarity 0.88 ✓
+3. "Machine Learning Algorithm Principles"     → Similarity 0.76 ✓
+4. "How to Train Pet Dogs"                     → Similarity 0.35 ✗
+5. "Today's Weather"                           → Similarity 0.12 ✗
+
+Top-3 Selection: First three documents
 ```
 
 ---
 
-## 1.4 标准架构与数据生命周期 (Architecture & Data Flow)
+## 1.4 Standard Architecture and Data Lifecycle
 
-### 1.4.1 阶段一：索引构建 (Indexing Phase)
+### 1.4.1 Phase 1: Indexing
 
-索引构建是 RAG 系统的"学习"阶段，将原始文档转换为可检索的向量表示。
+Indexing is the "learning" phase of RAG systems, converting raw documents into retrievable vector representations.
 
-**完整索引流程**:
+**Complete Indexing Flow**:
 
 ```mermaid
 flowchart LR
-    A["原始文档"] --> B["文档解析"]
-    B --> C["文本清洗"]
-    C --> D["分块策略"]
-    D --> E["向量化"]
-    E --> F["向量存储"]
-    F --> G["索引构建"]
+    A["Raw Documents"] --> B["Document Parsing"]
+    B --> C["Text Cleaning"]
+    C --> D["Chunking Strategy"]
+    D --> E["Vectorization"]
+    E --> F["Vector Storage"]
+    F --> G["Index Building"]
 
     style A fill:#ffeaa7
     style G fill:#55efc4
 ```
 
-**步骤 1: 文档解析 (Document Parsing)**
+**Step 1: Document Parsing**
 
-**支持的数据源**:
-- 文本文件: Markdown, TXT, CSV
-- 办公文档: PDF, DOCX, PPTX
-- 网页: HTML, Markdown ( scraped)
-- 代码: 各种编程语言的源码
-- 结构化数据: JSON, XML, Database
+**Supported Data Sources**:
+- Text files: Markdown, TXT, CSV
+- Office documents: PDF, DOCX, PPTX
+- Web pages: HTML, Markdown (scraped)
+- Code: Source code in various programming languages
+- Structured data: JSON, XML, Database
 
-**解析挑战**:
-- PDF 解析: 处理多栏、表格、图像
-- 网页清洗: 去除导航、广告、页脚
-- 代码解析: 保留语法结构、注释
+**Parsing Challenges**:
+- PDF parsing: Handle multi-column, tables, images
+- Web page cleaning: Remove navigation, ads, footers
+- Code parsing: Preserve syntax structure, comments
 
-**步骤 2: 文本清洗 (Text Cleaning)**
+**Step 2: Text Cleaning**
 
-**清洗操作**:
+**Cleaning Operations**:
 ```
-原始文本:
+Original Text:
   "   Hello!!!   \n\n   Visit our site at https://example.com  "
 
-清洗后:
+Cleaned:
   "Hello visit our site"
 
-操作:
-- 去除多余空白
-- 移除特殊字符
-- 处理 URL、邮箱（可选）
-- 统一标点符号
-- 转换为小写（视情况）
+Operations:
+- Remove extra whitespace
+- Remove special characters
+- Handle URLs, emails (optional)
+- Unify punctuation
+- Convert to lowercase (situation-dependent)
 ```
 
-**为什么要清洗？**
-- 减少噪音，提高检索质量
-- 统一格式，避免重复
-- 降低 token 使用量
+**Why Clean?**
+- Reduce noise, improve retrieval quality
+- Unify format, avoid duplication
+- Reduce token usage
 
-**步骤 3: 分块策略 (Chunking Strategy)**
+**Step 3: Chunking Strategy**
 
-**为什么需要分块？**
-- LLM 上下文窗口有限（4K-128K tokens）
-- 嵌入模型有长度限制（512-8192 tokens）
-- 细粒度检索更准确
+**Why Chunk?**
+- LLM context window limited (4K-128K tokens)
+- Embedding models have length limits (512-8192 tokens)
+- Fine-grained retrieval more accurate
 
-**三种主要分块策略**:
+**Three Main Chunking Strategies**:
 
-**策略 1: 固定长度分块 (Fixed-size Chunking)**
+**Strategy 1: Fixed-size Chunking**
 
 ```
-原理: 按字符数或 token 数切分
+Principle: Split by character count or token count
 
-例子:
+Example:
 chunk_size = 500
 overlap = 50
 
-文档: "这是一篇长文章..." (2000 字符)
+Document: "This is a long article..." (2000 characters)
 
-分块:
-Chunk 1: 字符 0-500
-Chunk 2: 字符 450-950   (50 字符重叠)
-Chunk 3: 字符 900-1400
-Chunk 4: 字符 1350-1850
+Chunks:
+Chunk 1: Characters 0-500
+Chunk 2: Characters 450-950   (50 character overlap)
+Chunk 3: Characters 900-1400
+Chunk 4: Characters 1350-1850
 
-优点: 简单、快速、可预测
-缺点: 可能切断语义单元
+Pros: Simple, fast, predictable
+Cons: May break semantic units
 ```
 
-**策略 2: 语义分块 (Semantic Chunking)**
+**Strategy 2: Semantic Chunking**
 
 ```
-原理: 按语义边界切分（段落、章节）
+Principle: Split by semantic boundaries (paragraphs, sections)
 
-例子:
-文档: "第一章 介绍...\n\n第二章 方法...\n\n"
+Example:
+Document: "Chapter 1 Introduction...\n\nChapter 2 Methods...\n\n"
 
-分块:
-Chunk 1: "第一章 介绍..." (完整章节)
-Chunk 2: "第二章 方法..."   (完整章节)
+Chunks:
+Chunk 1: "Chapter 1 Introduction..." (complete chapter)
+Chunk 2: "Chapter 2 Methods..."   (complete chapter)
 
-优点: 语义完整、上下文连贯
-缺点: 需要文档结构、较慢
+Pros: Semantic completeness, contextual coherence
+Cons: Needs document structure, slower
 ```
 
-**策略 3: 递归分块 (Recursive Chunking)**
+**Strategy 3: Recursive Chunking**
 
 ```
-原理: 多级粒度，先粗后细
+Principle: Multi-level granularity, coarse to fine
 
-例子:
-Level 1: 章节级分块
-Level 2: 段落级分块
-Level 3: 句子级分块
+Example:
+Level 1: Chapter-level chunks
+Level 2: Paragraph-level chunks
+Level 3: Sentence-level chunks
 
-检索时:
-  粗粒度检索 → 细粒度精炼
+Retrieval:
+  Coarse-grained retrieval → Fine-grained refinement
 
-优点: 平衡速度和质量
-缺点: 复杂度高
+Pros: Balance speed and quality
+Cons: Higher complexity
 ```
 
-**分块选择指南**:
+**Chunking Selection Guide**:
 
-| 场景 | 推荐策略 | chunk_size | overlap |
-|------|---------|-----------|---------|
-| 通用文档 | 固定长度 | 500-1000 | 50-100 |
-| 学术论文 | 语义分块 | N/A | N/A |
-| 代码 | 语义分块（函数级） | N/A | N/A |
-| 长文档 | 递归分块 | 多级 | 视级别 |
-| FAQ/对话 | 固定长度 | 200-400 | 0-50 |
+| Scenario | Recommended Strategy | chunk_size | overlap |
+|----------|---------------------|-----------|---------|
+| General documents | Fixed-size | 500-1000 | 50-100 |
+| Academic papers | Semantic | N/A | N/A |
+| Code | Semantic (function-level) | N/A | N/A |
+| Long documents | Recursive | Multi-level | Varies |
+| FAQ/dialogue | Fixed-size | 200-400 | 0-50 |
 
-**步骤 4: 向量化 (Embedding)**
-
-```
-每个文本块 → 嵌入模型 → 向量
-
-例子:
-Chunk: "机器学习是 AI 的一个分支..."
-
-嵌入模型: text-embedding-3-small
-
-输出向量: [0.2, -0.5, 0.8, 0.1, ...] (1536 维)
-```
-
-**批量处理优化**:
-- 批量向量化（如 100 个一批）
-- GPU/TPU 加速
-- 异步处理（大规模数据）
-
-**步骤 5: 向量存储与索引 (Vector Storage & Indexing)**
-
-**向量数据库选择**:
-
-| 数据库 | 特点 | 适用场景 |
-|--------|------|---------|
-| Pinecone | 托管服务、易用 | 快速原型、小团队 |
-| Weaviate | 开源、模块化 | 自托管、定制需求 |
-| Qdrant | 高性能、Rust | 大规模、低延迟 |
-| Chroma | 轻量级、嵌入式 | 本地开发、测试 |
-| pgvector | PostgreSQL 扩展 | 已使用 PG 的场景 |
-
-**索引算法 (ANN - Approximate Nearest Neighbor)**:
+**Step 4: Vectorization**
 
 ```
-精确搜索 (Brute Force):
-  计算查询与所有文档的距离
-  复杂度: O(N) - N = 文档数
+Each text chunk → Embedding model → Vector
 
-近似搜索 (ANN):
-  使用索引结构快速找到近似最近邻
-  复杂度: O(log N) 或更快
-  牺牲少量精度换取速度
+Example:
+Chunk: "Machine learning is a branch of AI..."
+
+Embedding Model: text-embedding-3-small
+
+Output Vector: [0.2, -0.5, 0.8, 0.1, ...] (1536 dimensions)
 ```
 
-**常见 ANN 算法**:
-- HNSW (Hierarchical Navigable Small World): 高精度、较快
-- IVF (Inverted File Index): 平衡精度和速度
-- PQ (Product Quantization): 压缩向量、节省内存
+**Batch Processing Optimization**:
+- Batch vectorization (e.g., 100 at a time)
+- GPU/TPU acceleration
+- Asynchronous processing (large-scale data)
 
-**索引构建完成后的状态**:
+**Step 5: Vector Storage & Indexing**
+
+**Vector Database Selection**:
+
+| Database | Characteristics | Use Case |
+|----------|------------------|----------|
+| Pinecone | Managed service, easy | Rapid prototypes, small teams |
+| Weaviate | Open-source, modular | Self-hosted, customization needs |
+| Qdrant | High-performance, Rust | Large-scale, low latency |
+| Chroma | Lightweight, embedded | Local development, testing |
+| pgvector | PostgreSQL extension | Existing PG infrastructure |
+
+**Indexing Algorithms (ANN - Approximate Nearest Neighbor)**:
 
 ```
-原始文档:
+Exact Search (Brute Force):
+  Calculate distance between query and all documents
+  Complexity: O(N) - N = number of documents
+
+Approximate Search (ANN):
+  Use index structure to quickly find approximate nearest neighbors
+  Complexity: O(log N) or faster
+  Sacrifice small precision for speed
+```
+
+**Common ANN Algorithms**:
+- HNSW (Hierarchical Navigable Small World): High precision, fast
+- IVF (Inverted File Index): Balance precision and speed
+- PQ (Product Quantization): Compress vectors, save memory
+
+**Post-Indexing State**:
+
+```
+Original Documents:
   ├── doc1.pdf
   ├── doc2.md
   └── doc3.html
 
-          ↓ 索引构建完成
+          ↓ Indexing Complete
 
-向量数据库:
+Vector Database:
   ├── [
   │    id: "chunk-1",
   │    vector: [0.2, -0.5, ...],
@@ -885,31 +885,31 @@ Chunk: "机器学习是 AI 的一个分支..."
   ├── [chunk-2, ...],
   └── [chunk-3, ...]
 
-可检索状态 ✓
+Ready for Retrieval ✓
 ```
 
-### 1.4.2 阶段二：检索召回 (Retrieval Phase)
+### 1.4.2 Phase 2: Retrieval
 
-检索是 RAG 的"查询"阶段，根据用户问题找到最相关的文档片段。
+Retrieval is the "query" phase of RAG, finding the most relevant document fragments based on user questions.
 
-**检索流程**:
+**Retrieval Flow**:
 
 ```mermaid
 flowchart TB
-    A["用户查询"] --> B["查询向量化"]
-    B --> C{"检索策略"}
+    A["User Query"] --> B["Query Vectorization"]
+    B --> C{"Retrieval Strategy"}
 
-    C -->|向量检索| D["ANN 搜索"]
-    C -->|关键词检索| E["BM25 算法"]
-    C -->|混合检索| F["向量 + 关键词"]
+    C -->|Vector Retrieval| D["ANN Search"]
+    C -->|Keyword Retrieval| E["BM25 Algorithm"]
+    C -->|Hybrid Retrieval| F["Vector + Keyword"]
 
-    D --> G["Top-K 候选"]
+    D --> G["Top-K Candidates"]
     E --> G
     F --> G
 
-    G --> H{"是否重排序?"}
-    H -->|是| I["Cross-Encoder 重排"]
-    H -->|否| J["返回结果"]
+    G --> H{"Rerank?"}
+    H -->|Yes| I["Cross-Encoder Rerank"]
+    H -->|No| J["Return Results"]
 
     I --> J
 
@@ -917,982 +917,983 @@ flowchart TB
     style J fill:#55efc4
 ```
 
-**步骤 1: 查询向量化 (Query Embedding)**
+**Step 1: Query Vectorization**
 
 ```
-用户查询: "如何使用 Spring Boot 实现 REST API？"
+User Query: "How to implement REST API with Spring Boot?"
             ↓
-查询向量化: [0.3, -0.1, 0.9, ...] (与文档相同维度)
+Query Vectorization: [0.3, -0.1, 0.9, ...] (same dimension as documents)
             ↓
-用于相似度计算
+Used for similarity calculation
 ```
 
-**查询优化技巧**:
+**Query Optimization Techniques**:
 
-**查询扩展 (Query Expansion)**:
+**Query Expansion**:
 ```
-原始查询: "机器学习"
+Original Query: "machine learning"
 
-扩展后: "机器学习 OR 深度学习 OR 神经网络 OR ML OR DL"
+Expanded: "machine learning OR deep learning OR neural networks OR ML OR DL"
 
-提高: 召回率（覆盖更多相关文档）
-```
-
-**查询重写 (Query Rewriting)**:
-```
-用户: "怎么搞？"
-     ↓ LLM 重写
-"如何实现机器学习模型的训练？"
-
-提高: 明确查询意图
+Improvement: Recall (cover more relevant documents)
 ```
 
-**步骤 2: 向量检索 (Vector Retrieval)**
-
-**ANN 搜索过程**:
+**Query Rewriting**:
 ```
-1. 查询向量与索引中的所有向量计算相似度
-2. 使用索引结构快速找到 Top-K 最近邻
-3. 返回 K 个最相似的文档块
+User: "How to do?"
+     ↓ LLM Rewriting
+"How to implement machine learning model training?"
 
-参数:
-  - top_k: 返回多少个结果 (典型 5-20)
-  - score_threshold: 相似度阈值 (如 0.7)
+Improvement: Clarify query intent
 ```
 
-**检索结果示例**:
+**Step 2: Vector Retrieval**
+
+**ANN Search Process**:
 ```
-查询: "RAG 系统如何工作？"
+1. Calculate similarity between query vector and all vectors in index
+2. Use index structure to quickly find Top-K nearest neighbors
+3. Return K most similar document chunks
 
-Top-5 结果:
-1. "RAG 系统包含检索和生成两个阶段..." (相似度: 0.92)
-2. "检索增强生成 (RAG) 是一种..."     (相似度: 0.89)
-3. "RAG 与微调的主要区别..."        (相似度: 0.76)
-4. "向量数据库的选择..."            (相似度: 0.65)
-5. "今天天气很好..."                (相似度: 0.12)
-
-过滤后 (threshold=0.7):
-  结果 1, 2, 3
+Parameters:
+  - top_k: How many results to return (typically 5-20)
+  - score_threshold: Similarity threshold (e.g., 0.7)
 ```
 
-**步骤 3: 混合检索 (Hybrid Retrieval)**
+**Retrieval Result Example**:
+```
+Query: "How does RAG system work?"
 
-**为什么需要混合检索？**
+Top-5 Results:
+1. "RAG system consists of retrieval and generation phases..." (Similarity: 0.92)
+2. "Retrieval-Augmented Generation (RAG) is a..."     (Similarity: 0.89)
+3. "Main differences between RAG and fine-tuning..."        (Similarity: 0.76)
+4. "Vector database selection..."            (Similarity: 0.65)
+5. "Today's weather is great..."                (Similarity: 0.12)
 
-向量检索的局限：
-- 弱于精确匹配（专有名词、ID 号码）
-- 可能遗漏关键词
+Filtered (threshold=0.7):
+  Results 1, 2, 3
+```
 
-关键词检索的优势：
-- 精确匹配能力强
-- 互补向量检索
+**Step 3: Hybrid Retrieval**
 
-**混合策略**:
+**Why Hybrid Retrieval?**
+
+Vector retrieval limitations:
+- Weak at exact matching (proper nouns, ID numbers)
+- May miss keywords
+
+Keyword retrieval strengths:
+- Strong exact matching
+- Complementary to vector retrieval
+
+**Hybrid Strategy**:
 
 ```
-向量检索: Top-20 结果
-关键词检索: Top-20 结果
+Vector Retrieval: Top-20 results
+Keyword Retrieval: Top-20 results
       ↓
-合并并去重: Top-30 唯一结果
+Merge and Deduplicate: Top-30 unique results
       ↓
-重排序: 最终 Top-10
+Rerank: Final Top-10
 ```
 
-**打分融合**:
+**Score Fusion**:
 ```
-最终分数 = α × 向量分数 + (1-α) × 关键词分数
+Final Score = α × Vector Score + (1-α) × Keyword Score
 
-典型 α 值:
-  0.5: 向量和关键词同等重要
-  0.7: 向量为主，关键词为辅
-  0.3: 关键词为主，向量为辅
-```
-
-**步骤 4: 重排序 (Reranking)**
-
-**为什么需要重排序？**
-
-检索阶段追求"快"，可能牺牲"准"。重排序使用更复杂的模型重新精排。
-
-**Cross-Encoder 重排序**:
-```
-第一阶段 (检索):
-  快速模型: Bi-Encoder
-  返回: Top-20 候选
-
-第二阶段 (重排):
-  精确模型: Cross-Encoder
-  输入: (查询, 文档) 对
-  输出: 精确相似度分数
-  返回: Top-5 最终结果
-
-成本: 重排序 20 个 vs 检索 10000 个
-收益: 显著提升精度
+Typical α values:
+  0.5: Vector and keyword equally important
+  0.7: Vector primary, keyword secondary
+  0.3: Keyword primary, vector secondary
 ```
 
-**重排序模型选择**:
+**Step 4: Reranking**
 
-| 模型 | 特点 | 速度 | 精度 |
-|------|------|------|------|
-| bge-reranker-large | 中文优化 | 中 | 高 |
-| cohere-rerank-v3 | 多语言 | 快 | 高 |
-| cross-encoder-ms-marco | 英文优化 | 慢 | 很高 |
+**Why Rerank?**
 
-### 1.4.3 阶段三：生成合成 (Generation Phase)
+Retrieval phase prioritizes "fast", may sacrifice "accurate". Reranking uses more complex models to re-rank precisely.
 
-生成是 RAG 的"回答"阶段，LLM 基于检索到的上下文生成最终答案。
+**Cross-Encoder Reranking**:
+```
+First Phase (Retrieval):
+  Fast Model: Bi-Encoder
+  Return: Top-20 candidates
 
-**生成流程**:
+Second Phase (Rerank):
+  Precise Model: Cross-Encoder
+  Input: (query, document) pairs
+  Output: Precise similarity scores
+  Return: Top-5 final results
+
+Cost: Reranking 20 vs retrieving 10000
+Benefit: Significantly improved precision
+```
+
+**Reranking Model Selection**:
+
+| Model | Characteristics | Speed | Precision |
+|-------|----------------|-------|-----------|
+| bge-reranker-large | Chinese optimized | Medium | High |
+| cohere-rerank-v3 | Multilingual | Fast | High |
+| cross-encoder-ms-marco | English optimized | Slow | Very High |
+
+### 1.4.3 Phase 3: Generation
+
+Generation is the "answer" phase of RAG, where LLM generates the final answer based on retrieved context.
+
+**Generation Flow**:
 
 ```mermaid
 flowchart LR
-    A["检索到的文档"] --> B["上下文构建"]
-    C["用户查询"] --> B
-    B --> D["Prompt 模板"]
-    D --> E["LLM 推理"]
-    E --> F["答案后处理"]
-    F --> G["最终答案"]
+    A["Retrieved Documents"] --> B["Context Building"]
+    C["User Query"] --> B
+    B --> D["Prompt Template"]
+    D --> E["LLM Inference"]
+    E --> F["Answer Post-processing"]
+    F --> G["Final Answer"]
 
     style A fill:#ffeaa7
     style C fill:#ffeaa7
     style G fill:#55efc4
 ```
 
-**步骤 1: 上下文构建 (Context Building)**
+**Step 1: Context Building**
 
-**上下文注入策略**:
+**Context Injection Strategies**:
 
-**策略 1: 全部注入**
+**Strategy 1: Inject All**
 ```
-检索到 5 个文档，全部注入
+Retrieve 5 documents, inject all
 
-优点: 信息全
-缺点: 可能超出上下文窗口、成本高
-```
-
-**策略 2: 选择性注入**
-```
-只注入相似度 > 0.8 的文档
-
-优点: 质量高、节省 token
-缺点: 可能遗漏有用信息
+Pros: Complete information
+Cons: May exceed context window, high cost
 ```
 
-**策略 3: 压缩注入**
+**Strategy 2: Selective Injection**
 ```
-文档: "这是一篇长文章..." (1000 tokens)
-      ↓ LLM 压缩
-摘要: "文章主要讨论 RAG 的原理..." (200 tokens)
+Only inject documents with similarity > 0.8
 
-优点: 保留关键信息、节省 token
-缺点: 压缩可能丢失细节
+Pros: High quality, saves tokens
+Cons: May miss useful information
 ```
 
-**上下文长度管理**:
+**Strategy 3: Compressed Injection**
 ```
-LLM 上下文窗口: 8K tokens
-查询: 100 tokens
-系统提示: 500 tokens
+Document: "This is a long article..." (1000 tokens)
+      ↓ LLM Compression
+Summary: "Article mainly discusses RAG principles..." (200 tokens)
+
+Pros: Preserve key information, save tokens
+Cons: Compression may lose details
+```
+
+**Context Length Management**:
+```
+LLM Context Window: 8K tokens
+Query: 100 tokens
+System Prompt: 500 tokens
       ↓
-可用空间: 7400 tokens
+Available Space: 7400 tokens
 
-文档分配:
-  文档 1: 2000 tokens
-  文档 2: 1800 tokens
-  文档 3: 1500 tokens
-  文档 4: 2100 tokens ← 超出！
+Document Allocation:
+  Document 1: 2000 tokens
+  Document 2: 1800 tokens
+  Document 3: 1500 tokens
+  Document 4: 2100 tokens ← Exceeds!
       ↓
-截断或丢弃文档 4
+Truncate or Drop Document 4
 ```
 
-**步骤 2: Prompt 模板 (Prompt Template)**
+**Step 2: Prompt Template**
 
-**标准 RAG Prompt 模板**:
+**Standard RAG Prompt Template**:
 
 ```
-你是一个有用的助手。请基于以下上下文回答用户的问题。
+You are a helpful assistant. Please answer the user's question based on the following context.
 
-上下文:
+Context:
 {context}
 
-问题: {question}
+Question: {question}
 
-答案:
+Answer:
 ```
 
-**填充后的实际 Prompt**:
+**Filled Actual Prompt**:
 ```
-你是一个有用的助手。请基于以下上下文回答用户的问题。
+You are a helpful assistant. Please answer the user's question based on the following context.
 
-上下文:
-[文档 1]: RAG 是检索增强生成的缩写，它结合了信息检索和文本生成...
-[文档 2]: RAG 系统包含三个主要组件：检索器、知识源和生成器...
-[文档 3]: RAG 的优势包括实时更新、数据扎根和隐私保护...
+Context:
+[Document 1]: RAG is short for Retrieval-Augmented Generation, combining information retrieval and text generation...
+[Document 2]: RAG system consists of three main components: retriever, knowledge source, and generator...
+[Document 3]: RAG advantages include real-time updates, data grounding, and privacy protection...
 
-问题: RAG 系统由哪些组件组成？
+Question: What components does a RAG system consist of?
 
-答案:
-```
-
-**Prompt 优化技巧**:
-
-**技巧 1: 明确指令**
-```
-❌ 差: "基于上下文回答问题"
-✓ 好: "仅基于以下上下文回答问题。如果上下文中没有相关信息，
-      请明确说明'上下文中未找到相关信息'，不要编造答案。"
+Answer:
 ```
 
-**技巧 2: 来源引用**
+**Prompt Optimization Techniques**:
+
+**Technique 1: Clear Instructions**
 ```
-上下文:
-[文档 1 - 来源: rag-intro.pdf]: RAG 是检索增强生成...
-[文档 2 - 来源: rag-components.md]: RAG 系统包含...
-
-问题: RAG 的优势是什么？
-
-答案: 根据 rag-intro.pdf，RAG 的优势包括...
-      又根据 rag-components.md，RAG 的组件有...
+❌ Poor: "Answer the question based on context"
+✓ Good: "Answer the question ONLY based on the following context. If no relevant
+         information is found in the context, clearly state 'No relevant information
+         found in context', do not fabricate answers."
 ```
 
-**技巧 3: 多步骤推理**
+**Technique 2: Source Citation**
 ```
-上下文: {context}
+Context:
+[Document 1 - Source: rag-intro.pdf]: RAG is short for Retrieval-Augmented...
+[Document 2 - Source: rag-components.md]: RAG system consists of...
 
-问题: {question}
+Question: What are RAG's advantages?
 
-请按以下步骤回答:
-1. 理解问题的核心意图
-2. 从上下文中提取相关信息
-3. 综合多个信息源
-4. 给出清晰的答案
+Answer: According to rag-intro.pdf, RAG's advantages include...
+      Also according to rag-components.md, RAG components have...
 ```
 
-**步骤 3: LLM 推理 (LLM Inference)**
+**Technique 3: Multi-step Reasoning**
+```
+Context: {context}
 
-**模型选择**:
+Question: {question}
 
-| 场景 | 推荐模型 | 理由 |
-|------|---------|------|
-| 简单问答 | GPT-3.5 / Llama-3-8B | 成本低、速度快 |
-| 复杂推理 | GPT-4 / Claude-3.5 | 推理能力强 |
-| 中文优化 | Qwen / Yi / DeepSeek | 中文效果好 |
-| 私有部署 | Llama-3-70B / Mistral | 数据隐私 |
+Please answer following these steps:
+1. Understand the core intent of the question
+2. Extract relevant information from context
+3. Synthesize multiple information sources
+4. Give a clear answer
+```
 
-**推理参数调优**:
+**Step 3: LLM Inference**
+
+**Model Selection**:
+
+| Scenario | Recommended Model | Reason |
+|----------|------------------|--------|
+| Simple Q&A | GPT-3.5 / Llama-3-8B | Low cost, fast |
+| Complex Reasoning | GPT-4 / Claude-3.5 | Strong reasoning |
+| Chinese Optimized | Qwen / Yi / DeepSeek | Good Chinese performance |
+| Private Deployment | Llama-3-70B / Mistral | Data privacy |
+
+**Inference Parameter Tuning**:
 
 ```
 temperature = 0.0-0.2
-  低温度: 更确定性、更忠实于上下文
-  适用: 事实性问答
+  Low temperature: More deterministic, more faithful to context
+  Use case: Factual Q&A
 
 top_p = 0.9-1.0
-  核采样: 控制多样性
-  RAG 场景通常设为 1.0
+  Nucleus sampling: Control diversity
+  RAG scenarios typically set to 1.0
 
-max_tokens = 视需求
-  短答案: 100-300
-  长答案: 500-1000
-  总结: 200-500
+max_tokens = as needed
+  Short answers: 100-300
+  Long answers: 500-1000
+  Summaries: 200-500
 ```
 
-**步骤 4: 答案后处理 (Answer Post-processing)**
+**Step 4: Answer Post-processing**
 
-**后处理任务**:
+**Post-processing Tasks**:
 
-**任务 1: 来源提取**
+**Task 1: Source Extraction**
 ```
-LLM 输出: "根据文档 1，RAG 是..."
+LLM Output: "According to document 1, RAG is..."
          ↓
-后处理: 提取来源引用
-结果: "根据 rag-intro.pdf，RAG 是..."
+Post-process: Extract source citation
+Result: "According to rag-intro.pdf, RAG is..."
 ```
 
-**任务 2: 置信度评分**
+**Task 2: Confidence Scoring**
 ```
-方法 1: 基于 LLM 输出
-  "我确定答案是..." → 高置信度
+Method 1: Based on LLM output
+  "I'm certain the answer is..." → High confidence
 
-方法 2: 基于检索分数
-  平均相似度 > 0.85 → 高置信度
-  平均相似度 < 0.7 → 低置信度
+Method 2: Based on retrieval scores
+  Average similarity > 0.85 → High confidence
+  Average similarity < 0.7 → Low confidence
 
-方法 3: 专门的置信度模型
-  额外的分类器判断答案质量
-```
-
-**任务 3: 格式化**
-```
-需求: JSON 输出、Markdown、纯文本...
-
-转换:
-  LLM 输出 → 目标格式
-
-例子:
-  "答案是: RAG 是..." → {"answer": "RAG 是..."}
+Method 3: Dedicated confidence model
+  Additional classifier judges answer quality
 ```
 
-**完整 RAG 管道示例**:
+**Task 3: Formatting**
+```
+Requirement: JSON output, Markdown, Plain text...
+
+Conversion:
+  LLM output → Target format
+
+Example:
+  "The answer is: RAG is..." → {"answer": "RAG is..."}
+```
+
+**Complete RAG Pipeline Example**:
 
 ```
-用户查询: "RAG 和微调有什么区别？"
+User Query: "What's the difference between RAG and fine-tuning?"
 
-阶段 1 - 检索:
-  向量化: [0.1, -0.3, 0.8, ...]
-  检索: Top-5 相关文档
-  重排: 精选 Top-3
+Phase 1 - Retrieval:
+  Vectorization: [0.1, -0.3, 0.8, ...]
+  Retrieval: Top-5 relevant documents
+  Rerank: Refined Top-3
 
-阶段 2 - 上下文构建:
-  注入: 文档 1 (2000 tokens) + 文档 2 (1800 tokens)
+Phase 2 - Context Building:
+  Injection: Document 1 (2000 tokens) + Document 2 (1800 tokens)
 
-阶段 3 - 生成:
-  Prompt: "基于以下上下文回答..."
+Phase 3 - Generation:
+  Prompt: "Answer based on the following context..."
   LLM: GPT-4, temperature=0.1
-  输出: "RAG 和微调的主要区别在于..."
+  Output: "The main difference between RAG and fine-tuning is..."
 
-最终答案:
-  "RAG 和微调的主要区别在于知识存储方式。
-   RAG 将知识存储在外部向量数据库中，支持实时更新；
-   而微调将知识内化到模型权重中，需要重新训练。
+Final Answer:
+  "The main difference between RAG and fine-tuning is knowledge storage.
+   RAG stores knowledge in external vector databases, supporting real-time updates;
+   Fine-tuning internalizes knowledge into model weights, requiring retraining.
 
-   来源: rag-vs-finetune.md, rag-fundamentals.pdf"
+   Source: rag-vs-finetune.md, rag-fundamentals.pdf"
 ```
 
 ---
 
-## 1.5 RAG 的演进范式 (Evolutionary Paradigms)
+## 1.5 Evolutionary Paradigms
 
-### 1.5.1 Naive RAG：基础三段式链路及其局限性
+### 1.5.1 Naive RAG: Basic Three-Stage Pipeline and Limitations
 
-**Naive RAG** 是 RAG 的最简单形式，直接按照"检索-生成"的线性流程工作。
+**Naive RAG** is the simplest form of RAG, working directly in a linear "retrieve-generate" flow.
 
-**Naive RAG 架构**:
+**Naive RAG Architecture**:
 
 ```mermaid
 flowchart LR
-    A["用户查询"] --> B["查询向量化"]
-    B --> C["向量检索"]
-    C --> D["Top-K 文档"]
-    D --> E["上下文注入"]
-    E --> F["LLM 生成"]
-    F --> G["最终答案"]
+    A["User Query"] --> B["Query Vectorization"]
+    B --> C["Vector Retrieval"]
+    C --> D["Top-K Documents"]
+    D --> E["Context Injection"]
+    E --> F["LLM Generation"]
+    F --> G["Final Answer"]
 
     style A fill:#ffeaa7
     style G fill:#55efc4
 ```
 
-**标准工作流程**:
+**Standard Workflow**:
 
 ```
-1. 用户输入问题
-2. 问题向量化
-3. 向量数据库检索 Top-K 文档
-4. 将文档注入 Prompt
-5. LLM 生成答案
+1. User enters question
+2. Question vectorization
+3. Vector database retrieves Top-K documents
+4. Inject documents into Prompt
+5. LLM generates answer
 ```
 
-**Naive RAG 的局限性**:
+**Limitations of Naive RAG**:
 
-**局限 1: 查询质量问题**
+**Limitation 1: Query Quality Issues**
 ```
-用户查询: "怎么搞？"
-问题: 模糊、缺乏上下文
-结果: 检索不准确
-```
-
-**局限 2: 单一检索方法**
-```
-仅依赖向量检索:
-  - 弱于精确匹配（专有名词）
-  - 可能遗漏关键词
-  - 无法处理结构化查询
+User Query: "How to do?"
+Problem: Vague, lacks context
+Result: Inaccurate retrieval
 ```
 
-**局限 3: 无重排序**
+**Limitation 2: Single Retrieval Method**
 ```
-检索结果:
-  文档 1: 相似度 0.75 (实际不相关)
-  文档 2: 相似度 0.73 (实际高度相关)
-
-Naive RAG: 直接使用文档 1
-实际应该: 重排序后选择文档 2
+Only vector retrieval:
+  - Weak at exact matching (proper nouns)
+  - May miss keywords
+  - Cannot handle structured queries
 ```
 
-**局限 4: 上下文窗口限制**
+**Limitation 3: No Reranking**
 ```
-检索到 10 个文档，总计 15000 tokens
-LLM 上下文窗口: 8000 tokens
+Retrieval Results:
+  Document 1: Similarity 0.75 (actually irrelevant)
+  Document 2: Similarity 0.73 (actually highly relevant)
+
+Naive RAG: Directly uses Document 1
+Should be: Rerank then select Document 2
+```
+
+**Limitation 4: Context Window Limitation**
+```
+Retrieved 10 documents, total 15000 tokens
+LLM context window: 8000 tokens
       ↓
-必须截断或丢弃文档
-可能丢失关键信息
+Must truncate or drop documents
+May lose key information
 ```
 
-**局限 5: 检索失败无法恢复**
+**Limitation 5: Retrieval Failure No Recovery**
 ```
-检索失败 → 上下文为空或无关
+Retrieval fails → Context empty or irrelevant
       ↓
-LLM 仍然尝试回答 → 幻觉
-Naive RAG 没有检测机制
+LLM still attempts to answer → Hallucination
+Naive RAG has no detection mechanism
 ```
 
-**适用场景**:
-- 简单问答（明确的问题）
-- 文档库较小（< 10K 文档）
-- 预算有限（简单实现）
-- 原型验证（快速迭代）
+**Applicable Scenarios**:
+- Simple Q&A (clear questions)
+- Small document base (< 10K documents)
+- Limited budget (simple implementation)
+- Prototype validation (rapid iteration)
 
-### 1.5.2 Advanced RAG：查询重写、混合检索与重排序
+### 1.5.2 Advanced RAG: Query Rewriting, Hybrid Retrieval, and Reranking
 
-**Advanced RAG** 在 Naive RAG 基础上增加了多层优化，显著提升检索质量和生成效果。
+**Advanced RAG** adds multiple optimization layers on top of Naive RAG, significantly improving retrieval quality and generation effectiveness.
 
-**Advanced RAG 架构**:
+**Advanced RAG Architecture**:
 
 ```mermaid
 flowchart TB
-    A["用户查询"] --> B{"查询优化"}
-    B --> B1["查询重写"]
-    B --> B2["查询扩展"]
-    B --> B3["多重查询"]
+    A["User Query"] --> B{"Query Optimization"}
+    B --> B1["Query Rewriting"]
+    B --> B2["Query Expansion"]
+    B --> B3["Multi-Query"]
 
-    B1 --> C{"混合检索"}
+    B1 --> C{"Hybrid Retrieval"}
     B2 --> C
     B3 --> C
 
-    C --> C1["向量检索"]
-    C --> C2["关键词检索"]
-    C --> C3["结构化检索"]
+    C --> C1["Vector Retrieval"]
+    C --> C2["Keyword Retrieval"]
+    C --> C3["Structured Retrieval"]
 
-    C1 --> D["结果融合"]
+    C1 --> D["Result Fusion"]
     C2 --> D
     C3 --> D
 
-    D --> E{"重排序"}
+    D --> E{"Reranking"}
     E --> E1["Cross-Encoder"]
-    E --> E2["多样性过滤"]
+    E --> E2["Diversity Filter"]
 
-    E1 --> F["上下文优化"]
+    E1 --> F["Context Optimization"]
     E2 --> F
 
-    F --> F1["上下文压缩"]
-    F --> F2["动态选择"]
+    F --> F1["Context Compression"]
+    F --> F2["Dynamic Selection"]
 
-    F1 --> G["LLM 生成"]
+    F1 --> G["LLM Generation"]
     F2 --> G
 
-    G --> H["答案验证"]
-    H --> I["最终答案"]
+    G --> H["Answer Validation"]
+    H --> I["Final Answer"]
 
     style A fill:#ffeaa7
     style I fill:#55efc4
 ```
 
-**优化 1: 查询重写 (Query Rewriting)**
+**Optimization 1: Query Rewriting**
 
-**目标**: 将模糊、不完整的查询转换为清晰、可执行的查询。
+**Goal**: Convert vague, incomplete queries into clear, executable queries.
 
-**LLM 查询重写**:
+**LLM Query Rewriting**:
 ```
-原始查询: "怎么搞？"
-      ↓ LLM 重写
-优化查询: "如何在 Spring Boot 中实现 REST API？"
+Original Query: "How to do?"
+      ↓ LLM Rewriting
+Optimized Query: "How to implement REST API with Spring Boot?"
       ↓
-检索质量显著提升
+Significantly improved retrieval quality
 ```
 
-**查询重写技巧**:
+**Query Rewriting Techniques**:
 ```
-1. 意图识别: 用户想要什么？
-2. 上下文补充: 补充隐含信息
-3. 专业术语转换: 口语 → 专业术语
-4. 多语言统一: 中文 → 英文（如文档库主要是英文）
-```
-
-**优化 2: 查询扩展 (Query Expansion)**
-
-**目标**: 生成多个相关查询，提高召回率。
-
-**查询扩展方法**:
-
-**方法 1: 同义词扩展**
-```
-原始: "机器学习"
-扩展: "机器学习 OR 深度学习 OR 神经网络 OR ML OR DL"
+1. Intent Recognition: What does the user want?
+2. Context Supplementation: Supplement implicit information
+3. Professional Term Conversion: Colloquial → Professional
+4. Multilingual Unification: Chinese → English (if doc base is primarily English)
 ```
 
-**方法 2: LLM 生成子查询**
+**Optimization 2: Query Expansion**
+
+**Goal**: Generate multiple related queries to improve recall.
+
+**Query Expansion Methods**:
+
+**Method 1: Synonym Expansion**
 ```
-原始: "如何提高 RAG 系统的性能？"
-      ↓ LLM 生成
-子查询 1: "RAG 系统的索引优化方法"
-子查询 2: "RAG 检索算法比较"
-子查询 3: "RAG 生成阶段的优化技巧"
+Original: "machine learning"
+Expanded: "machine learning OR deep learning OR neural networks OR ML OR DL"
+```
+
+**Method 2: LLM-Generated Sub-queries**
+```
+Original: "How to improve RAG system performance?"
+      ↓ LLM Generation
+Sub-query 1: "RAG system index optimization methods"
+Sub-query 2: "RAG retrieval algorithm comparison"
+Sub-query 3: "RAG generation phase optimization techniques"
       ↓
-并行检索多个子查询
+Parallel retrieval of multiple sub-queries
 ```
 
-**方法 3: 假设性文档扩展 (HyDE)**
+**Method 3: Hypothetical Document Expansion (HyDE)**
 ```
-查询: "RAG 系统的工作原理"
-      ↓ LLM 生成假设答案
-假设文档: "RAG 系统通过检索外部知识库来增强 LLM。
-           它包含三个阶段：索引构建、检索召回和生成合成..."
-      ↓ 对假设文档向量化
-      ↓ 检索与假设文档相似的真实文档
-```
-
-**优化 3: 混合检索 (Hybrid Retrieval)**
-
-**向量 + 关键词融合**:
-
-```
-向量检索 (Top-20):
-  语义相似度高
-  精确匹配弱
-
-关键词检索 (Top-20):
-  精确匹配强
-  语义理解弱
-
-融合:
-  结果 = α × 向量分数 + (1-α) × 关键词分数
-  典型 α = 0.7 (向量为主)
-
-输出: Top-20 混合结果
+Query: "Working principle of RAG systems"
+      ↓ LLM Generates Hypothetical Answer
+Hypothetical Document: "RAG systems enhance LLMs by retrieving external knowledge bases.
+           It consists of three phases: indexing, retrieval, and generation..."
+      ↓ Vectorize hypothetical document
+      ↓ Retrieve real documents similar to hypothetical document
 ```
 
-**优化 4: 重排序 (Reranking)**
+**Optimization 3: Hybrid Retrieval**
 
-**两阶段检索策略**:
+**Vector + Keyword Fusion**:
+
 ```
-第一阶段 - 召回:
-  快速检索: Bi-Encoder + ANN
-  返回: Top-50 候选
-  成本: 低
+Vector Retrieval (Top-20):
+  High semantic similarity
+  Weak exact matching
 
-第二阶段 - 精排:
-  精确重排: Cross-Encoder
-  输入: (查询, 文档) 对
-  返回: Top-10 最终结果
-  成本: 中（但仅对 50 个文档）
+Keyword Retrieval (Top-20):
+  Strong exact matching
+  Weak semantic understanding
 
-总体: 快速 + 精确
-```
+Fusion:
+  Result = α × Vector Score + (1-α) × Keyword Score
+  Typical α = 0.7 (vector primary)
 
-**重排序优化**:
-```
-多样性过滤:
-  Top-10 结果中，避免过于相似
-  例如: 不选 5 个来自同一文档的片段
-
-新颖性检测:
-  惩罚与之前结果过于相似的文档
-
-置信度阈值:
-  过滤低置信度结果 (< 0.6)
+Output: Top-20 hybrid results
 ```
 
-**优化 5: 上下文压缩 (Context Compression)**
+**Optimization 4: Reranking**
 
-**问题**: 检索到的文档可能很长，浪费 tokens。
-
-**解决方案**:
-
-**方法 1: LLM 压缩**
+**Two-Stage Retrieval Strategy**:
 ```
-原始文档: "这是一篇关于 RAG 的长文章，详细介绍了..." (2000 tokens)
-          ↓ LLM 提取关键信息
-压缩后: "RAG 包含三个阶段：索引、检索、生成。优势是实时更新..."
-        (300 tokens)
+First Stage - Recall:
+  Fast Retrieval: Bi-Encoder + ANN
+  Return: Top-50 candidates
+  Cost: Low
 
-节省: 1700 tokens
-```
+Second Stage - Precision:
+  Precise Reranking: Cross-Encoder
+  Input: (query, document) pairs
+  Return: Top-10 final results
+  Cost: Medium (but only for 50 documents)
 
-**方法 2: 只提取相关句子**
-```
-查询: "RAG 的索引阶段包含哪些步骤？"
-
-文档: "RAG 是一种 AI 架构...
-       索引阶段包括文档解析、文本清洗、分块和向量化...
-       生成阶段是 LLM 基于上下文生成答案..."
-
-提取: 只保留"索引阶段包括..."这个句子
-丢弃: 其他不相关句子
+Overall: Fast + Precise
 ```
 
-**优化 6: 递归检索 (Recursive Retrieval)**
-
-**问题**: 有时需要多次检索才能获得足够信息。
-
-**递归检索流程**:
+**Reranking Optimization**:
 ```
-第一轮检索:
-  查询: "什么是 RAG？"
-  结果: "RAG 是检索增强生成..."
+Diversity Filtering:
+  Among Top-10 results, avoid over-similarity
+  Example: Don't select 5 fragments from same document
 
-第二轮检索 (基于第一轮结果):
-  查询: "RAG 的核心组件有哪些？"
-  结果: "包含检索器、知识源和生成器..."
+Novelty Detection:
+  Penalize documents too similar to previous results
 
-第三轮检索 (深入细节):
-  查询: "检索器如何工作？"
-  结果: "检索器使用向量相似度..."
-
-最终: 综合多轮检索的信息
+Confidence Threshold:
+  Filter low-confidence results (< 0.6)
 ```
 
-**Advanced RAG vs Naive RAG 对比**:
+**Optimization 5: Context Compression**
 
-| 维度 | Naive RAG | Advanced RAG |
-|------|-----------|--------------|
-| 查询处理 | 直接使用 | 重写、扩展、多查询 |
-| 检索方法 | 仅向量 | 混合检索（向量 + 关键词） |
-| 重排序 | 无 | Cross-Encoder 精排 |
-| 上下文优化 | 直接注入 | 压缩、选择、去重 |
-| 检索轮数 | 单轮 | 支持多轮递归 |
-| 准确率 | 中等 | 高 |
-| 延迟 | 低 (50-200ms) | 中 (200-500ms) |
-| 成本 | 低 | 中 |
-| 适用场景 | 简单问答 | 复杂、专业问答 |
+**Problem**: Retrieved documents may be long, wasting tokens.
 
-### 1.5.3 Modular RAG：动态路由、Agent 与多模态扩展趋势
+**Solutions**:
 
-**Modular RAG** 代表 RAG 的下一代架构，引入模块化、动态路由和 Agent 能力，实现更智能、更灵活的知识检索和生成。
+**Method 1: LLM Compression**
+```
+Original Document: "This is a long article about RAG, detailing..." (2000 tokens)
+          ↓ LLM Extracts Key Information
+Compressed: "RAG consists of three phases: indexing, retrieval, generation.
+           Advantages are real-time updates..." (300 tokens)
 
-**Modular RAG 核心理念**:
+Savings: 1700 tokens
+```
 
-不再将 RAG 视为固定流程，而是可组合的模块集合，根据查询类型动态选择最优路径。
+**Method 2: Extract Only Relevant Sentences**
+```
+Query: "What steps does RAG indexing phase include?"
 
-**Modular RAG 架构**:
+Document: "RAG is an AI architecture...
+         Indexing phase includes document parsing, text cleaning, chunking, and vectorization...
+         Generation phase is LLM generating answer based on context..."
+
+Extract: Only keep "Indexing phase includes..." sentence
+Discard: Other irrelevant sentences
+```
+
+**Optimization 6: Recursive Retrieval**
+
+**Problem**: Sometimes multiple retrievals needed to gather sufficient information.
+
+**Recursive Retrieval Flow**:
+```
+First Round Retrieval:
+  Query: "What is RAG?"
+  Result: "RAG is retrieval-augmented generation..."
+
+Second Round Retrieval (based on first round):
+  Query: "What are RAG's core components?"
+  Result: "Includes retriever, knowledge source, and generator..."
+
+Third Round Retrieval (deep dive):
+  Query: "How does retriever work?"
+  Result: "Retriever uses vector similarity..."
+
+Final: Synthesize information from multiple rounds
+```
+
+**Advanced RAG vs Naive RAG Comparison**:
+
+| Dimension | Naive RAG | Advanced RAG |
+|-----------|-----------|--------------|
+| Query Processing | Direct use | Rewriting, expansion, multi-query |
+| Retrieval Method | Vector only | Hybrid retrieval (vector + keyword) |
+| Reranking | None | Cross-Encoder precision |
+| Context Optimization | Direct injection | Compression, selection, deduplication |
+| Retrieval Rounds | Single | Support multi-round recursive |
+| Accuracy | Medium | High |
+| Latency | Low (50-200ms) | Medium (200-500ms) |
+| Cost | Low | Medium |
+| Use Cases | Simple Q&A | Complex, professional Q&A |
+
+### 1.5.3 Modular RAG: Dynamic Routing, Agents, and Multimodal Trends
+
+**Modular RAG** represents the next generation of RAG architecture, introducing modularity, dynamic routing, and agent capabilities for more intelligent, flexible knowledge retrieval and generation.
+
+**Modular RAG Core Philosophy**:
+
+Instead of viewing RAG as a fixed pipeline, treat it as a composable collection of modules that dynamically select optimal paths based on query type.
+
+**Modular RAG Architecture**:
 
 ```mermaid
 flowchart TB
-    A["用户查询"] --> B["查询分析器"]
+    A["User Query"] --> B["Query Analyzer"]
 
-    B --> C{"动态路由"}
+    B --> C{"Dynamic Routing"}
 
-    C -->|事实查询| D["基础 RAG 模块"]
-    C -->|复杂推理| E["Agent 模块"]
-    C -->|多模态| F["多模态模块"]
-    C -->|实时数据| G["工具调用模块"]
+    C -->|Factual Query| D["Basic RAG Module"]
+    C -->|Complex Reasoning| E["Agent Module"]
+    C -->|Multimodal| F["Multimodal Module"]
+    C -->|Real-time Data| G["Tool Calling Module"]
 
-    D --> D1["向量检索"]
-    D --> D2["生成"]
+    D --> D1["Vector Retrieval"]
+    D --> D2["Generation"]
 
-    E --> E1["规划子任务"]
-    E --> E2["多步检索"]
-    E --> E3["推理合成"]
+    E --> E1["Plan Subtasks"]
+    E --> E2["Multi-step Retrieval"]
+    E --> E3["Reasoning Synthesis"]
 
-    F --> F1["文本检索"]
-    F --> F2["图像检索"]
-    F --> F3["跨模态生成"]
+    F --> F1["Text Retrieval"]
+    F --> F2["Image Retrieval"]
+    F --> F3["Cross-modal Generation"]
 
-    G --> G1["API 调用"]
-    G --> G2["数据库查询"]
-    G --> G3["实时数据"]
+    G --> G1["API Calls"]
+    G --> G2["Database Queries"]
+    G --> G3["Real-time Data"]
 
-    D2 --> H["答案综合"]
+    D2 --> H["Answer Synthesis"]
     E3 --> H
     F3 --> H
     G3 --> H
 
-    H --> I["自我反思"]
-    I --> J["最终答案"]
+    H --> I["Self Reflection"]
+    I --> J["Final Answer"]
 
     style A fill:#ffeaa7
     style C fill:#ff7675
     style J fill:#55efc4
 ```
 
-**模块 1: 动态路由 (Dynamic Routing)**
+**Module 1: Dynamic Routing**
 
-**核心思想**: 根据查询类型，自动选择最优的处理路径。
+**Core Idea**: Automatically select optimal processing path based on query type.
 
-**路由策略**:
+**Routing Strategies**:
 
-**策略 1: 基于查询分类**
+**Strategy 1: Query Classification-Based**
 ```
-查询分析器识别查询类型:
+Query Analyzer Identifies Query Type:
 
-类型 1: 简单事实查询
-  → 基础 RAG（向量检索 + 生成）
+Type 1: Simple Factual Query
+  → Basic RAG (vector retrieval + generation)
 
-类型 2: 复杂推理查询
-  → Agent RAG（多步检索 + 推理）
+Type 2: Complex Reasoning Query
+  → Agent RAG (multi-step retrieval + reasoning)
 
-类型 3: 实时数据查询
-  → 工具调用（API + 数据库查询）
+Type 3: Real-time Data Query
+  → Tool Calling (API + database queries)
 
-类型 4: 多模态查询
-  → 多模态模块（文本 + 图像）
-```
-
-**策略 2: 基于置信度**
-```
-第一轮 RAG:
-  检索置信度高 (> 0.9)
-    → 直接返回答案
-
-  检索置信度中等 (0.7-0.9)
-    → 查询扩展 + 重试
-
-  检索置信度低 (< 0.7)
-    → 切换到其他模块（如 Agent）
+Type 4: Multimodal Query
+  → Multimodal Module (text + image)
 ```
 
-**模块 2: Agent RAG**
-
-**核心思想**: 将 LLM 作为 Agent，主动规划检索策略，而非被动检索。
-
-**Agent RAG 工作流程**:
+**Strategy 2: Confidence-Based**
 ```
-用户查询: "比较 RAG 和微调在企业应用中的成本效益"
+First Round RAG:
+  High retrieval confidence (> 0.9)
+    → Directly return answer
 
-Agent 规划:
-  步骤 1: 检索 RAG 的成本信息
-  步骤 2: 检索微调的成本信息
-  步骤 3: 检索企业应用场景案例
-  步骤 4: 综合比较分析
+  Medium retrieval confidence (0.7-0.9)
+    → Query expansion + retry
 
-执行:
-  步骤 1 → 检索 → "RAG 的成本主要是向量数据库存储..."
-  步骤 2 → 检索 → "微调需要 GPU 训练成本..."
-  步骤 3 → 检索 → "企业案例..."
-  步骤 4 → 推理 → "综合以上信息..."
-
-最终答案:
-  "基于检索到的信息，RAG 在企业应用中的成本优势包括..."
+  Low retrieval confidence (< 0.7)
+    → Switch to other modules (like Agent)
 ```
 
-**Agent 能力**:
+**Module 2: Agent RAG**
 
-**能力 1: 工具使用 (Tool Use)**
+**Core Idea**: Use LLM as Agent, actively planning retrieval strategies rather than passive retrieval.
+
+**Agent RAG Workflow**:
 ```
-可用工具:
-  - 向量检索 (搜索文档库)
-  - Web 搜索 (获取实时信息)
-  - 计算器 (数值计算)
-  - SQL 查询 (结构化数据)
+User Query: "Compare cost-effectiveness of RAG and fine-tuning in enterprise applications"
 
-Agent 自动选择工具:
-  "查询成本数据" → 使用 SQL 查询
-  "查询最新新闻" → 使用 Web 搜索
-  "查询内部文档" → 使用向量检索
-```
+Agent Planning:
+  Step 1: Retrieve RAG cost information
+  Step 2: Retrieve fine-tuning cost information
+  Step 3: Retrieve enterprise application case studies
+  Step 4: Comprehensive comparative analysis
 
-**能力 2: 多步推理 (Multi-step Reasoning)**
-```
-查询: "为什么 RAG 适合实时更新的场景？"
+Execution:
+  Step 1 → Retrieval → "RAG's costs mainly include vector database storage..."
+  Step 2 → Retrieval → "Fine-tuning requires GPU training costs..."
+  Step 3 → Retrieval → "Enterprise cases..."
+  Step 4 → Reasoning → "Synthesizing above information..."
 
-Agent 推理链:
-  思考 1: 首先理解 RAG 的更新机制
-    → 检索 "RAG 更新机制"
-    → 获知: "添加文档即可"
-
-  思考 2: 理解微调的更新机制
-    → 检索 "微调更新流程"
-    → 获知: "需要重新训练"
-
-  思考 3: 比较两者的更新速度
-    → 推理: "添加文档 << 重新训练"
-
-  思考 4: 总结
-    → "RAG 适合实时更新，因为更新成本低"
+Final Answer:
+  "Based on retrieved information, RAG's cost advantages in enterprise applications include..."
 ```
 
-**模块 3: 多模态 RAG**
+**Agent Capabilities**:
 
-**核心思想**: 扩展 RAG 到文本之外，支持图像、音频、视频等多模态内容。
-
-**多模态 RAG 架构**:
+**Capability 1: Tool Use**
 ```
-用户查询: "这张图中的架构是什么？"
+Available Tools:
+  - Vector Retrieval (search document base)
+  - Web Search (get real-time information)
+  - Calculator (numerical calculation)
+  - SQL Query (structured data)
+
+Agent Automatically Selects Tools:
+  "Query cost data" → Use SQL Query
+  "Query latest news" → Use Web Search
+  "Query internal documents" → Use Vector Retrieval
+```
+
+**Capability 2: Multi-step Reasoning**
+```
+Query: "Why is RAG suitable for real-time update scenarios?"
+
+Agent Reasoning Chain:
+  Thought 1: First understand RAG's update mechanism
+    → Retrieve "RAG update mechanism"
+    → Learn: "Just add documents"
+
+  Thought 2: Understand fine-tuning's update mechanism
+    → Retrieve "fine-tuning update process"
+    → Learn: "Requires retraining"
+
+  Thought 3: Compare both update speeds
+    → Reason: "Adding documents << Retraining"
+
+  Thought 4: Summarize
+    → "RAG suitable for real-time updates because update cost is low"
+```
+
+**Module 3: Multimodal RAG**
+
+**Core Idea**: Extend RAG beyond text to support images, audio, video, and other multimodal content.
+
+**Multimodal RAG Architecture**:
+```
+User Query: "What architecture is shown in this image?"
       ↓
-图像嵌入模型:
-  图像 → 图像向量
+Image Embedding Model:
+  Image → Image Vector
       ↓
-跨模态检索:
-  查询向量与图像向量数据库匹配
+Cross-modal Retrieval:
+  Query vector matched against image vector database
       ↓
-检索结果: 找到相似架构图
+Retrieval Result: Find similar architecture diagrams
       ↓
-多模态 LLM (如 GPT-4V):
-  输入: 查询 + 图像
-  输出: "这是一个典型的 RAG 架构图，包含..."
+Multimodal LLM (e.g., GPT-4V):
+  Input: Query + Image
+  Output: "This is a typical RAG architecture diagram, containing..."
 ```
 
-**多模态应用场景**:
+**Multimodal Application Scenarios**:
 
-**场景 1: 图文检索**
+**Scenario 1: Image-Text Retrieval**
 ```
-查询: "展示如何部署 Kubernetes 的架构图"
-检索: 向量数据库中的架构图
-生成: "这张图展示了 Kubernetes 的部署架构..."
-```
-
-**场景 2: 视频 RAG**
-```
-查询: "视频 15:30 处讲了什么？"
-检索: 视频转录文本 + 时间戳
-生成: "在 15:30，讲师介绍了 RAG 的索引阶段..."
+Query: "Show architecture diagram of Kubernetes deployment"
+Retrieval: Architecture diagrams in vector database
+Generation: "This diagram shows Kubernetes deployment architecture..."
 ```
 
-**场景 3: 音频 RAG**
+**Scenario 2: Video RAG**
 ```
-查询: "播客中关于 RAG 成本的部分"
-检索: 播客转录文本
-生成: "在播客的 23 分钟处，嘉宾提到..."
+Query: "What's discussed at video 15:30?"
+Retrieval: Video transcript + timestamps
+Generation: "At 15:30, the presenter introduces RAG's indexing phase..."
 ```
 
-**模块 4: 自我反思 RAG**
-
-**核心思想**: RAG 系统自我评估答案质量，必要时进行修正。
-
-**自我反思循环**:
+**Scenario 3: Audio RAG**
 ```
-第一轮生成:
-  查询: "RAG 的优势是什么？"
-  检索: Top-3 文档
-  生成: "RAG 的优势是实时更新..."
+Query: "Part about RAG costs in the podcast"
+Retrieval: Podcast transcript
+Generation: "At 23 minutes of the podcast, the guest mentions..."
+```
+
+**Module 4: Self-Reflective RAG**
+
+**Core Idea**: RAG system self-evaluates answer quality, makes corrections when necessary.
+
+**Self-Reflection Loop**:
+```
+First Round Generation:
+  Query: "What are RAG's advantages?"
+  Retrieval: Top-3 documents
+  Generation: "RAG's advantages include real-time updates..."
       ↓
-自我评估:
-  评估: 这个答案是否充分？
-  检查:
-    - 是否覆盖所有主要优势？
-    - 是否有遗漏？
-    - 是否准确？
+Self Evaluation:
+  Evaluation: Is this answer comprehensive?
+  Checks:
+    - Does it cover all main advantages?
+    - Any omissions?
+    - Is it accurate?
       ↓
-如果不充分:
-  → 触发第二轮检索
-  → 补充更多信息
+If insufficient:
+  → Trigger second round retrieval
+  → Supplement more information
       ↓
-最终生成:
-  "RAG 的优势包括：1. 实时更新 2. 数据扎根 3. 隐私保护..."
+Final Generation:
+  "RAG's advantages include: 1. Real-time updates 2. Data grounding 3. Privacy protection..."
 ```
 
-**自我反思技术**:
+**Self-Reflection Techniques**:
 
-**技术 1: 答案验证**
+**Technique 1: Answer Validation**
 ```
-LLM 检查:
-  "这个答案是否基于检索到的上下文？
-   是否没有编造信息？
-   是否覆盖了所有相关点？"
+LLM Checks:
+  "Is this answer based on retrieved context?
+   Is there no fabricated information?
+   Does it cover all relevant points?"
 
-如果发现幻觉:
-  → 标记问题
-  → 重新生成
-```
-
-**技术 2: 知识图谱验证**
-```
-生成答案后:
-  → 提取关键事实
-  → 与知识图谱对比
-  → 检查一致性
-
-如果发现矛盾:
-  → 修正答案或标注不确定
+If hallucination found:
+  → Mark issue
+  → Regenerate
 ```
 
-**模块 5: 自适应 RAG**
-
-**核心思想**: 根据用户反馈持续优化 RAG 系统。
-
-**反馈循环**:
+**Technique 2: Knowledge Graph Validation**
 ```
-用户使用 RAG 系统
+After generating answer:
+  → Extract key facts
+  → Compare with knowledge graph
+  → Check consistency
+
+If contradiction found:
+  → Correct answer or mark as uncertain
+```
+
+**Module 5: Adaptive RAG**
+
+**Core Idea**: Continuously optimize RAG system based on user feedback.
+
+**Feedback Loop**:
+```
+User uses RAG system
       ↓
-收集反馈:
-  - 点赞/点踩
-  - 答案质量评分
-  - 点击哪些来源
+Collect Feedback:
+  - Thumbs up/down
+  - Answer quality ratings
+  - Which sources clicked
       ↓
-分析反馈:
-  - 哪些检索策略效果好？
-  - 哪些类型的查询失败率高？
-  - 哪些文档质量高？
+Analyze Feedback:
+  - Which retrieval strategies work well?
+  - Which query types have high failure rates?
+  - Which documents have high quality?
       ↓
-自动优化:
-  - 调整检索参数
-  - 重新加权文档
-  - 优化 Prompt 模板
+Auto Optimization:
+  - Adjust retrieval parameters
+  - Re-weight documents
+  - Optimize prompt templates
 ```
 
-**RAG 演进时间线**:
+**RAG Evolution Timeline**:
 
 ```mermaid
 timeline
-    title RAG 技术演进时间线
+    title RAG Technology Evolution Timeline
 
-    2020 : Naive RAG<br/>基础检索-生成
-    2021-2022 : Advanced RAG<br/>查询优化、混合检索、重排序
-    2023 : Modular RAG<br/>动态路由、Agent、多模态
-    2024+ : 自适应 RAG<br/>自我反思、持续优化
+    2020 : Naive RAG<br/>Basic retrieval-generation
+    2021-2022 : Advanced RAG<br/>Query optimization, hybrid retrieval, reranking
+    2023 : Modular RAG<br/>Dynamic routing, agents, multimodal
+    2024+ : Adaptive RAG<br/>Self-reflection, continuous optimization
 ```
 
-**三代 RAG 对比总结**:
+**Three-Generation RAG Comparison Summary**:
 
-| 维度 | Naive RAG | Advanced RAG | Modular RAG |
-|------|-----------|--------------|-------------|
-| **查询处理** | 直接使用 | 重写、扩展 | 动态路由 |
-| **检索方法** | 单一向量 | 混合检索 | 工具调用、多模态 |
-| **重排序** | 无 | Cross-Encoder | 自适应 |
-| **推理能力** | 无 | 有限 | Agent 多步推理 |
-| **模态支持** | 仅文本 | 仅文本 | 多模态 |
-| **自我改进** | 无 | 无 | 自我反思、反馈优化 |
-| **复杂度** | 低 | 中 | 高 |
-| **成本** | 低 | 中 | 高 |
-| **适用场景** | 简单问答 | 复杂问答 | 企业级智能系统 |
+| Dimension | Naive RAG | Advanced RAG | Modular RAG |
+|-----------|-----------|--------------|-------------|
+| **Query Processing** | Direct use | Rewriting, expansion | Dynamic routing |
+| **Retrieval Method** | Single vector | Hybrid retrieval | Tool calling, multimodal |
+| **Reranking** | None | Cross-Encoder | Adaptive |
+| **Reasoning Capability** | None | Limited | Agent multi-step reasoning |
+| **Modality Support** | Text only | Text only | Multimodal |
+| **Self-Improvement** | None | None | Self-reflection, feedback optimization |
+| **Complexity** | Low | Medium | High |
+| **Cost** | Low | Medium | High |
+| **Use Cases** | Simple Q&A | Complex Q&A | Enterprise intelligent systems |
 
-**未来趋势**:
+**Future Trends**:
 
-**趋势 1: RAG + Agent 深度融合**
-- Agent 作为 RAG 的"大脑"，主动规划检索策略
-- RAG 作为 Agent 的"知识库"，提供实时信息
+**Trend 1: Deep RAG + Agent Integration**
+- Agent as RAG's "brain", actively planning retrieval strategies
+- RAG as Agent's "knowledge base", providing real-time information
 
-**趋势 2: 多模态 RAG 普及**
-- 图像、视频、音频检索成为标准能力
-- 跨模态理解和生成
+**Trend 2: Multimodal RAG Proliferation**
+- Image, video, audio retrieval become standard capabilities
+- Cross-modal understanding and generation
 
-**趋势 3: 自我进化的 RAG**
-- 系统自动优化检索策略
-- 根据用户反馈持续改进
+**Trend 3: Self-Evolving RAG**
+- System automatically optimizes retrieval strategies
+- Continuous improvement based on user feedback
 
-**趋势 4: 领域专用的 RAG**
-- 医疗 RAG（医学知识库）
-- 法律 RAG（法规库）
-- 金融 RAG（市场数据）
+**Trend 4: Domain-Specific RAG**
+- Medical RAG (medical knowledge bases)
+- Legal RAG (regulation databases)
+- Financial RAG (market data)
 
 ---
 
-## 小结 (Summary)
+## Summary
 
-本章建立了 RAG 系统的理论基础和架构理解，涵盖以下核心内容：
+This chapter established the theoretical foundation and architectural understanding of RAG systems, covering the following core content:
 
-**核心概念**:
-- RAG 是通过检索外部知识库来增强 LLM 的架构模式
-- 本质是"开卷考试"，让 LLM 从"闭卷"变成"有参考书"
-- 核心原理：基于语义距离的信息搬运，而非学习
+**Core Concepts**:
+- RAG is an architectural pattern that enhances LLMs by retrieving external knowledge bases
+- Essentially "open-book exam", transforming LLM from "closed-book" to "with reference books"
+- Core principle: information transfer based on semantic distance, not learning
 
-**为什么需要 RAG**:
-- LLM 的先天缺陷：幻觉、知识截止、长尾知识缺失、无可追溯性
-- RAG 的核心价值：数据扎根、实时更新、隐私保护、成本效率、可追溯性
-- RAG vs. 微调：互补技术，各有适用边界
+**Why RAG**:
+- LLM limitations: hallucinations, knowledge cutoff, long-tail knowledge gaps, no attribution
+- RAG's core value: data grounding, real-time updates, privacy protection, cost efficiency, attribution
+- RAG vs. fine-tuning: complementary technologies, each with applicable boundaries
 
-**核心技术**:
-- 向量空间模型：语义的高维几何表示
-- 嵌入：文本到向量的映射，保持语义相似度
-- 相似度度量：余弦相似度（默认）、欧几里得距离、点积
+**Core Technologies**:
+- Vector space model: high-dimensional geometric representation of semantics
+- Embeddings: text-to-vector mapping, preserving semantic similarity
+- Similarity metrics: cosine similarity (default), Euclidean distance, dot product
 
-**标准架构**:
-- 阶段一：索引构建（解析、清洗、分块、向量化、存储）
-- 阶段二：检索召回（查询优化、向量检索、混合检索、重排序）
-- 阶段三：生成合成（上下文构建、Prompt 模板、LLM 推理、后处理）
+**Standard Architecture**:
+- Phase 1: Indexing (parsing, cleaning, chunking, vectorization, storage)
+- Phase 2: Retrieval (query optimization, vector retrieval, hybrid retrieval, reranking)
+- Phase 3: Generation (context building, prompt templates, LLM inference, post-processing)
 
-**演进范式**:
-- Naive RAG：基础三段式，简单但有局限
-- Advanced RAG：查询优化、混合检索、重排序，显著提升质量
-- Modular RAG：动态路由、Agent、多模态、自我反思，下一代架构
+**Evolutionary Paradigms**:
+- Naive RAG: Basic three-stage, simple but limited
+- Advanced RAG: Query optimization, hybrid retrieval, reranking, significantly improved quality
+- Modular RAG: Dynamic routing, agents, multimodal, self-reflection, next-generation architecture
 
-**下一步**:
-理解了 RAG 的基础理论和架构后，下一章将深入探讨**数据处理**的工程实现，包括如何高效解析、清洗、分块和向量化各种类型的文档。
+**Next Steps**:
+With understanding of RAG's foundational theory and architecture, the next chapter will dive deep into **data processing** engineering implementation, including how to efficiently parse, clean, chunk, and vectorize various types of documents.
