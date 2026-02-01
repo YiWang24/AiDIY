@@ -1,0 +1,31 @@
+{
+  "id": "ai/llm-fundamentals/transformer-architecture",
+  "title": "Transformer Architecture - The Engine of LLMs",
+  "description": "Deep technical breakdown of Self-Attention, MoE, GQA, and modern architectural innovations. Updated for 2025.",
+  "source": "@site/docs/ai/llm-fundamentals/04-transformer-architecture.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/transformer-architecture",
+  "permalink": "/docs/ai/llm-fundamentals/transformer-architecture",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/04-transformer-architecture.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "id": "transformer-architecture",
+    "title": "Transformer Architecture - The Engine of LLMs",
+    "sidebar_label": "4 Transformer Architecture",
+    "description": "Deep technical breakdown of Self-Attention, MoE, GQA, and modern architectural innovations. Updated for 2025.",
+    "slug": "/ai/llm-fundamentals/transformer-architecture"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "3 Embeddings",
+    "permalink": "/docs/ai/llm-fundamentals/embeddings"
+  },
+  "next": {
+    "title": "5 Inference",
+    "permalink": "/docs/ai/llm-fundamentals/inference"
+  }
+}

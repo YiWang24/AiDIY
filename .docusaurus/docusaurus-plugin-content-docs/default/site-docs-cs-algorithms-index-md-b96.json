@@ -1,0 +1,29 @@
+{
+  "id": "cs/algorithms/index",
+  "title": "Algorithms & Data Structures",
+  "description": "LeetCode patterns, data structure implementations, and complexity analysis",
+  "source": "@site/docs/cs/algorithms/index.md",
+  "sourceDirName": "cs/algorithms",
+  "slug": "/cs/algorithms/",
+  "permalink": "/docs/cs/algorithms/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/cs/algorithms/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Algorithms & Data Structures",
+    "sidebar_label": "📊 Algorithms & DS",
+    "description": "LeetCode patterns, data structure implementations, and complexity analysis"
+  },
+  "sidebar": "csSidebar",
+  "previous": {
+    "title": "🧠 CS Core",
+    "permalink": "/docs/cs"
+  },
+  "next": {
+    "title": "🏛️ System Design",
+    "permalink": "/docs/cs/system-design/"
+  }
+}

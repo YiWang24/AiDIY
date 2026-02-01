@@ -1,0 +1,29 @@
+{
+  "id": "ai/context-engineering/index",
+  "title": "Context Engineering",
+  "description": "Techniques and patterns for managing context windows and optimizing information retrieval in AI applications",
+  "source": "@site/docs/ai/context-engineering/index.mdx",
+  "sourceDirName": "ai/context-engineering",
+  "slug": "/ai/context-engineering/",
+  "permalink": "/docs/ai/context-engineering/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/context-engineering/index.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Context Engineering",
+    "sidebar_label": "Overview",
+    "description": "Techniques and patterns for managing context windows and optimizing information retrieval in AI applications"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "Interview Q&A",
+    "permalink": "/docs/ai/mcp/interview-qa"
+  },
+  "next": {
+    "title": "Overview",
+    "permalink": "/docs/ai/agentops-security/"
+  }
+}

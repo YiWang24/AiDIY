@@ -1,0 +1,31 @@
+{
+  "id": "ai/rag/evaluation",
+  "title": "Evaluation Strategies",
+  "description": "RAG Triad metrics, retrieval and generation assessment, evaluation methodologies, and observability tools",
+  "source": "@site/docs/ai/rag/06-evaluation.mdx",
+  "sourceDirName": "ai/rag",
+  "slug": "/ai/rag/evaluation",
+  "permalink": "/docs/ai/rag/evaluation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/rag/06-evaluation.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "id": "evaluation",
+    "title": "Evaluation Strategies",
+    "sidebar_label": "6. Evaluation",
+    "description": "RAG Triad metrics, retrieval and generation assessment, evaluation methodologies, and observability tools",
+    "slug": "/ai/rag/evaluation"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "5. Generation",
+    "permalink": "/docs/ai/rag/generation"
+  },
+  "next": {
+    "title": "7. Advanced RAG",
+    "permalink": "/docs/ai/rag/advanced-rag"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "ai/agents/index",
+  "title": "AI Agent Systems",
+  "description": "From LLM Chatbots to Autonomous Agents - Building Intelligent Systems that Reason, Plan, and Act",
+  "source": "@site/docs/ai/agents/index.mdx",
+  "sourceDirName": "ai/agents",
+  "slug": "/ai/agents/",
+  "permalink": "/docs/ai/agents/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/agents/index.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "AI Agent Systems",
+    "sidebar_label": "Overview",
+    "description": "From LLM Chatbots to Autonomous Agents - Building Intelligent Systems that Reason, Plan, and Act"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "9. Best Practices",
+    "permalink": "/docs/ai/rag/best-practices"
+  },
+  "next": {
+    "title": "1. Core Concepts & Definition",
+    "permalink": "/docs/ai/agents/introduction"
+  }
+}

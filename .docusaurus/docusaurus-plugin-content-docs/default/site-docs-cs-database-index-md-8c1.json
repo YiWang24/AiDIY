@@ -1,0 +1,29 @@
+{
+  "id": "cs/database/index",
+  "title": "Database Internals",
+  "description": "MySQL optimization, transaction isolation, and Redis caching strategies",
+  "source": "@site/docs/cs/database/index.md",
+  "sourceDirName": "cs/database",
+  "slug": "/cs/database/",
+  "permalink": "/docs/cs/database/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/cs/database/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Database Internals",
+    "sidebar_label": "🗄️ Database Internals",
+    "description": "MySQL optimization, transaction isolation, and Redis caching strategies"
+  },
+  "sidebar": "csSidebar",
+  "previous": {
+    "title": "🏛️ System Design",
+    "permalink": "/docs/cs/system-design/"
+  },
+  "next": {
+    "title": "🌐 Network & OS",
+    "permalink": "/docs/cs/network-os/"
+  }
+}

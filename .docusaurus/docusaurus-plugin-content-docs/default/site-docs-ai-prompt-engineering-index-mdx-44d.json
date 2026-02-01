@@ -1,0 +1,29 @@
+{
+  "id": "ai/prompt-engineering/index",
+  "title": "Prompt Engineering",
+  "description": "Fundamentals and advanced techniques for effective prompt engineering with Large Language Models",
+  "source": "@site/docs/ai/prompt-engineering/index.mdx",
+  "sourceDirName": "ai/prompt-engineering",
+  "slug": "/ai/prompt-engineering/",
+  "permalink": "/docs/ai/prompt-engineering/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/prompt-engineering/index.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Prompt Engineering",
+    "sidebar_label": "Overview",
+    "description": "Fundamentals and advanced techniques for effective prompt engineering with Large Language Models"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "6 Cognitive Limitations",
+    "permalink": "/docs/ai/llm-fundamentals/limitations"
+  },
+  "next": {
+    "title": "1. Introduction",
+    "permalink": "/docs/ai/prompt-engineering/introduction"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "ai/llm-fundamentals/introduction",
+  "title": "Introduction to LLMs",
+  "description": "Deep dive into Large Language Model fundamentals, history, architecture evolution, and the 2025 state-of-the-art models.",
+  "source": "@site/docs/ai/llm-fundamentals/01-introduction.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/introduction",
+  "permalink": "/docs/ai/llm-fundamentals/introduction",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/01-introduction.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "id": "introduction",
+    "title": "Introduction to LLMs",
+    "sidebar_label": "1. Introduction",
+    "description": "Deep dive into Large Language Model fundamentals, history, architecture evolution, and the 2025 state-of-the-art models."
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/ai/llm-fundamentals/"
+  },
+  "next": {
+    "title": "2 Tokenization",
+    "permalink": "/docs/ai/llm-fundamentals/tokenization"
+  }
+}

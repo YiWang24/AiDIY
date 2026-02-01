@@ -1,0 +1,29 @@
+{
+  "id": "ai/agentops-security/index",
+  "title": "AgentOps and Security",
+  "description": "Operational patterns, monitoring, and security practices for AI agents in production environments",
+  "source": "@site/docs/ai/agentops-security/index.mdx",
+  "sourceDirName": "ai/agentops-security",
+  "slug": "/ai/agentops-security/",
+  "permalink": "/docs/ai/agentops-security/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/agentops-security/index.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "AgentOps and Security",
+    "sidebar_label": "Overview",
+    "description": "Operational patterns, monitoring, and security practices for AI agents in production environments"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/ai/context-engineering/"
+  },
+  "next": {
+    "title": "Java & AI Internship Guide",
+    "permalink": "/docs/ai/internship/"
+  }
+}

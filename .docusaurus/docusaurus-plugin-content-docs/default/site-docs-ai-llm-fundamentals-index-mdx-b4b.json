@@ -1,0 +1,29 @@
+{
+  "id": "ai/llm-fundamentals/index",
+  "title": "LLM Fundamentals",
+  "description": "Understanding Large Language Models - From Architecture to Inference, Training, and Limitations",
+  "source": "@site/docs/ai/llm-fundamentals/index.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/",
+  "permalink": "/docs/ai/llm-fundamentals/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/index.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "LLM Fundamentals",
+    "sidebar_label": "Overview",
+    "description": "Understanding Large Language Models - From Architecture to Inference, Training, and Limitations"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "AI & Agents Overview",
+    "permalink": "/docs/ai"
+  },
+  "next": {
+    "title": "1. Introduction",
+    "permalink": "/docs/ai/llm-fundamentals/introduction"
+  }
+}

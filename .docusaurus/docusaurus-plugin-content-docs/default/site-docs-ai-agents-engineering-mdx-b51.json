@@ -1,0 +1,29 @@
+{
+  "id": "ai/agents/engineering",
+  "title": "5. Engineering & Production",
+  "description": "AI Agent Production Engineering - Evaluation, Security Challenges, Deployment, and Operational Best Practices",
+  "source": "@site/docs/ai/agents/engineering.mdx",
+  "sourceDirName": "ai/agents",
+  "slug": "/ai/agents/engineering",
+  "permalink": "/docs/ai/agents/engineering",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/agents/engineering.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "engineering",
+    "title": "5. Engineering & Production",
+    "sidebar_label": "5. Engineering & Production",
+    "description": "AI Agent Production Engineering - Evaluation, Security Challenges, Deployment, and Operational Best Practices"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "4. Frameworks & Tech Stack",
+    "permalink": "/docs/ai/agents/frameworks"
+  },
+  "next": {
+    "title": "6. Frontier Trends",
+    "permalink": "/docs/ai/agents/frontier"
+  }
+}

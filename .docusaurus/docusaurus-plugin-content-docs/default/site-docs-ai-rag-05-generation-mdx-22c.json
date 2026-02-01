@@ -1,0 +1,31 @@
+{
+  "id": "ai/rag/generation",
+  "title": "Generation Strategies",
+  "description": "Prompt engineering, context assembly, generation control, and advanced patterns for RAG systems",
+  "source": "@site/docs/ai/rag/05-generation.mdx",
+  "sourceDirName": "ai/rag",
+  "slug": "/ai/rag/generation",
+  "permalink": "/docs/ai/rag/generation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/rag/05-generation.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "id": "generation",
+    "title": "Generation Strategies",
+    "sidebar_label": "5. Generation",
+    "description": "Prompt engineering, context assembly, generation control, and advanced patterns for RAG systems",
+    "slug": "/ai/rag/generation"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "4. Retrieval",
+    "permalink": "/docs/ai/rag/retrieval"
+  },
+  "next": {
+    "title": "6. Evaluation",
+    "permalink": "/docs/ai/rag/evaluation"
+  }
+}

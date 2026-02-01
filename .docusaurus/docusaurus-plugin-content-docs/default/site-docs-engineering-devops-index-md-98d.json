@@ -1,0 +1,29 @@
+{
+  "id": "engineering/devops/index",
+  "title": "DevOps & Cloud",
+  "description": "Docker, Kubernetes, CI/CD, and cloud platform services",
+  "source": "@site/docs/engineering/devops/index.md",
+  "sourceDirName": "engineering/devops",
+  "slug": "/engineering/devops/",
+  "permalink": "/docs/engineering/devops/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/engineering/devops/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "DevOps & Cloud",
+    "sidebar_label": "index",
+    "description": "Docker, Kubernetes, CI/CD, and cloud platform services"
+  },
+  "sidebar": "engineeringSidebar",
+  "previous": {
+    "title": "index",
+    "permalink": "/docs/engineering/frontend/"
+  },
+  "next": {
+    "title": "🧰 Dev Tools",
+    "permalink": "/docs/engineering/tools/"
+  }
+}

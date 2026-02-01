@@ -1,0 +1,29 @@
+{
+  "id": "engineering/backend/index",
+  "title": "Backend Development",
+  "description": "Spring Boot, concurrency, JVM, and backend architecture patterns",
+  "source": "@site/docs/engineering/backend/index.md",
+  "sourceDirName": "engineering/backend",
+  "slug": "/engineering/backend/",
+  "permalink": "/docs/engineering/backend/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/engineering/backend/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Backend Development",
+    "sidebar_label": "index",
+    "description": "Spring Boot, concurrency, JVM, and backend architecture patterns"
+  },
+  "sidebar": "engineeringSidebar",
+  "previous": {
+    "title": "index",
+    "permalink": "/docs/engineering"
+  },
+  "next": {
+    "title": "Concurrency",
+    "permalink": "/docs/engineering/backend/concurrency"
+  }
+}

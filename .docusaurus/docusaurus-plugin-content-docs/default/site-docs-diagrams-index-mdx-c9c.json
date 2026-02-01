@@ -1,0 +1,28 @@
+{
+  "id": "diagrams/index",
+  "title": "Diagrams",
+  "description": "Create beautiful diagrams using simple text syntax.",
+  "source": "@site/docs/diagrams/index.mdx",
+  "sourceDirName": "diagrams",
+  "slug": "/diagrams/",
+  "permalink": "/documentation/docs/diagrams/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/diagrams/index.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Diagrams",
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "🎮 React Playground",
+    "permalink": "/documentation/docs/react-playground/"
+  },
+  "next": {
+    "title": "📚 API Reference",
+    "permalink": "/documentation/docs/api/"
+  }
+}

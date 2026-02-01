@@ -1,0 +1,24 @@
+{
+  "id": "api/index",
+  "title": "API Reference",
+  "description": "Documentation for RESTful APIs and TypeScript interfaces.",
+  "source": "@site/docs/api/index.mdx",
+  "sourceDirName": "api",
+  "slug": "/api/",
+  "permalink": "/documentation/docs/api/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/api/index.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "API Reference",
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "📊 Diagrams",
+    "permalink": "/documentation/docs/diagrams/"
+  }
+}

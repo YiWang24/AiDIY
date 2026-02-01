@@ -1,0 +1,72 @@
+{
+  "id": "ai/prompt-engineering/advanced-techniques",
+  "title": "7 Advanced Techniques",
+  "description": "Self-critique, iterative refinement, meta-prompting, multi-turn reasoning, and cutting-edge prompt engineering methods",
+  "source": "@site/docs/ai/prompt-engineering/07-advanced-techniques.mdx",
+  "sourceDirName": "ai/prompt-engineering",
+  "slug": "/ai/prompt-engineering/advanced-techniques",
+  "permalink": "/docs/ai/prompt-engineering/advanced-techniques",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/prompt-engineering/07-advanced-techniques.mdx",
+  "tags": [
+    {
+      "inline": true,
+      "label": "prompt-engineering",
+      "permalink": "/docs/tags/prompt-engineering"
+    },
+    {
+      "inline": true,
+      "label": "advanced",
+      "permalink": "/docs/tags/advanced"
+    },
+    {
+      "inline": true,
+      "label": "ai",
+      "permalink": "/docs/tags/ai"
+    },
+    {
+      "inline": true,
+      "label": "llm",
+      "permalink": "/docs/tags/llm"
+    },
+    {
+      "inline": true,
+      "label": "reflexion",
+      "permalink": "/docs/tags/reflexion"
+    },
+    {
+      "inline": true,
+      "label": "meta-prompting",
+      "permalink": "/docs/tags/meta-prompting"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 7,
+  "frontMatter": {
+    "title": "7 Advanced Techniques",
+    "description": "Self-critique, iterative refinement, meta-prompting, multi-turn reasoning, and cutting-edge prompt engineering methods",
+    "published": "2025-01-21T00:00:00.000Z",
+    "tags": [
+      "prompt-engineering",
+      "advanced",
+      "ai",
+      "llm",
+      "reflexion",
+      "meta-prompting"
+    ],
+    "category": "prompt-engineering",
+    "series": "Prompt Engineering Guide",
+    "seriesOrder": 6,
+    "draft": false
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "2.5 Evaluation & Versioning",
+    "permalink": "/docs/ai/prompt-engineering/evaluation-versioning"
+  },
+  "next": {
+    "title": "3.2 Multi-modal Prompting",
+    "permalink": "/docs/ai/prompt-engineering/multimodal"
+  }
+}

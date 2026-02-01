@@ -1,0 +1,29 @@
+{
+  "id": "ai/llm-fundamentals/index",
+  "title": "LLM Fundamentals",
+  "description": "Understanding how large language models work, from tokenization to inference",
+  "source": "@site/docs/ai/llm-fundamentals/index.md",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/",
+  "permalink": "/docs/ai/llm-fundamentals/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "LLM Fundamentals",
+    "sidebar_label": "LLM Fundamentals",
+    "description": "Understanding how large language models work, from tokenization to inference"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "AI & Agents Overview",
+    "permalink": "/docs/ai"
+  },
+  "next": {
+    "title": "Tokenization",
+    "permalink": "/docs/ai/llm-fundamentals/tokenization"
+  }
+}

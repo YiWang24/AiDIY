@@ -1,0 +1,29 @@
+{
+  "id": "ai/llm-fundamentals/transformer-architecture",
+  "title": "Transformer Architecture - The Engine of LLMs",
+  "description": "Self-attention, multi-head attention, and the architecture powering modern LLMs",
+  "source": "@site/docs/ai/llm-fundamentals/transformer-architecture.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/transformer-architecture",
+  "permalink": "/docs/ai/llm-fundamentals/transformer-architecture",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/transformer-architecture.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "transformer-architecture",
+    "title": "Transformer Architecture - The Engine of LLMs",
+    "sidebar_label": "Transformer Architecture",
+    "description": "Self-attention, multi-head attention, and the architecture powering modern LLMs"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "Embeddings",
+    "permalink": "/docs/ai/llm-fundamentals/embeddings"
+  },
+  "next": {
+    "title": "Training Pipeline",
+    "permalink": "/docs/ai/llm-fundamentals/training-pipeline"
+  }
+}

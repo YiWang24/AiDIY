@@ -1,0 +1,29 @@
+{
+  "id": "ai/llm-fundamentals/embeddings",
+  "title": "Embeddings - The Semantic Space",
+  "description": "High-dimensional vector representations, cosine similarity, and positional encodings",
+  "source": "@site/docs/ai/llm-fundamentals/embeddings.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/embeddings",
+  "permalink": "/docs/ai/llm-fundamentals/embeddings",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/embeddings.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "embeddings",
+    "title": "Embeddings - The Semantic Space",
+    "sidebar_label": "Embeddings",
+    "description": "High-dimensional vector representations, cosine similarity, and positional encodings"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "Tokenization",
+    "permalink": "/docs/ai/llm-fundamentals/tokenization"
+  },
+  "next": {
+    "title": "Transformer Architecture",
+    "permalink": "/docs/ai/llm-fundamentals/transformer-architecture"
+  }
+}

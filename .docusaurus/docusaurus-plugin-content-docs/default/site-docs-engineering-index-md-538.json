@@ -1,0 +1,26 @@
+{
+  "id": "engineering/index",
+  "title": "Engineering",
+  "description": "Full-stack development - backend, frontend, DevOps, and developer tools",
+  "source": "@site/docs/engineering/index.md",
+  "sourceDirName": "engineering",
+  "slug": "/engineering",
+  "permalink": "/docs/engineering",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/engineering/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Engineering",
+    "sidebar_label": "index",
+    "description": "Full-stack development - backend, frontend, DevOps, and developer tools",
+    "slug": "/engineering"
+  },
+  "sidebar": "engineeringSidebar",
+  "next": {
+    "title": "index",
+    "permalink": "/docs/engineering/backend/"
+  }
+}

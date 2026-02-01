@@ -1,0 +1,325 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/docs",
+          "mainDocId": "cs/index",
+          "docs": [
+            {
+              "id": "ai/agentops-security/index",
+              "path": "/docs/ai/agentops-security/",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/agents/architecture",
+              "path": "/docs/ai/agents/architecture",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/agents/design-patterns",
+              "path": "/docs/ai/agents/design-patterns",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/agents/engineering",
+              "path": "/docs/ai/agents/engineering",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/agents/frameworks",
+              "path": "/docs/ai/agents/frameworks",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/agents/frontier",
+              "path": "/docs/ai/agents/frontier",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/agents/index",
+              "path": "/docs/ai/agents/",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/agents/introduction",
+              "path": "/docs/ai/agents/introduction",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/context-engineering/index",
+              "path": "/docs/ai/context-engineering/",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/index",
+              "path": "/docs/ai",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/internship/internship",
+              "path": "/docs/ai/internship/",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/llm-fundamentals/embeddings",
+              "path": "/docs/ai/llm-fundamentals/embeddings",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/llm-fundamentals/index",
+              "path": "/docs/ai/llm-fundamentals/",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/llm-fundamentals/inference",
+              "path": "/docs/ai/llm-fundamentals/inference",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/llm-fundamentals/introduction",
+              "path": "/docs/ai/llm-fundamentals/introduction",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/llm-fundamentals/limitations",
+              "path": "/docs/ai/llm-fundamentals/limitations",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/llm-fundamentals/tokenization",
+              "path": "/docs/ai/llm-fundamentals/tokenization",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/llm-fundamentals/training-pipeline",
+              "path": "/docs/ai/llm-fundamentals/training-pipeline",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/llm-fundamentals/transformer-architecture",
+              "path": "/docs/ai/llm-fundamentals/transformer-architecture",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/mcp/index",
+              "path": "/docs/ai/mcp/",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/mcp/interview-qa",
+              "path": "/docs/ai/mcp/interview-qa",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/prompt-engineering/advanced-techniques",
+              "path": "/docs/ai/prompt-engineering/advanced-techniques",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/prompt-engineering/agent-orchestration",
+              "path": "/docs/ai/prompt-engineering/agent-orchestration",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/prompt-engineering/evaluation-versioning",
+              "path": "/docs/ai/prompt-engineering/evaluation-versioning",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/prompt-engineering/index",
+              "path": "/docs/ai/prompt-engineering/",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/prompt-engineering/introduction",
+              "path": "/docs/ai/prompt-engineering/introduction",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/prompt-engineering/multimodal",
+              "path": "/docs/ai/prompt-engineering/multimodal",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/prompt-engineering/prompt-anatomy",
+              "path": "/docs/ai/prompt-engineering/prompt-anatomy",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/prompt-engineering/reasoning-patterns",
+              "path": "/docs/ai/prompt-engineering/reasoning-patterns",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/prompt-engineering/spring-ai",
+              "path": "/docs/ai/prompt-engineering/spring-ai",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/prompt-engineering/structured-output",
+              "path": "/docs/ai/prompt-engineering/structured-output",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/rag/advanced-rag",
+              "path": "/docs/ai/rag/advanced-rag",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/rag/best-practices",
+              "path": "/docs/ai/rag/best-practices",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/rag/data-processing",
+              "path": "/docs/ai/rag/data-processing",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/rag/evaluation",
+              "path": "/docs/ai/rag/evaluation",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/rag/generation",
+              "path": "/docs/ai/rag/generation",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/rag/index",
+              "path": "/docs/ai/rag/",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/rag/introduction",
+              "path": "/docs/ai/rag/introduction",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/rag/production",
+              "path": "/docs/ai/rag/production",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/rag/retrieval",
+              "path": "/docs/ai/rag/retrieval",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/rag/vector-indexing",
+              "path": "/docs/ai/rag/vector-indexing",
+              "sidebar": "aiSidebar"
+            },
+            {
+              "id": "ai/spring-ai/index",
+              "path": "/docs/ai/spring-ai/"
+            },
+            {
+              "id": "cs/algorithms/index",
+              "path": "/docs/cs/algorithms/",
+              "sidebar": "csSidebar"
+            },
+            {
+              "id": "cs/database/index",
+              "path": "/docs/cs/database/",
+              "sidebar": "csSidebar"
+            },
+            {
+              "id": "cs/index",
+              "path": "/docs/cs",
+              "sidebar": "csSidebar"
+            },
+            {
+              "id": "cs/network-os/index",
+              "path": "/docs/cs/network-os/",
+              "sidebar": "csSidebar"
+            },
+            {
+              "id": "cs/system-design/index",
+              "path": "/docs/cs/system-design/",
+              "sidebar": "csSidebar"
+            },
+            {
+              "id": "engineering/backend/concurrency",
+              "path": "/docs/engineering/backend/concurrency",
+              "sidebar": "engineeringSidebar"
+            },
+            {
+              "id": "engineering/backend/index",
+              "path": "/docs/engineering/backend/",
+              "sidebar": "engineeringSidebar"
+            },
+            {
+              "id": "engineering/devops/index",
+              "path": "/docs/engineering/devops/",
+              "sidebar": "engineeringSidebar"
+            },
+            {
+              "id": "engineering/frontend/index",
+              "path": "/docs/engineering/frontend/",
+              "sidebar": "engineeringSidebar"
+            },
+            {
+              "id": "engineering/index",
+              "path": "/docs/engineering",
+              "sidebar": "engineeringSidebar"
+            },
+            {
+              "id": "engineering/tools/index",
+              "path": "/docs/engineering/tools/",
+              "sidebar": "engineeringSidebar"
+            },
+            {
+              "id": "projects/ecommerce-refactor",
+              "path": "/docs/projects/ecommerce-refactor",
+              "sidebar": "projectsSidebar"
+            },
+            {
+              "id": "projects/index",
+              "path": "/docs/projects",
+              "sidebar": "projectsSidebar"
+            },
+            {
+              "id": "projects/rag-knowledge-base",
+              "path": "/docs/projects/rag-knowledge-base",
+              "sidebar": "projectsSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "csSidebar": {
+              "link": {
+                "path": "/docs/cs",
+                "label": "CS Core Overview"
+              }
+            },
+            "aiSidebar": {
+              "link": {
+                "path": "/docs/ai",
+                "label": "AI & Agents Overview"
+              }
+            },
+            "engineeringSidebar": {
+              "link": {
+                "path": "/docs/engineering",
+                "label": "Engineering Overview"
+              }
+            },
+            "projectsSidebar": {
+              "link": {
+                "path": "/docs/projects",
+                "label": "Case Studies Overview"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

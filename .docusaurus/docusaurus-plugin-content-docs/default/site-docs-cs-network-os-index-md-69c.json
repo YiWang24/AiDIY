@@ -1,0 +1,25 @@
+{
+  "id": "cs/network-os/index",
+  "title": "Network & Operating Systems",
+  "description": "TCP/IP, HTTP protocols, Linux fundamentals, and process management",
+  "source": "@site/docs/cs/network-os/index.md",
+  "sourceDirName": "cs/network-os",
+  "slug": "/cs/network-os/",
+  "permalink": "/docs/cs/network-os/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/cs/network-os/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Network & Operating Systems",
+    "sidebar_label": "🌐 Network & OS",
+    "description": "TCP/IP, HTTP protocols, Linux fundamentals, and process management"
+  },
+  "sidebar": "csSidebar",
+  "previous": {
+    "title": "🗄️ Database Internals",
+    "permalink": "/docs/cs/database/"
+  }
+}

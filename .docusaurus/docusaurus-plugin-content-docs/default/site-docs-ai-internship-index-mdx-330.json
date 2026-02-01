@@ -1,0 +1,25 @@
+{
+  "id": "ai/internship/internship",
+  "title": "2026 Canadian Java & AI Internship Guide",
+  "description": "Strategic technical career roadmap for the 2026 Canadian Java & AI internship landscape",
+  "source": "@site/docs/ai/internship/index.mdx",
+  "sourceDirName": "ai/internship",
+  "slug": "/ai/internship/",
+  "permalink": "/docs/ai/internship/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/internship/index.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "internship",
+    "title": "2026 Canadian Java & AI Internship Guide",
+    "sidebar_label": "Java & AI Internship Guide",
+    "description": "Strategic technical career roadmap for the 2026 Canadian Java & AI internship landscape"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/ai/agentops-security/"
+  }
+}

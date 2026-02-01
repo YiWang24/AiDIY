@@ -1,0 +1,29 @@
+{
+  "id": "engineering/frontend/index",
+  "title": "Frontend Development",
+  "description": "React, Next.js, and modern web development",
+  "source": "@site/docs/engineering/frontend/index.md",
+  "sourceDirName": "engineering/frontend",
+  "slug": "/engineering/frontend/",
+  "permalink": "/docs/engineering/frontend/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/engineering/frontend/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Frontend Development",
+    "sidebar_label": "index",
+    "description": "React, Next.js, and modern web development"
+  },
+  "sidebar": "engineeringSidebar",
+  "previous": {
+    "title": "Concurrency",
+    "permalink": "/docs/engineering/backend/concurrency"
+  },
+  "next": {
+    "title": "index",
+    "permalink": "/docs/engineering/devops/"
+  }
+}

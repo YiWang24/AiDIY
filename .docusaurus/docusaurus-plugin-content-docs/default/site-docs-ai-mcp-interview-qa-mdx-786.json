@@ -1,0 +1,29 @@
+{
+  "id": "ai/mcp/interview-qa",
+  "title": "MCP Interview Questions & Answers",
+  "description": "Comprehensive interview preparation guide for Model Context Protocol (MCP)",
+  "source": "@site/docs/ai/mcp/interview-qa.mdx",
+  "sourceDirName": "ai/mcp",
+  "slug": "/ai/mcp/interview-qa",
+  "permalink": "/docs/ai/mcp/interview-qa",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/mcp/interview-qa.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "interview-qa",
+    "title": "MCP Interview Questions & Answers",
+    "sidebar_label": "Interview Q&A",
+    "description": "Comprehensive interview preparation guide for Model Context Protocol (MCP)"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "Model Context Protocol",
+    "permalink": "/docs/ai/mcp/"
+  },
+  "next": {
+    "title": "Overview",
+    "permalink": "/docs/ai/context-engineering/"
+  }
+}

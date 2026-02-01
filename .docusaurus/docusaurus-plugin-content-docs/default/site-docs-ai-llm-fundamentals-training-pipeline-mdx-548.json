@@ -1,0 +1,29 @@
+{
+  "id": "ai/llm-fundamentals/training-pipeline",
+  "title": "Training Pipeline - From Random Weights to Intelligence",
+  "description": "Pre-training, supervised fine-tuning, and alignment through RLHF/DPO",
+  "source": "@site/docs/ai/llm-fundamentals/training-pipeline.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/training-pipeline",
+  "permalink": "/docs/ai/llm-fundamentals/training-pipeline",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/training-pipeline.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "training-pipeline",
+    "title": "Training Pipeline - From Random Weights to Intelligence",
+    "sidebar_label": "Training Pipeline",
+    "description": "Pre-training, supervised fine-tuning, and alignment through RLHF/DPO"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "04 Transformer Architecture",
+    "permalink": "/docs/ai/llm-fundamentals/transformer-architecture"
+  },
+  "next": {
+    "title": "Inference",
+    "permalink": "/docs/ai/llm-fundamentals/inference"
+  }
+}

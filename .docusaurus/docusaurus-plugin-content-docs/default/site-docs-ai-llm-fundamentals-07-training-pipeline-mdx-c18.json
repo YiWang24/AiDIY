@@ -1,0 +1,30 @@
+{
+  "id": "ai/llm-fundamentals/training-pipeline",
+  "title": "Training Pipeline - From Random Weights to Intelligence",
+  "description": "Pre-training, supervised fine-tuning, and alignment through RLHF/DPO",
+  "source": "@site/docs/ai/llm-fundamentals/07-training-pipeline.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/training-pipeline",
+  "permalink": "/docs/ai/llm-fundamentals/training-pipeline",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/07-training-pipeline.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 7,
+  "frontMatter": {
+    "id": "training-pipeline",
+    "title": "Training Pipeline - From Random Weights to Intelligence",
+    "sidebar_label": "7 Training Pipeline",
+    "description": "Pre-training, supervised fine-tuning, and alignment through RLHF/DPO"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "5 Inference",
+    "permalink": "/docs/ai/llm-fundamentals/inference"
+  },
+  "next": {
+    "title": "6 Cognitive Limitations",
+    "permalink": "/docs/ai/llm-fundamentals/limitations"
+  }
+}

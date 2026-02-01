@@ -1,0 +1,20 @@
+{
+  "id": "ai/spring-ai/index",
+  "title": "Spring AI",
+  "description": "Building production-ready AI applications with Spring Boot",
+  "source": "@site/docs/ai/spring-ai/index.md",
+  "sourceDirName": "ai/spring-ai",
+  "slug": "/ai/spring-ai/",
+  "permalink": "/docs/ai/spring-ai/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/spring-ai/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Spring AI",
+    "sidebar_label": "🍃 Spring AI",
+    "description": "Building production-ready AI applications with Spring Boot"
+  }
+}

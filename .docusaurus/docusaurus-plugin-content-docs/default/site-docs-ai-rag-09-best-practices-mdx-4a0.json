@@ -1,0 +1,31 @@
+{
+  "id": "ai/rag/best-practices",
+  "title": "Best Practices",
+  "description": "Complete RAG workflow guide from data preparation to production deployment",
+  "source": "@site/docs/ai/rag/09-best-practices.mdx",
+  "sourceDirName": "ai/rag",
+  "slug": "/ai/rag/best-practices",
+  "permalink": "/docs/ai/rag/best-practices",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/rag/09-best-practices.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 9,
+  "frontMatter": {
+    "id": "best-practices",
+    "title": "Best Practices",
+    "sidebar_label": "9. Best Practices",
+    "description": "Complete RAG workflow guide from data preparation to production deployment",
+    "slug": "/ai/rag/best-practices"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "8. Production",
+    "permalink": "/docs/ai/rag/production"
+  },
+  "next": {
+    "title": "Overview",
+    "permalink": "/docs/ai/agents/"
+  }
+}

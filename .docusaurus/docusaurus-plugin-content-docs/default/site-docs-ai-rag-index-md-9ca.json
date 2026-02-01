@@ -1,0 +1,29 @@
+{
+  "id": "ai/rag/index",
+  "title": "RAG Systems",
+  "description": "Retrieval-Augmented Generation - building knowledge-enhanced AI applications",
+  "source": "@site/docs/ai/rag/index.md",
+  "sourceDirName": "ai/rag",
+  "slug": "/ai/rag/",
+  "permalink": "/docs/ai/rag/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/rag/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "RAG Systems",
+    "sidebar_label": "📚 RAG Systems",
+    "description": "Retrieval-Augmented Generation - building knowledge-enhanced AI applications"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "3.3 Agent Orchestration",
+    "permalink": "/docs/ai/prompt-engineering/agent-orchestration"
+  },
+  "next": {
+    "title": "Overview",
+    "permalink": "/docs/ai/agents/"
+  }
+}

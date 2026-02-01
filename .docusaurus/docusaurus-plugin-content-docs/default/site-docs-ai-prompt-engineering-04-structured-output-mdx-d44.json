@@ -1,0 +1,66 @@
+{
+  "id": "ai/prompt-engineering/structured-output",
+  "title": "4 Structured Output Engineering",
+  "description": "Master JSON Mode, XML tagging, schema enforcement, and provider-specific techniques for production-grade LLM outputs",
+  "source": "@site/docs/ai/prompt-engineering/04-structured-output.mdx",
+  "sourceDirName": "ai/prompt-engineering",
+  "slug": "/ai/prompt-engineering/structured-output",
+  "permalink": "/docs/ai/prompt-engineering/structured-output",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/prompt-engineering/04-structured-output.mdx",
+  "tags": [
+    {
+      "inline": true,
+      "label": "prompt-engineering",
+      "permalink": "/docs/tags/prompt-engineering"
+    },
+    {
+      "inline": true,
+      "label": "structured-output",
+      "permalink": "/docs/tags/structured-output"
+    },
+    {
+      "inline": true,
+      "label": "json",
+      "permalink": "/docs/tags/json"
+    },
+    {
+      "inline": true,
+      "label": "schema",
+      "permalink": "/docs/tags/schema"
+    },
+    {
+      "inline": true,
+      "label": "spring-ai",
+      "permalink": "/docs/tags/spring-ai"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "4 Structured Output Engineering",
+    "description": "Master JSON Mode, XML tagging, schema enforcement, and provider-specific techniques for production-grade LLM outputs",
+    "published": "2025-01-21T00:00:00.000Z",
+    "tags": [
+      "prompt-engineering",
+      "structured-output",
+      "json",
+      "schema",
+      "spring-ai"
+    ],
+    "category": "prompt-engineering",
+    "series": "Prompt Engineering Guide",
+    "seriesOrder": 3,
+    "draft": false
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "2.2 Core Reasoning Patterns",
+    "permalink": "/docs/ai/prompt-engineering/reasoning-patterns"
+  },
+  "next": {
+    "title": "2.4 Spring AI Implementation",
+    "permalink": "/docs/ai/prompt-engineering/spring-ai"
+  }
+}

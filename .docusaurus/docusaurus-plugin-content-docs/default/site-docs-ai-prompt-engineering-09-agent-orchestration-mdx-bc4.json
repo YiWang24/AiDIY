@@ -1,0 +1,72 @@
+{
+  "id": "ai/prompt-engineering/agent-orchestration",
+  "title": "9 Agent Orchestration",
+  "description": "Comprehensive guide to multi-agent systems: hierarchical, parallel, debate, and advanced orchestration patterns with Spring AI",
+  "source": "@site/docs/ai/prompt-engineering/09-agent-orchestration.mdx",
+  "sourceDirName": "ai/prompt-engineering",
+  "slug": "/ai/prompt-engineering/agent-orchestration",
+  "permalink": "/docs/ai/prompt-engineering/agent-orchestration",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/prompt-engineering/09-agent-orchestration.mdx",
+  "tags": [
+    {
+      "inline": true,
+      "label": "prompt-engineering",
+      "permalink": "/docs/tags/prompt-engineering"
+    },
+    {
+      "inline": true,
+      "label": "agents",
+      "permalink": "/docs/tags/agents"
+    },
+    {
+      "inline": true,
+      "label": "orchestration",
+      "permalink": "/docs/tags/orchestration"
+    },
+    {
+      "inline": true,
+      "label": "spring-ai",
+      "permalink": "/docs/tags/spring-ai"
+    },
+    {
+      "inline": true,
+      "label": "multi-agent",
+      "permalink": "/docs/tags/multi-agent"
+    },
+    {
+      "inline": true,
+      "label": "mcp",
+      "permalink": "/docs/tags/mcp"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 9,
+  "frontMatter": {
+    "title": "9 Agent Orchestration",
+    "description": "Comprehensive guide to multi-agent systems: hierarchical, parallel, debate, and advanced orchestration patterns with Spring AI",
+    "published": "2025-01-21T00:00:00.000Z",
+    "tags": [
+      "prompt-engineering",
+      "agents",
+      "orchestration",
+      "spring-ai",
+      "multi-agent",
+      "mcp"
+    ],
+    "category": "prompt-engineering",
+    "series": "Prompt Engineering Guide",
+    "seriesOrder": 9,
+    "draft": false
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "3.2 Multi-modal Prompting",
+    "permalink": "/docs/ai/prompt-engineering/multimodal"
+  },
+  "next": {
+    "title": "RAG Systems",
+    "permalink": "/docs/ai/rag/"
+  }
+}

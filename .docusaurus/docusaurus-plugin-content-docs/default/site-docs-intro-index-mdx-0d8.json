@@ -1,0 +1,25 @@
+{
+  "id": "intro/index",
+  "title": "Welcome to CS Docs",
+  "description": "This documentation site showcases modern Docusaurus features including live code editing, Mermaid diagrams, and more.",
+  "source": "@site/docs/intro/index.mdx",
+  "sourceDirName": "intro",
+  "slug": "/",
+  "permalink": "/documentation/docs/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/intro/index.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "slug": "/",
+    "title": "Welcome to CS Docs",
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "next": {
+    "title": "🎮 React Playground",
+    "permalink": "/documentation/docs/react-playground/"
+  }
+}

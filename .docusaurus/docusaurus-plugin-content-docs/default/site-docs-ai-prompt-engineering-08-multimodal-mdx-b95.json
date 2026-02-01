@@ -1,0 +1,66 @@
+{
+  "id": "ai/prompt-engineering/multimodal",
+  "title": "8 Multi-modal Prompting",
+  "description": "Vision-text prompting, document understanding, video analysis, and cross-modal reasoning with GPT-4V, Claude, and Gemini",
+  "source": "@site/docs/ai/prompt-engineering/08-multimodal.mdx",
+  "sourceDirName": "ai/prompt-engineering",
+  "slug": "/ai/prompt-engineering/multimodal",
+  "permalink": "/docs/ai/prompt-engineering/multimodal",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/prompt-engineering/08-multimodal.mdx",
+  "tags": [
+    {
+      "inline": true,
+      "label": "prompt-engineering",
+      "permalink": "/docs/tags/prompt-engineering"
+    },
+    {
+      "inline": true,
+      "label": "multimodal",
+      "permalink": "/docs/tags/multimodal"
+    },
+    {
+      "inline": true,
+      "label": "vision",
+      "permalink": "/docs/tags/vision"
+    },
+    {
+      "inline": true,
+      "label": "ai",
+      "permalink": "/docs/tags/ai"
+    },
+    {
+      "inline": true,
+      "label": "document-understanding",
+      "permalink": "/docs/tags/document-understanding"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "title": "8 Multi-modal Prompting",
+    "description": "Vision-text prompting, document understanding, video analysis, and cross-modal reasoning with GPT-4V, Claude, and Gemini",
+    "published": "2025-01-21T00:00:00.000Z",
+    "tags": [
+      "prompt-engineering",
+      "multimodal",
+      "vision",
+      "ai",
+      "document-understanding"
+    ],
+    "category": "prompt-engineering",
+    "series": "Prompt Engineering Guide",
+    "seriesOrder": 7,
+    "draft": false
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "3.1 Advanced Techniques",
+    "permalink": "/docs/ai/prompt-engineering/advanced-techniques"
+  },
+  "next": {
+    "title": "3.3 Agent Orchestration",
+    "permalink": "/docs/ai/prompt-engineering/agent-orchestration"
+  }
+}

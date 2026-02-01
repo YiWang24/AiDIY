@@ -1,0 +1,29 @@
+{
+  "id": "engineering/backend/concurrency",
+  "title": "Java Concurrency Programming",
+  "description": "Master Java concurrency from fundamentals to modern async programming and AI Agent applications",
+  "source": "@site/docs/engineering/backend/concurrency.md",
+  "sourceDirName": "engineering/backend",
+  "slug": "/engineering/backend/concurrency",
+  "permalink": "/docs/engineering/backend/concurrency",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/engineering/backend/concurrency.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "concurrency",
+    "title": "Java Concurrency Programming",
+    "sidebar_label": "Concurrency",
+    "description": "Master Java concurrency from fundamentals to modern async programming and AI Agent applications"
+  },
+  "sidebar": "engineeringSidebar",
+  "previous": {
+    "title": "index",
+    "permalink": "/docs/engineering/backend/"
+  },
+  "next": {
+    "title": "index",
+    "permalink": "/docs/engineering/frontend/"
+  }
+}

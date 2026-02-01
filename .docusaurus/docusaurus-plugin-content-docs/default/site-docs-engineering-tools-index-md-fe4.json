@@ -1,0 +1,25 @@
+{
+  "id": "engineering/tools/index",
+  "title": "Developer Tools",
+  "description": "Git workflows, IDE mastery, terminal configuration, and productivity tools",
+  "source": "@site/docs/engineering/tools/index.md",
+  "sourceDirName": "engineering/tools",
+  "slug": "/engineering/tools/",
+  "permalink": "/docs/engineering/tools/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/engineering/tools/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Developer Tools",
+    "sidebar_label": "🧰 Dev Tools",
+    "description": "Git workflows, IDE mastery, terminal configuration, and productivity tools"
+  },
+  "sidebar": "engineeringSidebar",
+  "previous": {
+    "title": "index",
+    "permalink": "/docs/engineering/devops/"
+  }
+}

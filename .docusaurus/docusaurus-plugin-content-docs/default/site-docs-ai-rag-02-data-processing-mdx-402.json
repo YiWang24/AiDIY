@@ -1,0 +1,31 @@
+{
+  "id": "ai/rag/data-processing",
+  "title": "Data Processing Pipeline",
+  "description": "Document loading, cleaning, intelligent chunking, metadata enrichment, and embedding storage with Spring AI",
+  "source": "@site/docs/ai/rag/02-data-processing.mdx",
+  "sourceDirName": "ai/rag",
+  "slug": "/ai/rag/data-processing",
+  "permalink": "/docs/ai/rag/data-processing",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/rag/02-data-processing.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "id": "data-processing",
+    "title": "Data Processing Pipeline",
+    "sidebar_label": "2. Data Processing",
+    "description": "Document loading, cleaning, intelligent chunking, metadata enrichment, and embedding storage with Spring AI",
+    "slug": "/ai/rag/data-processing"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "1. RAG Foundation",
+    "permalink": "/docs/ai/rag/introduction"
+  },
+  "next": {
+    "title": "3. Vector Indexing",
+    "permalink": "/docs/ai/rag/vector-indexing"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "react-playground/index",
+  "title": "React Playground",
+  "description": "Explore interactive React components! Edit the code below and see changes in real-time.",
+  "source": "@site/docs/react-playground/index.mdx",
+  "sourceDirName": "react-playground",
+  "slug": "/react-playground/",
+  "permalink": "/documentation/docs/react-playground/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/react-playground/index.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "React Playground",
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "🚀 Introduction",
+    "permalink": "/documentation/docs/"
+  },
+  "next": {
+    "title": "📊 Diagrams",
+    "permalink": "/documentation/docs/diagrams/"
+  }
+}

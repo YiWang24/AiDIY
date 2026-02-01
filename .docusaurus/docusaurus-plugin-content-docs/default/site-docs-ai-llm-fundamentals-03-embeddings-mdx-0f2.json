@@ -1,0 +1,31 @@
+{
+  "id": "ai/llm-fundamentals/embeddings",
+  "title": "Embeddings - The Semantic Space",
+  "description": "From Word2Vec to Matryoshka - understanding how LLMs capture meaning in vector space. Updated for 2025.",
+  "source": "@site/docs/ai/llm-fundamentals/03-embeddings.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/embeddings",
+  "permalink": "/docs/ai/llm-fundamentals/embeddings",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/03-embeddings.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "id": "embeddings",
+    "title": "Embeddings - The Semantic Space",
+    "sidebar_label": "3 Embeddings",
+    "description": "From Word2Vec to Matryoshka - understanding how LLMs capture meaning in vector space. Updated for 2025.",
+    "slug": "/ai/llm-fundamentals/embeddings"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "2 Tokenization",
+    "permalink": "/docs/ai/llm-fundamentals/tokenization"
+  },
+  "next": {
+    "title": "4 Transformer Architecture",
+    "permalink": "/docs/ai/llm-fundamentals/transformer-architecture"
+  }
+}

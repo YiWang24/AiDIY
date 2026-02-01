@@ -1,0 +1,29 @@
+{
+  "id": "ai/llm-fundamentals/inference",
+  "title": "Inference - Controlling Output Quality",
+  "description": "Autoregressive generation, decoding strategies, sampling parameters, and optimization techniques",
+  "source": "@site/docs/ai/llm-fundamentals/inference.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/inference",
+  "permalink": "/docs/ai/llm-fundamentals/inference",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/inference.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "inference",
+    "title": "Inference - Controlling Output Quality",
+    "sidebar_label": "Inference",
+    "description": "Autoregressive generation, decoding strategies, sampling parameters, and optimization techniques"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "Training Pipeline",
+    "permalink": "/docs/ai/llm-fundamentals/training-pipeline"
+  },
+  "next": {
+    "title": "Cognitive Limitations",
+    "permalink": "/docs/ai/llm-fundamentals/limitations"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "mcp",
+  "title": "Model Context Protocol (MCP)",
+  "description": "A comprehensive technical analysis of the universal AI integration standard",
+  "source": "@site/docs/mcp.md",
+  "sourceDirName": ".",
+  "slug": "/mcp",
+  "permalink": "/docs/mcp",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/mcp.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "mcp",
+    "title": "Model Context Protocol (MCP)",
+    "sidebar_label": "Model Context Protocol",
+    "description": "A comprehensive technical analysis of the universal AI integration standard"
+  }
+}

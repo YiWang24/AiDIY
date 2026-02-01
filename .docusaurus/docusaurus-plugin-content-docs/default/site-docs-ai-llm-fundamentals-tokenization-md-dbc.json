@@ -1,0 +1,29 @@
+{
+  "id": "ai/llm-fundamentals/tokenization",
+  "title": "Tokenization - How LLMs See Text",
+  "description": "Understanding Byte Pair Encoding, special tokens, and why LLMs struggle with character counting",
+  "source": "@site/docs/ai/llm-fundamentals/tokenization.md",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/tokenization",
+  "permalink": "/docs/ai/llm-fundamentals/tokenization",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/tokenization.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "tokenization",
+    "title": "Tokenization - How LLMs See Text",
+    "sidebar_label": "Tokenization",
+    "description": "Understanding Byte Pair Encoding, special tokens, and why LLMs struggle with character counting"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "LLM Fundamentals",
+    "permalink": "/docs/ai/llm-fundamentals/"
+  },
+  "next": {
+    "title": "Embeddings",
+    "permalink": "/docs/ai/llm-fundamentals/embeddings"
+  }
+}

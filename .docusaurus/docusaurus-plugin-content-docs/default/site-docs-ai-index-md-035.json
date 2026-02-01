@@ -1,0 +1,26 @@
+{
+  "id": "ai/index",
+  "title": "AI Agent Engineering Handbook",
+  "description": "Complete guide from LLM fundamentals to production AI agents",
+  "source": "@site/docs/ai/index.md",
+  "sourceDirName": "ai",
+  "slug": "/ai",
+  "permalink": "/docs/ai",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "AI Agent Engineering Handbook",
+    "sidebar_label": "AI & Agents Overview",
+    "description": "Complete guide from LLM fundamentals to production AI agents",
+    "slug": "/ai"
+  },
+  "sidebar": "aiSidebar",
+  "next": {
+    "title": "Overview",
+    "permalink": "/docs/ai/llm-fundamentals/"
+  }
+}

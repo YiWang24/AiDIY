@@ -1,0 +1,29 @@
+{
+  "id": "ai/agents/frameworks",
+  "title": "4. Frameworks & Tech Stack",
+  "description": "AI Agent Frameworks - LangChain, LangGraph, Semantic Kernel, AutoGen, and Spring AI Implementation Guide",
+  "source": "@site/docs/ai/agents/frameworks.mdx",
+  "sourceDirName": "ai/agents",
+  "slug": "/ai/agents/frameworks",
+  "permalink": "/docs/ai/agents/frameworks",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/agents/frameworks.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "frameworks",
+    "title": "4. Frameworks & Tech Stack",
+    "sidebar_label": "4. Frameworks & Tech Stack",
+    "description": "AI Agent Frameworks - LangChain, LangGraph, Semantic Kernel, AutoGen, and Spring AI Implementation Guide"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "3. Design Patterns",
+    "permalink": "/docs/ai/agents/design-patterns"
+  },
+  "next": {
+    "title": "5. Engineering & Production",
+    "permalink": "/docs/ai/agents/engineering"
+  }
+}

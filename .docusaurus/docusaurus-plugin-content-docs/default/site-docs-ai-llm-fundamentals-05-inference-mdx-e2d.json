@@ -1,0 +1,30 @@
+{
+  "id": "ai/llm-fundamentals/inference",
+  "title": "Inference - Controlling Output Quality",
+  "description": "Autoregressive generation, decoding strategies, sampling parameters, and optimization techniques",
+  "source": "@site/docs/ai/llm-fundamentals/05-inference.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/inference",
+  "permalink": "/docs/ai/llm-fundamentals/inference",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/05-inference.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "id": "inference",
+    "title": "Inference - Controlling Output Quality",
+    "sidebar_label": "5 Inference",
+    "description": "Autoregressive generation, decoding strategies, sampling parameters, and optimization techniques"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "4 Transformer Architecture",
+    "permalink": "/docs/ai/llm-fundamentals/transformer-architecture"
+  },
+  "next": {
+    "title": "7 Training Pipeline",
+    "permalink": "/docs/ai/llm-fundamentals/training-pipeline"
+  }
+}

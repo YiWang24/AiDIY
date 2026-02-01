@@ -1,0 +1,29 @@
+{
+  "id": "cs/system-design/index",
+  "title": "System Design",
+  "description": "High concurrency, distributed systems, and architectural patterns",
+  "source": "@site/docs/cs/system-design/index.md",
+  "sourceDirName": "cs/system-design",
+  "slug": "/cs/system-design/",
+  "permalink": "/docs/cs/system-design/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/cs/system-design/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "System Design",
+    "sidebar_label": "🏛️ System Design",
+    "description": "High concurrency, distributed systems, and architectural patterns"
+  },
+  "sidebar": "csSidebar",
+  "previous": {
+    "title": "📊 Algorithms & DS",
+    "permalink": "/docs/cs/algorithms/"
+  },
+  "next": {
+    "title": "🗄️ Database Internals",
+    "permalink": "/docs/cs/database/"
+  }
+}

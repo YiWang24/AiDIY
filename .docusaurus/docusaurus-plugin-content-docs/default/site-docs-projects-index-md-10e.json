@@ -1,0 +1,26 @@
+{
+  "id": "projects/index",
+  "title": "Case Studies",
+  "description": "Real-world project deep dives - architecture decisions, challenges, and solutions",
+  "source": "@site/docs/projects/index.md",
+  "sourceDirName": "projects",
+  "slug": "/projects",
+  "permalink": "/docs/projects",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/projects/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "Case Studies",
+    "sidebar_label": "🚀 Case Studies",
+    "description": "Real-world project deep dives - architecture decisions, challenges, and solutions",
+    "slug": "/projects"
+  },
+  "sidebar": "projectsSidebar",
+  "next": {
+    "title": "📚 RAG Knowledge Base",
+    "permalink": "/docs/projects/rag-knowledge-base"
+  }
+}

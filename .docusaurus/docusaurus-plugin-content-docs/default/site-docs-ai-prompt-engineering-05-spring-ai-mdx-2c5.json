@@ -1,0 +1,66 @@
+{
+  "id": "ai/prompt-engineering/spring-ai",
+  "title": "5 Spring AI Prompts",
+  "description": "Spring AI Prompt API: ChatClient, PromptTemplate, Message types, and prompt engineering patterns for enterprise applications",
+  "source": "@site/docs/ai/prompt-engineering/05-spring-ai.mdx",
+  "sourceDirName": "ai/prompt-engineering",
+  "slug": "/ai/prompt-engineering/spring-ai",
+  "permalink": "/docs/ai/prompt-engineering/spring-ai",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/prompt-engineering/05-spring-ai.mdx",
+  "tags": [
+    {
+      "inline": true,
+      "label": "prompt-engineering",
+      "permalink": "/docs/tags/prompt-engineering"
+    },
+    {
+      "inline": true,
+      "label": "spring-ai",
+      "permalink": "/docs/tags/spring-ai"
+    },
+    {
+      "inline": true,
+      "label": "java",
+      "permalink": "/docs/tags/java"
+    },
+    {
+      "inline": true,
+      "label": "chat-client",
+      "permalink": "/docs/tags/chat-client"
+    },
+    {
+      "inline": true,
+      "label": "prompt-template",
+      "permalink": "/docs/tags/prompt-template"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "5 Spring AI Prompts",
+    "description": "Spring AI Prompt API: ChatClient, PromptTemplate, Message types, and prompt engineering patterns for enterprise applications",
+    "published": "2025-01-21T00:00:00.000Z",
+    "tags": [
+      "prompt-engineering",
+      "spring-ai",
+      "java",
+      "chat-client",
+      "prompt-template"
+    ],
+    "category": "prompt-engineering",
+    "series": "Prompt Engineering Guide",
+    "seriesOrder": 5,
+    "draft": false
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "2.3 Structured Output",
+    "permalink": "/docs/ai/prompt-engineering/structured-output"
+  },
+  "next": {
+    "title": "2.5 Evaluation & Versioning",
+    "permalink": "/docs/ai/prompt-engineering/evaluation-versioning"
+  }
+}

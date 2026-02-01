@@ -1,0 +1,26 @@
+{
+  "id": "cs/index",
+  "title": "CS Core",
+  "description": "Computer Science fundamentals - algorithms, operating systems, networking, and database internals",
+  "source": "@site/docs/cs/index.md",
+  "sourceDirName": "cs",
+  "slug": "/cs",
+  "permalink": "/docs/cs",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/cs/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "index",
+    "title": "CS Core",
+    "sidebar_label": "🧠 CS Core",
+    "description": "Computer Science fundamentals - algorithms, operating systems, networking, and database internals",
+    "slug": "/cs"
+  },
+  "sidebar": "csSidebar",
+  "next": {
+    "title": "📊 Algorithms & DS",
+    "permalink": "/docs/cs/algorithms/"
+  }
+}

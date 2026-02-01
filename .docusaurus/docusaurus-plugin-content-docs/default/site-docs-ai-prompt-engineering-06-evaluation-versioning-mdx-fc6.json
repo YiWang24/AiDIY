@@ -1,0 +1,66 @@
+{
+  "id": "ai/prompt-engineering/evaluation-versioning",
+  "title": "6 Evaluation & Version Control",
+  "description": "Measuring prompt quality, A/B testing, metrics frameworks, and managing prompts in production",
+  "source": "@site/docs/ai/prompt-engineering/06-evaluation-versioning.mdx",
+  "sourceDirName": "ai/prompt-engineering",
+  "slug": "/ai/prompt-engineering/evaluation-versioning",
+  "permalink": "/docs/ai/prompt-engineering/evaluation-versioning",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/prompt-engineering/06-evaluation-versioning.mdx",
+  "tags": [
+    {
+      "inline": true,
+      "label": "prompt-engineering",
+      "permalink": "/docs/tags/prompt-engineering"
+    },
+    {
+      "inline": true,
+      "label": "evaluation",
+      "permalink": "/docs/tags/evaluation"
+    },
+    {
+      "inline": true,
+      "label": "testing",
+      "permalink": "/docs/tags/testing"
+    },
+    {
+      "inline": true,
+      "label": "mlops",
+      "permalink": "/docs/tags/mlops"
+    },
+    {
+      "inline": true,
+      "label": "metrics",
+      "permalink": "/docs/tags/metrics"
+    }
+  ],
+  "version": "current",
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "title": "6 Evaluation & Version Control",
+    "description": "Measuring prompt quality, A/B testing, metrics frameworks, and managing prompts in production",
+    "published": "2025-01-21T00:00:00.000Z",
+    "tags": [
+      "prompt-engineering",
+      "evaluation",
+      "testing",
+      "mlops",
+      "metrics"
+    ],
+    "category": "prompt-engineering",
+    "series": "Prompt Engineering Guide",
+    "seriesOrder": 5,
+    "draft": false
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "2.4 Spring AI Implementation",
+    "permalink": "/docs/ai/prompt-engineering/spring-ai"
+  },
+  "next": {
+    "title": "3.1 Advanced Techniques",
+    "permalink": "/docs/ai/prompt-engineering/advanced-techniques"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "ai/llm-fundamentals/tokenization",
+  "title": "Tokenization - How LLMs See Text",
+  "description": "Deep dive into Byte Pair Encoding (BPE), vocabulary trade-offs, and why models can't count characters. Updated for 2025.",
+  "source": "@site/docs/ai/llm-fundamentals/02-tokenization.mdx",
+  "sourceDirName": "ai/llm-fundamentals",
+  "slug": "/ai/llm-fundamentals/tokenization",
+  "permalink": "/docs/ai/llm-fundamentals/tokenization",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/ai/llm-fundamentals/02-tokenization.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "id": "tokenization",
+    "title": "Tokenization - How LLMs See Text",
+    "sidebar_label": "2 Tokenization",
+    "description": "Deep dive into Byte Pair Encoding (BPE), vocabulary trade-offs, and why models can't count characters. Updated for 2025.",
+    "slug": "/ai/llm-fundamentals/tokenization"
+  },
+  "sidebar": "aiSidebar",
+  "previous": {
+    "title": "1. Introduction",
+    "permalink": "/docs/ai/llm-fundamentals/introduction"
+  },
+  "next": {
+    "title": "3 Embeddings",
+    "permalink": "/docs/ai/llm-fundamentals/embeddings"
+  }
+}

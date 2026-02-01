@@ -1,0 +1,29 @@
+{
+  "id": "projects/rag-knowledge-base",
+  "title": "Case Study: Enterprise RAG Knowledge Base",
+  "description": "Building a production RAG system for internal documentation search",
+  "source": "@site/docs/projects/rag-knowledge-base.md",
+  "sourceDirName": "projects",
+  "slug": "/projects/rag-knowledge-base",
+  "permalink": "/docs/projects/rag-knowledge-base",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/projects/rag-knowledge-base.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "rag-knowledge-base",
+    "title": "Case Study: Enterprise RAG Knowledge Base",
+    "sidebar_label": "📚 RAG Knowledge Base",
+    "description": "Building a production RAG system for internal documentation search"
+  },
+  "sidebar": "projectsSidebar",
+  "previous": {
+    "title": "🚀 Case Studies",
+    "permalink": "/docs/projects"
+  },
+  "next": {
+    "title": "🛒 E-commerce Refactor",
+    "permalink": "/docs/projects/ecommerce-refactor"
+  }
+}

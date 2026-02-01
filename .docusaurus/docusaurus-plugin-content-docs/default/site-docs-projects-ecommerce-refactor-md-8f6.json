@@ -1,0 +1,25 @@
+{
+  "id": "projects/ecommerce-refactor",
+  "title": "Case Study: E-commerce Microservices Refactor",
+  "description": "Migrating a monolith to microservices while handling flash sales",
+  "source": "@site/docs/projects/ecommerce-refactor.md",
+  "sourceDirName": "projects",
+  "slug": "/projects/ecommerce-refactor",
+  "permalink": "/docs/projects/ecommerce-refactor",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/docs/projects/ecommerce-refactor.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "ecommerce-refactor",
+    "title": "Case Study: E-commerce Microservices Refactor",
+    "sidebar_label": "🛒 E-commerce Refactor",
+    "description": "Migrating a monolith to microservices while handling flash sales"
+  },
+  "sidebar": "projectsSidebar",
+  "previous": {
+    "title": "📚 RAG Knowledge Base",
+    "permalink": "/docs/projects/rag-knowledge-base"
+  }
+}
