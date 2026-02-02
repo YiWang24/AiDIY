@@ -1,0 +1,28 @@
+index:
+  content_roots:
+    - docs
+  file_extensions:
+    - .md
+    - .mdx
+chunking:
+  target_tokens: 500
+  min_tokens: 350
+  max_tokens: 800
+  overlap_tokens: 80
+  heading_levels: [1, 2, 3]
+  max_codeblock_chars: 1500
+embedding:
+  enabled: true
+  provider: huggingface
+  model: BAAI/bge-small-en-v1.5
+vector_store:
+  table_name: kb_llama_nodes
+  embed_dim: 384
+storage:
+  database_url: "postgresql://postgres:postgres@localhost:5432/kb"
+  persist_dir: kb_index/storage
+bm25:
+  persist_dir: kb_index/bm25
+output:
+  chunks_path: kb_index/chunks.jsonl
+  manifest_path: kb_index/manifest.json

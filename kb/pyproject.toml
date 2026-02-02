@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kb-agent"
+version = "0.1.0"
+description = "Local KB indexing and query service"
+requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "MIT" }
+
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn>=0.29",
+  "pydantic>=2.6",
+  "psycopg[binary]>=3.1",
+  "pgvector>=0.2",
+  "rank-bm25>=0.2",
+  "PyYAML>=6.0",
+  "langchain>=0.2",
+  "langchain-core>=0.2",
+  "langchain-openai>=0.1",
+  "sentence-transformers>=2.6",
+  "llama-index>=0.10",
+  "llama-index-readers-file>=0.1",
+  "llama-index-vector-stores-postgres>=0.1",
+  "llama-index-embeddings-huggingface>=0.1",
+]
+
+[project.scripts]
+kb-index-build = "kb.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["kb*"]
