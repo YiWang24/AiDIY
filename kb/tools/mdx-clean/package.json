@@ -1,0 +1,20 @@
+{
+  "name": "mdx-clean",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "node bin/clean.mjs",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "fast-glob": "^3.3.2",
+    "gray-matter": "^4.0.3",
+    "mdast-util-to-string": "^4.0.0",
+    "remark-mdx": "^3.1.0",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.4",
+    "unist-util-visit": "^5.0.0"
+  }
+}
