@@ -55,8 +55,6 @@ def test_glm_config():
 
         client = ZhipuAI(
             api_key=config.llm.api_key,
-            model=config.llm.model,
-            temperature=config.llm.temperature,
         )
         print("✓ ZhipuAI client initialized successfully")
     except Exception as e:
@@ -67,12 +65,16 @@ def test_glm_config():
     if "--test-api" in sys.argv:
         print("\n🔄 Testing API call...")
         try:
-            response = client.chat.invoke(
+            response = client.chat.completions.create(
                 model=config.llm.model,
                 messages=[{"role": "user", "content": "Hello, please respond with 'OK' if you can understand this."}],
+                temperature=config.llm.temperature,
             )
             print(f"✓ API call successful")
-            print(f"  Response: {response.choices[0].message.content[:100]}...")
+            if hasattr(response, 'choices'):
+                print(f"  Response: {response.choices[0].message.content[:100]}...")
+            elif hasattr(response, 'content'):
+                print(f"  Response: {response.content[:100]}...")
         except Exception as e:
             print(f"❌ API call failed: {e}")
             print("\nPossible issues:")

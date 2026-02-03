@@ -44,8 +44,6 @@ class KBExecutor:
 
                 return ZhipuAI(
                     api_key=self.config.llm.api_key,
-                    model=self.config.llm.model,
-                    temperature=self.config.llm.temperature,
                 )
             except ImportError:
                 # Fallback to langchain-community if zhipuai not available
@@ -54,7 +52,6 @@ class KBExecutor:
                 return ChatTongyi(
                     model=self.config.llm.model,
                     zhipuai_api_key=self.config.llm.api_key,
-                    temperature=self.config.llm.temperature,
                 )
         else:
             raise ValueError(f"Unsupported LLM provider: {provider}")
@@ -73,34 +70,58 @@ class KBExecutor:
         if self.config.llm.provider == "zhipuai" and hasattr(llm, 'chat'):
             # For zhipuai SDK, we need to wrap it for LangChain
             from langchain_core.language_models.chat_models import BaseChatModel
-            from langchain_core.messages import BaseMessage, HumanMessage
-            from typing import Any, List
+            from langchain_core.messages import BaseMessage, AIMessage
+            from typing import Any, List, Optional
 
             class ZhipuAILLMWrapper(BaseChatModel):
                 """Wrapper for zhipuai SDK to work with LangChain."""
 
-                def __init__(self, zhipuai_client):
+                def __init__(self, zhipuai_client, model: str, temperature: float = 0.0):
                     super().__init__()
                     self.client = zhipuai_client
+                    self.model_name = model
+                    self.temperature = temperature
 
                 @property
-                def _llm_type(self):
+                def _llm_type(self) -> str:
                     return "zhipuai"
 
-                def _generate(self, messages: List[BaseMessage], **kwargs) -> Any:
+                def _generate(
+                    self,
+                    messages: List[BaseMessage],
+                    stop: Optional[List[str]] = None,
+                    run_manager: Optional[Any] = None,
+                    **kwargs: Any,
+                ) -> Any:
                     # Convert messages to zhipuai format
-                    prompt = messages[0].content
-                    response = self.client.chat.invoke(
-                        model=self.client.model,
-                        messages=[{"role": "user", "content": prompt}]
+                    zhipuai_messages = [
+                        {"role": "user", "content": msg.content}
+                        for msg in messages
+                    ]
+
+                    response = self.client.chat.completions.create(
+                        model=self.model_name,
+                        messages=zhipuai_messages,
+                        temperature=self.temperature,
                     )
-                    return response
+
+                    # Extract content from response
+                    if hasattr(response, 'choices'):
+                        content = response.choices[0].message.content
+                    else:
+                        content = str(response)
+
+                    return AIMessage(content=content)
 
                 @property
-                def _identifying_params(self):
-                    return {"model": self.client.model}
+                def _identifying_params(self) -> dict[str, Any]:
+                    return {"model": self.model_name}
 
-            llm = ZhipuAILLMWrapper(llm)
+            llm = ZhipuAILLMWrapper(
+                llm,
+                self.config.llm.model,
+                self.config.llm.temperature
+            )
 
         # Import tools
         from kb.agent.tools import create_kb_tool
