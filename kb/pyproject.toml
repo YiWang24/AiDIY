@@ -21,11 +21,13 @@ dependencies = [
   "langchain>=0.2",
   "langchain-core>=0.2",
   "langchain-openai>=0.1",
+  "langchain-community>=0.2",
   "sentence-transformers>=2.6",
   "llama-index>=0.10",
   "llama-index-readers-file>=0.1",
   "llama-index-vector-stores-postgres>=0.1",
   "llama-index-embeddings-huggingface>=0.1",
+  "zhipuai>=2.1",  # ZhipuAI SDK for GLM-4
 ]
 
 [project.scripts]

@@ -56,6 +56,28 @@ class OutputConfig:
 
 
 @dataclass(frozen=True)
+class LLMConfig:
+    provider: str = "openai"
+    model: str = "gpt-4o-mini"
+    api_key: str | None = None
+    temperature: float = 0.0
+
+
+@dataclass(frozen=True)
+class RetrievalConfig:
+    top_k: int = 10
+    rrf_k: int = 60
+    use_bm25: bool = True
+
+
+@dataclass(frozen=True)
+class APIConfig:
+    host: str = "0.0.0.0"
+    port: int = 8000
+    cors_origins: list[str] = field(default_factory=lambda: ["*"])
+
+
+@dataclass(frozen=True)
 class AppConfig:
     index: IndexConfig = field(default_factory=IndexConfig)
     chunking: ChunkingConfig = field(default_factory=ChunkingConfig)
@@ -64,6 +86,9 @@ class AppConfig:
     vector_store: VectorStoreConfig = field(default_factory=VectorStoreConfig)
     bm25: BM25Config = field(default_factory=BM25Config)
     output: OutputConfig = field(default_factory=OutputConfig)
+    llm: LLMConfig = field(default_factory=LLMConfig)
+    retrieval: RetrievalConfig = field(default_factory=RetrievalConfig)
+    api: APIConfig = field(default_factory=APIConfig)
 
 
 def _coalesce(base: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any]:
@@ -88,6 +113,9 @@ def _from_dict(data: dict[str, Any]) -> AppConfig:
         vector_store=VectorStoreConfig(**data.get("vector_store", {})),
         bm25=BM25Config(**data.get("bm25", {})),
         output=OutputConfig(**data.get("output", {})),
+        llm=LLMConfig(**data.get("llm", {})),
+        retrieval=RetrievalConfig(**data.get("retrieval", {})),
+        api=APIConfig(**data.get("api", {})),
     )
 
 
@@ -122,6 +150,9 @@ def load_config(path: str | Path | None) -> AppConfig:
         "vector_store": defaults.vector_store.__dict__,
         "bm25": defaults.bm25.__dict__,
         "output": defaults.output.__dict__,
+        "llm": defaults.llm.__dict__,
+        "retrieval": defaults.retrieval.__dict__,
+        "api": defaults.api.__dict__,
     }
     merged = _coalesce(default_dict, data)
     return _from_dict(merged)
@@ -138,6 +169,9 @@ def load_env_database_url(config: AppConfig) -> AppConfig:
             vector_store=config.vector_store,
             bm25=config.bm25,
             output=config.output,
+            llm=config.llm,
+            retrieval=config.retrieval,
+            api=config.api,
         )
     return config
 

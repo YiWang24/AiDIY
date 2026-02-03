@@ -19,10 +19,30 @@ vector_store:
   table_name: kb_llama_nodes
   embed_dim: 384
 storage:
-  database_url: "postgresql://postgres:postgres@localhost:5432/kb"
+  database_url: ${DATABASE_URL:-postgresql://user:password@localhost:5432/kb}  # Set DATABASE_URL env var in production
   persist_dir: kb_index/storage
 bm25:
   persist_dir: kb_index/bm25
 output:
   chunks_path: kb_index/chunks.jsonl
   manifest_path: kb_index/manifest.json
+
+# LLM configuration for ReAct agent
+llm:
+  provider: zhipuai
+  model: glm-4
+  api_key: ${GLM_API_KEY:-}  # Load from GLM_API_KEY environment variable (zhipuai)
+  temperature: 0.0
+
+# Retrieval configuration
+retrieval:
+  top_k: 10
+  rrf_k: 60  # Reciprocal Rank Fusion constant
+  use_bm25: true
+
+# API server configuration
+api:
+  host: 0.0.0.0
+  port: 8000
+  cors_origins:
+    - "*"
