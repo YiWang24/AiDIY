@@ -1,86 +1,65 @@
-"""Vector embeddings storage using PGVector."""
+"""Vector embeddings storage using PGVector (Gemini-only)."""
 
 from typing import List
 import json
-import os
 import httpx
+import re
 
-from sentence_transformers import SentenceTransformer
-from langchain_core.embeddings import Embeddings
 from psycopg_pool import ConnectionPool
 
 from kb.domain.chunk import Chunk
 
 
 class VectorStore:
-    """Vector embeddings storage adapter.
+    """Vector embeddings storage adapter (Gemini-only)."""
 
-    Manages vector embeddings using PostgreSQL + pgvector.
-    Supports both GLM API and HuggingFace embeddings.
-    """
-
-    TABLE_NAME = "kb_chunks_embedding_3"  # Will be updated based on model
-    EMBEDDING_DIM = 1024  # Default dimension (will be detected)
+    TABLE_NAME = "kb_chunks_embedding_3"
+    EMBEDDING_DIM = 1024
 
     def __init__(
         self,
         database_url: str,
         embedding_model: str = "embedding-3",
-        embedding_provider: str = "glm",
-        glm_api_key: str = "",
-        glm_api_base: str = "https://open.bigmodel.cn/api/paas/v4",
         gemini_api_key: str = "",
+        table_name: str = "",
+        batch_size: int = 32,
     ):
         """Initialize VectorStore.
 
         Args:
             database_url: PostgreSQL connection URL
             embedding_model: Model name (e.g., "embedding-3" for GLM, "models/embedding-001" for Gemini)
-            embedding_provider: "glm", "gemini", or "huggingface"
-            glm_api_key: GLM API key (required if provider=glm)
-            glm_api_base: GLM API base URL
-            gemini_api_key: Google API key (required if provider=gemini)
+            gemini_api_key: Google API key (required)
+            table_name: Optional table name override
+            batch_size: Default embedding batch size
         """
         self._database_url = database_url
         self._embedding_model = embedding_model
-        self._embedding_provider = embedding_provider
-        self._glm_api_key = glm_api_key
-        self._glm_api_base = glm_api_base
         self._gemini_api_key = gemini_api_key
-        self._embeddings: Embeddings | None = None
+        self._table_name = table_name
+        self._batch_size = batch_size
+        self._embeddings: object | None = None
         self._pool: ConnectionPool | None = None
 
     def initialize(self) -> None:
         """Initialize embeddings model and vector store."""
-        # Initialize embeddings based on provider
-        if self._embedding_provider == "gemini":
-            if not self._gemini_api_key:
-                raise ValueError("Gemini API key is required when using Gemini embeddings")
-            self._embeddings = GeminiEmbeddings(
-                model=self._embedding_model,
-                api_key=self._gemini_api_key,
-            )
-        elif self._embedding_provider == "glm":
-            if not self._glm_api_key:
-                raise ValueError("GLM API key is required when using GLM embeddings")
-            self._embeddings = GLMEmbeddings(
-                model=self._embedding_model,
-                api_key=self._glm_api_key,
-                api_base=self._glm_api_base,
-            )
-        else:  # huggingface
-            self._embeddings = HuggingFaceEmbeddings(
-                model_name=self._embedding_model,
-            )
+        if not self._gemini_api_key:
+            raise ValueError("Gemini API key is required when using Gemini embeddings")
+
+        self._embeddings = GeminiEmbeddings(
+            model=self._embedding_model,
+            api_key=self._gemini_api_key,
+        )
 
         # Detect embedding dimension
         test_embedding = self._embeddings.embed_query("test")
         self.EMBEDDING_DIM = len(test_embedding)
 
-        # Update table name based on provider
-        # Sanitize model name for SQL table names (replace hyphens and slashes with underscore)
-        model_safe = self._embedding_model.replace("/", "_").replace("-", "_")
-        self.TABLE_NAME = f"kb_chunks_{model_safe}"
+        if self._table_name:
+            self.TABLE_NAME = self._table_name
+        else:
+            model_safe = self._embedding_model.replace("/", "_").replace("-", "_")
+            self.TABLE_NAME = f"kb_chunks_{model_safe}"
 
         # Initialize connection pool
         self._pool = ConnectionPool(
@@ -113,14 +92,14 @@ class VectorStore:
             # Table exists, check if dimension matches
             try:
                 result = conn.execute(f"""
-                    SELECT atttypmod::int / 2 - 1
+                    SELECT pg_catalog.format_type(atttypid, atttypmod)
                     FROM pg_attribute
                     WHERE attrelid = '{self.TABLE_NAME}'::regclass
                     AND attname = 'embedding'
                 """).fetchone()
 
                 if result:
-                    existing_dim = result[0]
+                    existing_dim = _parse_vector_dim(result[0])
                     if existing_dim != self.EMBEDDING_DIM:
                         print(f"Warning: Table {self.TABLE_NAME} has dimension {existing_dim}, "
                               f"but model requires {self.EMBEDDING_DIM}. Recreating table...")
@@ -181,7 +160,16 @@ class VectorStore:
         if self._pool:
             self._pool.close()
 
-    def add_chunks(self, chunks: List[Chunk], batch_size: int = 32) -> None:
+    def reset_table(self) -> None:
+        """Drop and recreate the embeddings table."""
+        if not self._pool:
+            raise RuntimeError("VectorStore not initialized")
+
+        with self._pool.connection() as conn:
+            conn.execute(f"DROP TABLE IF EXISTS {self.TABLE_NAME} CASCADE")
+            self._create_table(conn)
+
+    def add_chunks(self, chunks: List[Chunk], batch_size: int | None = None) -> None:
         """Add chunks with embeddings to vector store.
 
         Args:
@@ -192,8 +180,10 @@ class VectorStore:
             raise RuntimeError("VectorStore not initialized")
 
         # Generate embeddings in batches
-        for i in range(0, len(chunks), batch_size):
-            batch = chunks[i : i + batch_size]
+        effective_batch_size = batch_size or self._batch_size
+
+        for i in range(0, len(chunks), effective_batch_size):
+            batch = chunks[i : i + effective_batch_size]
             texts = [chunk.content for chunk in batch]
 
             # Get embeddings
@@ -312,136 +302,15 @@ class VectorStore:
         ]
 
 
-class HuggingFaceEmbeddings(Embeddings):
-    """HuggingFace embeddings adapter for LangChain."""
-
-    def __init__(self, model_name: str):
-        """Initialize embeddings model.
-
-        Args:
-            model_name: HuggingFace model name
-        """
-        self._model = SentenceTransformer(model_name)
-
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        """Embed a list of documents.
-
-        Args:
-            texts: List of text strings
-
-        Returns:
-            List of embedding vectors
-        """
-        embeddings = self._model.encode(
-            texts,
-            normalize_embeddings=True,
-            show_progress_bar=False,
-        )
-        return embeddings.tolist()
-
-    def embed_query(self, text: str) -> List[float]:
-        """Embed a query text.
-
-        Args:
-            text: Query text
-
-        Returns:
-            Embedding vector
-        """
-        embedding = self._model.encode(
-            text,
-            normalize_embeddings=True,
-        )
-        return embedding.tolist()
+def _parse_vector_dim(type_str: str) -> int | None:
+    """Parse pgvector type like 'vector(768)' to dimension."""
+    match = re.match(r"vector\((\d+)\)", type_str)
+    if not match:
+        return None
+    return int(match.group(1))
 
 
-class GLMEmbeddings(Embeddings):
-    """GLM (ZhipuAI) embeddings adapter for LangChain.
-
-    Uses the GLM embedding API via httpx.
-    """
-
-    def __init__(
-        self,
-        model: str = "embedding-3",
-        api_key: str = "",
-        api_base: str = "https://open.bigmodel.cn/api/paas/v4",
-        timeout: float = 60.0,
-    ):
-        """Initialize GLM embeddings.
-
-        Args:
-            model: Model name (embedding-2 or embedding-3)
-            api_key: GLM API key
-            api_base: GLM API base URL
-            timeout: Request timeout in seconds
-        """
-        self._model = model
-        self._api_key = api_key
-        self._api_base = api_base.rstrip("/")
-        self._timeout = timeout
-
-        if not self._api_key:
-            raise ValueError("GLM API key is required")
-
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        """Embed a list of documents.
-
-        Args:
-            texts: List of text strings
-
-        Returns:
-            List of embedding vectors
-        """
-        embeddings = []
-        # GLM API supports batch embedding
-        for text in texts:
-            embedding = self._embed(text)
-            embeddings.append(embedding)
-        return embeddings
-
-    def embed_query(self, text: str) -> List[float]:
-        """Embed a query text.
-
-        Args:
-            text: Query text
-
-        Returns:
-            Embedding vector
-        """
-        return self._embed(text)
-
-    def _embed(self, text: str) -> List[float]:
-        """Embed a single text.
-
-        Args:
-            text: Text to embed
-
-        Returns:
-            Embedding vector
-        """
-        url = f"{self._api_base}/embeddings"
-        headers = {
-            "Authorization": f"Bearer {self._api_key}",
-            "Content-Type": "application/json",
-        }
-        data = {
-            "model": self._model,
-            "input": text,
-        }
-
-        with httpx.Client(timeout=self._timeout) as client:
-            response = client.post(url, json=data, headers=headers)
-            response.raise_for_status()
-            result = response.json()
-
-        if "data" not in result or not result["data"]:
-            raise RuntimeError(f"GLM API returned unexpected response: {result}")
-
-        return result["data"][0]["embedding"]
-
-
-class GeminiEmbeddings(Embeddings):
+class GeminiEmbeddings:
     """Google Gemini embeddings adapter for LangChain.
 
     Uses the Gemini embedding API via httpx.

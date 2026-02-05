@@ -8,6 +8,7 @@ from tqdm import tqdm
 from kb.domain.document import Document
 from kb.pipeline.chunk import ChunkingStrategy, ChunkingConfig
 from kb.pipeline.config import Config
+from kb.pipeline.index_signature import compute_signature
 from kb.pipeline.incremental import IncrementalIndexer
 from kb.storage.docstore import DocStore
 from kb.storage.vectorstore import VectorStore
@@ -28,33 +29,35 @@ class IndexBuilder:
         self._config = config
         self._chunking_config = config.chunking
 
-        # Determine embedding provider from model name
-        if config.embedding_model.startswith("models/"):
-            embedding_provider = "gemini"
-        elif config.embedding_model.startswith("embedding-"):
-            embedding_provider = "glm"
-        else:
-            embedding_provider = "huggingface"
-
         # Initialize storage
         self._docstore = DocStore(config.database_url)
         self._vectorstore = VectorStore(
             database_url=config.database_url,
             embedding_model=config.embedding_model,
-            embedding_provider=embedding_provider,
-            glm_api_key=config.glm_api_key,
-            glm_api_base=config.glm_api_base,
-            gemini_api_key=config.gemini_api_key if hasattr(config, 'gemini_api_key') else "",
+            gemini_api_key=config.gemini_api_key,
+            table_name=config.vector_store_table_name,
+            batch_size=config.vector_store_batch_size,
         )
 
         # Initialize components
         self._chunker = ChunkingStrategy(self._chunking_config)
         self._incremental = IncrementalIndexer(self._docstore, self._vectorstore)
+        self._force_rebuild_override = False
 
     def initialize(self) -> None:
         """Initialize storage connections."""
         self._docstore.initialize()
         self._vectorstore.initialize()
+
+        signature = compute_signature(self._config, self._vectorstore.EMBEDDING_DIM)
+        stored_signature = self._docstore.get_index_signature()
+        if stored_signature and stored_signature != signature:
+            # Config changed: clear existing data and force rebuild.
+            self._vectorstore.reset_table()
+            self._docstore.clear_documents()
+            self._force_rebuild_override = True
+
+        self._docstore.set_index_signature(signature)
 
     def close(self) -> None:
         """Close storage connections."""
@@ -84,17 +87,16 @@ class IndexBuilder:
             "errors": [],
         }
 
-        # Load documents
-        documents = list(self._load_jsonl(input_path))
-        stats["total"] = len(documents)
+        effective_force_rebuild = force_rebuild or self._force_rebuild_override
 
-        # Process each document
-        for doc_dict in tqdm(documents, desc="Indexing"):
+        # Process each document (streaming)
+        for doc_dict in tqdm(self._load_jsonl(input_path), desc="Indexing"):
+            stats["total"] += 1
             try:
                 document = Document.from_dict(doc_dict)
 
                 # Force rebuild: delete existing chunks first
-                if force_rebuild:
+                if effective_force_rebuild:
                     old_chunk_ids = self._docstore.get_chunk_ids(document.id)
                     if old_chunk_ids:
                         self._vectorstore.delete_chunks(old_chunk_ids)

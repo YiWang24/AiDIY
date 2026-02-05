@@ -11,7 +11,7 @@ Stage 1: 清理 (JS mdx-clean)
     ↓
 JSONL (kb/data/cleaned/docs.jsonl)
     ↓
-Stage 2: 索引 (Python + GLM Embeddings + PGVector)
+Stage 2: 索引 (Python + Gemini Embeddings + PGVector)
     ↓
 向量数据库 (PostgreSQL + pgvector)
 ```
@@ -90,13 +90,12 @@ chunking:
 
 # 嵌入模型配置
 embedding:
-  provider: glm                                    # 提供商: glm 或 huggingface
-  model: embedding-3                               # GLM 模型: embedding-2, embedding-3
+  provider: gemini                                 # 提供商: gemini
+  model: models/embedding-001                      # Gemini 模型: models/embedding-001, models/text-embedding-004
 
-# GLM API 配置（使用 glm 提供商时需要）
-glm:
-  api_key: ${GLM_API_KEY:-}                        # 从环境变量读取
-  api_base: https://open.bigmodel.cn/api/paas/v4   # API 地址
+# Gemini API 配置
+gemini:
+  api_key: ${GEMINI_API_KEY:-}                     # 从环境变量读取
 
 # 数据库配置
 storage:
@@ -111,12 +110,12 @@ storage:
 # 数据库连接（必需）
 export DATABASE_URL="postgresql://user:pass@host:port/dbname"
 
-# GLM API Key（使用 GLM embeddings 时必需）
-export GLM_API_KEY="your-glm-api-key"
+# Gemini API Key（使用 Gemini embeddings 时必需）
+export GEMINI_API_KEY="your-gemini-api-key"
 
 # 或者使用 Doppler
 export DATABASE_URL=$(doppler secrets get POSTGRES_URL --plain)
-export GLM_API_KEY=$(doppler secrets get GLM_API_KEY --plain)
+export GEMINI_API_KEY=$(doppler secrets get GEMINI_API_KEY --plain)
 ```
 
 ## Stage 1: 文档清洗
@@ -146,14 +145,14 @@ export GLM_API_KEY=$(doppler secrets get GLM_API_KEY --plain)
 将清理后的文档索引到向量数据库：
 
 - 使用 MarkdownHeaderTextSplitter 保留文档结构
-- 使用 BGE-M3 生成嵌入向量（1024 维）
+- 使用 Gemini 生成嵌入向量（维度由模型决定）
 - 存储到 PostgreSQL + pgvector
 - 支持增量更新（基于 checksum）
 - 支持完全重建
 
 **数据库表：**
 - `kb_documents` - 文档元数据（checksum, chunk_ids）
-- `kb_chunks_bge_m3` - 向量嵌入（PGVector 自动创建）
+- `kb_chunks_<model>` - 向量嵌入（PGVector 自动创建）
 
 ## 运行结果
 
@@ -206,13 +205,13 @@ Error: connection to server at "10.0.0.4", port 5432 failed
 2. 验证 DATABASE_URL 配置
 3. 确认网络连接
 
-### GLM API 调用失败
+### Gemini API 调用失败
 ```
-Error: GLM API key is required when using GLM embeddings
+Error: Gemini API key is required when using Gemini embeddings
 ```
 **解决方案：**
-1. 确保 `GLM_API_KEY` 环境变量已设置
-2. 或在 `kb/config.yaml` 中设置 `glm.api_key`
+1. 确保 `GEMINI_API_KEY` 环境变量已设置
+2. 或在 `kb/config.yaml` 中设置 `gemini.api_key`
 3. 验证 API Key 有效性
 
 ### 数据库连接失败
@@ -265,14 +264,14 @@ kb/
 - **Stage 1**: Node.js + mdx-clean 工具
 - **Stage 2**: Python 3.11+
   - LangChain (text splitters, embeddings interface)
-  - GLM API (ZhipuAI embeddings)
+  - Gemini API (embeddings)
   - PostgreSQL + pgvector (psycopg3)
-  - httpx (HTTP client for GLM API)
+  - httpx (HTTP client for Gemini API)
   - PyYAML (配置文件)
   - tqdm (进度条)
 
 ## 相关链接
 
-- [GLM API 文档](https://open.bigmodel.cn/dev/api#embedding) - GLM 嵌入 API
+- [Gemini API 文档](https://ai.google.dev/gemini-api/docs/embeddings) - Gemini 嵌入 API
 - [pgvector](https://github.com/pgvector/pgvector) - PostgreSQL 向量扩展
 - [LangChain](https://docs.langchain.com/) - LLM 应用框架
