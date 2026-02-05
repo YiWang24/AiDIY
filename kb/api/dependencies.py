@@ -2,28 +2,24 @@
 
 from functools import lru_cache
 from typing import Generator
-import yaml
 from pathlib import Path
 
 from fastapi import Depends
 
 from kb.storage.docstore import DocStore
 from kb.storage.vectorstore import VectorStore
+from kb.pipeline.config import Config
 
 
 @lru_cache
-def get_config() -> dict:
+def get_config() -> Config:
     """Get cached configuration.
 
     Returns:
-        Configuration dictionary
+        Configuration object
     """
     config_path = Path(__file__).parent.parent / "config.yaml"
-
-    with open(config_path) as f:
-        config = yaml.safe_load(f)
-
-    return config
+    return Config.from_yaml(str(config_path))
 
 
 def get_database_url() -> str:
@@ -33,7 +29,7 @@ def get_database_url() -> str:
         PostgreSQL connection URL
     """
     config = get_config()
-    return config["storage"]["database_url"]
+    return config.database_url
 
 
 # ========== Vector Store Dependency ==========
@@ -51,14 +47,13 @@ def get_vector_store() -> Generator[VectorStore, None, None]:
 
     if _vector_store_instance is None:
         config = get_config()
-        embedding_config = config["embedding"]
-        gemini_config = config.get("gemini", {})
 
         _vector_store_instance = VectorStore(
             database_url=get_database_url(),
-            embedding_provider=embedding_config["provider"],
-            embedding_model=embedding_config["model"],
-            gemini_api_key=gemini_config.get("api_key", ""),
+            embedding_model=config.embedding_model,
+            gemini_api_key=config.gemini_api_key,
+            table_name=config.vector_store_table_name,
+            batch_size=config.vector_store_batch_size,
         )
         _vector_store_instance.initialize()
 
@@ -94,7 +89,7 @@ def get_rag_config() -> dict:
         RAG configuration dictionary
     """
     config = get_config()
-    return config.get("rag", {})
+    return config.rag
 
 
 def get_llm_config() -> dict:
@@ -104,4 +99,4 @@ def get_llm_config() -> dict:
         LLM configuration dictionary
     """
     config = get_config()
-    return config.get("llm", {})
+    return config.llm

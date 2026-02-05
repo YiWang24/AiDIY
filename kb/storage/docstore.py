@@ -47,6 +47,7 @@ class DocStore:
         # Create table if not exists
         with self._pool.connection() as conn:
             self._create_table(conn)
+            self._create_meta_table(conn)
 
     def _create_table(self, conn: Connection) -> None:
         """Create kb_documents table if it doesn't exist."""
@@ -60,6 +61,15 @@ class DocStore:
                 chunk_ids JSONB NOT NULL DEFAULT '[]',
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 updated_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+
+    def _create_meta_table(self, conn: Connection) -> None:
+        """Create kb_index_meta table if it doesn't exist."""
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS kb_index_meta (
+                key VARCHAR(64) PRIMARY KEY,
+                value TEXT NOT NULL
             )
         """)
 
@@ -201,3 +211,36 @@ class DocStore:
                 }
                 for row in cursor.fetchall()
             ]
+
+    def get_index_signature(self) -> str | None:
+        """Get the current index signature if present."""
+        if not self._pool:
+            raise RuntimeError("DocStore not initialized")
+
+        with self._pool.connection() as conn:
+            cursor = conn.execute(
+                "SELECT value FROM kb_index_meta WHERE key = %s",
+                ("index_signature",),
+            )
+            row = cursor.fetchone()
+            return row[0] if row else None
+
+    def set_index_signature(self, signature: str) -> None:
+        """Set or update the index signature."""
+        if not self._pool:
+            raise RuntimeError("DocStore not initialized")
+
+        with self._pool.connection() as conn:
+            conn.execute("""
+                INSERT INTO kb_index_meta (key, value)
+                VALUES (%s, %s)
+                ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+            """, ("index_signature", signature))
+
+    def clear_documents(self) -> None:
+        """Remove all documents metadata (used for rebuilds)."""
+        if not self._pool:
+            raise RuntimeError("DocStore not initialized")
+
+        with self._pool.connection() as conn:
+            conn.execute("TRUNCATE TABLE kb_documents")

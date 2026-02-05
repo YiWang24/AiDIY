@@ -13,20 +13,12 @@ chunking:
 
 # Embedding configuration
 embedding:
-  provider: gemini                                 # glm, gemini, or huggingface
+  provider: gemini                                 # gemini only
   model: models/embedding-001                      # Gemini: models/embedding-001, models/text-embedding-004
 
 # Gemini API configuration (for embedding provider: gemini)
 gemini:
   api_key: ${GEMINI_API_KEY:-}                      # Get from environment variable
-
-# GLM API configuration (for embedding provider: glm)
-glm:
-  api_key: ${GLM_API_KEY:-}                        # Get from environment variable
-  api_base: https://open.bigmodel.cn/api/paas/v4   # API base URL
-  # Model options:
-  #   - embedding-2: 1024 dimensions, faster, cheaper
-  #   - embedding-3: 1024 dimensions, better quality
 
 # Storage configuration
 storage:
