@@ -400,6 +400,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "doc",
+      id: "projects/kb-rag-system",
+      label: "RAG System Architecture",
+    },
+    {
+      type: "doc",
       id: "projects/ecommerce-refactor",
       label: "E-commerce Refactor",
     },

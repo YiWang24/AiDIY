@@ -34,7 +34,7 @@ vector_store:
 # LLM configuration
 llm:
   provider: gemini                                  # gemini (LLM for answer generation)
-  model: gemini-3.0-flash                           # Model: gemini-1.5-flash, gemini-1.5-pro
+  model: gemini-2.5-flash                       # Model: gemini-2.0-flash-001, gemini-flash-latest
   api_key: ${GEMINI_API_KEY:-}                      # Get from environment variable
   temperature: 0.3                                  # Low temperature for factual accuracy
   max_tokens: 1024                                  # Max tokens for answer generation
@@ -43,8 +43,11 @@ llm:
 rag:
   retrieval:
     top_k: 10                                       # Number of chunks to retrieve
-    score_threshold: 0.7                            # Minimum similarity score
+    score_threshold: 0.6                            # Minimum similarity score (raised for better precision)
     max_chunks_per_doc: 3                           # Max chunks from same document
+    use_hybrid_search: true                         # Enable hybrid semantic + keyword search
+    use_reranking: true                             # Enable heuristic re-ranking
+    hybrid_alpha: 0.7                               # Semantic vs keyword weight (0.7 = 70% semantic)
 
   context:
     max_length: 4000                                # Max characters for context
@@ -53,3 +56,21 @@ rag:
   generation:
     temperature: 0.3                                # LLM temperature
     max_tokens: 1024                                # Max tokens in response
+
+  # Agent orchestration
+  agent_orchestration:
+    fallback_to_web: true                           # Enable web search fallback
+    web_fallback_threshold: 0.3                     # If max score < 0.3, use web
+    use_llm_routing: false                          # Use LLM for routing (default: keyword only)
+
+# Web search configuration
+web_search:
+  provider: tavily                                  # tavily or brave
+  api_key: ${TAVILY_API_KEY:-}                     # From Doppler/environment
+  max_results: 5                                    # Max search results
+  search_depth: basic                               # basic or advanced (Tavily only)
+  timeout: 30                                       # Request timeout in seconds
+
+# Docusaurus configuration (for citation URL generation)
+docusaurus:
+  site_url: "https://docs.yiw.me"                  # Base URL for citation links

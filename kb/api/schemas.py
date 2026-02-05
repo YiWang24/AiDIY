@@ -78,6 +78,7 @@ class AskResponse(BaseModel):
     tokens_used: Optional[int] = Field(None, description="Tokens consumed (if available)")
     retrieval_time_ms: int = Field(..., description="Retrieval latency in milliseconds")
     generation_time_ms: int = Field(..., description="Generation latency in milliseconds")
+    agent_type: Optional[str] = Field(None, description="Agent type that handled the request")
 
 
 class ChatResponse(BaseModel):

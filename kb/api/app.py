@@ -5,7 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from kb.api.routes import search, ask
-from kb.api.dependencies import get_vector_store, get_doc_store
+from kb.api.dependencies import get_config
+from kb.storage.docstore import DocStore
+from kb.storage.vectorstore import VectorStore
 
 
 @asynccontextmanager
@@ -16,8 +18,22 @@ async def lifespan(app: FastAPI):
     """
     # Startup: initialize connections
     print("Initializing KB API...")
-    vs = get_vector_store.__wrapped__()  # Get singleton without Depends
-    ds = get_doc_store.__wrapped__()
+    config = get_config()
+
+    # Initialize vector store
+    vs = VectorStore(
+        database_url=config.database_url,
+        embedding_model=config.embedding_model,
+        gemini_api_key=config.gemini_api_key,
+        table_name=config.vector_store_table_name,
+        batch_size=config.vector_store_batch_size,
+    )
+    vs.initialize()
+
+    # Initialize doc store
+    ds = DocStore(database_url=config.database_url)
+    ds.initialize()
+
     print("KB API initialized successfully")
 
     yield

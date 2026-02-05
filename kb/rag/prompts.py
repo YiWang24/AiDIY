@@ -150,3 +150,125 @@ def has_insufficient_knowledge(answer: str) -> bool:
 
     answer_lower = answer.lower()
     return any(phrase in answer_lower for phrase in insufficient_phrases)
+
+
+# ========== Tool Calling Prompts ==========
+
+TOOL_CALLING_SYSTEM_PROMPT = """You are a helpful AI assistant with access to tools.
+
+**Available Tools:**
+{tools_description}
+
+**Tool Usage Guidelines:**
+1. Use tools when you need information beyond the provided context
+2. Call web_search for current information or topics not in the knowledge base
+3. Always explain what you're searching for before calling tools
+4. Synthesize tool results into clear, helpful answers
+
+**Response Format:**
+- If using tools: Explain your action → Call tool → Present results
+- If not using tools: Answer directly based on context
+
+**Remember:**
+- Tools help you provide more accurate and up-to-date information
+- Always cite your sources when using information from tools
+- Be transparent about when you're using external information
+"""
+
+
+def build_tool_calling_prompt(
+    question: str,
+    context: str = "",
+    tools_description: str = "",
+) -> str:
+    """Build prompt for tool calling scenario.
+
+    Args:
+        question: User's question
+        context: Optional context from knowledge base
+        tools_description: Description of available tools
+
+    Returns:
+        Complete prompt for LLM with tool calling
+    """
+    prompt_parts = [TOOL_CALLING_SYSTEM_PROMPT.format(tools_description=tools_description)]
+
+    if context:
+        prompt_parts.extend([
+            "---",
+            f"**Context:**\n\n{context}\n",
+        ])
+
+    prompt_parts.extend([
+        "---",
+        f"**Question:**\n\n{question}\n",
+        "**Answer:**"
+    ])
+
+    return "\n".join(prompt_parts)
+
+
+# ========== Hybrid Agent Prompts ==========
+
+HYBRID_AGENT_SYSTEM_PROMPT = """You are an AI assistant with both knowledge base and web search access.
+
+**Information Sources:**
+1. **Knowledge Base**: Use this for technical documentation, architecture, implementations
+2. **Web Search**: Use this for current information, news, or topics not covered
+
+**Decision Process:**
+1. Check if knowledge base has sufficient information (score > 0.6)
+2. If not, use web search to supplement
+3. Combine information from both sources when helpful
+4. Always cite which source provided each piece of information
+
+**Citation Format:**
+- [KB 1], [KB 2] for knowledge base sources
+- [Web 1], [Web 2] for web search sources
+
+**Guidelines:**
+- Prioritize knowledge base for stable, well-documented topics
+- Use web search for current events, pricing, recent releases
+- When combining sources, clearly distinguish between them
+- If sources conflict, acknowledge the discrepancy
+"""
+
+
+def build_hybrid_prompt(
+    question: str,
+    kb_context: str = "",
+    web_context: str = "",
+) -> str:
+    """Build prompt for hybrid agent scenario.
+
+    Args:
+        question: User's question
+        kb_context: Context from knowledge base
+        web_context: Context from web search
+
+    Returns:
+        Complete prompt for LLM with both sources
+    """
+    prompt_parts = [HYBRID_AGENT_SYSTEM_PROMPT]
+
+    if kb_context:
+        prompt_parts.extend([
+            "---",
+            "**Knowledge Base Context:**",
+            kb_context,
+        ])
+
+    if web_context:
+        prompt_parts.extend([
+            "---",
+            "**Web Search Context:**",
+            web_context,
+        ])
+
+    prompt_parts.extend([
+        "---",
+        f"**Question:**\n\n{question}\n",
+        "**Answer:**"
+    ])
+
+    return "\n".join(prompt_parts)

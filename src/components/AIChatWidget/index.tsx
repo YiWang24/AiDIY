@@ -7,39 +7,42 @@ interface Message {
     role: 'user' | 'assistant';
     content: string;
     isStreaming?: boolean;
+    citations?: Citation[];
+    agentType?: 'knowledge' | 'web_search' | 'hybrid' | 'hybrid_knowledge';
 }
 
-interface StreamEvent {
-    type: string;
-    sessionId?: string;
-    delta?: string;
-    content?: string;
-    toolId?: string;
-    toolName?: string;
-    arguments?: string;
-    result?: string;
-    success?: boolean;
-    message?: string;
-    code?: string;
+interface Citation {
+    id: number;
+    chunk_id: string;
+    doc_id: string;
+    title: string;
+    path: string;
+    heading_path: string[];
+    score: number;
+}
+
+interface AskResponse {
+    answer: string;
+    citations: Citation[];
+    has_sufficient_knowledge: boolean;
+    model: string;
+    tokens_used: number | null;
+    retrieval_time_ms: number;
+    generation_time_ms: number;
+    agent_type?: 'knowledge' | 'web_search' | 'hybrid' | 'hybrid_knowledge';
 }
 
 export default function AIChatWidget(): JSX.Element {
     const { siteConfig } = useDocusaurusContext();
-    // Use frontend API proxy to handle Cloudflare Access authentication
-    const API_PROXY_URL = (siteConfig.customFields?.frontendUrl as string) || 'https://www.yiw.me';
+    // Use backend API for RAG Q&A
+    const BACKEND_API_URL = (siteConfig.customFields?.backendUrl as string) || 'http://localhost:8000';
 
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [sessionId, setSessionId] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-
-    // Generate session ID on mount
-    useEffect(() => {
-        setSessionId(`docs-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
-    }, []);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -76,88 +79,34 @@ export default function AIChatWidget(): JSX.Element {
         }]);
 
         try {
-            const params = new URLSearchParams({
-                sessionId,
-                message: userMessage.content,
-            });
-
-            const response = await fetch(`${API_PROXY_URL}/api/chat/stream?${params}`, {
-                method: 'GET',
+            const response = await fetch(`${BACKEND_API_URL}/ask`, {
+                method: 'POST',
                 headers: {
-                    'Accept': 'text/event-stream',
+                    'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({
+                    question: userMessage.content,
+                    top_k: 5,
+                }),
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
 
-            const reader = response.body?.getReader();
-            const decoder = new TextDecoder();
+            const data: AskResponse = await response.json();
 
-            if (!reader) {
-                throw new Error('No response body');
-            }
-
-            let buffer = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                let currentEvent = 'message';
-                let currentData = '';
-
-                for (const line of lines) {
-                    if (line.trim() === '') {
-                        // Empty line = dispatch event
-                        if (currentData) {
-                            try {
-                                const data = JSON.parse(currentData);
-
-                                if (currentEvent === 'response_delta' && data.content) {
-                                    setMessages(prev => prev.map(msg =>
-                                        msg.id === assistantMessageId
-                                            ? { ...msg, content: msg.content + data.content }
-                                            : msg
-                                    ));
-                                } else if (currentEvent === 'thinking_delta' && data.content) {
-                                    // Optionally show thinking status
-                                } else if (currentEvent === 'complete') {
-                                    setMessages(prev => prev.map(msg =>
-                                        msg.id === assistantMessageId
-                                            ? { ...msg, isStreaming: false }
-                                            : msg
-                                    ));
-                                } else if (currentEvent === 'error') {
-                                    setMessages(prev => prev.map(msg =>
-                                        msg.id === assistantMessageId
-                                            ? { ...msg, content: `Error: ${data.message || 'Unknown error'}`, isStreaming: false }
-                                            : msg
-                                    ));
-                                }
-                            } catch (e) {
-                                // Ignore JSON parse errors
-                            }
-                        }
-                        currentEvent = 'message';
-                        currentData = '';
-                    } else if (line.startsWith('event:')) {
-                        currentEvent = line.slice(6).trim();
-                    } else if (line.startsWith('data:')) {
-                        currentData = line.slice(5).trim();
-                    }
-                }
-            }
-
-            // Mark streaming as complete
+            // Update assistant message with response
             setMessages(prev => prev.map(msg =>
                 msg.id === assistantMessageId
-                    ? { ...msg, isStreaming: false }
+                    ? {
+                        ...msg,
+                        content: data.answer,
+                        isStreaming: false,
+                        citations: data.citations,
+                        agentType: data.agent_type,
+                    }
                     : msg
             ));
 
@@ -165,13 +114,17 @@ export default function AIChatWidget(): JSX.Element {
             console.error('Chat error:', error);
             setMessages(prev => prev.map(msg =>
                 msg.id === assistantMessageId
-                    ? { ...msg, content: 'Sorry, I encountered an error. Please try again.', isStreaming: false }
+                    ? {
+                        ...msg,
+                        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                        isStreaming: false,
+                    }
                     : msg
             ));
         } finally {
             setIsLoading(false);
         }
-    }, [inputValue, isLoading, sessionId]);
+    }, [inputValue, isLoading, BACKEND_API_URL]);
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -182,7 +135,6 @@ export default function AIChatWidget(): JSX.Element {
 
     const clearChat = () => {
         setMessages([]);
-        setSessionId(`docs-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
     };
 
     return (
@@ -213,7 +165,7 @@ export default function AIChatWidget(): JSX.Element {
                             <span className={styles.headerIcon}>🤖</span>
                             <div>
                                 <h3 className={styles.headerTitle}>AI Assistant</h3>
-                                <span className={styles.headerSubtitle}>Ask about the documentation</span>
+                                <span className={styles.headerSubtitle}>Powered by RAG Knowledge Base</span>
                             </div>
                         </div>
                         <button className={styles.clearButton} onClick={clearChat} title="Clear chat">
@@ -228,16 +180,16 @@ export default function AIChatWidget(): JSX.Element {
                         {messages.length === 0 && (
                             <div className={styles.welcomeMessage}>
                                 <p>👋 Hi! I'm your AI documentation assistant.</p>
-                                <p>Ask me anything about the docs!</p>
+                                <p>I can help you find information from the knowledge base.</p>
                                 <div className={styles.suggestions}>
-                                    <button onClick={() => setInputValue('What topics are covered in this documentation?')}>
-                                        📚 What topics are covered?
+                                    <button onClick={() => setInputValue('What is AgentOps and how does it work?')}>
+                                        🤖 What is AgentOps?
                                     </button>
-                                    <button onClick={() => setInputValue('Explain system design concepts')}>
-                                        🏗️ System design concepts
+                                    <button onClick={() => setInputValue('Explain the agent loop architecture')}>
+                                        🏗️ Agent loop architecture
                                     </button>
-                                    <button onClick={() => setInputValue('Tell me about RAG systems')}>
-                                        🔍 About RAG systems
+                                    <button onClick={() => setInputValue('What are the patterns of agent orchestration?')}>
+                                        🔗 Agent orchestration patterns
                                     </button>
                                 </div>
                             </div>
@@ -249,6 +201,14 @@ export default function AIChatWidget(): JSX.Element {
                                 className={`${styles.message} ${styles[message.role]}`}
                             >
                                 <div className={styles.messageContent}>
+                                    {message.agentType && (
+                                        <div className={styles.agentBadge}>
+                                            {message.agentType === 'knowledge' && '📚 Knowledge Base'}
+                                            {message.agentType === 'web_search' && '🌐 Web Search'}
+                                            {message.agentType === 'hybrid' && '🔗 Hybrid (KB + Web)'}
+                                            {message.agentType === 'hybrid_knowledge' && '📚 Knowledge Base'}
+                                        </div>
+                                    )}
                                     {message.content || (message.isStreaming && (
                                         <span className={styles.typingIndicator}>
                                             <span></span>
@@ -256,6 +216,28 @@ export default function AIChatWidget(): JSX.Element {
                                             <span></span>
                                         </span>
                                     ))}
+                                    {message.citations && message.citations.length > 0 && (
+                                        <div className={styles.citations}>
+                                            <p className={styles.citationsTitle}>📚 Sources:</p>
+                                            <ul className={styles.citationsList}>
+                                                {message.citations.map((citation) => (
+                                                    <li key={citation.id}>
+                                                        <a
+                                                            href={citation.path}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className={styles.citationLink}
+                                                        >
+                                                            {citation.title}
+                                                        </a>
+                                                        <span className={styles.citationScore}>
+                                                            ({(citation.score * 100).toFixed(0)}% match)
+                                                        </span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

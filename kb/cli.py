@@ -96,11 +96,7 @@ def stage2_build(
         print("  Run stage 1 first with --stage clean")
         sys.exit(1)
 
-    pipeline = OfflineKBPipeline(
-        database_url=config.database_url,
-        embedding_model=config.embedding_model,
-        chunking_config=config.chunking,
-    )
+    pipeline = OfflineKBPipeline(config=config)
 
     stats = pipeline.build_index(
         input_jsonl=input_jsonl,

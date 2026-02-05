@@ -25,6 +25,7 @@ const config = {
   // Custom fields accessible via useDocusaurusContext
   customFields: {
     frontendUrl: process.env.FRONTEND_URL || 'https://www.yiw.me',
+    backendUrl: process.env.BACKEND_URL || 'http://localhost:8000',
   },
 
   // Even if you don't use internalization, you can use this field to set useful

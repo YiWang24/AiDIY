@@ -185,6 +185,21 @@
   border-bottom-left-radius: 4px;
 }
 
+/* Agent Badge */
+.agentBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* Typing Indicator */
 .typingIndicator {
   display: flex;
@@ -306,6 +321,47 @@
   }
 }
 
+/* Citations */
+.citations {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.citationsTitle {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.citationsList {
+  margin: 0;
+  padding-left: 16px;
+  list-style: none;
+}
+
+.citationsList li {
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.citationLink {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.citationLink:hover {
+  text-decoration: underline;
+}
+
+.citationScore {
+  color: var(--ifm-color-emphasis-500);
+  font-size: 11px;
+  margin-left: 6px;
+}
+
 /* Dark mode adjustments */
 [data-theme='dark'] .chatWindow {
   box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
@@ -314,4 +370,12 @@
 
 [data-theme='dark'] .message.assistant .messageContent {
   background: var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .citationsTitle {
+  color: var(--ifm-color-emphasis-400);
+}
+
+[data-theme='dark'] .citationScore {
+  color: var(--ifm-color-emphasis-600);
 }

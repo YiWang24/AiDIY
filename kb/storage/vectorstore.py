@@ -67,13 +67,14 @@ class VectorStore:
             min_size=1,
             max_size=10,
             open=False,
+            kwargs={"autocommit": True},  # Enable autocommit for all connections
         )
         self._pool.open()
 
         # Create table if not exists
         with self._pool.connection() as conn:
+            conn.autocommit = True  # Enable autocommit for this connection
             self._create_table(conn)
-            conn.commit()  # Explicit commit to ensure table creation persists
 
     def _create_table(self, conn) -> None:
         """Create vector store table if it doesn't exist."""
@@ -166,6 +167,7 @@ class VectorStore:
             raise RuntimeError("VectorStore not initialized")
 
         with self._pool.connection() as conn:
+            conn.autocommit = True  # Enable autocommit for this connection
             conn.execute(f"DROP TABLE IF EXISTS {self.TABLE_NAME} CASCADE")
             self._create_table(conn)
 
@@ -209,6 +211,7 @@ class VectorStore:
                         chunk.chunk_index,
                         "[" + ",".join(str(x) for x in embedding) + "]",
                     ))
+                conn.execute("COMMIT")
 
     def delete_chunks(self, chunk_ids: List[str]) -> None:
         """Delete chunks by chunk_id.
@@ -225,6 +228,7 @@ class VectorStore:
                     f"DELETE FROM {self.TABLE_NAME} WHERE chunk_id = %s",
                     (chunk_id,),
                 )
+            conn.execute("COMMIT")
 
     def delete_by_doc_id(self, doc_id: str) -> None:
         """Delete all chunks for a document.
@@ -240,6 +244,7 @@ class VectorStore:
                 f"DELETE FROM {self.TABLE_NAME} WHERE doc_id = %s",
                 (doc_id,),
             )
+            conn.execute("COMMIT")
 
     def search(
         self,
@@ -286,6 +291,7 @@ class VectorStore:
         params.append(embedding_str)
 
         with self._pool.connection() as conn:
+            conn.autocommit = True  # Enable autocommit for this connection
             cursor = conn.execute(sql, params)
             results = cursor.fetchall()
 
