@@ -1,0 +1,63 @@
+# KB Pipeline Configuration
+# Environment variables can be used as fallbacks using ${VAR:-default} syntax
+
+# Input/Output paths
+docs_dir: docs                                    # Input directory with MDX files
+output_jsonl: kb/data/cleaned/docs.jsonl          # Output JSONL path (stage 1)
+
+# Chunking configuration
+chunking:
+  max_section_chars: 2000                          # Max chars before recursive split
+  chunk_size: 500                                  # Target chunk size
+  chunk_overlap: 80                                # Overlap between chunks
+
+# Embedding configuration
+embedding:
+  provider: gemini                                 # glm, gemini, or huggingface
+  model: models/embedding-001                      # Gemini: models/embedding-001, models/text-embedding-004
+
+# Gemini API configuration (for embedding provider: gemini)
+gemini:
+  api_key: ${GEMINI_API_KEY:-}                      # Get from environment variable
+
+# GLM API configuration (for embedding provider: glm)
+glm:
+  api_key: ${GLM_API_KEY:-}                        # Get from environment variable
+  api_base: https://open.bigmodel.cn/api/paas/v4   # API base URL
+  # Model options:
+  #   - embedding-2: 1024 dimensions, faster, cheaper
+  #   - embedding-3: 1024 dimensions, better quality
+
+# Storage configuration
+storage:
+  database_url: ${DATABASE_URL:-postgresql://user:password@localhost:5432/kb}
+  # Set DATABASE_URL env var in production, e.g.:
+  # export DATABASE_URL="postgresql://postgres:password@host:port/dbname"
+
+# Vector store configuration
+vector_store:
+  table_name: kb_chunks_gemini                      # Table name for embeddings
+  batch_size: 32                                    # Batch size for embedding requests
+
+# LLM configuration
+llm:
+  provider: gemini                                  # gemini (LLM for answer generation)
+  model: gemini-3.0-flash                           # Model: gemini-1.5-flash, gemini-1.5-pro
+  api_key: ${GEMINI_API_KEY:-}                      # Get from environment variable
+  temperature: 0.3                                  # Low temperature for factual accuracy
+  max_tokens: 1024                                  # Max tokens for answer generation
+
+# RAG configuration
+rag:
+  retrieval:
+    top_k: 10                                       # Number of chunks to retrieve
+    score_threshold: 0.7                            # Minimum similarity score
+    max_chunks_per_doc: 3                           # Max chunks from same document
+
+  context:
+    max_length: 4000                                # Max characters for context
+    include_headings: true                          # Include heading hierarchy
+
+  generation:
+    temperature: 0.3                                # LLM temperature
+    max_tokens: 1024                                # Max tokens in response

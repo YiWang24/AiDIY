@@ -15,6 +15,7 @@ dependencies = [
   "uvicorn>=0.29",
   "pydantic>=2.6",
   "psycopg[binary]>=3.1",
+  "psycopg-pool>=3.1",
   "pgvector>=0.2",
   "rank-bm25>=0.2",
   "PyYAML>=6.0",
@@ -22,16 +23,20 @@ dependencies = [
   "langchain-core>=0.2",
   "langchain-openai>=0.1",
   "langchain-community>=0.2",
+  "langchain-postgres>=0.1",
   "sentence-transformers>=2.6",
   "llama-index>=0.10",
   "llama-index-readers-file>=0.1",
   "llama-index-vector-stores-postgres>=0.1",
   "llama-index-embeddings-huggingface>=0.1",
   "zhipuai>=2.1",  # ZhipuAI SDK for GLM-4
+  "tqdm>=4.66",  # Progress bars
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
 ]
 
 [project.scripts]
-kb-index-build = "kb.cli:main"
+kb-build = "kb.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
