@@ -1,11 +1,42 @@
 {
   "permissions": {
     "allow": [
+      "Bash(doppler:*)",
       "Bash(find:*)",
       "Bash(tree:*)",
       "WebSearch",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__query-docs"
+      "mcp__context7__query-docs",
+      "Bash(npm test)",
+      "Bash(npm run clean:*)",
+      "Bash(node:*)",
+      "Bash(while IFS= read -r line)",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(__NEW_LINE_31f5e0816a42aa03__ echo -e \"\\\\n=== Sample: first record \\(compact view\\) ===\")",
+      "Bash(__NEW_LINE_8b1f4bf4cd8b38a4__ echo -e \"\\\\n=== Check the one error record ===\")",
+      "Bash(__NEW_LINE_59b3184433939988__ echo -e \"\\\\n=== Stats ===\")",
+      "Bash(npm run kb:clean:*)",
+      "Bash(python3:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(PYTHONPATH=/Users/wy/Documents/Projects/AiDIY/kb:$PYTHONPATH python:*)",
+      "Bash(doppler secrets get:*)",
+      "Bash(doppler run:*)",
+      "Bash(TEST_DATABASE_URL=\"postgresql://postgres:PgPass!123@10.0.0.4:15432/test_db\" PYTHONPATH=/Users/wy/Documents/Projects/AiDIY/kb:$PYTHONPATH python:*)",
+      "Bash(pkill:*)",
+      "Bash(python:*)",
+      "Bash(pip show:*)",
+      "Bash(/opt/homebrew/Caskroom/miniconda/base/bin/pip install:*)",
+      "Bash(PYTHONPATH=/Users/wy/Documents/Projects/AiDIY/kb:$PYTHONPATH DATABASE_URL=\"postgresql://postgres:PgPass!123@10.0.0.4:15432/test_db\" python -m kb.cli build:*)",
+      "Bash(PYTHONPATH=/Users/wy/Documents/Projects/AiDIY/kb:/Users/wy/Documents/Projects/AiDIY/kb/kb:$PYTHONPATH python:*)",
+      "Bash(ls:*)",
+      "Bash(PYTHONPATH=. python:*)",
+      "Bash(chmod:*)",
+      "Bash(./scripts/build-kb.sh:*)",
+      "Bash(ps:*)",
+      "Bash(PYTHONPATH=/Users/wy/Documents/Projects/AiDIY:$PYTHONPATH python -m pytest:*)"
     ]
   }
 }
