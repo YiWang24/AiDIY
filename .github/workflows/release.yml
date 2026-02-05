@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -12,127 +13,231 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  IMAGE_NAME: kb-api
+
 jobs:
+  # ================================
+  # Pre-release Checks
+  # ================================
   release_checks:
+    name: Pre-release Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e kb
-          pip install ruff pytest-cov
+          pip install ruff pytest pytest-cov
+
       - name: Lint
         run: |
           ruff check kb
           ruff format --check kb
+
       - name: Tests with coverage
         run: |
-          pytest kb/tests --cov=kb --cov-report=xml
+          pytest kb/tests --cov=kb --cov-report=xml --cov-fail-under=70
 
+  # ================================
+  # Build & Push to ACR
+  # ================================
   build_and_push:
+    name: Build & Push to ACR
     runs-on: ubuntu-latest
     needs: release_checks
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+      image_digest: ${{ steps.build.outputs.digest }}
     steps:
       - uses: actions/checkout@v4
-      - name: Compute image tag
-        run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            echo "IMAGE_TAG=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-          else
-            echo "IMAGE_TAG=main" >> $GITHUB_ENV
-          fi
-      - name: Log in to ACR
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Azure Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ secrets.ACR_LOGIN_SERVER }}
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.ACR_LOGIN_SERVER }}/${{ secrets.ACR_REPOSITORY }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
       - name: Build and push image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: |
-            ${{ secrets.ACR_LOGIN_SERVER }}/${{ secrets.ACR_REPOSITORY }}:${{ github.sha }}
-            ${{ secrets.ACR_LOGIN_SERVER }}/${{ secrets.ACR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
 
-  sentry_release:
+      - name: Image digest
+        run: echo "Image digest is ${{ steps.build.outputs.digest }}"
+
+  # ================================
+  # Deploy to Internal Server via Jump Host
+  # ================================
+  deploy_internal:
+    name: Deploy to Internal Server
     runs-on: ubuntu-latest
     needs: build_and_push
+    environment:
+      name: production
+      url: ${{ secrets.HEALTHCHECK_URL }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Compute release version
-        run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            echo "RELEASE_VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-          else
-            echo "RELEASE_VERSION=${GITHUB_SHA}" >> $GITHUB_ENV
-          fi
-      - name: Create Sentry release
-        uses: getsentry/action-release@v1
+      - name: Deploy via Jump Host to Internal Server
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-        with:
-          environment: production
-          version: ${{ env.RELEASE_VERSION }}
+          # Jump Host (VPS) Configuration (from Doppler STG)
+          JUMP_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          JUMP_USER: ${{ secrets.DEPLOY_SSH_USER }}
+          JUMP_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          JUMP_SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT }}
 
-  deploy_vps:
-    runs-on: ubuntu-latest
-    needs: sentry_release
-    steps:
-      - name: Deploy over SSH
-        env:
-          DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
-          DEPLOY_SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT }}
+          # Internal Server Configuration (from Doppler STG)
+          INTERNAL_HOST: ${{ secrets.INTERNAL_SSH_HOST }}
+          INTERNAL_USER: ${{ secrets.INTERNAL_SSH_USER }}
+          INTERNAL_PORT: ${{ secrets.INTERNAL_SSH_PORT }}
+
+          # Azure Container Registry (from Doppler STG)
           ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
           ACR_REPOSITORY: ${{ secrets.ACR_REPOSITORY }}
           ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
           ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+
+          # Image Tag
           IMAGE_TAG: ${{ github.sha }}
-          DEPLOY_WORKDIR: ${{ secrets.DEPLOY_WORKDIR }}
+
+          # Doppler Configuration (from Doppler STG)
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
-          DOPPLER_CONFIG: ${{ secrets.DOPPLER_CONFIG }}
-          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$DEPLOY_SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${DEPLOY_SSH_PORT:-22} "$DEPLOY_SSH_HOST" >> ~/.ssh/known_hosts
 
-          ssh -p ${DEPLOY_SSH_PORT:-22} "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST" <<SSH
+          # Health Check (from Doppler STG)
+          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+
+          # Container Configuration
+          CONTAINER_NAME: kb-api
+          HOST_PORT: "8000"
+
+        run: |
           set -euo pipefail
 
-          export ACR_LOGIN_SERVER="$ACR_LOGIN_SERVER"
-          export ACR_REPOSITORY="$ACR_REPOSITORY"
-          export IMAGE_TAG="$IMAGE_TAG"
-          export DOPPLER_TOKEN="$DOPPLER_TOKEN"
-          export DOPPLER_PROJECT="$DOPPLER_PROJECT"
-          export DOPPLER_CONFIG="$DOPPLER_CONFIG"
-          export HEALTHCHECK_URL="$HEALTHCHECK_URL"
+          echo "=== Deploying KB API to Internal Server ==="
+          echo "Jump Host: $JUMP_HOST"
+          echo "Internal Server: $INTERNAL_HOST"
+          echo "Image: $ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG"
 
-          docker login "$ACR_LOGIN_SERVER" -u "$ACR_USERNAME" -p "$ACR_PASSWORD"
+          # Setup SSH for jump host
+          mkdir -p ~/.ssh
+          echo "$JUMP_SSH_KEY" > ~/.ssh/jump_key
+          chmod 600 ~/.ssh/jump_key
+          ssh-keyscan -p ${JUMP_SSH_PORT:-22} "$JUMP_HOST" >> ~/.ssh/known_hosts
+
+          # Create SSH config for ProxyJump
+          cat > ~/.ssh/config << SSH_CONFIG
+          Host jump
+            HostName $JUMP_HOST
+            User $JUMP_USER
+            Port ${JUMP_SSH_PORT:-22}
+            IdentityFile ~/.ssh/jump_key
+            StrictHostKeyChecking no
+
+          Host internal
+            HostName $INTERNAL_HOST
+            User $INTERNAL_USER
+            Port ${INTERNAL_PORT:-22}
+            ProxyJump jump
+            StrictHostKeyChecking no
+          SSH_CONFIG
+
+          chmod 600 ~/.ssh/config
+
+          # Deploy script via jump host to internal server
+          ssh internal bash << 'EOF'
+          set -euo pipefail
+
+          echo "=== Now on Internal Server ==="
+          echo "Hostname: $(hostname)"
+          echo "IP: $(hostname -I | awk '{print $1}')"
+
+          # Login to ACR
+          echo "Logging into Azure Container Registry..."
+          echo "$ACR_PASSWORD" | docker login "$ACR_LOGIN_SERVER" -u "$ACR_USERNAME" --password-stdin
+
+          # Pull latest image
+          echo "Pulling Docker image..."
           docker pull "$ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG"
 
-          cd "$DEPLOY_WORKDIR"
+          # Stop and remove old container
+          echo "Stopping old container..."
+          docker stop "$CONTAINER_NAME" 2>/dev/null || true
+          docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
-          # Example using docker compose. Adjust to your process manager.
-          IMAGE_TAG="$IMAGE_TAG" doppler run --project "$DOPPLER_PROJECT" --config "$DOPPLER_CONFIG" -- \
-            docker compose up -d
+          # Run new container with Doppler injecting PRD secrets
+          echo "Starting new container with Doppler (injecting PRD secrets)..."
+          DOPPLER_TOKEN="$DOPPLER_TOKEN" \
+          DOPPLER_PROJECT="$DOPPLER_PROJECT" \
+          DOPPLER_CONFIG="prd" \
+          doppler run -- \
+          docker run -d \
+            --name "$CONTAINER_NAME" \
+            --restart unless-stopped \
+            -p "$HOST_PORT:8000" \
+            --health-cmd "curl -f http://localhost:8000/health || exit 1" \
+            --health-interval 30s \
+            --health-timeout 10s \
+            --health-retries 3 \
+            "$ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG"
 
-          # Basic health check
+          # Wait for container to be healthy
+          echo "Waiting for container to be healthy..."
+          sleep 10
+
+          # Check container status
+          docker ps --filter "name=$CONTAINER_NAME"
+
+          # Cleanup old images
+          echo "Cleaning up old Docker images..."
+          docker image prune -af --filter "until=24h"
+
+          echo "=== Deployment Complete ==="
+          echo "Container logs:"
+          docker logs --tail 20 "$CONTAINER_NAME"
+          EOF
+
+          # Run health check from GitHub Actions runner
           if [ -n "${HEALTHCHECK_URL:-}" ]; then
-            curl -fsS "$HEALTHCHECK_URL"
+            echo "Running health check..."
+            sleep 5
+            if curl -fSs "$HEALTHCHECK_URL"; then
+              echo "✅ Health check passed!"
+            else
+              echo "❌ Health check failed!"
+              exit 1
+            fi
           fi
-          SSH
+
+          echo "Deployment successful!"
