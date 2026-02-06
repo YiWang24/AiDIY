@@ -77,45 +77,32 @@ class VectorStore:
             conn.autocommit = True  # Enable autocommit for this connection
             self._create_table(conn)
 
-
-def _infer_embedding_dim(model: str) -> int:
-    """Best-effort embedding dimension inference without calling the provider."""
-    # Defaults based on historical project docs; can be overridden by changing model or code.
-    # NOTE: If this doesn't match the real provider dimension, the table will be recreated
-    # once corrected.
-    if not model:
-        return 768
-
-    # Common Gemini embeddings models.
-    if "text-embedding-004" in model:
-        return 768
-    if "embedding-001" in model:
-        return 768
-
-    return 768
-
     def _create_table(self, conn) -> None:
         """Create vector store table if it doesn't exist."""
         # Enable pgvector extension
         conn.execute("CREATE EXTENSION IF NOT EXISTS vector")
 
         # Check if table exists and get its vector dimension
-        check_table = conn.execute(f"""
+        check_table = conn.execute(
+            f"""
             SELECT EXISTS (
                 SELECT FROM information_schema.tables
                 WHERE table_name = '{self.TABLE_NAME}'
             )
-        """).fetchone()[0]
+        """
+        ).fetchone()[0]
 
         if check_table:
             # Table exists, check if dimension matches
             try:
-                result = conn.execute(f"""
+                result = conn.execute(
+                    f"""
                     SELECT pg_catalog.format_type(atttypid, atttypmod)
                     FROM pg_attribute
                     WHERE attrelid = '{self.TABLE_NAME}'::regclass
                     AND attname = 'embedding'
-                """).fetchone()
+                """
+                ).fetchone()
 
                 if result:
                     existing_dim = _parse_vector_dim(result[0])
@@ -130,7 +117,8 @@ def _infer_embedding_dim(model: str) -> int:
                 print(f"Warning: Could not check table dimension: {e}")
 
         # Create table
-        conn.execute(f"""
+        conn.execute(
+            f"""
             CREATE TABLE IF NOT EXISTS {self.TABLE_NAME} (
                 id SERIAL PRIMARY KEY,
                 chunk_id VARCHAR(64) UNIQUE NOT NULL,
@@ -141,38 +129,45 @@ def _infer_embedding_dim(model: str) -> int:
                 embedding vector({self.EMBEDDING_DIM}),
                 created_at TIMESTAMPTZ DEFAULT NOW()
             )
-        """)
+        """
+        )
 
         # Create index for similarity search (only if <= 2000 dimensions for ivfflat)
         if self.EMBEDDING_DIM <= 2000:
             try:
-                conn.execute(f"""
+                conn.execute(
+                    f"""
                     CREATE INDEX IF NOT EXISTS {self.TABLE_NAME}_embedding_idx
                     ON {self.TABLE_NAME}
                     USING ivfflat (embedding vector_cosine_ops)
                     WITH (lists = 100)
-                """)
+                """
+                )
             except Exception:
                 pass  # Index may already exist with different parameters
         else:
             # For high-dimensional vectors, use HNSW index if available, or skip index
             try:
-                conn.execute(f"""
+                conn.execute(
+                    f"""
                     CREATE INDEX IF NOT EXISTS {self.TABLE_NAME}_embedding_idx
                     ON {self.TABLE_NAME}
                     USING hnsw (embedding vector_cosine_ops)
                     WITH (m = 16, ef_construction = 64)
-                """)
+                """
+                )
             except Exception:
                 # HNSW not available, skip vector index (still works without index, just slower)
                 pass
 
         # Create index for doc_id lookups
         try:
-            conn.execute(f"""
+            conn.execute(
+                f"""
                 CREATE INDEX IF NOT EXISTS {self.TABLE_NAME}_doc_id_idx
                 ON {self.TABLE_NAME}(doc_id)
-            """)
+            """
+            )
         except Exception:
             pass  # Index may already exist
 
@@ -330,6 +325,22 @@ def _infer_embedding_dim(model: str) -> int:
             for row in results
         ]
 
+
+def _infer_embedding_dim(model: str) -> int:
+    """Best-effort embedding dimension inference without calling the provider."""
+    # Defaults based on historical project docs; can be overridden by changing model or code.
+    # NOTE: If this doesn't match the real provider dimension, the table will be recreated
+    # once corrected.
+    if not model:
+        return 768
+
+    # Common Gemini embeddings models.
+    if "text-embedding-004" in model:
+        return 768
+    if "embedding-001" in model:
+        return 768
+
+    return 768
 
 def _parse_vector_dim(type_str: str) -> int | None:
     """Parse pgvector type like 'vector(768)' to dimension."""

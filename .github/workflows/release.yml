@@ -169,13 +169,93 @@ jobs:
                 --token "$DOPPLER_TOKEN" > "$tmp_env"
             fi
 
+            # If DATABASE_URL in Doppler points to an unreachable private subnet for this host,
+            # automatically provision a local pgvector Postgres and override DATABASE_URL.
+            DOCKER_NETWORK_ARGS=""
+            use_local_db="0"
+            db_url="$(grep -E '^DATABASE_URL=' "$tmp_env" | head -n1 | sed 's/^DATABASE_URL=//')"
+            if [ -z "$db_url" ]; then
+              echo "WARN: DATABASE_URL missing from Doppler secrets; will use local pgvector DB."
+              use_local_db="1"
+            else
+              # Avoid printing credentials.
+              if command -v python3 >/dev/null 2>&1; then
+                py=python3
+              else
+                py=python
+              fi
+              read -r db_host db_port db_name <<< "$($py -c 'from urllib.parse import urlparse; import sys; u=urlparse(sys.argv[1]); print(u.hostname or \"\", u.port or 5432, (u.path or \"\")[1:])' "$db_url")"
+              echo "DATABASE_URL target (masked): host=$db_host port=$db_port db=$db_name"
+
+              # Quick TCP reachability test from the host (matches container routing expectations here).
+              if timeout 3 bash -lc "cat < /dev/null > /dev/tcp/$db_host/$db_port" 2>/dev/null; then
+                echo "Database is reachable from this host."
+              else
+                echo "WARN: Database is NOT reachable from this host (host=$db_host port=$db_port). Falling back to local pgvector DB."
+                use_local_db="1"
+              fi
+            fi
+
+            if [ "$use_local_db" = "1" ]; then
+              DEPLOY_DIR="/opt/kb-api"
+              mkdir -p "$DEPLOY_DIR"
+              pw_file="$DEPLOY_DIR/.postgres_password"
+              if [ -f "$pw_file" ]; then
+                POSTGRES_PASSWORD="$(cat "$pw_file")"
+              else
+                POSTGRES_PASSWORD="$(openssl rand -hex 16)"
+                printf "%s" "$POSTGRES_PASSWORD" > "$pw_file"
+                chmod 600 "$pw_file"
+              fi
+
+              docker network inspect kb-net >/dev/null 2>&1 || docker network create kb-net
+
+              if docker ps --format '{{.Names}}' | grep -qx 'kb-db'; then
+                echo "Local DB container kb-db already running."
+              else
+                if docker ps -a --format '{{.Names}}' | grep -qx 'kb-db'; then
+                  echo "Starting existing local DB container kb-db..."
+                  docker start kb-db
+                else
+                  echo "Starting local pgvector Postgres (kb-db)..."
+                  docker run -d \
+                    --name kb-db \
+                    --restart unless-stopped \
+                    --network kb-net \
+                    -e POSTGRES_USER=postgres \
+                    -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+                    -e POSTGRES_DB=kb \
+                    -v kb-db-data:/var/lib/postgresql/data \
+                    pgvector/pgvector:pg16
+                fi
+              fi
+
+              echo "Waiting for kb-db to be ready..."
+              for i in $(seq 1 30); do
+                if docker exec kb-db pg_isready -U postgres >/dev/null 2>&1; then
+                  break
+                fi
+                sleep 2
+              done
+              if ! docker exec kb-db pg_isready -U postgres >/dev/null 2>&1; then
+                echo "ERROR: kb-db did not become ready. Logs:"
+                docker logs --tail 200 kb-db || true
+                exit 1
+              fi
+
+              # Override DATABASE_URL for kb-api to point at kb-db on the shared network.
+              echo "DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@kb-db:5432/kb" >> "$tmp_env"
+              DOCKER_NETWORK_ARGS="--network kb-net"
+            fi
+
             echo "Starting new container (env injected via --env-file)..."
             docker run -d \
               --name kb-api \
               --restart unless-stopped \
               -p 8000:8000 \
+              $DOCKER_NETWORK_ARGS \
               --env-file "$tmp_env" \
-              --health-cmd "curl -f http://localhost:8000/health || exit 1" \
+              --health-cmd "curl -f http://localhost:8000/ready || exit 1" \
               --health-interval 30s \
               --health-timeout 10s \
               --health-retries 3 \
@@ -217,12 +297,38 @@ jobs:
               exit 1
             fi
 
-            # Final internal health check (fast fail if route isn't reachable)
-            curl -fSs http://localhost:8000/health >/dev/null || {
-              echo "ERROR: /health check failed. Showing logs:"
+            # Final internal readiness check (fast fail if app can't serve core endpoints)
+            curl -fSs http://localhost:8000/ready >/dev/null || {
+              echo "ERROR: /ready check failed. Showing logs:"
               docker logs --tail 200 kb-api || true
               exit 1
             }
+
+            # Build/refresh index (cleaned docs are shipped in the image as kb/data/cleaned/docs.jsonl).
+            # This ensures the DB actually has data for /search and /ask.
+            echo "Running indexing pipeline inside the container..."
+            if ! docker exec kb-api kb-build --stage build; then
+              echo "ERROR: Indexing failed. Showing container logs:"
+              docker logs --tail 200 kb-api || true
+              exit 1
+            fi
+
+            # Smoke test core API endpoints on the host
+            curl -fSs -X POST http://localhost:8000/search \
+              -H "Content-Type: application/json" \
+              -d '{"query":"RAG","k":3}' >/dev/null || {
+                echo "ERROR: /search smoke test failed. Showing logs:"
+                docker logs --tail 200 kb-api || true
+                exit 1
+              }
+
+            curl -fSs -X POST http://localhost:8000/ask \
+              -H "Content-Type: application/json" \
+              -d '{"question":"What is RAG?","top_k":3}' >/dev/null || {
+                echo "ERROR: /ask smoke test failed. Showing logs:"
+                docker logs --tail 200 kb-api || true
+                exit 1
+              }
 
             # Check container status
             docker ps --filter "name=kb-api"

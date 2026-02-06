@@ -1,8 +1,9 @@
 """FastAPI application factory."""
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import psycopg
 
 from kb.api.routes import search, ask
 from kb.api.dependencies import get_config
@@ -102,5 +103,29 @@ def create_app() -> FastAPI:
         if errors:
             return {"status": "degraded", "startup_errors": errors}
         return {"status": "healthy"}
+
+    @app.get("/ready")
+    async def ready():
+        """Readiness check endpoint.
+
+        This is intended for container health checks. It verifies required config
+        is present and the database is reachable.
+        """
+        config = get_config()
+
+        if not config.database_url:
+            raise HTTPException(status_code=503, detail="DATABASE_URL is not set")
+        if not config.gemini_api_key:
+            raise HTTPException(status_code=503, detail="GEMINI_API_KEY is not set")
+
+        try:
+            with psycopg.connect(config.database_url, connect_timeout=2) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("select 1")
+                    cur.fetchone()
+        except Exception as e:
+            raise HTTPException(status_code=503, detail=f"DB not ready: {type(e).__name__}")
+
+        return {"status": "ready"}
 
     return app
