@@ -184,7 +184,14 @@ jobs:
               else
                 py=python
               fi
-              read -r db_host db_port db_name <<< "$($py -c 'from urllib.parse import urlparse; import sys; u=urlparse(sys.argv[1]); print(u.hostname or \"\", u.port or 5432, (u.path or \"\")[1:])' "$db_url")"
+              parsed="$($py - "$db_url" <<'PY'
+from urllib.parse import urlparse
+import sys
+u = urlparse(sys.argv[1])
+print(u.hostname or "", u.port or 5432, (u.path or "")[1:])
+PY
+              )"
+              read -r db_host db_port db_name <<< "$parsed"
               echo "DATABASE_URL target (masked): host=$db_host port=$db_port db=$db_name"
 
               # Quick TCP reachability test from the host (matches container routing expectations here).
@@ -197,7 +204,7 @@ jobs:
             fi
 
             if [ "$use_local_db" = "1" ]; then
-              DEPLOY_DIR="/opt/kb-api"
+              DEPLOY_DIR="$HOME/.kb-api"
               mkdir -p "$DEPLOY_DIR"
               pw_file="$DEPLOY_DIR/.postgres_password"
               if [ -f "$pw_file" ]; then
