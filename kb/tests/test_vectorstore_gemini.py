@@ -25,7 +25,7 @@ def test_vectorstore_requires_gemini_key():
     try:
         vs = VectorStore(
             database_url="postgresql://x",
-            embedding_model="models/embedding-001",
+            embedding_model="models/text-embedding-004",
             gemini_api_key="",
         )
         vs.initialize()

@@ -109,7 +109,7 @@ def test_build_from_jsonl_counts_without_preloading(tmp_path):
 
     cfg = config_module.Config.from_dict(
         {
-            "embedding": {"provider": "gemini", "model": "models/embedding-001"},
+            "embedding": {"provider": "gemini", "model": "models/text-embedding-004"},
             "storage": {"database_url": "postgresql://x"},
         }
     )

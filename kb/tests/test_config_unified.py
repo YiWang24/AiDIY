@@ -26,7 +26,7 @@ def test_config_from_dict_expands_env_vars(monkeypatch):
     data = {
         "storage": {"database_url": "${DATABASE_URL:-}"},
         "gemini": {"api_key": "${GEMINI_API_KEY:-}"},
-        "embedding": {"provider": "gemini", "model": "models/embedding-001"},
+        "embedding": {"provider": "gemini", "model": "models/text-embedding-004"},
     }
 
     cfg = Config.from_dict(data)
@@ -39,7 +39,7 @@ def test_config_from_dict_expands_env_vars(monkeypatch):
 def test_config_from_yaml_uses_yaml_loader(tmp_path):
     fake_yaml = types.SimpleNamespace(
         safe_load=lambda _f: {
-            "embedding": {"provider": "gemini", "model": "models/embedding-001"},
+            "embedding": {"provider": "gemini", "model": "models/text-embedding-004"},
             "storage": {"database_url": "postgresql://x"},
         }
     )

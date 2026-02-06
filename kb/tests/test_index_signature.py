@@ -31,7 +31,7 @@ def test_signature_changes_when_chunking_changes():
 
     cfg1 = Config.from_dict(
         {
-            "embedding": {"provider": "gemini", "model": "models/embedding-001"},
+            "embedding": {"provider": "gemini", "model": "models/text-embedding-004"},
             "chunking": {
                 "chunk_size": 500,
                 "chunk_overlap": 80,
@@ -42,7 +42,7 @@ def test_signature_changes_when_chunking_changes():
     )
     cfg2 = Config.from_dict(
         {
-            "embedding": {"provider": "gemini", "model": "models/embedding-001"},
+            "embedding": {"provider": "gemini", "model": "models/text-embedding-004"},
             "chunking": {
                 "chunk_size": 700,
                 "chunk_overlap": 80,

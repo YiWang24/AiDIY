@@ -39,7 +39,7 @@ def test_dependencies_use_config_from_yaml(tmp_path):
             return types.SimpleNamespace(
                 database_url="postgresql://x",
                 embedding_provider="gemini",
-                embedding_model="models/embedding-001",
+                embedding_model="models/text-embedding-004",
                 gemini_api_key="key",
                 vector_store_table_name="",
                 vector_store_batch_size=32,

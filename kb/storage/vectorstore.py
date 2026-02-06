@@ -329,7 +329,7 @@ class GeminiEmbeddings:
 
     def __init__(
         self,
-        model: str = "models/embedding-001",
+        model: str = "models/text-embedding-004",
         api_key: str = "",
         timeout: float = 60.0,
     ):
@@ -383,12 +383,10 @@ class GeminiEmbeddings:
         # We've seen `batchEmbedContents` return 404 for certain embedding models/keys, which breaks app startup
         # because we probe the embedding dimension during initialization. To maximize compatibility, we use
         # `embedContent` and loop for batches.
-        url = (
-            f"https://generativelanguage.googleapis.com/v1beta/{self._model}:embedContent"
-            f"?key={self._api_key}"
-        )
+        url = f"https://generativelanguage.googleapis.com/v1beta/{self._model}:embedContent"
 
-        headers = {"Content-Type": "application/json"}
+        # Send the API key via header to avoid leaking it in exception URLs/logs.
+        headers = {"Content-Type": "application/json", "x-goog-api-key": self._api_key}
 
         def embed_one(client: httpx.Client, text: str) -> List[float]:
             payload = {"model": self._model, "content": {"parts": [{"text": text}]}}
@@ -396,11 +394,10 @@ class GeminiEmbeddings:
             try:
                 resp.raise_for_status()
             except httpx.HTTPStatusError as e:
-                # Include response body for debugging (safe: the API key is in URL, but GitHub logs may mask it;
-                # callers should avoid printing this exception verbatim in insecure contexts).
+                # Do not chain the original exception to avoid printing request URL details.
                 raise RuntimeError(
                     f"Gemini embeddings request failed: {e.response.status_code} {e.response.text}"
-                ) from e
+                )
 
             result = resp.json()
             embedding = result.get("embedding")
