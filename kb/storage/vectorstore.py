@@ -378,27 +378,35 @@ class GeminiEmbeddings:
         Returns:
             List of embedding vectors
         """
-        url = f"https://generativelanguage.googleapis.com/v1beta/{self._model}:batchEmbedContents?key={self._api_key}"
+        # NOTE:
+        # The Generative Language API supports both `embedContent` and (for some models) `batchEmbedContents`.
+        # We've seen `batchEmbedContents` return 404 for certain embedding models/keys, which breaks app startup
+        # because we probe the embedding dimension during initialization. To maximize compatibility, we use
+        # `embedContent` and loop for batches.
+        url = (
+            f"https://generativelanguage.googleapis.com/v1beta/{self._model}:embedContent"
+            f"?key={self._api_key}"
+        )
 
-        headers = {
-            "Content-Type": "application/json",
-        }
+        headers = {"Content-Type": "application/json"}
 
-        # Gemini API format
-        requests = []
-        for text in texts:
-            requests.append(
-                {"model": self._model, "content": {"parts": [{"text": text}]}}
-            )
+        def embed_one(client: httpx.Client, text: str) -> List[float]:
+            payload = {"model": self._model, "content": {"parts": [{"text": text}]}}
+            resp = client.post(url, json=payload, headers=headers)
+            try:
+                resp.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                # Include response body for debugging (safe: the API key is in URL, but GitHub logs may mask it;
+                # callers should avoid printing this exception verbatim in insecure contexts).
+                raise RuntimeError(
+                    f"Gemini embeddings request failed: {e.response.status_code} {e.response.text}"
+                ) from e
 
-        data = {"requests": requests}
+            result = resp.json()
+            embedding = result.get("embedding")
+            if not isinstance(embedding, dict) or "values" not in embedding:
+                raise RuntimeError(f"Gemini API returned unexpected response: {result}")
+            return embedding["values"]
 
         with httpx.Client(timeout=self._timeout) as client:
-            response = client.post(url, json=data, headers=headers)
-            response.raise_for_status()
-            result = response.json()
-
-        if "embeddings" not in result:
-            raise RuntimeError(f"Gemini API returned unexpected response: {result}")
-
-        return [embedding["values"] for embedding in result["embeddings"]]
+            return [embed_one(client, t) for t in texts]
