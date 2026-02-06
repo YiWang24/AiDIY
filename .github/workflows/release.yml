@@ -121,8 +121,8 @@ jobs:
             echo "$ACR_PASSWORD" | docker login "$ACR_LOGIN_SERVER" -u "$ACR_USERNAME" --password-stdin
 
             # Pull latest image
-            echo "Pulling Docker image: $ACR_LOGIN_SERVER/$ACR_REPOSITORY:${{ github.sha }}"
-            docker pull "$ACR_LOGIN_SERVER/$ACR_REPOSITORY:${{ github.sha }}"
+            echo "Pulling Docker image: $ACR_LOGIN_SERVER/$ACR_REPOSITORY:main"
+            docker pull "$ACR_LOGIN_SERVER/$ACR_REPOSITORY:main"
 
             # Stop and remove old container
             echo "Stopping old container..."
@@ -141,7 +141,7 @@ jobs:
               --health-interval 30s \
               --health-timeout 10s \
               --health-retries 3 \
-              "$ACR_LOGIN_SERVER/$ACR_REPOSITORY:${{ github.sha }}"
+              "$ACR_LOGIN_SERVER/$ACR_REPOSITORY:main"
 
             # Wait for container to be healthy
             echo "Waiting for container to be healthy..."
