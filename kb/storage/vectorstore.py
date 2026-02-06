@@ -51,9 +51,10 @@ class VectorStore:
             api_key=self._gemini_api_key,
         )
 
-        # Detect embedding dimension
-        test_embedding = self._embeddings.embed_query("test")
-        self.EMBEDDING_DIM = len(test_embedding)
+        # Avoid calling the external embeddings API during startup.
+        # We only need the embedding dimension to provision the pgvector column.
+        # Actual embedding calls will happen later when indexing/querying.
+        self.EMBEDDING_DIM = _infer_embedding_dim(self._embedding_model)
 
         if self._table_name:
             self.TABLE_NAME = self._table_name
@@ -75,6 +76,23 @@ class VectorStore:
         with self._pool.connection() as conn:
             conn.autocommit = True  # Enable autocommit for this connection
             self._create_table(conn)
+
+
+def _infer_embedding_dim(model: str) -> int:
+    """Best-effort embedding dimension inference without calling the provider."""
+    # Defaults based on historical project docs; can be overridden by changing model or code.
+    # NOTE: If this doesn't match the real provider dimension, the table will be recreated
+    # once corrected.
+    if not model:
+        return 768
+
+    # Common Gemini embeddings models.
+    if "text-embedding-004" in model:
+        return 768
+    if "embedding-001" in model:
+        return 768
+
+    return 768
 
     def _create_table(self, conn) -> None:
         """Create vector store table if it doesn't exist."""
