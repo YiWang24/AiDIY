@@ -100,6 +100,8 @@ jobs:
           IMAGE_NAME: kb-api
           DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          # Optional override; defaults to "prd" in the remote script.
+          DOPPLER_CONFIG: ${{ secrets.DOPPLER_CONFIG }}
         with:
           host: ${{ secrets.INTERNAL_SSH_HOST }}
           username: ${{ secrets.INTERNAL_SSH_USER }}
@@ -109,7 +111,7 @@ jobs:
           proxy_port: ${{ secrets.DEPLOY_SSH_PORT }}
           proxy_key: ${{ secrets.DEPLOY_SSH_KEY }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: ACR_LOGIN_SERVER,ACR_REPOSITORY,ACR_USERNAME,ACR_PASSWORD,IMAGE_NAME,DOPPLER_PROJECT,DOPPLER_TOKEN
+          envs: ACR_LOGIN_SERVER,ACR_REPOSITORY,ACR_USERNAME,ACR_PASSWORD,IMAGE_NAME,DOPPLER_PROJECT,DOPPLER_TOKEN,DOPPLER_CONFIG
           script: |
             set -euo pipefail
 
@@ -138,14 +140,28 @@ jobs:
             docker stop kb-api 2>/dev/null || true
             docker rm kb-api 2>/dev/null || true
 
-            # Run new container with Doppler injecting PRD secrets
-            echo "Starting new container with Doppler (injecting PRD secrets)..."
-            DOPPLER_TOKEN="${{ secrets.DOPPLER_TOKEN }}" \
-            doppler run --project "${{ secrets.DOPPLER_PROJECT }}" --config prd -- \
+            # Fetch secrets from Doppler into a temp env-file and pass it to the container.
+            # NOTE: `doppler run -- docker run ...` does NOT automatically inject env vars into the container.
+            # Docker only gets env vars you pass explicitly via `-e/--env` or `--env-file`.
+            DOPPLER_CONFIG="${DOPPLER_CONFIG:-prd}"
+            tmp_env="$(mktemp /tmp/kb-api.env.XXXXXX)"
+            chmod 600 "$tmp_env"
+            trap 'rm -f "$tmp_env"' EXIT
+
+            echo "Downloading Doppler secrets (project=$DOPPLER_PROJECT config=$DOPPLER_CONFIG) to env-file..."
+            doppler secrets download \
+              --project "$DOPPLER_PROJECT" \
+              --config "$DOPPLER_CONFIG" \
+              --format docker \
+              --no-file \
+              --token "$DOPPLER_TOKEN" > "$tmp_env"
+
+            echo "Starting new container (env injected via --env-file)..."
             docker run -d \
               --name kb-api \
               --restart unless-stopped \
               -p 8000:8000 \
+              --env-file "$tmp_env" \
               --health-cmd "curl -f http://localhost:8000/health || exit 1" \
               --health-interval 30s \
               --health-timeout 10s \
