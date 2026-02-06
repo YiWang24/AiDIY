@@ -143,7 +143,8 @@ class DocStore:
             raise RuntimeError("DocStore not initialized")
 
         with self._pool.connection() as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO kb_documents (doc_id, path, title, version, checksum, chunk_ids)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (doc_id) DO UPDATE SET
@@ -153,7 +154,9 @@ class DocStore:
                     checksum = EXCLUDED.checksum,
                     chunk_ids = EXCLUDED.chunk_ids,
                     updated_at = NOW()
-            """, (doc_id, path, title, version, checksum, json.dumps(chunk_ids)))
+            """,
+                (doc_id, path, title, version, checksum, json.dumps(chunk_ids)),
+            )
 
     def delete_chunks(self, doc_id: str) -> None:
         """Delete chunk IDs from a document.
@@ -231,11 +234,14 @@ class DocStore:
             raise RuntimeError("DocStore not initialized")
 
         with self._pool.connection() as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO kb_index_meta (key, value)
                 VALUES (%s, %s)
                 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
-            """, ("index_signature", signature))
+            """,
+                ("index_signature", signature),
+            )
 
     def clear_documents(self) -> None:
         """Remove all documents metadata (used for rebuilds)."""

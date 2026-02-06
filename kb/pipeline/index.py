@@ -115,10 +115,12 @@ class IndexBuilder:
                     stats["skipped"] += 1
 
             except Exception as e:
-                stats["errors"].append({
-                    "doc_id": doc_dict.get("id", "unknown"),
-                    "error": str(e),
-                })
+                stats["errors"].append(
+                    {
+                        "doc_id": doc_dict.get("id", "unknown"),
+                        "error": str(e),
+                    }
+                )
 
         return stats
 

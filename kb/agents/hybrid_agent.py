@@ -60,23 +60,25 @@ class HybridAgent(Agent):
         web_result = await self._web.handle(question, context)
 
         # 4. Merge results
-        kb_answer = kb_result.get("answer", "No specific information found in knowledge base.")
+        kb_answer = kb_result.get(
+            "answer", "No specific information found in knowledge base."
+        )
         web_answer = web_result.get("answer", "")
 
         # Create merged answer
         merged_answer = self._merge_answers(kb_answer, web_answer, question)
 
         # Calculate total tokens
-        tokens_used = (kb_result.get("tokens_used") or 0) + (web_result.get("tokens_used") or 0)
+        tokens_used = (kb_result.get("tokens_used") or 0) + (
+            web_result.get("tokens_used") or 0
+        )
 
         # Calculate times
-        total_retrieval_time = (
-            kb_result.get("retrieval_time_ms", 0) +
-            web_result.get("retrieval_time_ms", 0)
+        total_retrieval_time = kb_result.get("retrieval_time_ms", 0) + web_result.get(
+            "retrieval_time_ms", 0
         )
-        total_generation_time = (
-            kb_result.get("generation_time_ms", 0) +
-            web_result.get("generation_time_ms", 0)
+        total_generation_time = kb_result.get("generation_time_ms", 0) + web_result.get(
+            "generation_time_ms", 0
         )
 
         return {
@@ -120,7 +122,10 @@ class HybridAgent(Agent):
             Merged answer string
         """
         # If knowledge base has nothing, just return web answer
-        if "not enough information" in kb_answer.lower() or "no specific information" in kb_answer.lower():
+        if (
+            "not enough information" in kb_answer.lower()
+            or "no specific information" in kb_answer.lower()
+        ):
             return f"""Based on web search:
 
 {web_answer}"""

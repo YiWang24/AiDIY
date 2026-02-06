@@ -20,7 +20,9 @@ def _load_dependencies_module(fake_config):
     sys.modules["fastapi"] = types.SimpleNamespace(Depends=lambda x: x)
 
     deps_path = Path(__file__).resolve().parents[1] / "api" / "dependencies.py"
-    spec = importlib.util.spec_from_file_location("kb_api_dependencies_local", deps_path)
+    spec = importlib.util.spec_from_file_location(
+        "kb_api_dependencies_local", deps_path
+    )
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)

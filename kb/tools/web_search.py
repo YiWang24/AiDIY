@@ -153,12 +153,14 @@ class WebSearchTool(Tool):
         # Extract results
         results = []
         for item in result.get("results", []):
-            results.append({
-                "title": item.get("title", ""),
-                "url": item.get("url", ""),
-                "snippet": item.get("content", ""),
-                "score": item.get("score", 0.0),
-            })
+            results.append(
+                {
+                    "title": item.get("title", ""),
+                    "url": item.get("url", ""),
+                    "snippet": item.get("content", ""),
+                    "score": item.get("score", 0.0),
+                }
+            )
 
         return results
 
@@ -193,12 +195,14 @@ class WebSearchTool(Tool):
         # Extract results from Brave response format
         results = []
         for item in result.get("web", {}).get("results", []):
-            results.append({
-                "title": item.get("title", ""),
-                "url": item.get("url", ""),
-                "snippet": item.get("description", ""),
-                "score": 0.0,  # Brave doesn't provide scores
-            })
+            results.append(
+                {
+                    "title": item.get("title", ""),
+                    "url": item.get("url", ""),
+                    "snippet": item.get("description", ""),
+                    "score": 0.0,  # Brave doesn't provide scores
+                }
+            )
 
         return results
 

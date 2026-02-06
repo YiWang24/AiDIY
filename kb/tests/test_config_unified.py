@@ -7,7 +7,9 @@ from pathlib import Path
 def _load_config_with_yaml(fake_yaml):
     sys.modules["yaml"] = fake_yaml
     config_path = Path(__file__).resolve().parents[1] / "pipeline" / "config.py"
-    spec = importlib.util.spec_from_file_location("kb_pipeline_config_local", config_path)
+    spec = importlib.util.spec_from_file_location(
+        "kb_pipeline_config_local", config_path
+    )
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -35,10 +37,12 @@ def test_config_from_dict_expands_env_vars(monkeypatch):
 
 
 def test_config_from_yaml_uses_yaml_loader(tmp_path):
-    fake_yaml = types.SimpleNamespace(safe_load=lambda _f: {
-        "embedding": {"provider": "gemini", "model": "models/embedding-001"},
-        "storage": {"database_url": "postgresql://x"},
-    })
+    fake_yaml = types.SimpleNamespace(
+        safe_load=lambda _f: {
+            "embedding": {"provider": "gemini", "model": "models/embedding-001"},
+            "storage": {"database_url": "postgresql://x"},
+        }
+    )
     Config = _load_config_with_yaml(fake_yaml)
 
     path = tmp_path / "config.yaml"

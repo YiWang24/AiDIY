@@ -63,8 +63,8 @@ async def ask(
     vector_store: VectorStore = Depends(get_vector_store),
     doc_store: DocStore = Depends(get_doc_store),
     rag_config: dict = Depends(get_rag_config),
-    llm = Depends(get_llm),
-    web_search_tool = Depends(get_web_search_tool),
+    llm=Depends(get_llm),
+    web_search_tool=Depends(get_web_search_tool),
 ) -> AskResponse:
     """Answer a question using RAG with agent orchestration.
 
@@ -145,7 +145,9 @@ async def ask(
 
         # Initialize router
         use_llm_routing = agent_config.get("use_llm_routing", False)
-        router = AgentRouter(llm=llm if use_llm_routing else None, use_llm_classification=use_llm_routing)
+        router = AgentRouter(
+            llm=llm if use_llm_routing else None, use_llm_classification=use_llm_routing
+        )
 
         router.register("knowledge", knowledge_agent)
         router.register("web_search", web_search_agent)
@@ -170,7 +172,9 @@ async def ask(
         citations_data = agent_response.get("citations", [])
 
         if agent_type in ["knowledge", "hybrid_knowledge"] and citations_data:
-            site_url = rag_config.get("docusaurus", {}).get("site_url", "https://docs.yiw.me")
+            site_url = rag_config.get("docusaurus", {}).get(
+                "site_url", "https://docs.yiw.me"
+            )
             enriched_citations = _enrich_citations(doc_store, citations_data, site_url)
         else:
             enriched_citations = []
@@ -179,7 +183,9 @@ async def ask(
         return AskResponse(
             answer=agent_response["answer"],
             citations=enriched_citations,
-            has_sufficient_knowledge=agent_response.get("has_sufficient_knowledge", True),
+            has_sufficient_knowledge=agent_response.get(
+                "has_sufficient_knowledge", True
+            ),
             model=agent_response.get("model", "gemini-2.5-flash"),
             tokens_used=agent_response.get("tokens_used"),
             retrieval_time_ms=agent_response.get("retrieval_time_ms", 0),
@@ -222,7 +228,9 @@ def _transform_docusaurus_url(path: str, site_url: str) -> str:
     return f"{clean_site_url}/docs/{clean_path}"
 
 
-def _enrich_citations(doc_store: DocStore, citations: List[dict], site_url: str = "https://docs.yiw.me") -> List[Citation]:
+def _enrich_citations(
+    doc_store: DocStore, citations: List[dict], site_url: str = "https://docs.yiw.me"
+) -> List[Citation]:
     """Enrich citations with document metadata and proper URLs.
 
     Args:

@@ -1,6 +1,5 @@
 """Complete offline KB pipeline orchestrator."""
 
-
 from kb.pipeline.clean import clean_documents
 from kb.pipeline.config import Config
 from kb.pipeline.chunk import ChunkingConfig
@@ -30,6 +29,7 @@ class OfflineKBPipeline:
         else:
             # Create config from individual parameters
             from kb.pipeline.config import Config as ConfigClass
+
             self._config = ConfigClass.from_env()
             if database_url:
                 self._config.database_url = database_url
@@ -38,7 +38,9 @@ class OfflineKBPipeline:
             if chunking_config:
                 self._config.chunking = chunking_config
 
-    def clean_documents(self, input_dir: str, output_path: str, noise_filter: bool = False) -> dict:
+    def clean_documents(
+        self, input_dir: str, output_path: str, noise_filter: bool = False
+    ) -> dict:
         """Clean MDX documents using JS tool."""
         return clean_documents(input_dir, output_path, noise_filter)
 
@@ -92,6 +94,7 @@ def run_full_pipeline(
         pipeline_config = config
     else:
         from kb.pipeline.config import Config as ConfigClass
+
         pipeline_config = ConfigClass.from_env()
         if database_url:
             pipeline_config.database_url = database_url

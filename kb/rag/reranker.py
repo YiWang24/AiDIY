@@ -93,9 +93,7 @@ class ReRanker:
             score_adjustment += heading_boost_score
 
             # 3. Term frequency scoring
-            term_freq_score = self._calculate_term_frequency(
-                query_terms, content
-            )
+            term_freq_score = self._calculate_term_frequency(query_terms, content)
             score_adjustment += term_freq_score * self.term_freq_weight
 
             # 4. Diversity penalty (track for later)
@@ -141,9 +139,34 @@ class ReRanker:
 
         # Filter stop words
         stop_words = {
-            "a", "an", "the", "and", "or", "but", "is", "are", "was", "were",
-            "in", "on", "at", "to", "for", "of", "with", "by", "from", "as",
-            "how", "what", "where", "when", "why", "who", "which", "that",
+            "a",
+            "an",
+            "the",
+            "and",
+            "or",
+            "but",
+            "is",
+            "are",
+            "was",
+            "were",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "from",
+            "as",
+            "how",
+            "what",
+            "where",
+            "when",
+            "why",
+            "who",
+            "which",
+            "that",
         }
 
         return [t for t in terms if t not in stop_words and len(t) > 2]

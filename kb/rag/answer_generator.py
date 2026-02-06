@@ -70,7 +70,9 @@ class AnswerGenerator:
         citations = self._build_citations(chunks, citation_ids)
 
         # 6. Check if answer indicates insufficient knowledge
-        has_sufficient_knowledge = not prompts.has_insufficient_knowledge(response.content)
+        has_sufficient_knowledge = not prompts.has_insufficient_knowledge(
+            response.content
+        )
 
         return {
             "answer": response.content,
@@ -103,14 +105,16 @@ class AnswerGenerator:
         for citation_id in citation_ids:
             chunk = chunk_map.get(citation_id)
             if chunk:
-                citations.append({
-                    "id": citation_id,
-                    "chunk_id": chunk.chunk_id,
-                    "doc_id": chunk.doc_id,
-                    "title": f"Document {chunk.doc_id}",  # Will be enriched by DocStore later
-                    "path": f"{chunk.doc_id}.md",
-                    "heading_path": chunk.heading_path,
-                    "score": chunk.score,
-                })
+                citations.append(
+                    {
+                        "id": citation_id,
+                        "chunk_id": chunk.chunk_id,
+                        "doc_id": chunk.doc_id,
+                        "title": f"Document {chunk.doc_id}",  # Will be enriched by DocStore later
+                        "path": f"{chunk.doc_id}.md",
+                        "heading_path": chunk.heading_path,
+                        "score": chunk.score,
+                    }
+                )
 
         return citations

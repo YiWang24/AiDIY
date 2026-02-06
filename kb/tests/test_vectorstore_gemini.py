@@ -6,8 +6,12 @@ from pathlib import Path
 
 def _load_vectorstore_module():
     sys.modules.setdefault("psycopg_pool", types.SimpleNamespace(ConnectionPool=object))
-    vectorstore_path = Path(__file__).resolve().parents[1] / "storage" / "vectorstore.py"
-    spec = importlib.util.spec_from_file_location("kb_vectorstore_local", vectorstore_path)
+    vectorstore_path = (
+        Path(__file__).resolve().parents[1] / "storage" / "vectorstore.py"
+    )
+    spec = importlib.util.spec_from_file_location(
+        "kb_vectorstore_local", vectorstore_path
+    )
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)

@@ -80,6 +80,7 @@ def get_doc_store() -> Generator[DocStore, None, None]:
 
 # ========== RAG Configuration ==========
 
+
 def get_rag_config() -> dict:
     """Get RAG configuration.
 

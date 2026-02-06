@@ -9,40 +9,42 @@ from kb.rag.retriever import KBRetriever, RetrievedChunk
 def mock_vector_store():
     """Mock VectorStore instance."""
     vs = Mock()
-    vs.search = Mock(return_value=[
-        {
-            "chunk_id": "chunk1",
-            "doc_id": "doc1",
-            "content": "AgentOps provides monitoring",
-            "heading_path": ["AgentOps", "Overview"],
-            "chunk_index": 0,
-            "score": 0.95,
-        },
-        {
-            "chunk_id": "chunk2",
-            "doc_id": "doc1",
-            "content": "AgentOps tracks tool calls",
-            "heading_path": ["AgentOps", "Monitoring"],
-            "chunk_index": 1,
-            "score": 0.85,
-        },
-        {
-            "chunk_id": "chunk3",
-            "doc_id": "doc2",
-            "content": "LangChain is a framework",
-            "heading_path": ["LangChain", "Overview"],
-            "chunk_index": 0,
-            "score": 0.75,
-        },
-        {
-            "chunk_id": "chunk4",
-            "doc_id": "doc3",
-            "content": "Unrelated low-score content",
-            "heading_path": ["Other"],
-            "chunk_index": 0,
-            "score": 0.65,  # Below threshold
-        },
-    ])
+    vs.search = Mock(
+        return_value=[
+            {
+                "chunk_id": "chunk1",
+                "doc_id": "doc1",
+                "content": "AgentOps provides monitoring",
+                "heading_path": ["AgentOps", "Overview"],
+                "chunk_index": 0,
+                "score": 0.95,
+            },
+            {
+                "chunk_id": "chunk2",
+                "doc_id": "doc1",
+                "content": "AgentOps tracks tool calls",
+                "heading_path": ["AgentOps", "Monitoring"],
+                "chunk_index": 1,
+                "score": 0.85,
+            },
+            {
+                "chunk_id": "chunk3",
+                "doc_id": "doc2",
+                "content": "LangChain is a framework",
+                "heading_path": ["LangChain", "Overview"],
+                "chunk_index": 0,
+                "score": 0.75,
+            },
+            {
+                "chunk_id": "chunk4",
+                "doc_id": "doc3",
+                "content": "Unrelated low-score content",
+                "heading_path": ["Other"],
+                "chunk_index": 0,
+                "score": 0.65,  # Below threshold
+            },
+        ]
+    )
     return vs
 
 
@@ -87,24 +89,26 @@ class TestKBRetriever:
     def test_search_respects_max_chunks_per_doc(self, retriever, mock_vector_store):
         """Test that max_chunks_per_doc limits chunks from same document."""
         # Add more chunks from same doc
-        mock_vector_store.search.return_value.extend([
-            {
-                "chunk_id": "chunk5",
-                "doc_id": "doc1",
-                "content": "More AgentOps content",
-                "heading_path": ["AgentOps", "Advanced"],
-                "chunk_index": 2,
-                "score": 0.90,
-            },
-            {
-                "chunk_id": "chunk6",
-                "doc_id": "doc1",
-                "content": "Even more AgentOps",
-                "heading_path": ["AgentOps", "Advanced"],
-                "chunk_index": 3,
-                "score": 0.88,
-            },
-        ])
+        mock_vector_store.search.return_value.extend(
+            [
+                {
+                    "chunk_id": "chunk5",
+                    "doc_id": "doc1",
+                    "content": "More AgentOps content",
+                    "heading_path": ["AgentOps", "Advanced"],
+                    "chunk_index": 2,
+                    "score": 0.90,
+                },
+                {
+                    "chunk_id": "chunk6",
+                    "doc_id": "doc1",
+                    "content": "Even more AgentOps",
+                    "heading_path": ["AgentOps", "Advanced"],
+                    "chunk_index": 3,
+                    "score": 0.88,
+                },
+            ]
+        )
 
         retriever.max_chunks_per_doc = 2
         results = retriever.search(query="AgentOps", top_k=10)
@@ -143,7 +147,9 @@ class TestKBRetriever:
 
         assert len(results) == 0
 
-    def test_search_with_all_results_below_threshold(self, retriever, mock_vector_store):
+    def test_search_with_all_results_below_threshold(
+        self, retriever, mock_vector_store
+    ):
         """Test when all chunks are below score threshold."""
         mock_vector_store.search.return_value = [
             {

@@ -95,6 +95,7 @@ class TestOfflineKBPipeline:
     def test_db_url(self):
         """Get test database URL."""
         import os
+
         url = os.environ.get("TEST_DATABASE_URL")
         if not url:
             pytest.skip("TEST_DATABASE_URL not set")

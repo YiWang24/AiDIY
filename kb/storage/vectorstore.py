@@ -102,8 +102,10 @@ class VectorStore:
                 if result:
                     existing_dim = _parse_vector_dim(result[0])
                     if existing_dim != self.EMBEDDING_DIM:
-                        print(f"Warning: Table {self.TABLE_NAME} has dimension {existing_dim}, "
-                              f"but model requires {self.EMBEDDING_DIM}. Recreating table...")
+                        print(
+                            f"Warning: Table {self.TABLE_NAME} has dimension {existing_dim}, "
+                            f"but model requires {self.EMBEDDING_DIM}. Recreating table..."
+                        )
                         conn.execute(f"DROP TABLE {self.TABLE_NAME} CASCADE")
                         check_table = False
             except Exception as e:
@@ -194,7 +196,8 @@ class VectorStore:
             # Insert batch
             with self._pool.connection() as conn:
                 for chunk, embedding in zip(batch, embeddings):
-                    conn.execute(f"""
+                    conn.execute(
+                        f"""
                         INSERT INTO {self.TABLE_NAME}
                         (chunk_id, doc_id, content, heading_path, chunk_index, embedding)
                         VALUES (%s, %s, %s, %s, %s, %s::vector)
@@ -203,14 +206,16 @@ class VectorStore:
                             embedding = EXCLUDED.embedding,
                             heading_path = EXCLUDED.heading_path,
                             chunk_index = EXCLUDED.chunk_index
-                    """, (
-                        chunk.chunk_id,
-                        chunk.doc_id,
-                        chunk.content,
-                        json.dumps(chunk.heading_path),
-                        chunk.chunk_index,
-                        "[" + ",".join(str(x) for x in embedding) + "]",
-                    ))
+                    """,
+                        (
+                            chunk.chunk_id,
+                            chunk.doc_id,
+                            chunk.content,
+                            json.dumps(chunk.heading_path),
+                            chunk.chunk_index,
+                            "[" + ",".join(str(x) for x in embedding) + "]",
+                        ),
+                    )
                 conn.execute("COMMIT")
 
     def delete_chunks(self, chunk_ids: List[str]) -> None:
@@ -382,12 +387,9 @@ class GeminiEmbeddings:
         # Gemini API format
         requests = []
         for text in texts:
-            requests.append({
-                "model": self._model,
-                "content": {
-                    "parts": [{"text": text}]
-                }
-            })
+            requests.append(
+                {"model": self._model, "content": {"parts": [{"text": text}]}}
+            )
 
         data = {"requests": requests}
 

@@ -80,15 +80,11 @@ class TestGeminiLLM:
         mock_response.json.return_value = {
             "candidates": [
                 {
-                    "content": {
-                        "parts": [{"text": "Test answer"}]
-                    },
-                    "finishReason": "stop"
+                    "content": {"parts": [{"text": "Test answer"}]},
+                    "finishReason": "stop",
                 }
             ],
-            "usageMetadata": {
-                "totalTokenCount": 50
-            }
+            "usageMetadata": {"totalTokenCount": 50},
         }
 
         mock_client = Mock()
@@ -115,10 +111,8 @@ class TestGeminiLLM:
         mock_response.json.return_value = {
             "candidates": [
                 {
-                    "content": {
-                        "parts": [{"text": "Test answer"}]
-                    },
-                    "finishReason": "stop"
+                    "content": {"parts": [{"text": "Test answer"}]},
+                    "finishReason": "stop",
                 }
             ],
         }
@@ -155,9 +149,7 @@ class TestGeminiLLM:
         mock_response.status_code = 500
         mock_response.text = "Internal Server Error"
         mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-            "API Error",
-            request=Mock(),
-            response=mock_response
+            "API Error", request=Mock(), response=mock_response
         )
 
         mock_client = Mock()

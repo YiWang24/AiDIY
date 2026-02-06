@@ -60,7 +60,11 @@ class GeminiLLM(BaseLLM):
 
         # Map model name to API format
         # gemini-1.5-flash -> models/gemini-1.5-flash
-        model_id = f"models/{self.model}" if not self.model.startswith("models/") else self.model
+        model_id = (
+            f"models/{self.model}"
+            if not self.model.startswith("models/")
+            else self.model
+        )
 
         url = f"{self.API_BASE}/{model_id}:generateContent?key={self._api_key}"
 
@@ -69,15 +73,11 @@ class GeminiLLM(BaseLLM):
         }
 
         data = {
-            "contents": [
-                {
-                    "parts": [{"text": prompt}]
-                }
-            ],
+            "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
                 "temperature": temp,
                 "maxOutputTokens": max_tok,
-            }
+            },
         }
 
         try:
@@ -103,7 +103,9 @@ class GeminiLLM(BaseLLM):
             )
 
         except httpx.HTTPStatusError as e:
-            raise RuntimeError(f"Gemini API error: {e.response.status_code} - {e.response.text}") from e
+            raise RuntimeError(
+                f"Gemini API error: {e.response.status_code} - {e.response.text}"
+            ) from e
         except Exception as e:
             raise RuntimeError(f"Gemini LLM generation failed: {str(e)}") from e
 
@@ -119,7 +121,9 @@ class GeminiLLM(BaseLLM):
         try:
             return result["candidates"][0]["content"]["parts"][0]["text"]
         except (KeyError, IndexError) as e:
-            raise RuntimeError(f"Unexpected Gemini API response format: {result}") from e
+            raise RuntimeError(
+                f"Unexpected Gemini API response format: {result}"
+            ) from e
 
     def _extract_tokens(self, result: dict) -> Optional[int]:
         """Extract token usage from API response.
@@ -186,16 +190,17 @@ class GeminiLLM(BaseLLM):
         tools_map = {tool.name(): tool for tool in tools}
 
         # Build request with tools
-        model_id = f"models/{self.model}" if not self.model.startswith("models/") else self.model
+        model_id = (
+            f"models/{self.model}"
+            if not self.model.startswith("models/")
+            else self.model
+        )
         url = f"{self.API_BASE}/{model_id}:generateContent?key={self._api_key}"
 
         headers = {"Content-Type": "application/json"}
 
         conversation_history = []
-        conversation_history.append({
-            "role": "user",
-            "parts": [{"text": prompt}]
-        })
+        conversation_history.append({"role": "user", "parts": [{"text": prompt}]})
 
         iteration = 0
         final_content = ""
@@ -233,14 +238,15 @@ class GeminiLLM(BaseLLM):
                 content_parts = candidate.get("content", {}).get("parts", [])
 
                 # Check for function calls
-                function_calls = [p.get("functionCall") for p in content_parts if "functionCall" in p]
+                function_calls = [
+                    p.get("functionCall") for p in content_parts if "functionCall" in p
+                ]
 
                 if function_calls:
                     # Add model response to history
-                    conversation_history.append({
-                        "role": "model",
-                        "parts": content_parts
-                    })
+                    conversation_history.append(
+                        {"role": "model", "parts": content_parts}
+                    )
 
                     # Execute tool calls
                     for func_call in function_calls:
@@ -257,13 +263,19 @@ class GeminiLLM(BaseLLM):
                             tool_result = f"Error executing {func_name}: {str(e)}"
 
                         # Add function response to history
-                        conversation_history.append({
-                            "role": "function",
-                            "parts": [{"functionResponse": {
-                                "name": func_name,
-                                "response": {"result": tool_result}
-                            }}]
-                        })
+                        conversation_history.append(
+                            {
+                                "role": "function",
+                                "parts": [
+                                    {
+                                        "functionResponse": {
+                                            "name": func_name,
+                                            "response": {"result": tool_result},
+                                        }
+                                    }
+                                ],
+                            }
+                        )
 
                     # Continue loop to get final response
                     continue
@@ -274,12 +286,16 @@ class GeminiLLM(BaseLLM):
                     break
 
             except httpx.HTTPStatusError as e:
-                raise RuntimeError(f"Gemini API error: {e.response.status_code} - {e.response.text}") from e
+                raise RuntimeError(
+                    f"Gemini API error: {e.response.status_code} - {e.response.text}"
+                ) from e
             except Exception as e:
                 raise RuntimeError(f"Gemini LLM generation failed: {str(e)}") from e
 
         if iteration >= max_tool_calls:
-            raise RuntimeError(f"Maximum tool call iterations ({max_tool_calls}) reached")
+            raise RuntimeError(
+                f"Maximum tool call iterations ({max_tool_calls}) reached"
+            )
 
         return LLMResponse(
             content=final_content,

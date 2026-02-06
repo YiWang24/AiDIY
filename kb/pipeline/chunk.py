@@ -4,7 +4,10 @@ import hashlib
 from typing import List
 from dataclasses import dataclass
 
-from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
+from langchain_text_splitters import (
+    MarkdownHeaderTextSplitter,
+    RecursiveCharacterTextSplitter,
+)
 
 from kb.domain.document import Document
 from kb.domain.chunk import Chunk
@@ -59,14 +62,18 @@ class ChunkingStrategy:
             if len(section_text) > self._config.max_section_chars:
                 sub_chunks = self._recursive_splitter.split_text(section_text)
                 for sub_chunk in sub_chunks:
-                    chunks.append(self._create_chunk(
-                        document, sub_chunk, heading_path, chunk_index
-                    ))
+                    chunks.append(
+                        self._create_chunk(
+                            document, sub_chunk, heading_path, chunk_index
+                        )
+                    )
                     chunk_index += 1
             else:
-                chunks.append(self._create_chunk(
-                    document, section_text, heading_path, chunk_index
-                ))
+                chunks.append(
+                    self._create_chunk(
+                        document, section_text, heading_path, chunk_index
+                    )
+                )
                 chunk_index += 1
 
         return chunks
@@ -80,8 +87,11 @@ class ChunkingStrategy:
         return heading_path
 
     def _create_chunk(
-        self, document: Document, content: str,
-        heading_path: List[str], chunk_index: int
+        self,
+        document: Document,
+        content: str,
+        heading_path: List[str],
+        chunk_index: int,
     ) -> Chunk:
         """Create a chunk with stable ID."""
         content_hash = hashlib.sha256(content.encode()).hexdigest()

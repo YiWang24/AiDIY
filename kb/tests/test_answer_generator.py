@@ -19,7 +19,9 @@ def mock_llm():
 def mock_context_builder():
     """Mock ContextBuilder instance."""
     builder = Mock()
-    builder.build_context = Mock(return_value="[1] AgentOps provides monitoring [2] LangChain framework")
+    builder.build_context = Mock(
+        return_value="[1] AgentOps provides monitoring [2] LangChain framework"
+    )
     return builder
 
 
@@ -72,14 +74,19 @@ class TestAnswerGenerator:
             chunks=sample_chunks,
         )
 
-        assert result["answer"] == "AgentOps provides monitoring for AI agents [1]. LangChain is a framework [2]."
+        assert (
+            result["answer"]
+            == "AgentOps provides monitoring for AI agents [1]. LangChain is a framework [2]."
+        )
         assert result["model"] == "gemini-1.5-flash"
         assert result["tokens_used"] == 150
         assert result["has_sufficient_knowledge"] is True
         assert result["generation_time_ms"] >= 0
         assert len(result["citations"]) == 2
 
-    def test_generate_answer_extracts_citations(self, answer_generator, mock_llm, sample_chunks):
+    def test_generate_answer_extracts_citations(
+        self, answer_generator, mock_llm, sample_chunks
+    ):
         """Test that citations are extracted from answer."""
         mock_llm.generate.return_value = LLMResponse(
             content="AgentOps provides monitoring [1].",
@@ -97,7 +104,9 @@ class TestAnswerGenerator:
         assert result["citations"][0]["chunk_id"] == "chunk1"
         assert result["citations"][0]["doc_id"] == "doc1"
 
-    def test_generate_answer_detects_insufficient_knowledge(self, answer_generator, mock_llm, sample_chunks):
+    def test_generate_answer_detects_insufficient_knowledge(
+        self, answer_generator, mock_llm, sample_chunks
+    ):
         """Test detection of insufficient knowledge."""
         mock_llm.generate.return_value = LLMResponse(
             content="I don't have enough information in the knowledge base to answer this question.",
@@ -112,7 +121,9 @@ class TestAnswerGenerator:
 
         assert result["has_sufficient_knowledge"] is False
 
-    def test_generate_answer_handles_missing_citations(self, answer_generator, mock_llm, sample_chunks):
+    def test_generate_answer_handles_missing_citations(
+        self, answer_generator, mock_llm, sample_chunks
+    ):
         """Test handling when answer doesn't include citations."""
         mock_llm.generate.return_value = LLMResponse(
             content="This is an answer without any citations.",
@@ -127,7 +138,9 @@ class TestAnswerGenerator:
 
         assert len(result["citations"]) == 0
 
-    def test_generate_answer_preserves_heading_path(self, answer_generator, mock_llm, sample_chunks):
+    def test_generate_answer_preserves_heading_path(
+        self, answer_generator, mock_llm, sample_chunks
+    ):
         """Test that heading path is preserved in citations."""
         mock_llm.generate.return_value = LLMResponse(
             content="AgentOps provides monitoring [1].",
@@ -143,7 +156,9 @@ class TestAnswerGenerator:
         citation = result["citations"][0]
         assert citation["heading_path"] == ["AgentOps", "Overview"]
 
-    def test_generate_answer_includes_score(self, answer_generator, mock_llm, sample_chunks):
+    def test_generate_answer_includes_score(
+        self, answer_generator, mock_llm, sample_chunks
+    ):
         """Test that score is included in citations."""
         mock_llm.generate.return_value = LLMResponse(
             content="AgentOps provides monitoring [1].",
@@ -174,7 +189,9 @@ class TestAnswerGenerator:
 
         assert len(result["citations"]) == 0
 
-    def test_generate_answer_uses_context_builder(self, answer_generator, mock_context_builder, mock_llm, sample_chunks):
+    def test_generate_answer_uses_context_builder(
+        self, answer_generator, mock_context_builder, mock_llm, sample_chunks
+    ):
         """Test that context builder is called."""
         mock_llm.generate.return_value = LLMResponse(
             content="Test answer [1].",
@@ -189,7 +206,9 @@ class TestAnswerGenerator:
         # Verify context builder was called
         mock_context_builder.build_context.assert_called_once_with(sample_chunks)
 
-    def test_generate_answer_handles_llm_error(self, answer_generator, mock_llm, sample_chunks):
+    def test_generate_answer_handles_llm_error(
+        self, answer_generator, mock_llm, sample_chunks
+    ):
         """Test handling of LLM errors."""
         mock_llm.generate.side_effect = RuntimeError("LLM API error")
 

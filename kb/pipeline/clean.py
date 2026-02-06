@@ -21,7 +21,9 @@ def clean_documents(
         Statistics dict
     """
     # Find the JS cleaner script
-    js_cleaner = Path(__file__).parent.parent / "tools" / "mdx-clean" / "bin" / "clean.mjs"
+    js_cleaner = (
+        Path(__file__).parent.parent / "tools" / "mdx-clean" / "bin" / "clean.mjs"
+    )
 
     if not js_cleaner.exists():
         raise RuntimeError(
@@ -33,8 +35,10 @@ def clean_documents(
     cmd = [
         "node",
         str(js_cleaner),
-        "--roots", input_dir,
-        "--output", output_path,
+        "--roots",
+        input_dir,
+        "--output",
+        output_path,
     ]
 
     if noise_filter:
@@ -51,9 +55,7 @@ def clean_documents(
     )
 
     if result.returncode != 0:
-        raise RuntimeError(
-            f"JS cleaner failed:\n{result.stderr}\n{result.stdout}"
-        )
+        raise RuntimeError(f"JS cleaner failed:\n{result.stderr}\n{result.stdout}")
 
     # Parse output to get stats
     stats = {
@@ -72,10 +74,12 @@ def clean_documents(
                     # Check for parse errors in frontmatter
                     record = json.loads(line)
                     if record.get("frontmatter", {}).get("parseError"):
-                        stats["errors"].append({
-                            "doc_id": record.get("id"),
-                            "error": record["frontmatter"]["parseError"],
-                        })
+                        stats["errors"].append(
+                            {
+                                "doc_id": record.get("id"),
+                                "error": record["frontmatter"]["parseError"],
+                            }
+                        )
     except FileNotFoundError:
         pass
 

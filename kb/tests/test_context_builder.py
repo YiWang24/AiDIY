@@ -113,7 +113,9 @@ class TestContextBuilder:
         # Context should be within budget (allow some margin for formatting)
         assert len(context) <= 1100  # Allow small buffer
 
-    def test_build_context_includes_high_scoring_chunks_first(self, long_content_chunks):
+    def test_build_context_includes_high_scoring_chunks_first(
+        self, long_content_chunks
+    ):
         """Test that higher scoring chunks are prioritized when budget constrained."""
         builder = ContextBuilder(max_length=500, include_headings=False)
         context = builder.build_context(long_content_chunks)

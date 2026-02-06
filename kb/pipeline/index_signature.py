@@ -21,7 +21,8 @@ def compute_signature(config: Config, embedding_dim: int) -> str:
             "chunk_size": config.chunking.chunk_size,
             "chunk_overlap": config.chunking.chunk_overlap,
         },
-        "table_name": config.vector_store_table_name or _default_table_name(config.embedding_model),
+        "table_name": config.vector_store_table_name
+        or _default_table_name(config.embedding_model),
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()

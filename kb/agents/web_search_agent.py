@@ -41,8 +41,7 @@ class WebSearchAgent(Agent):
 
         # 1. Perform web search
         search_results = await self._tool.execute(
-            query=question,
-            max_results=max_results
+            query=question, max_results=max_results
         )
 
         retrieval_time_ms = int((time.time() - start_time) * 1000)
@@ -96,9 +95,21 @@ The following are web search results for your question:
 
         # Keywords indicating need for current/real-time information
         realtime_keywords = [
-            "latest", "news", "current", "recent", "today", "now",
-            "price", "cost", "2025", "2024", "2023",
-            "breaking", "update", "release", "announcement",
+            "latest",
+            "news",
+            "current",
+            "recent",
+            "today",
+            "now",
+            "price",
+            "cost",
+            "2025",
+            "2024",
+            "2023",
+            "breaking",
+            "update",
+            "release",
+            "announcement",
         ]
 
         # Count matches

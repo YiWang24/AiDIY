@@ -93,10 +93,23 @@ class KnowledgeAgent(Agent):
 
         # Keywords indicating technical/documentation questions
         tech_keywords = [
-            "how", "explain", "architecture", "implementation",
-            "api", "design", "pattern", "tutorial", "guide",
-            "example", "documentation", "reference", "usage",
-            "what is", "what are", "how to", "how do",
+            "how",
+            "explain",
+            "architecture",
+            "implementation",
+            "api",
+            "design",
+            "pattern",
+            "tutorial",
+            "guide",
+            "example",
+            "documentation",
+            "reference",
+            "usage",
+            "what is",
+            "what are",
+            "how to",
+            "how do",
         ]
 
         # Count matches

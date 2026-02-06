@@ -15,9 +15,7 @@ class ContextBuilder:
         include_headings: Whether to include heading path (default: True)
     """
 
-    def __init__(
-        self, max_length: int = 4000, include_headings: bool = True
-    ):
+    def __init__(self, max_length: int = 4000, include_headings: bool = True):
         """Initialize ContextBuilder.
 
         Args:

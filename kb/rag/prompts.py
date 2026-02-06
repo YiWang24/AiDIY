@@ -66,7 +66,9 @@ CHAT_SYSTEM_PROMPT = """You are a helpful AI assistant that answers questions ba
 5. **Be conversational but professional**. Provide helpful, accurate responses."""
 
 
-def build_chat_prompt(question: str, context: str, conversation_history: list[dict]) -> str:
+def build_chat_prompt(
+    question: str, context: str, conversation_history: list[dict]
+) -> str:
     """Build chat prompt with question, context, and conversation history.
 
     Args:
@@ -87,13 +89,15 @@ def build_chat_prompt(question: str, context: str, conversation_history: list[di
             content = msg.get("content", "")
             prompt_parts.append(f"{role}: {content}\n")
 
-    prompt_parts.extend([
-        "---\n",
-        f"**Context:**\n\n{context}\n",
-        "---\n",
-        f"**Question:**\n\n{question}\n",
-        "**Answer:**"
-    ])
+    prompt_parts.extend(
+        [
+            "---\n",
+            f"**Context:**\n\n{context}\n",
+            "---\n",
+            f"**Question:**\n\n{question}\n",
+            "**Answer:**",
+        ]
+    )
 
     return "".join(prompt_parts)
 
@@ -191,19 +195,19 @@ def build_tool_calling_prompt(
     Returns:
         Complete prompt for LLM with tool calling
     """
-    prompt_parts = [TOOL_CALLING_SYSTEM_PROMPT.format(tools_description=tools_description)]
+    prompt_parts = [
+        TOOL_CALLING_SYSTEM_PROMPT.format(tools_description=tools_description)
+    ]
 
     if context:
-        prompt_parts.extend([
-            "---",
-            f"**Context:**\n\n{context}\n",
-        ])
+        prompt_parts.extend(
+            [
+                "---",
+                f"**Context:**\n\n{context}\n",
+            ]
+        )
 
-    prompt_parts.extend([
-        "---",
-        f"**Question:**\n\n{question}\n",
-        "**Answer:**"
-    ])
+    prompt_parts.extend(["---", f"**Question:**\n\n{question}\n", "**Answer:**"])
 
     return "\n".join(prompt_parts)
 
@@ -252,23 +256,23 @@ def build_hybrid_prompt(
     prompt_parts = [HYBRID_AGENT_SYSTEM_PROMPT]
 
     if kb_context:
-        prompt_parts.extend([
-            "---",
-            "**Knowledge Base Context:**",
-            kb_context,
-        ])
+        prompt_parts.extend(
+            [
+                "---",
+                "**Knowledge Base Context:**",
+                kb_context,
+            ]
+        )
 
     if web_context:
-        prompt_parts.extend([
-            "---",
-            "**Web Search Context:**",
-            web_context,
-        ])
+        prompt_parts.extend(
+            [
+                "---",
+                "**Web Search Context:**",
+                web_context,
+            ]
+        )
 
-    prompt_parts.extend([
-        "---",
-        f"**Question:**\n\n{question}\n",
-        "**Answer:**"
-    ])
+    prompt_parts.extend(["---", f"**Question:**\n\n{question}\n", "**Answer:**"])
 
     return "\n".join(prompt_parts)

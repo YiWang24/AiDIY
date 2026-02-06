@@ -7,7 +7,9 @@ from pathlib import Path
 def _load_config_module():
     sys.modules["yaml"] = types.SimpleNamespace(safe_load=lambda _f: {})
     config_path = Path(__file__).resolve().parents[1] / "pipeline" / "config.py"
-    spec = importlib.util.spec_from_file_location("kb_pipeline_config_local", config_path)
+    spec = importlib.util.spec_from_file_location(
+        "kb_pipeline_config_local", config_path
+    )
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -80,8 +82,12 @@ def _load_index_module(config_module, document_module):
 
     sys.modules["kb.storage"] = types.ModuleType("kb.storage")
     sys.modules["kb.storage.docstore"] = types.SimpleNamespace(DocStore=DummyDocStore)
-    sys.modules["kb.storage.vectorstore"] = types.SimpleNamespace(VectorStore=DummyVectorStore)
-    sys.modules["kb.pipeline.incremental"] = types.SimpleNamespace(IncrementalIndexer=DummyIncremental)
+    sys.modules["kb.storage.vectorstore"] = types.SimpleNamespace(
+        VectorStore=DummyVectorStore
+    )
+    sys.modules["kb.pipeline.incremental"] = types.SimpleNamespace(
+        IncrementalIndexer=DummyIncremental
+    )
 
     index_path = Path(__file__).resolve().parents[1] / "pipeline" / "index.py"
     spec = importlib.util.spec_from_file_location("kb_pipeline_index_local", index_path)
@@ -97,12 +103,16 @@ def test_build_from_jsonl_counts_without_preloading(tmp_path):
     index_module = _load_index_module(config_module, document_module)
 
     jsonl_path = tmp_path / "docs.jsonl"
-    jsonl_path.write_text('{"id":"a","path":"a","title":"a","checksum":"x","content":"c"}\n')
+    jsonl_path.write_text(
+        '{"id":"a","path":"a","title":"a","checksum":"x","content":"c"}\n'
+    )
 
-    cfg = config_module.Config.from_dict({
-        "embedding": {"provider": "gemini", "model": "models/embedding-001"},
-        "storage": {"database_url": "postgresql://x"},
-    })
+    cfg = config_module.Config.from_dict(
+        {
+            "embedding": {"provider": "gemini", "model": "models/embedding-001"},
+            "storage": {"database_url": "postgresql://x"},
+        }
+    )
 
     builder = index_module.IndexBuilder(config=cfg)
 

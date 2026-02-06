@@ -127,7 +127,7 @@ class HybridSearcher:
                             heading_path,
                             chunk_index
                         FROM {table_name}
-                        WHERE {' OR '.join(where_clauses)}
+                        WHERE {" OR ".join(where_clauses)}
                         LIMIT {k}
                     """
 
@@ -138,17 +138,23 @@ class HybridSearcher:
                     scored_results = []
                     for row in results:
                         content_lower = row[2].lower()
-                        term_count = sum(1 for term in search_terms if term.lower() in content_lower)
-                        score = term_count / len(search_terms)  # Normalize by number of terms
+                        term_count = sum(
+                            1 for term in search_terms if term.lower() in content_lower
+                        )
+                        score = term_count / len(
+                            search_terms
+                        )  # Normalize by number of terms
 
-                        scored_results.append({
-                            "chunk_id": row[0],
-                            "doc_id": row[1],
-                            "content": row[2],
-                            "heading_path": row[3],
-                            "chunk_index": row[4],
-                            "score": score,
-                        })
+                        scored_results.append(
+                            {
+                                "chunk_id": row[0],
+                                "doc_id": row[1],
+                                "content": row[2],
+                                "heading_path": row[3],
+                                "chunk_index": row[4],
+                                "score": score,
+                            }
+                        )
 
                     # Sort by score
                     scored_results.sort(key=lambda x: x["score"], reverse=True)
@@ -171,8 +177,26 @@ class HybridSearcher:
         # Simple conversion: join terms with & (AND)
         # Remove common stop words
         stop_words = {
-            "a", "an", "the", "and", "or", "but", "is", "are", "was", "were",
-            "in", "on", "at", "to", "for", "of", "with", "by", "from", "as",
+            "a",
+            "an",
+            "the",
+            "and",
+            "or",
+            "but",
+            "is",
+            "are",
+            "was",
+            "were",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "from",
+            "as",
         }
 
         terms = query.lower().split()
@@ -227,12 +251,10 @@ class HybridSearcher:
         """
         # Create mappings: chunk_id -> rank (1-indexed)
         semantic_ranks: Dict[str, int] = {
-            r["chunk_id"]: i + 1
-            for i, r in enumerate(semantic_results)
+            r["chunk_id"]: i + 1 for i, r in enumerate(semantic_results)
         }
         keyword_ranks: Dict[str, int] = {
-            r["chunk_id"]: i + 1
-            for i, r in enumerate(keyword_results)
+            r["chunk_id"]: i + 1 for i, r in enumerate(keyword_results)
         }
 
         # Collect all unique chunk_ids
@@ -250,8 +272,7 @@ class HybridSearcher:
                 semantic_score = 1.0 / (self.rrf_k + semantic_rank)
                 keyword_score = 1.0 / (self.rrf_k + keyword_rank)
                 rrf_scores[chunk_id] = (
-                    self.alpha * semantic_score +
-                    (1 - self.alpha) * keyword_score
+                    self.alpha * semantic_score + (1 - self.alpha) * keyword_score
                 )
             elif semantic_rank is not None:
                 # Only in semantic results
@@ -269,7 +290,9 @@ class HybridSearcher:
 
         # Attach RRF scores and sort
         final_results = []
-        for chunk_id, rrf_score in sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True):
+        for chunk_id, rrf_score in sorted(
+            rrf_scores.items(), key=lambda x: x[1], reverse=True
+        ):
             result = result_map[chunk_id].copy()
             result["score"] = rrf_score
             final_results.append(result)

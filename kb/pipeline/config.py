@@ -19,7 +19,7 @@ def _expand_env_var(value: str) -> str:
         return value
 
     # Match ${VAR:-default} or ${VAR-default}
-    pattern = r'\$\{([^:}]+):-?([^}]*)\}'
+    pattern = r"\$\{([^:}]+):-?([^}]*)\}"
 
     def replace_env(match):
         var_name = match.group(1)
@@ -105,7 +105,9 @@ class Config:
 
         embedding_provider = embedding_data.get("provider", "gemini")
         if embedding_provider != "gemini":
-            raise ValueError("Only Gemini embeddings are supported (provider must be 'gemini').")
+            raise ValueError(
+                "Only Gemini embeddings are supported (provider must be 'gemini')."
+            )
 
         return cls(
             chunking=chunking,

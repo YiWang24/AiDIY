@@ -58,10 +58,12 @@ def load_config(config_path: str | None = None) -> Config:
 
 def print_header(text: str):
     """Print section header."""
-    print(f"\n{'='*50}\n{text}\n{'='*50}\n")
+    print(f"\n{'=' * 50}\n{text}\n{'=' * 50}\n")
 
 
-def stage1_clean(config: Config, docs_dir: str, output_path: str, noise_filter: bool = False) -> dict:
+def stage1_clean(
+    config: Config, docs_dir: str, output_path: str, noise_filter: bool = False
+) -> dict:
     """Stage 1: Clean MDX documents using JS tool."""
     print_header("Stage 1: Cleaning MDX documents")
 
@@ -77,7 +79,7 @@ def stage1_clean(config: Config, docs_dir: str, output_path: str, noise_filter: 
     )
 
     print(f"✓ Cleaned: {stats['cleaned']}/{stats['total']} documents")
-    if stats['errors']:
+    if stats["errors"]:
         print(f"  Errors: {len(stats['errors'])}")
 
     return stats
@@ -108,9 +110,9 @@ def stage2_build(
     print(f"  Chunks added: {stats['chunks_added']}")
     print(f"  Chunks deleted: {stats['chunks_deleted']}")
 
-    if stats['errors']:
+    if stats["errors"]:
         print(f"  Errors: {len(stats['errors'])}")
-        for err in stats['errors'][:5]:
+        for err in stats["errors"][:5]:
             print(f"    - {err['doc_id']}: {err['error']}")
 
     return stats
@@ -187,9 +189,13 @@ def main():
 
             print_header("Pipeline Statistics")
             print("Stage 1 - Cleaning:")
-            print(f"  Cleaned: {overall_stats['cleaning']['cleaned']}/{overall_stats['cleaning']['total']}")
+            print(
+                f"  Cleaned: {overall_stats['cleaning']['cleaned']}/{overall_stats['cleaning']['total']}"
+            )
             print("\nStage 2 - Indexing:")
-            print(f"  Indexed: {overall_stats['indexing']['indexed']}/{overall_stats['indexing']['total']}")
+            print(
+                f"  Indexed: {overall_stats['indexing']['indexed']}/{overall_stats['indexing']['total']}"
+            )
             print(f"  Skipped: {overall_stats['indexing']['skipped']}")
             print(f"  Chunks added: {overall_stats['indexing']['chunks_added']}")
 
@@ -198,6 +204,7 @@ def main():
     except Exception as e:
         print(f"\n✗ Error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 
