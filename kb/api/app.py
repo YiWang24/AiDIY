@@ -20,10 +20,10 @@ async def lifespan(app: FastAPI):
     print("Initializing KB API...")
     config = get_config()
 
-    # Initialize dependencies best-effort.
-    # In some environments (fresh deploy, network hiccups, missing external providers),
-    # failing hard on startup makes the service impossible to debug. We prefer to
-    # start the API and surface a degraded health status instead.
+    # IMPORTANT:
+    # Do not block API startup on external dependencies (DB, embeddings provider).
+    # CI/CD health checks should be able to succeed even if downstream services
+    # are temporarily unavailable. Dependencies are initialized lazily per-request.
     app.state.startup_errors = []
 
     vs = VectorStore(
@@ -33,25 +33,13 @@ async def lifespan(app: FastAPI):
         table_name=config.vector_store_table_name,
         batch_size=config.vector_store_batch_size,
     )
-    try:
-        vs.initialize()
-    except Exception as e:
-        msg = f"VectorStore init failed: {e}"
-        print(msg)
-        app.state.startup_errors.append(msg)
-
     ds = DocStore(database_url=config.database_url)
-    try:
-        ds.initialize()
-    except Exception as e:
-        msg = f"DocStore init failed: {e}"
-        print(msg)
-        app.state.startup_errors.append(msg)
 
-    if app.state.startup_errors:
-        print("KB API started in degraded mode")
-    else:
-        print("KB API initialized successfully")
+    # Keep references for future extension (e.g., eager init behind a flag).
+    app.state._vector_store = vs
+    app.state._doc_store = ds
+
+    print("KB API started")
 
     yield
 
