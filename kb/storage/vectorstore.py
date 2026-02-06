@@ -335,6 +335,11 @@ def _infer_embedding_dim(model: str) -> int:
         return 768
 
     # Common Gemini embeddings models.
+    #
+    # NOTE: `models/gemini-embedding-001` currently returns 3072 dimensions.
+    # Keep this in sync with provider behavior to avoid schema mismatches.
+    if "gemini-embedding-001" in model:
+        return 3072
     if "text-embedding-004" in model:
         return 768
     if "embedding-001" in model:
