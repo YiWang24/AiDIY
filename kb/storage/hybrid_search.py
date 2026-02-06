@@ -294,6 +294,12 @@ class HybridSearcher:
             rrf_scores.items(), key=lambda x: x[1], reverse=True
         ):
             result = result_map[chunk_id].copy()
+            # Preserve the original semantic similarity score (0-1) when available.
+            # RRF scores are small (e.g. ~0.01), so downstream thresholding should use semantic_score.
+            if chunk_id in semantic_ranks:
+                result["semantic_score"] = result.get("score", 0.0)
+            else:
+                result["semantic_score"] = 0.0
             result["score"] = rrf_score
             final_results.append(result)
 

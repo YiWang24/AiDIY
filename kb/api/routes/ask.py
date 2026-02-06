@@ -163,10 +163,6 @@ async def ask(
 
         agent_response = await router.route(request.question, context)
 
-        # Debug: log agent_response
-        print(f"DEBUG: agent_response keys = {agent_response.keys()}")
-        print(f"DEBUG: agent_type = {agent_response.get('agent_type')}")
-
         # Enrich citations (if knowledge agent was used)
         agent_type = agent_response.get("agent_type", "")
         citations_data = agent_response.get("citations", [])

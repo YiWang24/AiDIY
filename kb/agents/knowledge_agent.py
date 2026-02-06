@@ -62,7 +62,7 @@ class KnowledgeAgent(Agent):
         if not chunks:
             has_sufficient_knowledge = False
         else:
-            max_score = chunks[0].get("score", 0.0) if chunks else 0.0
+            max_score = getattr(chunks[0], "score", 0.0)
             if max_score < self._score_threshold:
                 has_sufficient_knowledge = False
 

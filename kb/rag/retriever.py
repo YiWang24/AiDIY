@@ -119,18 +119,24 @@ class KBRetriever:
         if use_reranking and self._reranker:
             raw_results = self._reranker.rerank(raw_results, query)
 
+        def filter_score(r: dict) -> float:
+            # Hybrid search uses RRF for ranking; keep semantic similarity separately for thresholds.
+            if use_hybrid:
+                return float(r.get("semantic_score", 0.0) or 0.0)
+            return float(r.get("score", 0.0) or 0.0)
+
+        def sort_score(r: dict) -> float:
+            # Hybrid search should keep RRF ordering; non-hybrid uses semantic similarity.
+            return float(r.get("score", 0.0) or 0.0)
+
         # 3. Filter by score threshold
-        filtered_results = [
-            r for r in raw_results if r.get("score", 0) >= self.score_threshold
-        ]
+        filtered_results = [r for r in raw_results if filter_score(r) >= self.score_threshold]
 
         if not filtered_results:
             return []
 
-        # 4. Sort by score (descending)
-        sorted_results = sorted(
-            filtered_results, key=lambda x: x.get("score", 0), reverse=True
-        )
+        # 4. Sort by ranking score (descending)
+        sorted_results = sorted(filtered_results, key=sort_score, reverse=True)
 
         # 5. Deduplicate by document (keep top N chunks per doc)
         doc_chunks: defaultdict[str, List[dict]] = defaultdict(list)
@@ -155,7 +161,7 @@ class KBRetriever:
                 content=r.get("content", ""),
                 heading_path=r.get("heading_path", []),
                 chunk_index=r.get("chunk_index", 0),
-                score=r.get("score", 0.0),
+                score=filter_score(r),
                 citation_id=i + 1,
             )
             for i, r in enumerate(final_results)
