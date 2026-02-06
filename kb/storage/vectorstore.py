@@ -412,32 +412,53 @@ class GeminiEmbeddings:
         Returns:
             List of embedding vectors
         """
-        # NOTE:
-        # The Generative Language API supports both `embedContent` and (for some models) `batchEmbedContents`.
-        # We've seen `batchEmbedContents` return 404 for certain embedding models/keys, which breaks app startup
-        # because we probe the embedding dimension during initialization. To maximize compatibility, we use
-        # `embedContent` and loop for batches.
-        url = f"https://generativelanguage.googleapis.com/v1beta/{self._model}:embedContent"
-
         # Send the API key via header to avoid leaking it in exception URLs/logs.
         headers = {"Content-Type": "application/json", "x-goog-api-key": self._api_key}
 
-        def embed_one(client: httpx.Client, text: str) -> List[float]:
-            payload = {"model": self._model, "content": {"parts": [{"text": text}]}}
-            resp = client.post(url, json=payload, headers=headers)
-            try:
-                resp.raise_for_status()
-            except httpx.HTTPStatusError as e:
-                # Do not chain the original exception to avoid printing request URL details.
-                raise RuntimeError(
-                    f"Gemini embeddings request failed: {e.response.status_code} {e.response.text}"
-                )
+        embed_one_url = (
+            f"https://generativelanguage.googleapis.com/v1beta/{self._model}:embedContent"
+        )
+        embed_batch_url = f"https://generativelanguage.googleapis.com/v1beta/{self._model}:batchEmbedContents"
 
-            result = resp.json()
-            embedding = result.get("embedding")
-            if not isinstance(embedding, dict) or "values" not in embedding:
-                raise RuntimeError(f"Gemini API returned unexpected response: {result}")
-            return embedding["values"]
+        def parse_embedding_obj(obj: dict) -> List[float]:
+            if not isinstance(obj, dict) or "values" not in obj:
+                raise RuntimeError(f"Gemini API returned unexpected embedding: {obj}")
+            return obj["values"]
 
         with httpx.Client(timeout=self._timeout) as client:
-            return [embed_one(client, t) for t in texts]
+            # Prefer batch embeddings for throughput when supported.
+            if len(texts) > 1:
+                payload = {
+                    "requests": [
+                        {"model": self._model, "content": {"parts": [{"text": t}]}}
+                        for t in texts
+                    ]
+                }
+                resp = client.post(embed_batch_url, json=payload, headers=headers)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    embs = data.get("embeddings", [])
+                    if not isinstance(embs, list) or len(embs) != len(texts):
+                        raise RuntimeError(
+                            f"Gemini API returned unexpected batch response: {data}"
+                        )
+                    return [parse_embedding_obj(e) for e in embs]
+
+                # Some models/keys may not support batch embeddings; fall back to per-text calls.
+                # Do not chain the original exception to avoid printing request URL details.
+                if resp.status_code not in (404, 405):
+                    raise RuntimeError(
+                        f"Gemini embeddings request failed: {resp.status_code} {resp.text}"
+                    )
+
+            results: List[List[float]] = []
+            for text in texts:
+                payload = {"model": self._model, "content": {"parts": [{"text": text}]}}
+                resp = client.post(embed_one_url, json=payload, headers=headers)
+                if resp.status_code != 200:
+                    raise RuntimeError(
+                        f"Gemini embeddings request failed: {resp.status_code} {resp.text}"
+                    )
+                data = resp.json()
+                results.append(parse_embedding_obj(data.get("embedding", {})))
+            return results
