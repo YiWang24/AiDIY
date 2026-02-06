@@ -120,7 +120,10 @@ jobs:
             # NOTE: Doppler reserves env var names like DOPPLER_PROJECT so we keep these as script constants
             # instead of trying to store them as Doppler secrets.
             DOPPLER_PROJECT="portfolio-api"
-            DOPPLER_CONFIG="stg"
+            # Primary: CI/CD "stg" config (per your current setup).
+            # Fallback: "prd" config (common when the service token only has PRD access).
+            DOPPLER_CONFIG_PRIMARY="stg"
+            DOPPLER_CONFIG_FALLBACK="prd"
 
             # Install Doppler CLI if not exists
             if ! command -v doppler &> /dev/null; then
@@ -150,13 +153,21 @@ jobs:
             chmod 600 "$tmp_env"
             trap 'rm -f "$tmp_env"' EXIT
 
-            echo "Downloading Doppler secrets (project=$DOPPLER_PROJECT config=$DOPPLER_CONFIG) to env-file..."
-            doppler secrets download \
+            echo "Downloading Doppler secrets (project=$DOPPLER_PROJECT config=$DOPPLER_CONFIG_PRIMARY) to env-file..."
+            if ! doppler secrets download \
               --project "$DOPPLER_PROJECT" \
-              --config "$DOPPLER_CONFIG" \
+              --config "$DOPPLER_CONFIG_PRIMARY" \
               --format docker \
               --no-file \
-              --token "$DOPPLER_TOKEN" > "$tmp_env"
+              --token "$DOPPLER_TOKEN" > "$tmp_env"; then
+              echo "WARN: Doppler download failed for config '$DOPPLER_CONFIG_PRIMARY'. Trying fallback '$DOPPLER_CONFIG_FALLBACK'..."
+              doppler secrets download \
+                --project "$DOPPLER_PROJECT" \
+                --config "$DOPPLER_CONFIG_FALLBACK" \
+                --format docker \
+                --no-file \
+                --token "$DOPPLER_TOKEN" > "$tmp_env"
+            fi
 
             echo "Starting new container (env injected via --env-file)..."
             docker run -d \
