@@ -183,10 +183,13 @@ jobs:
 
             # Wait for container to be healthy (avoid doing this from GitHub runner which may not reach the host)
             echo "Waiting for container to be healthy..."
+            last_health=""
             for i in $(seq 1 18); do
               state="$(docker inspect -f '{{.State.Status}}' kb-api 2>/dev/null || true)"
               health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' kb-api 2>/dev/null || true)"
-              echo "status=$state health=$health (t=$((i*5))s)"
+              restarts="$(docker inspect -f '{{.RestartCount}}' kb-api 2>/dev/null || true)"
+              echo "status=$state health=$health restarts=$restarts (t=$((i*5))s)"
+              last_health="$health"
 
               if [ "$state" != "running" ]; then
                 echo "Container is not running. Showing logs:"
@@ -207,8 +210,19 @@ jobs:
               sleep 5
             done
 
+            if [ "$last_health" != "healthy" ]; then
+              echo "ERROR: Timed out waiting for healthy container. Showing status + logs:"
+              docker ps --filter "name=kb-api" || true
+              docker logs --tail 200 kb-api || true
+              exit 1
+            fi
+
             # Final internal health check (fast fail if route isn't reachable)
-            curl -fSs http://localhost:8000/health >/dev/null
+            curl -fSs http://localhost:8000/health >/dev/null || {
+              echo "ERROR: /health check failed. Showing logs:"
+              docker logs --tail 200 kb-api || true
+              exit 1
+            }
 
             # Check container status
             docker ps --filter "name=kb-api"
