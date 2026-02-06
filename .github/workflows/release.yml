@@ -23,6 +23,7 @@ jobs:
   build_and_push:
     name: Build & Push to ACR
     runs-on: ubuntu-latest
+    environment: production
     # CI runs in parallel via ci.yml on push to main
     outputs:
       image_tag: ${{ steps.meta.outputs.tags }}
