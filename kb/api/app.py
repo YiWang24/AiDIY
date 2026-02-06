@@ -20,7 +20,12 @@ async def lifespan(app: FastAPI):
     print("Initializing KB API...")
     config = get_config()
 
-    # Initialize vector store
+    # Initialize dependencies best-effort.
+    # In some environments (fresh deploy, network hiccups, missing external providers),
+    # failing hard on startup makes the service impossible to debug. We prefer to
+    # start the API and surface a degraded health status instead.
+    app.state.startup_errors = []
+
     vs = VectorStore(
         database_url=config.database_url,
         embedding_model=config.embedding_model,
@@ -28,20 +33,38 @@ async def lifespan(app: FastAPI):
         table_name=config.vector_store_table_name,
         batch_size=config.vector_store_batch_size,
     )
-    vs.initialize()
+    try:
+        vs.initialize()
+    except Exception as e:
+        msg = f"VectorStore init failed: {e}"
+        print(msg)
+        app.state.startup_errors.append(msg)
 
-    # Initialize doc store
     ds = DocStore(database_url=config.database_url)
-    ds.initialize()
+    try:
+        ds.initialize()
+    except Exception as e:
+        msg = f"DocStore init failed: {e}"
+        print(msg)
+        app.state.startup_errors.append(msg)
 
-    print("KB API initialized successfully")
+    if app.state.startup_errors:
+        print("KB API started in degraded mode")
+    else:
+        print("KB API initialized successfully")
 
     yield
 
     # Shutdown: close connections
     print("Shutting down KB API...")
-    vs.close()
-    ds.close()
+    try:
+        vs.close()
+    except Exception:
+        pass
+    try:
+        ds.close()
+    except Exception:
+        pass
     print("KB API shutdown complete")
 
 
@@ -87,6 +110,9 @@ def create_app() -> FastAPI:
     @app.get("/health")
     async def health():
         """Health check endpoint."""
+        errors = getattr(app.state, "startup_errors", [])
+        if errors:
+            return {"status": "degraded", "startup_errors": errors}
         return {"status": "healthy"}
 
     return app
