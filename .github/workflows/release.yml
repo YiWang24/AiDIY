@@ -78,7 +78,6 @@ jobs:
     needs: build_and_push
     environment:
       name: production
-      url: ${{ secrets.HEALTHCHECK_URL }}
     steps:
       # Login to ACR (for docker pull on internal server)
       - name: Configure ACR credentials
