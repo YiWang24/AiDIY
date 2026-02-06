@@ -3,7 +3,7 @@
 import time
 from typing import List
 
-from kb.llm.base import BaseLLM, LLMResponse
+from kb.llm.base import BaseLLM
 from kb.rag.retriever import RetrievedChunk
 from kb.rag.context_builder import ContextBuilder
 from kb.rag import prompts

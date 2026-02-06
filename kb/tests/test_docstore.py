@@ -3,7 +3,7 @@
 import os
 import pytest
 
-from kb.storage.docstore import DocStore, DocumentRow
+from kb.storage.docstore import DocStore
 
 
 @pytest.fixture

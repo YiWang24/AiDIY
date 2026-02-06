@@ -2,7 +2,7 @@
 
 from typing import List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
 from kb.api.schemas import SearchRequest, SearchResponse, SearchResult, DocumentMetadata
 from kb.api.dependencies import get_vector_store, get_doc_store

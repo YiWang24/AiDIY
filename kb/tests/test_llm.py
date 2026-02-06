@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import Mock, patch
-from kb.llm.base import BaseLLM, LLMResponse
+from kb.llm.base import LLMResponse
 from kb.llm.gemini import GeminiLLM
 from kb.llm.factory import create_llm
 
@@ -134,7 +134,7 @@ class TestGeminiLLM:
             max_tokens=1024,
         )
 
-        response = llm.generate(
+        _ = llm.generate(
             "Test prompt",
             temperature=0.8,
             max_tokens=500,

@@ -1,12 +1,11 @@
 """Index building - orchestrates chunking and incremental indexing."""
 
 import json
-from pathlib import Path
 from typing import Iterator
 from tqdm import tqdm
 
 from kb.domain.document import Document
-from kb.pipeline.chunk import ChunkingStrategy, ChunkingConfig
+from kb.pipeline.chunk import ChunkingStrategy
 from kb.pipeline.config import Config
 from kb.pipeline.index_signature import compute_signature
 from kb.pipeline.incremental import IncrementalIndexer

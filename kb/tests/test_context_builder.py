@@ -146,7 +146,7 @@ class TestContextBuilder:
         # Chunks should be separated
         lines = context.split("\n")
         # Filter out empty lines
-        non_empty_lines = [l for l in lines if l.strip()]
+        non_empty_lines = [line for line in lines if line.strip()]
         assert len(non_empty_lines) >= 3
 
     def test_initialization_with_defaults(self):

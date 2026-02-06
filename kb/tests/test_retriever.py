@@ -1,7 +1,7 @@
 """Unit tests for KBRetriever."""
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock
 from kb.rag.retriever import KBRetriever, RetrievedChunk
 
 

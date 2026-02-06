@@ -1,11 +1,10 @@
 """Integration tests for API endpoints."""
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from fastapi.testclient import TestClient
 
 from kb.api.app import create_app
-from kb.api.schemas import SearchRequest
 
 
 @pytest.fixture

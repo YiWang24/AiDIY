@@ -1,8 +1,6 @@
 """Complete offline KB pipeline orchestrator."""
 
-from tqdm import tqdm
 
-from kb.domain.document import Document
 from kb.pipeline.clean import clean_documents
 from kb.pipeline.config import Config
 from kb.pipeline.chunk import ChunkingConfig
