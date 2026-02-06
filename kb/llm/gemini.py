@@ -1,12 +1,9 @@
 """Gemini LLM implementation using Google Generative AI API."""
 
 import httpx
-from typing import Optional, List, Any, TYPE_CHECKING
+from typing import Optional, List, Any
 
 from kb.llm.base import BaseLLM, LLMResponse
-
-if TYPE_CHECKING:
-    from kb.tools.base import Tool
 
 
 class GeminiLLM(BaseLLM):

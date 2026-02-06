@@ -19,7 +19,7 @@
   },
   "sidebar": "projectsSidebar",
   "previous": {
-    "title": "📚 RAG Knowledge Base",
-    "permalink": "/docs/projects/rag-knowledge-base"
+    "title": "RAG System Architecture",
+    "permalink": "/docs/projects/kb-rag-system"
   }
 }

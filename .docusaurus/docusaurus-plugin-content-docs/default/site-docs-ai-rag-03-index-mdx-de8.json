@@ -1,7 +1,7 @@
 {
   "id": "ai/rag/vector-indexing",
   "title": "Vector Indexing & Storage",
-  "description": "Embedding generation, vector storage, HNSW indexing, and optimization strategies for RAG systems",
+  "description": "Embedding generation, vector storage, index algorithms, database architecture, and optimization strategies for RAG systems",
   "source": "@site/docs/ai/rag/03-index.mdx",
   "sourceDirName": "ai/rag",
   "slug": "/ai/rag/vector-indexing",
@@ -16,7 +16,7 @@
     "id": "vector-indexing",
     "title": "Vector Indexing & Storage",
     "sidebar_label": "3. Vector Indexing",
-    "description": "Embedding generation, vector storage, HNSW indexing, and optimization strategies for RAG systems",
+    "description": "Embedding generation, vector storage, index algorithms, database architecture, and optimization strategies for RAG systems",
     "slug": "/ai/rag/vector-indexing"
   },
   "sidebar": "aiSidebar",

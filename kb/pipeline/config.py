@@ -1,7 +1,6 @@
 """Pipeline configuration."""
 
 from dataclasses import dataclass, field
-from typing import Optional
 import os
 import re
 import importlib

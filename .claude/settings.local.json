@@ -36,7 +36,18 @@
       "Bash(chmod:*)",
       "Bash(./scripts/build-kb.sh:*)",
       "Bash(ps:*)",
-      "Bash(PYTHONPATH=/Users/wy/Documents/Projects/AiDIY:$PYTHONPATH python -m pytest:*)"
+      "Bash(PYTHONPATH=/Users/wy/Documents/Projects/AiDIY:$PYTHONPATH python -m pytest:*)",
+      "Bash(PGPASSWORD=PgPass!123 psql:*)",
+      "Bash(grep:*)",
+      "Bash(curl:*)",
+      "Bash(__NEW_LINE_383fa2af47c7bcc0__ echo \"\")",
+      "Bash(__NEW_LINE_384ee7cdc0708ad6__ echo \"\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git reset:*)",
+      "Bash(git push:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)"
     ]
   }
 }

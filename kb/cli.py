@@ -24,8 +24,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from kb.pipeline.pipeline import OfflineKBPipeline, run_full_pipeline
-from kb.pipeline.config import Config
+from kb.pipeline.pipeline import OfflineKBPipeline, run_full_pipeline  # noqa: E402
+from kb.pipeline.config import Config  # noqa: E402
 
 
 def get_default_config_path() -> str:
@@ -186,9 +186,9 @@ def main():
             )
 
             print_header("Pipeline Statistics")
-            print(f"Stage 1 - Cleaning:")
+            print("Stage 1 - Cleaning:")
             print(f"  Cleaned: {overall_stats['cleaning']['cleaned']}/{overall_stats['cleaning']['total']}")
-            print(f"\nStage 2 - Indexing:")
+            print("\nStage 2 - Indexing:")
             print(f"  Indexed: {overall_stats['indexing']['indexed']}/{overall_stats['indexing']['total']}")
             print(f"  Skipped: {overall_stats['indexing']['skipped']}")
             print(f"  Chunks added: {overall_stats['indexing']['chunks_added']}")

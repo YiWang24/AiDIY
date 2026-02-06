@@ -1,7 +1,7 @@
 {
   "id": "ai/rag/index",
   "title": "RAG Systems",
-  "description": "Retrieval-Augmented Generation - building knowledge-enhanced AI applications",
+  "description": "Retrieval-Augmented Generation - Complete guide from foundations to production-grade RAG systems",
   "source": "@site/docs/ai/rag/index.mdx",
   "sourceDirName": "ai/rag",
   "slug": "/ai/rag/",
@@ -15,7 +15,7 @@
     "id": "index",
     "title": "RAG Systems",
     "sidebar_label": "RAG Systems",
-    "description": "Retrieval-Augmented Generation - building knowledge-enhanced AI applications"
+    "description": "Retrieval-Augmented Generation - Complete guide from foundations to production-grade RAG systems"
   },
   "sidebar": "aiSidebar",
   "previous": {

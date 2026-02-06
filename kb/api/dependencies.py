@@ -4,8 +4,6 @@ from functools import lru_cache
 from typing import Generator
 from pathlib import Path
 
-from fastapi import Depends
-
 from kb.storage.docstore import DocStore
 from kb.storage.vectorstore import VectorStore
 from kb.pipeline.config import Config

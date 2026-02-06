@@ -3,6 +3,41 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 
 export default [
   {
+    path: '/__docusaurus/debug/',
+    component: ComponentCreator('/__docusaurus/debug/', '546'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/config/',
+    component: ComponentCreator('/__docusaurus/debug/config/', '8a8'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/content/',
+    component: ComponentCreator('/__docusaurus/debug/content/', '2da'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/globalData/',
+    component: ComponentCreator('/__docusaurus/debug/globalData/', '178'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/metadata/',
+    component: ComponentCreator('/__docusaurus/debug/metadata/', 'd6c'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/registry/',
+    component: ComponentCreator('/__docusaurus/debug/registry/', '6e3'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/routes/',
+    component: ComponentCreator('/__docusaurus/debug/routes/', 'cab'),
+    exact: true
+  },
+  {
     path: '/blog/',
     component: ComponentCreator('/blog/', 'fe9'),
     exact: true
@@ -39,11 +74,11 @@ export default [
   },
   {
     path: '/docs/',
-    component: ComponentCreator('/docs/', '2d6'),
+    component: ComponentCreator('/docs/', '154'),
     routes: [
       {
         path: '/docs/',
-        component: ComponentCreator('/docs/', '505'),
+        component: ComponentCreator('/docs/', 'fcd'),
         routes: [
           {
             path: '/docs/tags/',
@@ -197,7 +232,7 @@ export default [
           },
           {
             path: '/docs/',
-            component: ComponentCreator('/docs/', '3ac'),
+            component: ComponentCreator('/docs/', '415'),
             routes: [
               {
                 path: '/docs/ai/',
@@ -451,6 +486,11 @@ export default [
                 exact: true
               },
               {
+                path: '/docs/ci-cd-architecture/',
+                component: ComponentCreator('/docs/ci-cd-architecture/', '3aa'),
+                exact: true
+              },
+              {
                 path: '/docs/cs/',
                 component: ComponentCreator('/docs/cs/', '528'),
                 exact: true,
@@ -525,6 +565,12 @@ export default [
               {
                 path: '/docs/projects/ecommerce-refactor/',
                 component: ComponentCreator('/docs/projects/ecommerce-refactor/', '6b3'),
+                exact: true,
+                sidebar: "projectsSidebar"
+              },
+              {
+                path: '/docs/projects/kb-rag-system/',
+                component: ComponentCreator('/docs/projects/kb-rag-system/', '043'),
                 exact: true,
                 sidebar: "projectsSidebar"
               },

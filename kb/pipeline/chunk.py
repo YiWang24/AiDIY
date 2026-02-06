@@ -2,7 +2,7 @@
 
 import hashlib
 from typing import List
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 

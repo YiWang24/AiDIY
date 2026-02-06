@@ -28,7 +28,7 @@ BACKEND_PORT=8000
 
 # Doppler configuration (adjust if needed)
 DOPPLER_PROJECT="${DOPPLER_PROJECT:-portfolio-api}"
-DOPPLER_CONFIG="${DOPPLER_CONFIG:-dev}"
+DOPPLER_CONFIG="${DOPPLER_CONFIG:-dev_personal}"
 
 # Colors for output
 RED='\033[0;31m'

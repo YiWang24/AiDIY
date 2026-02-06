@@ -1,15 +1,13 @@
 """Search endpoint for raw semantic search."""
 
-import time
 from typing import List
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 
 from kb.api.schemas import SearchRequest, SearchResponse, SearchResult, DocumentMetadata
 from kb.api.dependencies import get_vector_store, get_doc_store
 from kb.storage.vectorstore import VectorStore
 from kb.storage.docstore import DocStore
-from kb.rag.retriever import KBRetriever
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -36,12 +34,8 @@ async def search(
         HTTPException: If search fails
     """
     try:
-        start_time = time.time()
-
         # Perform semantic search
         raw_results = vector_store.search(query=request.query, k=request.k)
-
-        retrieval_time_ms = int((time.time() - start_time) * 1000)
 
         # Enrich with document metadata
         results: List[SearchResult] = []

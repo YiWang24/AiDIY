@@ -1,442 +1,493 @@
 {
-  "/blog/-fe9": {
-    "__comp": "a6aa9e1f",
+  "/__docusaurus/debug/-546": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
     "__context": {
-      "plugin": "36994c47"
-    },
-    "sidebar": "814f3328",
-    "items": [
-      {
-        "content": "a90be9f2"
-      }
-    ],
-    "__props": "08af526d"
-  },
-  "/blog/archive/-1d9": {
-    "__comp": "9e4087bc",
-    "__context": {
-      "plugin": "36994c47"
-    },
-    "__props": "dbfc4782"
-  },
-  "/blog/authors/-347": {
-    "__comp": "621db11d",
-    "__context": {
-      "data": {
-        "blogMetadata": "acecf23e"
-      },
-      "plugin": "36994c47"
-    },
-    "sidebar": "814f3328",
-    "__props": "dd04b75e"
-  },
-  "/blog/first-blog-post/-acf": {
-    "__comp": "ccc49370",
-    "__context": {
-      "data": {
-        "blogMetadata": "acecf23e"
-      },
-      "plugin": "36994c47"
-    },
-    "sidebar": "814f3328",
-    "content": "2bfba054"
-  },
-  "/blog/tags/-e17": {
-    "__comp": "01a85c17",
-    "__context": {
-      "plugin": "36994c47"
-    },
-    "sidebar": "814f3328",
-    "__props": "2063472f"
-  },
-  "/blog/tags/docusaurus/-8ce": {
-    "__comp": "6875c492",
-    "__context": {
-      "plugin": "36994c47"
-    },
-    "sidebar": "814f3328",
-    "items": [
-      {
-        "content": "a90be9f2"
-      }
-    ],
-    "__props": "31d8f4da"
-  },
-  "/blog/tags/hello/-2a4": {
-    "__comp": "6875c492",
-    "__context": {
-      "plugin": "36994c47"
-    },
-    "sidebar": "814f3328",
-    "items": [
-      {
-        "content": "a90be9f2"
-      }
-    ],
-    "__props": "33a9c3bd"
-  },
-  "/docs/-2d6": {
-    "__comp": "5e95c892",
-    "__context": {
-      "plugin": "aba21aa0"
+      "plugin": "plugin---docusaurus-debug-b-38-895"
     }
   },
-  "/docs/-505": {
-    "__comp": "a7bd4aaa",
-    "__props": "11b43341"
+  "/__docusaurus/debug/config/-8a8": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---docusaurus-debug-b-38-895"
+    }
+  },
+  "/__docusaurus/debug/content/-2da": {
+    "__comp": "__comp---theme-debug-contentba-8-ce7",
+    "__context": {
+      "plugin": "plugin---docusaurus-debug-b-38-895"
+    },
+    "__props": "__props---docusaurus-debug-content-197-dc7"
+  },
+  "/__docusaurus/debug/globalData/-178": {
+    "__comp": "__comp---theme-debug-global-dataede-0fa",
+    "__context": {
+      "plugin": "plugin---docusaurus-debug-b-38-895"
+    }
+  },
+  "/__docusaurus/debug/metadata/-d6c": {
+    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
+    "__context": {
+      "plugin": "plugin---docusaurus-debug-b-38-895"
+    }
+  },
+  "/__docusaurus/debug/registry/-6e3": {
+    "__comp": "__comp---theme-debug-registry-679-501",
+    "__context": {
+      "plugin": "plugin---docusaurus-debug-b-38-895"
+    }
+  },
+  "/__docusaurus/debug/routes/-cab": {
+    "__comp": "__comp---theme-debug-routes-946-699",
+    "__context": {
+      "plugin": "plugin---docusaurus-debug-b-38-895"
+    }
+  },
+  "/blog/-fe9": {
+    "__comp": "__comp---theme-blog-list-pagea-6-a-7ba",
+    "__context": {
+      "plugin": "plugin---blog-369-533"
+    },
+    "sidebar": "sidebar---blog-814-0c3",
+    "items": [
+      {
+        "content": "content---blog-a-90-48b"
+      }
+    ],
+    "__props": "__props---blog-08-a-0b8"
+  },
+  "/blog/archive/-1d9": {
+    "__comp": "__comp---theme-blog-archive-page-9-e-4-1d8",
+    "__context": {
+      "plugin": "plugin---blog-369-533"
+    },
+    "__props": "__props---blog-archive-dbf-bf3"
+  },
+  "/blog/authors/-347": {
+    "__comp": "__comp---theme-blog-pages-blog-authors-list-page-621-70c",
+    "__context": {
+      "data": {
+        "blogMetadata": "blogMetadata---blog-authors-ace-808"
+      },
+      "plugin": "plugin---blog-369-533"
+    },
+    "sidebar": "sidebar---blog-814-0c3",
+    "__props": "__props---blog-authors-dd-0-1b8"
+  },
+  "/blog/first-blog-post/-acf": {
+    "__comp": "__comp---theme-blog-post-pageccc-cab",
+    "__context": {
+      "data": {
+        "blogMetadata": "blogMetadata---blog-authors-ace-808"
+      },
+      "plugin": "plugin---blog-369-533"
+    },
+    "sidebar": "sidebar---blog-814-0c3",
+    "content": "content---blog-first-blog-post-2-bf-0bc"
+  },
+  "/blog/tags/-e17": {
+    "__comp": "__comp---theme-blog-tags-list-page-01-a-d0b",
+    "__context": {
+      "plugin": "plugin---blog-369-533"
+    },
+    "sidebar": "sidebar---blog-814-0c3",
+    "__props": "__props---blog-tags-206-de0"
+  },
+  "/blog/tags/docusaurus/-8ce": {
+    "__comp": "__comp---theme-blog-tags-posts-page-687-b6c",
+    "__context": {
+      "plugin": "plugin---blog-369-533"
+    },
+    "sidebar": "sidebar---blog-814-0c3",
+    "items": [
+      {
+        "content": "content---blog-a-90-48b"
+      }
+    ],
+    "__props": "__props---blog-tags-docusaurus-31-d-085"
+  },
+  "/blog/tags/hello/-2a4": {
+    "__comp": "__comp---theme-blog-tags-posts-page-687-b6c",
+    "__context": {
+      "plugin": "plugin---blog-369-533"
+    },
+    "sidebar": "sidebar---blog-814-0c3",
+    "items": [
+      {
+        "content": "content---blog-a-90-48b"
+      }
+    ],
+    "__props": "__props---blog-tags-hello-33-a-c8e"
+  },
+  "/docs/-154": {
+    "__comp": "__comp---theme-docs-root-5-e-9-0b6",
+    "__context": {
+      "plugin": "plugin---docs-aba-4f5"
+    }
+  },
+  "/docs/-fcd": {
+    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
+    "__props": "__props---docs-11-b-f70"
   },
   "/docs/tags/-dc9": {
-    "__comp": "3720c009",
-    "__props": "36c171c8"
+    "__comp": "__comp---theme-doc-tags-list-page-372-89e",
+    "__props": "__props---docs-tags-36-c-cd0"
   },
   "/docs/tags/advanced/-de2": {
-    "__comp": "df203c0f",
-    "__props": "d48b390b"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-advanced-d-48-9aa"
   },
   "/docs/tags/agents/-eea": {
-    "__comp": "df203c0f",
-    "__props": "cf092133"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-agents-cf-0-535"
   },
   "/docs/tags/ai/-df6": {
-    "__comp": "df203c0f",
-    "__props": "1b691755"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-ai-1-b-6-c92"
   },
   "/docs/tags/chat-client/-efa": {
-    "__comp": "df203c0f",
-    "__props": "1c0bc947"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-chat-client-1-c-0-c89"
   },
   "/docs/tags/cot/-60b": {
-    "__comp": "df203c0f",
-    "__props": "476a803d"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-cot-476-f31"
   },
   "/docs/tags/document-understanding/-51d": {
-    "__comp": "df203c0f",
-    "__props": "0e0997c5"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-document-understanding-0-e-0-ccf"
   },
   "/docs/tags/evaluation/-546": {
-    "__comp": "df203c0f",
-    "__props": "5ac83a37"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-evaluation-5-ac-dc5"
   },
   "/docs/tags/introduction/-74a": {
-    "__comp": "df203c0f",
-    "__props": "fa875745"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-introduction-fa-8-31c"
   },
   "/docs/tags/java/-a6b": {
-    "__comp": "df203c0f",
-    "__props": "1890f8a4"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-java-189-e72"
   },
   "/docs/tags/json/-aac": {
-    "__comp": "df203c0f",
-    "__props": "3fca5fe9"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-json-3-fc-c91"
   },
   "/docs/tags/llm/-4f6": {
-    "__comp": "df203c0f",
-    "__props": "7e1bd248"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-llm-7-e-1-014"
   },
   "/docs/tags/mcp/-83a": {
-    "__comp": "df203c0f",
-    "__props": "2615a15b"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-mcp-261-0de"
   },
   "/docs/tags/meta-prompting/-2b8": {
-    "__comp": "df203c0f",
-    "__props": "d6b9c171"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-meta-prompting-d-6-b-5af"
   },
   "/docs/tags/metrics/-5a1": {
-    "__comp": "df203c0f",
-    "__props": "f82de663"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-metrics-f-82-b56"
   },
   "/docs/tags/mlops/-4f4": {
-    "__comp": "df203c0f",
-    "__props": "f241280c"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-mlops-f-24-34f"
   },
   "/docs/tags/multi-agent/-65c": {
-    "__comp": "df203c0f",
-    "__props": "f8a02b9b"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-multi-agent-f-8-a-69c"
   },
   "/docs/tags/multimodal/-b07": {
-    "__comp": "df203c0f",
-    "__props": "5883af74"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-multimodal-588-032"
   },
   "/docs/tags/orchestration/-fba": {
-    "__comp": "df203c0f",
-    "__props": "00239579"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-orchestration-002-742"
   },
   "/docs/tags/prompt-engineering/-8cc": {
-    "__comp": "df203c0f",
-    "__props": "2c96bac7"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-prompt-engineering-2-c-9-d93"
   },
   "/docs/tags/prompt-structure/-80d": {
-    "__comp": "df203c0f",
-    "__props": "40d58fcb"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-prompt-structure-40-d-fe6"
   },
   "/docs/tags/prompt-template/-ac4": {
-    "__comp": "df203c0f",
-    "__props": "03c0f540"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-prompt-template-03-c-ba0"
   },
   "/docs/tags/react/-28c": {
-    "__comp": "df203c0f",
-    "__props": "91d4dd20"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-react-91-d-a06"
   },
   "/docs/tags/reasoning/-d0e": {
-    "__comp": "df203c0f",
-    "__props": "57b1cfe0"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-reasoning-57-b-1d0"
   },
   "/docs/tags/reflexion/-7bd": {
-    "__comp": "df203c0f",
-    "__props": "5ca551bb"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-reflexion-5-ca-bca"
   },
   "/docs/tags/schema/-8dc": {
-    "__comp": "df203c0f",
-    "__props": "33f58cf5"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-schema-33-f-372"
   },
   "/docs/tags/spring-ai/-6f7": {
-    "__comp": "df203c0f",
-    "__props": "4c7cdc44"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-spring-ai-4-c-7-e7f"
   },
   "/docs/tags/structured-output/-ccd": {
-    "__comp": "df203c0f",
-    "__props": "2902f8eb"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-structured-output-290-d42"
   },
   "/docs/tags/testing/-092": {
-    "__comp": "df203c0f",
-    "__props": "cabe3fef"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-testing-cab-068"
   },
   "/docs/tags/vision/-d53": {
-    "__comp": "df203c0f",
-    "__props": "d5d08e6e"
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---docs-tags-vision-d-5-d-7e1"
   },
-  "/docs/-3ac": {
-    "__comp": "a94703ab"
+  "/docs/-415": {
+    "__comp": "__comp---theme-doc-roota-94-67a"
   },
   "/docs/ai/-ad7": {
-    "__comp": "17896441",
-    "content": "03546059"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-035-0f5"
   },
   "/docs/ai/agentops-security/-10d": {
-    "__comp": "17896441",
-    "content": "aaf4ff61"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-agentops-security-aaf-5e2"
   },
   "/docs/ai/agents/-37c": {
-    "__comp": "17896441",
-    "content": "e485008e"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-agents-e-48-d7c"
   },
   "/docs/ai/agents/architecture/-9eb": {
-    "__comp": "17896441",
-    "content": "8f0901a4"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-agents-architecture-8-f-0-272"
   },
   "/docs/ai/agents/design-patterns/-d30": {
-    "__comp": "17896441",
-    "content": "1599b9ff"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-agents-design-patterns-159-ce3"
   },
   "/docs/ai/agents/engineering/-75d": {
-    "__comp": "17896441",
-    "content": "b5193480"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-agents-engineering-b-51-03d"
   },
   "/docs/ai/agents/frameworks/-d1b": {
-    "__comp": "17896441",
-    "content": "5e2e586b"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-agents-frameworks-5-e-2-2a3"
   },
   "/docs/ai/agents/frontier/-d3b": {
-    "__comp": "17896441",
-    "content": "b31ead1a"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-agents-frontier-b-31-283"
   },
   "/docs/ai/agents/introduction/-cff": {
-    "__comp": "17896441",
-    "content": "efd92563"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-agents-introduction-efd-255"
   },
   "/docs/ai/context-engineering/-2a4": {
-    "__comp": "17896441",
-    "content": "1d5c203c"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-context-engineering-1-d-5-4fb"
   },
   "/docs/ai/internship/-7ea": {
-    "__comp": "17896441",
-    "content": "330b714f"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-internship-330-ddf"
   },
   "/docs/ai/llm-fundamentals/-c2a": {
-    "__comp": "17896441",
-    "content": "b4b03386"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-llm-fundamentals-b-4-b-9db"
   },
   "/docs/ai/llm-fundamentals/embeddings/-6e2": {
-    "__comp": "17896441",
-    "content": "0f24c94b"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-llm-fundamentals-embeddings-0-f-2-f19"
   },
   "/docs/ai/llm-fundamentals/inference/-879": {
-    "__comp": "17896441",
-    "content": "e2d89e1e"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-llm-fundamentals-inference-e-2-d-da8"
   },
   "/docs/ai/llm-fundamentals/introduction/-992": {
-    "__comp": "17896441",
-    "content": "fdf979ee"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-llm-fundamentals-introduction-fdf-98b"
   },
   "/docs/ai/llm-fundamentals/limitations/-458": {
-    "__comp": "17896441",
-    "content": "7517a63a"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-llm-fundamentals-limitations-751-562"
   },
   "/docs/ai/llm-fundamentals/tokenization/-6d5": {
-    "__comp": "17896441",
-    "content": "5f39b531"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-llm-fundamentals-tokenization-5-f-3-945"
   },
   "/docs/ai/llm-fundamentals/training-pipeline/-109": {
-    "__comp": "17896441",
-    "content": "c187ddda"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-llm-fundamentals-training-pipeline-c-18-862"
   },
   "/docs/ai/llm-fundamentals/transformer-architecture/-a6b": {
-    "__comp": "17896441",
-    "content": "f69a4587"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-llm-fundamentals-transformer-architecture-f-69-716"
   },
   "/docs/ai/mcp/-9d2": {
-    "__comp": "17896441",
-    "content": "ff146e2e"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-mcp-ff-1-a0d"
   },
   "/docs/ai/mcp/interview-qa/-d0a": {
-    "__comp": "17896441",
-    "content": "7861d321"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-mcp-interview-qa-786-9f9"
   },
   "/docs/ai/prompt-engineering/-c64": {
-    "__comp": "17896441",
-    "content": "44dbeb1c"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-prompt-engineering-44-d-34c"
   },
   "/docs/ai/prompt-engineering/advanced-techniques/-f73": {
-    "__comp": "17896441",
-    "content": "9dea8a5c"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-prompt-engineering-advanced-techniques-9-de-2d8"
   },
   "/docs/ai/prompt-engineering/agent-orchestration/-8fe": {
-    "__comp": "17896441",
-    "content": "bc433b39"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-prompt-engineering-agent-orchestration-bc-4-0a5"
   },
   "/docs/ai/prompt-engineering/evaluation-versioning/-e44": {
-    "__comp": "17896441",
-    "content": "fc63f5f7"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-prompt-engineering-evaluation-versioning-fc-6-742"
   },
   "/docs/ai/prompt-engineering/introduction/-65f": {
-    "__comp": "17896441",
-    "content": "abc1aa76"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-prompt-engineering-introduction-abc-a29"
   },
   "/docs/ai/prompt-engineering/multimodal/-5d3": {
-    "__comp": "17896441",
-    "content": "b954eead"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-prompt-engineering-multimodal-b-95-47e"
   },
   "/docs/ai/prompt-engineering/prompt-anatomy/-28a": {
-    "__comp": "17896441",
-    "content": "452ef8cf"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-prompt-engineering-prompt-anatomy-452-ce0"
   },
   "/docs/ai/prompt-engineering/reasoning-patterns/-249": {
-    "__comp": "17896441",
-    "content": "6925572f"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-prompt-engineering-reasoning-patterns-692-fda"
   },
   "/docs/ai/prompt-engineering/spring-ai/-33d": {
-    "__comp": "17896441",
-    "content": "2c518950"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-prompt-engineering-spring-ai-2-c-5-584"
   },
   "/docs/ai/prompt-engineering/structured-output/-13e": {
-    "__comp": "17896441",
-    "content": "d44e2bf0"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-prompt-engineering-structured-output-d-44-dbf"
   },
   "/docs/ai/rag/-fe6": {
-    "__comp": "17896441",
-    "content": "b14de69f"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-rag-b-14-54e"
   },
   "/docs/ai/rag/advanced-rag/-015": {
-    "__comp": "17896441",
-    "content": "fd0fa3cd"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-rag-advanced-rag-fd-0-2f3"
   },
   "/docs/ai/rag/best-practices/-4a2": {
-    "__comp": "17896441",
-    "content": "4a0e5d41"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-rag-best-practices-4-a-0-67b"
   },
   "/docs/ai/rag/data-processing/-2ab": {
-    "__comp": "17896441",
-    "content": "402b0835"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-rag-data-processing-402-9c0"
   },
   "/docs/ai/rag/evaluation/-cb8": {
-    "__comp": "17896441",
-    "content": "0e32aa51"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-rag-evaluation-0-e-3-c7e"
   },
   "/docs/ai/rag/generation/-907": {
-    "__comp": "17896441",
-    "content": "22cc9bcd"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-rag-generation-22-c-981"
   },
   "/docs/ai/rag/introduction/-7e7": {
-    "__comp": "17896441",
-    "content": "1ddc48d8"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-rag-introduction-1-dd-fe2"
   },
   "/docs/ai/rag/production/-9e9": {
-    "__comp": "17896441",
-    "content": "371ebcdc"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-rag-production-371-998"
   },
   "/docs/ai/rag/retrieval/-580": {
-    "__comp": "17896441",
-    "content": "5e51cd49"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-rag-retrieval-5-e-5-ae1"
   },
   "/docs/ai/rag/vector-indexing/-701": {
-    "__comp": "17896441",
-    "content": "de8d96dd"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-rag-vector-indexing-de-8-93c"
   },
   "/docs/ai/spring-ai/-220": {
-    "__comp": "17896441",
-    "content": "a764ec26"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ai-spring-ai-a-76-1e4"
+  },
+  "/docs/ci-cd-architecture/-3aa": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-ci-cd-architecture-b-9-c-296"
   },
   "/docs/cs/-528": {
-    "__comp": "17896441",
-    "content": "8ae47c61"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-cs-8-ae-a12"
   },
   "/docs/cs/algorithms/-4ee": {
-    "__comp": "17896441",
-    "content": "b9654a04"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-cs-algorithms-b-96-005"
   },
   "/docs/cs/database/-d3b": {
-    "__comp": "17896441",
-    "content": "8c14a759"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-cs-database-8-c-1-0bd"
   },
   "/docs/cs/network-os/-836": {
-    "__comp": "17896441",
-    "content": "69c2fc1f"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-cs-network-os-69-c-8e0"
   },
   "/docs/cs/system-design/-08b": {
-    "__comp": "17896441",
-    "content": "d21ae3c1"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-cs-system-design-d-21-344"
   },
   "/docs/engineering/-ebc": {
-    "__comp": "17896441",
-    "content": "5382f1a8"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-engineering-538-458"
   },
   "/docs/engineering/backend/-7e1": {
-    "__comp": "17896441",
-    "content": "11607ac8"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-engineering-backend-116-f7d"
   },
   "/docs/engineering/backend/concurrency/-e31": {
-    "__comp": "17896441",
-    "content": "810f771b"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-engineering-backend-concurrency-810-fe4"
   },
   "/docs/engineering/devops/-ddd": {
-    "__comp": "17896441",
-    "content": "98d9a627"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-engineering-devops-98-d-cb8"
   },
   "/docs/engineering/frontend/-6a0": {
-    "__comp": "17896441",
-    "content": "6bb54057"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-engineering-frontend-6-bb-ae0"
   },
   "/docs/engineering/tools/-6bd": {
-    "__comp": "17896441",
-    "content": "fe4bd475"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-engineering-tools-fe-4-e92"
   },
   "/docs/projects/-7a1": {
-    "__comp": "17896441",
-    "content": "10e1d9b6"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-projects-10-e-1cb"
   },
   "/docs/projects/ecommerce-refactor/-6b3": {
-    "__comp": "17896441",
-    "content": "8f660a3b"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-projects-ecommerce-refactor-8-f-6-c29"
+  },
+  "/docs/projects/kb-rag-system/-043": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-projects-kb-rag-system-abb-515"
   },
   "/docs/projects/rag-knowledge-base/-dc1": {
-    "__comp": "17896441",
-    "content": "5c7b6c05"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-projects-rag-knowledge-base-5-c-7-8a2"
   },
   "/-e5f": {
-    "__comp": "1df93b7f",
+    "__comp": "__comp---site-src-pages-index-tsx-1-df-d3e",
     "__context": {
-      "plugin": "a7456010"
+      "plugin": "plugin---a-74-9d6"
     },
-    "config": "5e9f5e1a"
+    "config": "config---5-e-9-4f3"
   }
 }

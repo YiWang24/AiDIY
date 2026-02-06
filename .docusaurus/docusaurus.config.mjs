@@ -4,7 +4,7 @@
  * Modify the docusaurus.config.js file at your site's root instead.
  */
 export default {
-  "title": "CS Docs",
+  "title": "Ai DIY",
   "tagline": "Documentation for Full Stack & AI Engineering",
   "favicon": "img/favicon.svg",
   "url": "https://docs.yiw.me",
@@ -15,7 +15,8 @@ export default {
   "deploymentBranch": "main",
   "onBrokenLinks": "ignore",
   "customFields": {
-    "frontendUrl": "https://www.yiw.me"
+    "frontendUrl": "https://www.yiw.me",
+    "backendUrl": "http://localhost:8000"
   },
   "i18n": {
     "defaultLocale": "en",
@@ -30,7 +31,7 @@ export default {
       "classic",
       {
         "docs": {
-          "sidebarPath": "/Users/wy/Documents/Projects/portfolio/docs/sidebars.ts",
+          "sidebarPath": "/Users/wy/Documents/Projects/AiDIY/sidebars.ts",
           "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/",
           "remarkPlugins": [
             [
@@ -80,7 +81,7 @@ export default {
           ]
         },
         "theme": {
-          "customCss": "/Users/wy/Documents/Projects/portfolio/docs/src/css/custom.css"
+          "customCss": "/Users/wy/Documents/Projects/AiDIY/src/css/custom.css"
         }
       }
     ]
@@ -113,10 +114,12 @@ export default {
   "themeConfig": {
     "image": "img/opengraph-image.png",
     "navbar": {
-      "title": "CS Docs",
+      "title": "Ai DIY",
       "logo": {
         "alt": "Yi Wang Logo",
-        "src": "img/favicon.svg"
+        "src": "img/favicon.svg",
+        "href": "https://www.yiw.me",
+        "target": "_self"
       },
       "items": [
         {
@@ -149,7 +152,12 @@ export default {
           "position": "left"
         },
         {
-          "href": "https://github.com/YiWang24/portfolio",
+          "href": "https://www.yiw.me",
+          "label": "Portfolio",
+          "position": "right"
+        },
+        {
+          "href": "https://github.com/YiWang24/AiDIY",
           "label": "GitHub",
           "position": "right"
         }

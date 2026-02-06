@@ -1,7 +1,7 @@
 {
   "id": "ai/rag/data-processing",
   "title": "Data Processing Pipeline",
-  "description": "Document loading, cleaning, intelligent chunking, metadata enrichment, and embedding storage with Spring AI",
+  "description": "Document loading, cleaning, intelligent chunking, metadata enrichment, and embedding storage",
   "source": "@site/docs/ai/rag/02-data-processing.mdx",
   "sourceDirName": "ai/rag",
   "slug": "/ai/rag/data-processing",
@@ -16,7 +16,7 @@
     "id": "data-processing",
     "title": "Data Processing Pipeline",
     "sidebar_label": "2. Data Processing",
-    "description": "Document loading, cleaning, intelligent chunking, metadata enrichment, and embedding storage with Spring AI",
+    "description": "Document loading, cleaning, intelligent chunking, metadata enrichment, and embedding storage",
     "slug": "/ai/rag/data-processing"
   },
   "sidebar": "aiSidebar",
