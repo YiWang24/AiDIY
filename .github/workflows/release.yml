@@ -100,8 +100,6 @@ jobs:
           IMAGE_NAME: kb-api
           DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-          # Optional override; defaults to "prd" in the remote script.
-          DOPPLER_CONFIG: ${{ secrets.DOPPLER_CONFIG }}
         with:
           host: ${{ secrets.INTERNAL_SSH_HOST }}
           username: ${{ secrets.INTERNAL_SSH_USER }}
@@ -111,7 +109,7 @@ jobs:
           proxy_port: ${{ secrets.DEPLOY_SSH_PORT }}
           proxy_key: ${{ secrets.DEPLOY_SSH_KEY }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: ACR_LOGIN_SERVER,ACR_REPOSITORY,ACR_USERNAME,ACR_PASSWORD,IMAGE_NAME,DOPPLER_PROJECT,DOPPLER_TOKEN,DOPPLER_CONFIG
+          envs: ACR_LOGIN_SERVER,ACR_REPOSITORY,ACR_USERNAME,ACR_PASSWORD,IMAGE_NAME,DOPPLER_PROJECT,DOPPLER_TOKEN
           script: |
             set -euo pipefail
 
@@ -143,7 +141,9 @@ jobs:
             # Fetch secrets from Doppler into a temp env-file and pass it to the container.
             # NOTE: `doppler run -- docker run ...` does NOT automatically inject env vars into the container.
             # Docker only gets env vars you pass explicitly via `-e/--env` or `--env-file`.
-            DOPPLER_CONFIG="${DOPPLER_CONFIG:-prd}"
+            # This workflow deploys application secrets from Doppler PRD.
+            # The service token provided here is expected to have PRD access.
+            DOPPLER_CONFIG="prd"
             tmp_env="$(mktemp /tmp/kb-api.env.XXXXXX)"
             chmod 600 "$tmp_env"
             trap 'rm -f "$tmp_env"' EXIT
