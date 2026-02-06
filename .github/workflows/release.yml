@@ -122,9 +122,7 @@ jobs:
             # Run new container with Doppler injecting PRD secrets
             echo "Starting new container with Doppler (injecting PRD secrets)..."
             DOPPLER_TOKEN="${{ secrets.DOPPLER_TOKEN }}" \
-            DOPPLER_PROJECT="${{ secrets.DOPPLER_PROJECT }}" \
-            DOPPLER_CONFIG="prd" \
-            doppler run -- \
+            doppler run --project "${{ secrets.DOPPLER_PROJECT }}" --config prd -- \
             docker run -d \
               --name kb-api \
               --restart unless-stopped \
