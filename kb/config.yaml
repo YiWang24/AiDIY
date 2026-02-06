@@ -14,9 +14,8 @@ chunking:
 # Embedding configuration
 embedding:
   provider: gemini                                 # gemini only
-  # NOTE: `models/embedding-001` has been observed to 404 on v1beta for some keys.
-  # `models/text-embedding-004` is the current supported default.
-  model: models/text-embedding-004                 # Gemini: models/text-embedding-004
+  # NOTE: Available models vary by API key; `models/gemini-embedding-001` is a commonly available embedding model.
+  model: models/gemini-embedding-001               # Gemini: models/gemini-embedding-001
 
 # Gemini API configuration (for embedding provider: gemini)
 gemini:

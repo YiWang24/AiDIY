@@ -112,7 +112,7 @@ class Config:
         return cls(
             chunking=chunking,
             embedding_provider=embedding_provider,
-            embedding_model=embedding_data.get("model", "models/text-embedding-004"),
+            embedding_model=embedding_data.get("model", "models/gemini-embedding-001"),
             database_url=database_url,
             docs_dir=data.get("docs_dir", "docs"),
             output_jsonl=data.get("output_jsonl", "kb/data/cleaned/docs.jsonl"),
@@ -129,7 +129,7 @@ class Config:
         return cls(
             database_url=os.environ.get("DATABASE_URL", ""),
             embedding_provider="gemini",
-            embedding_model=os.environ.get("EMBEDDING_MODEL", "models/text-embedding-004"),
+            embedding_model=os.environ.get("EMBEDDING_MODEL", "models/gemini-embedding-001"),
             docs_dir=os.environ.get("DOCS_DIR", "docs"),
             output_jsonl=os.environ.get("OUTPUT_JSONL", "kb/data/cleaned/docs.jsonl"),
             gemini_api_key=os.environ.get("GEMINI_API_KEY", ""),

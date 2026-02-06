@@ -19,7 +19,7 @@ class VectorStore:
     def __init__(
         self,
         database_url: str,
-        embedding_model: str = "embedding-3",
+        embedding_model: str = "models/gemini-embedding-001",
         gemini_api_key: str = "",
         table_name: str = "",
         batch_size: int = 32,
@@ -358,7 +358,7 @@ class GeminiEmbeddings:
 
     def __init__(
         self,
-        model: str = "models/text-embedding-004",
+        model: str = "models/gemini-embedding-001",
         api_key: str = "",
         timeout: float = 60.0,
     ):
