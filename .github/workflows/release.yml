@@ -307,7 +307,9 @@ jobs:
             # Build/refresh index (cleaned docs are shipped in the image as kb/data/cleaned/docs.jsonl).
             # This ensures the DB actually has data for /search and /ask.
             echo "Running indexing pipeline inside the container..."
-            if ! docker exec kb-api kb-build --stage build; then
+            # NOTE: The container image may not have the kb package installed as a console script.
+            # Run via module entrypoint instead.
+            if ! docker exec -w /app -e PYTHONPATH=/app kb-api python -m kb.cli --stage build; then
               echo "ERROR: Indexing failed. Showing container logs:"
               docker logs --tail 200 kb-api || true
               exit 1
