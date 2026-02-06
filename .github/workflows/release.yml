@@ -98,7 +98,6 @@ jobs:
           ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
           ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
           IMAGE_NAME: kb-api
-          DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         with:
           host: ${{ secrets.INTERNAL_SSH_HOST }}
@@ -109,13 +108,19 @@ jobs:
           proxy_port: ${{ secrets.DEPLOY_SSH_PORT }}
           proxy_key: ${{ secrets.DEPLOY_SSH_KEY }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: ACR_LOGIN_SERVER,ACR_REPOSITORY,ACR_USERNAME,ACR_PASSWORD,IMAGE_NAME,DOPPLER_PROJECT,DOPPLER_TOKEN
+          envs: ACR_LOGIN_SERVER,ACR_REPOSITORY,ACR_USERNAME,ACR_PASSWORD,IMAGE_NAME,DOPPLER_TOKEN
           script: |
             set -euo pipefail
 
             echo "=== Deploying KB API to Internal Server ==="
             echo "Hostname: $(hostname)"
             echo "IP: $(hostname -I | awk '{print $1}')"
+
+            # CI/CD uses Doppler STG config for deployment.
+            # NOTE: Doppler reserves env var names like DOPPLER_PROJECT so we keep these as script constants
+            # instead of trying to store them as Doppler secrets.
+            DOPPLER_PROJECT="portfolio-api"
+            DOPPLER_CONFIG="stg"
 
             # Install Doppler CLI if not exists
             if ! command -v doppler &> /dev/null; then
@@ -141,9 +146,6 @@ jobs:
             # Fetch secrets from Doppler into a temp env-file and pass it to the container.
             # NOTE: `doppler run -- docker run ...` does NOT automatically inject env vars into the container.
             # Docker only gets env vars you pass explicitly via `-e/--env` or `--env-file`.
-            # This workflow deploys application secrets from Doppler PRD.
-            # The service token provided here is expected to have PRD access.
-            DOPPLER_CONFIG="prd"
             tmp_env="$(mktemp /tmp/kb-api.env.XXXXXX)"
             chmod 600 "$tmp_env"
             trap 'rm -f "$tmp_env"' EXIT
@@ -168,9 +170,34 @@ jobs:
               --health-retries 3 \
               "$ACR_LOGIN_SERVER/$ACR_REPOSITORY:main"
 
-            # Wait for container to be healthy
+            # Wait for container to be healthy (avoid doing this from GitHub runner which may not reach the host)
             echo "Waiting for container to be healthy..."
-            sleep 10
+            for i in $(seq 1 18); do
+              state="$(docker inspect -f '{{.State.Status}}' kb-api 2>/dev/null || true)"
+              health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' kb-api 2>/dev/null || true)"
+              echo "status=$state health=$health (t=$((i*5))s)"
+
+              if [ "$state" != "running" ]; then
+                echo "Container is not running. Showing logs:"
+                docker logs --tail 200 kb-api || true
+                exit 1
+              fi
+
+              if [ "$health" = "healthy" ]; then
+                break
+              fi
+
+              if [ "$health" = "unhealthy" ]; then
+                echo "Container reported unhealthy. Showing logs:"
+                docker logs --tail 200 kb-api || true
+                exit 1
+              fi
+
+              sleep 5
+            done
+
+            # Final internal health check (fast fail if route isn't reachable)
+            curl -fSs http://localhost:8000/health >/dev/null
 
             # Check container status
             docker ps --filter "name=kb-api"
@@ -183,10 +210,5 @@ jobs:
             echo "Container logs:"
             docker logs --tail 20 kb-api
 
-      # Health check from GitHub Actions runner
-      - name: Health Check
-        run: |
-          echo "Running health check..."
-          sleep 5
-          curl -fSs ${{ secrets.HEALTHCHECK_URL }} || exit 1
-          echo "✅ Deployment successful!"
+      # NOTE: Public healthchecks from the GitHub runner are intentionally omitted.
+      # Many deployments are internal-only (behind VPN/Access), so we validate health on the target host instead.
