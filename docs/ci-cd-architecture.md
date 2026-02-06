@@ -63,10 +63,14 @@ DEPLOY_SSH_KEY: |
 DEPLOY_SSH_PORT: 22
 DEPLOY_WORKDIR: /opt/kb-api
 
+# Internal Server (behind jump host)
+INTERNAL_SSH_HOST: 10.0.1.188
+INTERNAL_SSH_USER: ubuntu
+INTERNAL_SSH_PORT: 22
+
 # Doppler Configuration
-DOPPLER_TOKEN: dp.x.xxxxxx  # Service token for reading PRD config
 DOPPLER_PROJECT: portfolio-api
-DOPPLER_TARGET_CONFIG: prd  # GitHub Actions 将部署到 PRD 环境
+DOPPLER_TOKEN: dp.x.xxxxxx  # Service token for reading PRD config
 
 # Health Check
 HEALTHCHECK_URL: https://your-api.example.com/health
@@ -128,7 +132,7 @@ LOG_LEVEL: INFO
 **任务**:
 1. **Pre-release Checks** - Lint + Tests (70% coverage required)
 2. **Build & Push to ACR** - 构建并推送 Docker 镜像到 Azure
-3. **Deploy to VPS** - 部署到生产环境
+3. **Deploy to Internal Server** - 部署到内网服务器
 
 **Secrets 来源**:
 - 从 GitHub Secrets 读取（从 Doppler STG 同步）
@@ -155,27 +159,44 @@ docker build -t kb-api:sha-abc123 .
 docker push your-acr.azurecr.io/kb-api:sha-abc123
 ```
 
-### 步骤 3: SSH 到 VPS
+### 步骤 3: SSH 通过跳板机连接到内网服务器
 
 ```bash
-ssh deploy@vps "cd /opt/kb-api &&部署脚本"
+# GitHub Actions runner 配置 SSH config
+Host jump
+  HostName <VPS_IP>
+  User deploy
+  IdentityFile ~/.ssh/jump_key
+
+Host internal
+  HostName 10.0.1.188
+  User ubuntu
+  ProxyJump jump
+
+# 连接: ssh internal
 ```
 
 ### 步骤 4: VPS 使用 DOPPLER_TOKEN 读取 PRD 配置
 
 ```bash
-# 在 VPS 上执行
+# 在内网服务器执行
 DOPPLER_TOKEN="dp.x.xxxxxx" \
 DOPPLER_PROJECT="portfolio-api" \
 DOPPLER_CONFIG="prd" \
 doppler run -- \
-docker compose up -d
+docker pull your-acr.azurecr.io/kb-api:sha-abc123
+
+# 启动容器，注入 PRD 环境变量
+DOPPLER_TOKEN="..." \
+doppler run --project portfolio-api --config prd -- \
+docker run -d --name kb-api -p 8000:8000 \
+  your-acr.azurecr.io/kb-api:sha-abc123
 ```
 
 Doppler 会：
 1. 使用 `DOPPLER_TOKEN` 认证
 2. 读取 `portfolio-api` 项目的 `prd` 配置
-3. 注入所有 PRD 环境变量到 Docker 容器
+3. 注入所有 PRD 环境变量到容器
 4. 启动容器
 
 ## Setup Instructions
@@ -213,12 +234,14 @@ doppler secrets set TAVILY_API_KEY "tvly-..." --project portfolio-api --config p
 GitHub Actions 需要 service token 来读取 PRD 配置：
 
 ```bash
-# 在 Doppler Dashboard 创建 Service Token
-# 或者用 CLI (需要权限)
-doppler tokens create --project portfolio-api --config prd
-```
+# 在 Doppler Dashboard 创建
+https://dash.doppler.com → portfolio-api → Settings → Service Tokens
 
-保存输出的 token 到 `DOPPLER_TOKEN` (STG 配置)
+# 或使用 CLI
+doppler tokens create --project portfolio-api --config prd --name "github-actions"
+
+# 将 token 保存到 STG 配置的 DOPPLER_TOKEN
+```
 
 ### 4. 同步到 GitHub Secrets
 
@@ -258,10 +281,11 @@ doppler run --project portfolio-api --config prd -- env | grep DATABASE_URL
 | DEPLOY_SSH_USER | SSH 用户名 | GitHub Actions |
 | DEPLOY_SSH_KEY | SSH 私钥 | GitHub Actions |
 | DEPLOY_SSH_PORT | SSH 端口 | GitHub Actions |
-| DEPLOY_WORKDIR | 部署目录 | GitHub Actions |
+| INTERNAL_SSH_HOST | 内网服务器 IP | GitHub Actions |
+| INTERNAL_SSH_USER | 内网服务器用户 | GitHub Actions |
+| INTERNAL_SSH_PORT | 内网服务器端口 | GitHub Actions |
 | DOPPLER_TOKEN | Service Token | VPS |
 | DOPPLER_PROJECT | 项目名 | GitHub Actions + VPS |
-| DOPPLER_TARGET_CONFIG | 目标配置 (prd) | VPS |
 | HEALTHCHECK_URL | 健康检查 URL | GitHub Actions |
 | SENTRY_AUTH_TOKEN | Sentry 认证 | GitHub Actions |
 | SENTRY_ORG | Sentry 组织 | GitHub Actions |
@@ -314,6 +338,7 @@ doppler me
 ```bash
 # 在 VPS 上测试 Doppler
 ssh deploy@vps
+
 doppler run --project portfolio-api --config prd -- env | grep DATABASE_URL
 
 # 检查 DOPPLER_TOKEN 权限
