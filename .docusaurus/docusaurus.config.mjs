@@ -15,8 +15,9 @@ export default {
   "deploymentBranch": "main",
   "onBrokenLinks": "ignore",
   "customFields": {
-    "frontendUrl": "https://www.yiw.me",
-    "backendUrl": "http://localhost:8000"
+    "frontendUrl": "http://localhost:3000",
+    "backendUrl": "http://localhost:8000",
+    "cfClientId": "839d24dc84d7cbf40f67aa2cd10aac67.access"
   },
   "i18n": {
     "defaultLocale": "en",

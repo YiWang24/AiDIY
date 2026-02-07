@@ -49,7 +49,25 @@
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
       "Bash(ruff check:*)",
-      "Bash(ruff format:*)"
+      "Bash(ruff format:*)",
+      "Bash(yamllint:*)",
+      "Bash(gh api:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(__NEW_LINE_4e3aa9b736acfe70__ echo \"\")",
+      "Bash(__NEW_LINE_2bc49df3b94e4bb0__ echo \"\")",
+      "Bash(openssl:*)",
+      "Bash(__NEW_LINE_f42d281a66e52a58__ echo \"\")",
+      "Bash(__NEW_LINE_aecfd8bca41c6ee2__ echo \"=== Test 2: Domain HTTP ===\")",
+      "Bash(__NEW_LINE_aecfd8bca41c6ee2__ echo \"=== Test 3: Direct IP HTTPS ===\")",
+      "Bash(__NEW_LINE_aecfd8bca41c6ee2__ echo \"=== Test 4: Response content ===\")",
+      "Bash(__NEW_LINE_9456405940a28984__ echo \"\")",
+      "Bash(__NEW_LINE_67e6c77f764aa020__ echo \"\")",
+      "Bash(__NEW_LINE_d118bead9ec2c23e__ echo \"\")",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(bash -c './start.sh > /tmp/start-output.log 2>&1 & echo $! > /tmp/start.pid')",
+      "Bash(uv sync:*)",
+      "Bash(bash:*)"
     ]
   }
 }

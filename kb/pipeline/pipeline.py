@@ -2,63 +2,33 @@
 
 from kb.pipeline.clean import clean_documents
 from kb.pipeline.config import Config
-from kb.pipeline.chunk import ChunkingConfig
 from kb.pipeline.index import IndexBuilder
 
 
-class OfflineKBPipeline:
-    """Complete offline KB pipeline orchestrator."""
+def build_index(
+    config: Config,
+    input_jsonl: str,
+    force_rebuild: bool = False,
+) -> dict:
+    """Build vector index from JSONL file.
 
-    def __init__(
-        self,
-        config: Config | None = None,
-        database_url: str = "",
-        embedding_model: str = "embedding-3",
-        chunking_config: ChunkingConfig | None = None,
-    ):
-        """Initialize pipeline.
+    Args:
+        config: Pipeline configuration
+        input_jsonl: Path to JSONL file
+        force_rebuild: Force rebuild all documents
 
-        Args:
-            config: Full pipeline configuration (recommended)
-            database_url: Database URL (used if config not provided)
-            embedding_model: Embedding model name (used if config not provided)
-            chunking_config: Chunking configuration (used if config not provided)
-        """
-        if config:
-            self._config = config
-        else:
-            # Create config from individual parameters
-            from kb.pipeline.config import Config as ConfigClass
+    Returns:
+        Statistics dict with indexing results
+    """
+    builder = IndexBuilder(config=config)
 
-            self._config = ConfigClass.from_env()
-            if database_url:
-                self._config.database_url = database_url
-            if embedding_model:
-                self._config.embedding_model = embedding_model
-            if chunking_config:
-                self._config.chunking = chunking_config
+    try:
+        builder.initialize()
+        stats = builder.build_from_jsonl(input_jsonl, force_rebuild)
+    finally:
+        builder.close()
 
-    def clean_documents(
-        self, input_dir: str, output_path: str, noise_filter: bool = False
-    ) -> dict:
-        """Clean MDX documents using JS tool."""
-        return clean_documents(input_dir, output_path, noise_filter)
-
-    def build_index(
-        self,
-        input_jsonl: str,
-        force_rebuild: bool = False,
-    ) -> dict:
-        """Build vector index from JSONL file."""
-        builder = IndexBuilder(config=self._config)
-
-        try:
-            builder.initialize()
-            stats = builder.build_from_jsonl(input_jsonl, force_rebuild)
-        finally:
-            builder.close()
-
-        return stats
+    return stats
 
 
 def run_full_pipeline(
@@ -67,7 +37,7 @@ def run_full_pipeline(
     output_jsonl: str = "",
     database_url: str = "",
     force_rebuild: bool = False,
-    embedding_model: str = "embedding-3",
+    embedding_model: str = "models/gemini-embedding-001",
     noise_filter: bool = False,
 ) -> dict:
     """Run complete pipeline from MDX to vector database.
@@ -84,32 +54,33 @@ def run_full_pipeline(
     Returns:
         Overall statistics dict with cleaning and indexing stats
     """
-    overall_stats = {
-        "cleaning": {},
-        "indexing": {},
-    }
-
-    # Use config or create from parameters
+    # Use config or create from environment
     if config:
         pipeline_config = config
     else:
         from kb.pipeline.config import Config as ConfigClass
-
         pipeline_config = ConfigClass.from_env()
-        if database_url:
-            pipeline_config.database_url = database_url
-        if embedding_model:
-            pipeline_config.embedding_model = embedding_model
+
+    # Override with explicit parameters if provided
+    if database_url:
+        pipeline_config.database_url = database_url
+        # Clear postgres_* params so database_url takes precedence
+        pipeline_config.postgres_host = ""
+    if embedding_model:
+        pipeline_config.embedding_model = embedding_model
 
     # Override paths if provided
     docs_dir = input_dir or pipeline_config.docs_dir
     output_path = output_jsonl or pipeline_config.output_jsonl
 
+    overall_stats = {
+        "cleaning": {},
+        "indexing": {},
+    }
+
     # Stage 1: Clean documents
     print("Stage 1: Cleaning MDX documents (using JS mdx-clean tool)...")
-    pipeline = OfflineKBPipeline(config=pipeline_config)
-
-    cleaning_stats = pipeline.clean_documents(
+    cleaning_stats = clean_documents(
         input_dir=docs_dir,
         output_path=output_path,
         noise_filter=noise_filter,
@@ -122,7 +93,8 @@ def run_full_pipeline(
 
     # Stage 2: Build index
     print("\nStage 2: Building vector index...")
-    indexing_stats = pipeline.build_index(
+    indexing_stats = build_index(
+        config=pipeline_config,
         input_jsonl=output_path,
         force_rebuild=force_rebuild,
     )
@@ -136,3 +108,5 @@ def run_full_pipeline(
         print(f"Errors: {len(indexing_stats['errors'])}")
 
     return overall_stats
+
+

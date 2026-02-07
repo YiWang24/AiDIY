@@ -14,7 +14,7 @@
 # Misc
 .DS_Store
 *.pem
-
+logs/
 # Worktrees
 .worktrees/
 .history/

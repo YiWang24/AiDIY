@@ -74,11 +74,11 @@ export default [
   },
   {
     path: '/docs/',
-    component: ComponentCreator('/docs/', '154'),
+    component: ComponentCreator('/docs/', '39b'),
     routes: [
       {
         path: '/docs/',
-        component: ComponentCreator('/docs/', 'fcd'),
+        component: ComponentCreator('/docs/', '119'),
         routes: [
           {
             path: '/docs/tags/',
@@ -232,7 +232,7 @@ export default [
           },
           {
             path: '/docs/',
-            component: ComponentCreator('/docs/', '415'),
+            component: ComponentCreator('/docs/', '290'),
             routes: [
               {
                 path: '/docs/ai/',
@@ -483,11 +483,6 @@ export default [
               {
                 path: '/docs/ai/spring-ai/',
                 component: ComponentCreator('/docs/ai/spring-ai/', '220'),
-                exact: true
-              },
-              {
-                path: '/docs/ci-cd-architecture/',
-                component: ComponentCreator('/docs/ci-cd-architecture/', '3aa'),
                 exact: true
               },
               {

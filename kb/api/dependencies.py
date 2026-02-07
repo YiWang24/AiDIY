@@ -24,10 +24,10 @@ def get_database_url() -> str:
     """Get database URL from config.
 
     Returns:
-        PostgreSQL connection URL
+        PostgreSQL connection URL (built from postgres_* params or database_url)
     """
     config = get_config()
-    return config.database_url
+    return config.get_database_url()
 
 
 # ========== Vector Store Dependency ==========

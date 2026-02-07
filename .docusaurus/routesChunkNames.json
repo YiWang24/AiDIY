@@ -118,13 +118,13 @@
     ],
     "__props": "__props---blog-tags-hello-33-a-c8e"
   },
-  "/docs/-154": {
+  "/docs/-39b": {
     "__comp": "__comp---theme-docs-root-5-e-9-0b6",
     "__context": {
       "plugin": "plugin---docs-aba-4f5"
     }
   },
-  "/docs/-fcd": {
+  "/docs/-119": {
     "__comp": "__comp---theme-doc-version-roota-7-b-5de",
     "__props": "__props---docs-11-b-f70"
   },
@@ -248,7 +248,7 @@
     "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
     "__props": "__props---docs-tags-vision-d-5-d-7e1"
   },
-  "/docs/-415": {
+  "/docs/-290": {
     "__comp": "__comp---theme-doc-roota-94-67a"
   },
   "/docs/ai/-ad7": {
@@ -418,10 +418,6 @@
   "/docs/ai/spring-ai/-220": {
     "__comp": "__comp---theme-doc-item-178-a40",
     "content": "content---docs-ai-spring-ai-a-76-1e4"
-  },
-  "/docs/ci-cd-architecture/-3aa": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-ci-cd-architecture-b-9-c-296"
   },
   "/docs/cs/-528": {
     "__comp": "__comp---theme-doc-item-178-a40",

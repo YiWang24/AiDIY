@@ -120,10 +120,8 @@ jobs:
             # NOTE: Doppler reserves env var names like DOPPLER_PROJECT so we keep these as script constants
             # instead of trying to store them as Doppler secrets.
             DOPPLER_PROJECT="portfolio-api"
-            # Primary: CI/CD "stg" config (per your current setup).
-            # Fallback: "prd" config (common when the service token only has PRD access).
             DOPPLER_CONFIG_PRIMARY="stg"
-            DOPPLER_CONFIG_FALLBACK="prd"
+
 
             # Install Doppler CLI if not exists
             if ! command -v doppler &> /dev/null; then

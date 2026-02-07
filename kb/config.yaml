@@ -2,7 +2,7 @@
 # Environment variables can be used as fallbacks using ${VAR:-default} syntax
 
 # Input/Output paths
-docs_dir: docs                                    # Input directory with MDX files
+docs_dir: ../docs                                 # Input directory with MDX files (relative to kb/)
 output_jsonl: kb/data/cleaned/docs.jsonl          # Output JSONL path (stage 1)
 
 # Chunking configuration
@@ -23,9 +23,14 @@ gemini:
 
 # Storage configuration
 storage:
-  database_url: ${DATABASE_URL:-postgresql://user:password@localhost:5432/kb}
-  # Set DATABASE_URL env var in production, e.g.:
-  # export DATABASE_URL="postgresql://postgres:password@host:port/dbname"
+  # Option 1: Use individual connection parameters (Azure PostgreSQL style)
+  postgres:
+    host: ${POSTGRES_HOST:-}
+    port: ${POSTGRES_PORT:-5432}
+    user: ${POSTGRES_USER:-}
+    password: ${POSTGRES_PASSWORD:-}
+    database: ${POSTGRES_DB:-}
+
 
 # Vector store configuration
 vector_store:

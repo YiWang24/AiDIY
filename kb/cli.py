@@ -24,7 +24,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from kb.pipeline.pipeline import OfflineKBPipeline, run_full_pipeline  # noqa: E402
+from kb.pipeline.pipeline import run_full_pipeline, build_index  # noqa: E402
+from kb.pipeline.clean import clean_documents  # noqa: E402
 from kb.pipeline.config import Config  # noqa: E402
 
 
@@ -62,17 +63,12 @@ def print_header(text: str):
 
 
 def stage1_clean(
-    config: Config, docs_dir: str, output_path: str, noise_filter: bool = False
+    docs_dir: str, output_path: str, noise_filter: bool = False
 ) -> dict:
     """Stage 1: Clean MDX documents using JS tool."""
     print_header("Stage 1: Cleaning MDX documents")
 
-    pipeline = OfflineKBPipeline(
-        database_url="",  # Not needed for cleaning
-        chunking_config=config.chunking,
-    )
-
-    stats = pipeline.clean_documents(
+    stats = clean_documents(
         input_dir=docs_dir,
         output_path=output_path,
         noise_filter=noise_filter,
@@ -98,9 +94,8 @@ def stage2_build(
         print("  Run stage 1 first with --stage clean")
         sys.exit(1)
 
-    pipeline = OfflineKBPipeline(config=config)
-
-    stats = pipeline.build_index(
+    stats = build_index(
+        config=config,
         input_jsonl=input_jsonl,
         force_rebuild=force_rebuild,
     )
@@ -108,105 +103,71 @@ def stage2_build(
     print(f"✓ Indexed: {stats['indexed']}/{stats['total']} documents")
     print(f"  Skipped: {stats['skipped']}")
     print(f"  Chunks added: {stats['chunks_added']}")
-    print(f"  Chunks deleted: {stats['chunks_deleted']}")
 
     if stats["errors"]:
         print(f"  Errors: {len(stats['errors'])}")
-        for err in stats["errors"][:5]:
-            print(f"    - {err['doc_id']}: {err['error']}")
 
     return stats
 
 
 def main():
-    """Main entry point."""
+    """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="KB Pipeline - Build knowledge base from MDX documents"
-    )
-    parser.add_argument(
-        "--config",
-        default=None,
-        help=f"Path to config YAML file (default: {get_default_config_path()})",
+        description="KB Pipeline - Build knowledge base from MDX documents",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--stage",
-        choices=["clean", "build", "all"],
-        default="all",
-        help="Pipeline stage to run (default: all)",
+        choices=["clean", "build"],
+        help="Run specific stage only (clean or build)",
     )
     parser.add_argument(
-        "--docs-dir",
-        default=None,
-        help="Input docs directory (overrides config)",
-    )
-    parser.add_argument(
-        "--output",
-        default=None,
-        help="Output JSONL path (overrides config)",
+        "--config",
+        help="Path to config YAML file (default: kb/config.yaml)",
     )
     parser.add_argument(
         "--force-rebuild",
         action="store_true",
-        help="Force full rebuild of index",
+        help="Force rebuild all documents (ignore existing checksums)",
     )
     parser.add_argument(
         "--noise-filter",
         action="store_true",
-        help="Enable noise filtering in stage 1",
+        help="Enable noise filtering in stage 1 (remove navigation text)",
     )
 
     args = parser.parse_args()
 
-    print_header("KB Pipeline Build")
-
-    # Load config
+    # Load configuration
     config = load_config(args.config)
 
-    # Override config with command-line arguments
-    docs_dir = args.docs_dir or config.docs_dir
-    output_jsonl = args.output or config.output_jsonl
+    # Determine paths
+    docs_dir = str(PROJECT_ROOT / config.docs_dir)
+    output_jsonl = str(PROJECT_ROOT / config.output_jsonl)
 
-    # Validate database URL for stage 2
-    if args.stage in ["build", "all"] and not config.database_url:
-        print("✗ Error: DATABASE_URL not set in config or environment")
-        print("  Set database_url in config.yaml or DATABASE_URL env var")
-        sys.exit(1)
+    # Run pipeline
+    if args.stage == "clean":
+        stage1_clean(docs_dir, output_jsonl, args.noise_filter)
 
-    try:
-        # Run requested stage(s)
-        if args.stage == "clean":
-            stage1_clean(config, docs_dir, output_jsonl, args.noise_filter)
-        elif args.stage == "build":
-            stage2_build(config, output_jsonl, args.force_rebuild)
-        else:  # all
-            overall_stats = run_full_pipeline(
-                config=config,
-                input_dir=docs_dir,
-                output_jsonl=output_jsonl,
-                force_rebuild=args.force_rebuild,
-                noise_filter=args.noise_filter,
-            )
+    elif args.stage == "build":
+        stage2_build(config, output_jsonl, args.force_rebuild)
 
-            print_header("Pipeline Statistics")
-            print("Stage 1 - Cleaning:")
-            print(
-                f"  Cleaned: {overall_stats['cleaning']['cleaned']}/{overall_stats['cleaning']['total']}"
-            )
-            print("\nStage 2 - Indexing:")
-            print(
-                f"  Indexed: {overall_stats['indexing']['indexed']}/{overall_stats['indexing']['total']}"
-            )
-            print(f"  Skipped: {overall_stats['indexing']['skipped']}")
-            print(f"  Chunks added: {overall_stats['indexing']['chunks_added']}")
+    else:
+        # Run full pipeline
+        print_header("KB Pipeline - Full Run")
 
-        print_header("✓ Pipeline Complete")
+        stats = run_full_pipeline(
+            config=config,
+            input_dir=docs_dir,
+            output_jsonl=output_jsonl,
+            force_rebuild=args.force_rebuild,
+            noise_filter=args.noise_filter,
+        )
 
-    except Exception as e:
-        print(f"\n✗ Error: {e}")
-        import traceback
-
-        traceback.print_exc()
-        sys.exit(1)
+        print_header("Pipeline Complete")
+        print(f"Cleaning: {stats['cleaning']['cleaned']}/{stats['cleaning']['total']}")
+        print(f"Indexing: {stats['indexing']['indexed']}/{stats['indexing']['total']}")
+        print(f"Chunks added: {stats['indexing']['chunks_added']}")
 
 
 if __name__ == "__main__":

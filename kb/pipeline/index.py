@@ -29,9 +29,9 @@ class IndexBuilder:
         self._chunking_config = config.chunking
 
         # Initialize storage
-        self._docstore = DocStore(config.database_url)
+        self._docstore = DocStore(config.get_database_url())
         self._vectorstore = VectorStore(
-            database_url=config.database_url,
+            database_url=config.get_database_url(),
             embedding_model=config.embedding_model,
             gemini_api_key=config.gemini_api_key,
             table_name=config.vector_store_table_name,

@@ -220,10 +220,6 @@
               "path": "/docs/ai/spring-ai/"
             },
             {
-              "id": "ci-cd-architecture",
-              "path": "/docs/ci-cd-architecture"
-            },
-            {
               "id": "cs/algorithms/index",
               "path": "/docs/cs/algorithms/",
               "sidebar": "csSidebar"
