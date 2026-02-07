@@ -56,6 +56,10 @@ RUN ln -sf /usr/local/bin/python3.11 /usr/local/bin/python
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
+# Verify installation (before switching to non-root user)
+RUN python -c "import kb; print('kb module found at:', kb.__file__)" && \
+    kb-build --help
+
 # Copy application code
 COPY kb/ /app/kb/
 
