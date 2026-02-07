@@ -204,16 +204,20 @@ jobs:
 
             # Write env file (Doppler + compose vars)
             umask 077
-            DOPPLER_PROJECT="${DOPPLER_PROJECT:-portfolio-api}"
-            DOPPLER_CONFIG="${DOPPLER_CONFIG:-prd}"
-
             echo "Downloading secrets from Doppler..."
-            doppler secrets download \
-              --project "$DOPPLER_PROJECT" \
-              --config "$DOPPLER_CONFIG" \
-              --format env \
-              --no-file \
-              --token "$DOPPLER_TOKEN" > .env.doppler
+            if [[ -n "${DOPPLER_PROJECT:-}" && -n "${DOPPLER_CONFIG:-}" ]]; then
+              doppler secrets download \
+                --project "$DOPPLER_PROJECT" \
+                --config "$DOPPLER_CONFIG" \
+                --format env \
+                --no-file \
+                --token "$DOPPLER_TOKEN" > .env.doppler
+            else
+              doppler secrets download \
+                --format env \
+                --no-file \
+                --token "$DOPPLER_TOKEN" > .env.doppler
+            fi
 
             {
               cat .env.doppler
