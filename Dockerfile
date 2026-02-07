@@ -30,8 +30,8 @@ RUN cd /app/kb && \
 # Copy application code
 COPY kb/ /app/kb/
 
-# Install project (non-editable to ensure proper package structure in final image)
-RUN cd /app/kb && uv pip install --system --no-deps .
+# Install project using pip (ensures proper package installation)
+RUN cd /app/kb && pip install --no-cache-dir --no-deps .
 
 # Final stage
 FROM python:3.11-slim
