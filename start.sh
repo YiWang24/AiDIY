@@ -3,27 +3,6 @@
 # ==============================================================================
 # AiDIY Start Script
 # Launches both frontend (Docusaurus) and backend (FastAPI) with Doppler
-#
-# Steps:
-#   1. Kills existing processes on ports 3001 and 8000
-#   2. Syncs backend dependencies with uv
-#   3. Runs knowledge base pipeline (kb-build) with Doppler env vars
-#   4. Starts backend API (FastAPI with uvicorn) with Doppler env vars
-#   5. Starts frontend (Docusaurus) with Doppler env vars
-#
-# Environment Variables (from Doppler project: portfolio-api, config: dev_personal):
-#
-# PostgreSQL Database (Azure-style):
-#   - POSTGRES_HOST: Database host (e.g., server-postgre.postgres.database.azure.com)
-#   - POSTGRES_PORT: Database port (default: 5432)
-#   - POSTGRES_USER: Database username
-#   - POSTGRES_PASSWORD: Database password
-#   - POSTGRES_DB: Database name
-#   Or use legacy DATABASE_URL for PostgreSQL connection string
-#
-# API Keys:
-#   - GEMINI_API_KEY: Gemini API for embeddings
-#   - TAVILY_API_KEY: Tavily API for web search
 # ==============================================================================
 
 set -e  # Exit on error
@@ -37,7 +16,11 @@ NC='\033[0m' # No Color
 
 # Ports to kill
 FRONTEND_PORT=3001
-BACKEND_PORT=8000
+BACKEND_PORT=8001
+
+# PIDs for cleanup
+BACKEND_PID=""
+FRONTEND_PID=""
 
 # Functions
 log_info() {
@@ -81,33 +64,6 @@ kill_ports() {
     echo ""
 }
 
-# Check if Doppler is installed
-check_doppler() {
-    if ! command -v doppler &> /dev/null; then
-        log_error "Doppler CLI is not installed!"
-        echo "Please install it first: https://docs.doppler.com/docs"
-        exit 1
-    fi
-    log_success "Doppler CLI found"
-}
-
-# Check required commands
-check_commands() {
-    log_info "Checking required commands..."
-
-    if ! command -v npm &> /dev/null; then
-        log_error "npm is not installed!"
-        exit 1
-    fi
-
-    if ! command -v python3 &> /dev/null; then
-        log_error "python3 is not installed!"
-        exit 1
-    fi
-
-    log_success "All required commands found"
-}
-
 
 # Sync Python dependencies with uv
 sync_backend_deps() {
@@ -148,7 +104,7 @@ run_kb_pipeline() {
     export PYTHONPATH="$PROJECT_ROOT"
     if (cd "$KB_DIR" && \
         doppler run --project portfolio-api --config dev_personal -- \
-            uv run kb-build --stage all); then
+            uv run kb-build); then
         log_success "Knowledge base pipeline completed"
     else
         log_warning "Knowledge base pipeline failed (continuing anyway)"
@@ -180,7 +136,7 @@ start_backend() {
         doppler run --project portfolio-api --config dev_personal -- \
             uv run uvicorn kb.api.app:create_app \
             --host 0.0.0.0 \
-            --port 8000 \
+            --port 8001 \
             --reload \
             > "$PROJECT_ROOT/logs/backend.log" 2>&1 &) &
 
@@ -228,20 +184,27 @@ start_frontend() {
 
 # Cleanup function
 cleanup() {
+    echo ""
     log_info "Stopping services..."
 
-    if [ -f ".backend.pid" ]; then
-        BACKEND_PID=$(cat .backend.pid)
+    PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
+
+    # Kill backend
+    if [ -n "$BACKEND_PID" ]; then
         kill $BACKEND_PID 2>/dev/null || true
-        rm logs/backend.pid
         log_info "Backend stopped"
     fi
+    if [ -f "$PROJECT_ROOT/logs/backend.pid" ]; then
+        rm "$PROJECT_ROOT/logs/backend.pid"
+    fi
 
-    if [ -f ".frontend.pid" ]; then
-        FRONTEND_PID=$(cat .frontend.pid)
+    # Kill frontend
+    if [ -n "$FRONTEND_PID" ]; then
         kill $FRONTEND_PID 2>/dev/null || true
-        rm logs/frontend.pid
         log_info "Frontend stopped"
+    fi
+    if [ -f "$PROJECT_ROOT/logs/frontend.pid" ]; then
+        rm "$PROJECT_ROOT/logs/frontend.pid"
     fi
 
     log_success "All services stopped"
@@ -249,7 +212,7 @@ cleanup() {
 }
 
 # Trap signals for cleanup
-trap cleanup SIGINT SIGTERM
+trap cleanup INT TERM
 
 # Main execution
 main() {
@@ -265,10 +228,6 @@ main() {
 
     # Create logs directory
     mkdir -p logs
-
-    # Run checks
-    check_doppler
-    check_commands
 
 
     echo ""
@@ -300,8 +259,8 @@ main() {
     echo "║                      Services Started                          ║"
     echo "╠════════════════════════════════════════════════════════════╣"
     echo "║  Frontend: http://localhost:3001                               ║"
-    echo "║  Backend:  http://localhost:8000                               ║"
-    echo "║  API Docs:  http://localhost:8000/docs                           ║"
+    echo "║  Backend:  http://localhost:8001                             ║"
+    echo "║  API Docs:  http://localhost:8001/docs                           ║"
     echo "╠════════════════════════════════════════════════════════════╣"
     echo "║  Logs:                                                          ║"
     echo "║    - Frontend: tail -f logs/frontend.log                        ║"
@@ -315,3 +274,6 @@ main() {
 
 # Run main function
 main "$@"
+
+# Keep script running
+wait

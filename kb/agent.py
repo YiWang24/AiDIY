@@ -1,20 +1,46 @@
-"""Simplified Agent + RAG in one file.
+"""LangGraph Agent in a single file.
 
-No classes, just functions. Tools → Retrieval → Agent → Output.
+Clean implementation: State → Nodes → Graph → Stream.
+
+Flow:
+    route → kb_search/web_search → generate → output
 """
 
-from typing import Any
+import time
+import asyncio
+from typing import TypedDict, Annotated, Literal
+
+from langchain_core.messages import BaseMessage
 from langchain_core.tools import tool
-from langchain.agents import create_tool_calling_agent, AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables import RunnableConfig
+from langgraph.graph import StateGraph, START, END, add_messages
+from langgraph.checkpoint.memory import MemorySaver
 
 from kb.storage.vectorstore import VectorStore
 from kb.llm import create_llm
-from kb.storage.docstore import DocStore
+from kb.pipeline.config import Config
 
 
-# ========== Tool: Knowledge Base Search ==========
+# ========== State ==========
+
+class AgentState(TypedDict):
+    """Agent state that flows through the graph."""
+    messages: Annotated[list[BaseMessage], add_messages]
+    question: str
+    search_results: list[dict]
+    answer: str
+    metadata: dict
+
+
+# ========== Global State (injected at startup) ==========
+
+_vector_store: VectorStore = None
+_config: Config = None
+_llm = None
+_graph = None
+_checkpointer = MemorySaver()
+
+
+# ========== Tools ==========
 
 @tool
 async def search_knowledge_base(query: str, top_k: int = 5) -> str:
@@ -25,36 +51,24 @@ async def search_knowledge_base(query: str, top_k: int = 5) -> str:
     - API documentation
     - Implementation details
     - Tutorials and guides
-
-    Args:
-        query: Search query
-        top_k: Number of results to return (default: 5)
-
-    Returns:
-        Formatted search results from knowledge base
     """
-    # Get retriever from closure (will be injected)
-    retriever = _get_retriever()
+    # langchain-postgres PGVector is backed by sync SQLAlchemy engine by default.
+    # Using async retriever methods can fail with errors like "_async_engine not found".
+    # Run the sync retriever invocation in a thread instead.
+    retriever = _vector_store._vectorstore.as_retriever(search_kwargs={"k": top_k})
+    docs = await asyncio.to_thread(retriever.invoke, query)
 
-    # Perform search
-    results = retriever.invoke(query, search_kwargs={"k": top_k})
+    if not docs:
+        return "No relevant information found."
 
-    # Format results
-    if not results:
-        return "No relevant information found in knowledge base."
-
-    formatted = f"Found {len(results)} relevant documents in knowledge base:\n\n"
-    for i, doc in enumerate(results, 1):
-        metadata = doc.metadata
-        heading = " > ".join(metadata.get("heading_path", []))
+    formatted = f"Found {len(docs)} relevant documents:\n\n"
+    for i, doc in enumerate(docs, 1):
+        heading = " > ".join(doc.metadata.get("heading_path", []))
         if heading:
             formatted += f"[{i}] **{heading}**\n"
         formatted += f"{doc.page_content}\n\n"
-
     return formatted.strip()
 
-
-# ========== Tool: Web Search (placeholder - implement if needed) ==========
 
 @tool
 async def search_web(query: str, max_results: int = 5) -> str:
@@ -64,145 +78,140 @@ async def search_web(query: str, max_results: int = 5) -> str:
     - Current events and news
     - Recent releases or updates
     - Real-time data
-    - Topics not in the knowledge base
-
-    Args:
-        query: Search query
-        max_results: Maximum number of results
-
-    Returns:
-        Web search results
     """
-    # Placeholder - implement with Tavily or Brave if needed
-    return "Web search not yet implemented."
+    try:
+        from langchain_community.tools.tavily.search import TavilySearchResults
+        tavily = TavilySearchResults(max_results=max_results, api_key=_config.web_search_api_key)
+        results = await tavily.ainvoke({"query": query})
+
+        if not results:
+            return "No results found."
+
+        formatted = f"Found {len(results)} web pages:\n\n"
+        for i, r in enumerate(results, 1):
+            formatted += f"[{i}] **{r.get('title', 'N/A')}**\n"
+            formatted += f"URL: {r.get('url', '')}\n"
+            formatted += f"{r.get('content', '')}\n\n"
+        return formatted.strip()
+    except Exception as e:
+        return f"Web search failed: {e}"
 
 
-# ========== Global state (injected at startup) ==========
+# ========== Nodes ==========
 
-_vector_store: VectorStore = None
-_doc_store: DocStore = None
-_retriever = None
-_llm = None
-_agent_executor = None
+async def route_node(state: AgentState) -> dict[str, any]:
+    """Decide which search to perform."""
+    question = state["question"].lower()
+    web_keywords = ["current", "latest", "recent", "price", "news", "today", "now"]
 
-
-def _get_retriever():
-    """Get the retriever instance."""
-    global _retriever
-    if _retriever is None:
-        _retriever = _vector_store._vectorstore.as_retriever(
-            search_kwargs={"k": 5}
-        )
-    return _retriever
+    needs_web = any(kw in question for kw in web_keywords)
+    return {"metadata": {"needs_web_search": needs_web}}
 
 
-# ========== Agent Creation ==========
+async def search_node(state: AgentState) -> dict[str, any]:
+    """Perform search (KB or Web based on route)."""
+    question = state["question"]
+    needs_web = state.get("metadata", {}).get("needs_web_search", False)
 
-def initialize_agent(
-    vector_store: VectorStore,
-    doc_store: DocStore = None,
-    llm_config: Any = None,
-):
-    """Initialize the agent with vector store and LLM.
+    if needs_web:
+        results = await search_web.ainvoke({"query": question})
+    else:
+        results = await search_knowledge_base.ainvoke({"query": question})
 
-    Call this once at startup.
+    return {"search_results": [{"content": results}]}
 
-    Args:
-        vector_store: PGVector store instance
-        doc_store: Document store (optional, for future use)
-        llm_config: LLM config (uses default if None)
-    """
-    global _vector_store, _doc_store, _llm, _agent_executor
+
+async def generate_node(state: AgentState) -> dict[str, any]:
+    """Generate answer using LLM."""
+    from langchain_core.messages import HumanMessage, SystemMessage
+
+    context = "\n\n".join([r["content"] for r in state.get("search_results", [])])
+
+    prompt = f"""Answer the question based on the context below.
+
+Context:
+{context}
+
+Question: {state["question"]}
+
+Answer:"""
+
+    messages = [
+        SystemMessage(content="You are a helpful assistant. Be accurate and cite sources."),
+        HumanMessage(content=prompt),
+    ]
+
+    response = await _llm.ainvoke(messages)
+    return {"answer": response.content}
+
+
+# ========== Graph ==========
+
+def build_graph() -> StateGraph:
+    """Build the LangGraph agent."""
+    workflow = StateGraph(AgentState)
+
+    workflow.add_node("route", route_node)
+    workflow.add_node("search", search_node)
+    workflow.add_node("generate", generate_node)
+
+    workflow.add_edge(START, "route")
+    workflow.add_edge("route", "search")
+    workflow.add_edge("search", "generate")
+    workflow.add_edge("generate", END)
+
+    return workflow.compile(checkpointer=_checkpointer)
+
+
+# ========== Initialization ==========
+
+def initialize_agent(vector_store: VectorStore, config: Config = None):
+    """Initialize the agent (call once at startup)."""
+    global _vector_store, _config, _llm, _graph
 
     _vector_store = vector_store
-    _doc_store = doc_store
-    _llm = create_llm(llm_config or "gemini-2.0-flash-exp")
+    _config = config or Config.from_yaml("kb/config.yaml")
 
-    # Create tools list
-    tools = [search_knowledge_base]
-
-    # System prompt
-    system_prompt = """You are a helpful AI assistant with access to a knowledge base.
-
-**Available Tools:**
-1. search_knowledge_base - Search technical documentation and implementation details
-2. search_web - Search the web for current information
-
-**Guidelines:**
-- Use search_knowledge_base for technical questions about the codebase
-- Use search_web for current events or real-time information
-- Always cite your sources using [1], [2], etc.
-- Be concise and accurate
-- If you can't find relevant information, say so"""
-
-    # Create prompt template
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", system_prompt),
-        MessagesPlaceholder(variable_name="chat_history", optional=True),
-        ("human", "{input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
-    ])
-
-    # Create agent
-    agent = create_tool_calling_agent(_llm, tools, prompt)
-    _agent_executor = AgentExecutor(
-        agent=agent,
-        tools=tools,
-        verbose=False,
-        return_intermediate_steps=False,
+    llm_config = _config.llm or {}
+    _llm = create_llm(
+        model=llm_config.get("model", "gemini-2.5-flash"),
+        api_key=_config.gemini_api_key,
+        temperature=llm_config.get("temperature", 0.3),
     )
 
+    _graph = build_graph()
 
-async def ask(
-    question: str,
-    session_id: str = None,
-) -> dict:
-    """Ask the agent a question.
 
-    Args:
-        question: User's question
-        session_id: Optional session ID for conversation history
+# ========== Ask ==========
+
+async def ask(question: str, session_id: str = "default") -> dict:
+    """Ask a question.
 
     Returns:
-        Dictionary with:
-            - answer: str
-            - sources: list of citations
-            - agent_type: str
-            - session_id: str
+        Dict with answer, sources, agent_type, session_id, elapsed_ms
     """
-    if _agent_executor is None:
+    if _graph is None:
         raise RuntimeError("Agent not initialized. Call initialize_agent() first.")
 
-    # Invoke agent
-    import time
     start_time = time.time()
 
-    result = await _agent_executor.ainvoke(
-        {"input": question},
-        config=RunnableConfig(callbacks=[]),
-    )
+    config = {"configurable": {"thread_id": session_id}}
+    initial_state = {
+        "messages": [],
+        "question": question,
+        "search_results": [],
+        "answer": "",
+        "metadata": {},
+    }
+
+    final_state = await _graph.ainvoke(initial_state, config=config)
 
     elapsed_ms = int((time.time() - start_time) * 1000)
 
-    # Extract answer
-    answer = result.get("output", "")
-
-    # Extract tool calls for sources
-    sources = []
-    intermediate_steps = result.get("intermediate_steps", [])
-    for step in intermediate_steps:
-        action, observation = step
-        if action.tool == "search_knowledge_base":
-            # Parse observation for citations
-            sources.append({
-                "type": "knowledge_base",
-                "content": observation[:200] + "..." if len(observation) > 200 else observation,
-            })
-
     return {
-        "answer": answer,
-        "sources": sources,
-        "agent_type": "agent",
+        "answer": final_state["answer"],
+        "sources": [],  # Can be enhanced
+        "agent_type": "langgraph",
         "session_id": session_id,
         "elapsed_ms": elapsed_ms,
     }

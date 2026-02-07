@@ -1,34 +1,8 @@
-"""Complete offline KB pipeline orchestrator."""
+"""Complete offline KB pipeline - simple functional approach."""
 
 from kb.pipeline.clean import clean_documents
 from kb.pipeline.config import Config
-from kb.pipeline.index import IndexBuilder
-
-
-def build_index(
-    config: Config,
-    input_jsonl: str,
-    force_rebuild: bool = False,
-) -> dict:
-    """Build vector index from JSONL file.
-
-    Args:
-        config: Pipeline configuration
-        input_jsonl: Path to JSONL file
-        force_rebuild: Force rebuild all documents
-
-    Returns:
-        Statistics dict with indexing results
-    """
-    builder = IndexBuilder(config=config)
-
-    try:
-        builder.initialize()
-        stats = builder.build_from_jsonl(input_jsonl, force_rebuild)
-    finally:
-        builder.close()
-
-    return stats
+from kb.pipeline.index import build_index
 
 
 def run_full_pipeline(

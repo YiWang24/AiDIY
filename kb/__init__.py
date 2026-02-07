@@ -12,10 +12,8 @@ from kb.storage.vectorstore import VectorStore
 
 # Pipeline components
 from kb.pipeline.config import ChunkingConfig, Config
-from kb.pipeline.chunk import ChunkingStrategy
-from kb.pipeline.incremental import IncrementalIndexer
-from kb.pipeline.index import IndexBuilder
-from kb.pipeline.pipeline import OfflineKBPipeline, run_full_pipeline
+from kb.pipeline.clean import clean_documents
+from kb.pipeline.chunk import split_document
 
 # CLI
 from kb.cli import main
@@ -30,11 +28,8 @@ __all__ = [
     # Pipeline
     "ChunkingConfig",
     "Config",
-    "ChunkingStrategy",
-    "IncrementalIndexer",
-    "IndexBuilder",
-    "OfflineKBPipeline",
-    "run_full_pipeline",
+    "clean_documents",
+    "split_document",
     # CLI
     "main",
 ]

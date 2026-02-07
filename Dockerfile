@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-WORKDIR /build
+WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -19,11 +19,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install uv for faster dependency management
 RUN pip install --no-cache-dir uv
 
-# Copy dependency files
-COPY kb/pyproject.toml kb/
+# Copy lock + manifest first (better layer caching)
+COPY kb/pyproject.toml kb/uv.lock /app/kb/
 
-# Install dependencies
-RUN uv pip install --system -e kb/
+# Install runtime dependencies from lockfile (reproducible)
+RUN cd /app/kb && \
+    uv export --frozen --no-dev --format requirements.txt --output-file /tmp/requirements.txt && \
+    uv pip install --system -r /tmp/requirements.txt
+
+# Copy application code
+COPY kb/ /app/kb/
+
+# Install project in editable mode (keeps project-root path assumptions working)
+RUN uv pip install --system --no-deps -e /app/kb/
 
 # Final stage
 FROM python:3.11-slim
@@ -47,7 +55,6 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
 COPY kb/ /app/kb/
-COPY kb/config.yaml /app/kb/
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && \
@@ -62,4 +69,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 EXPOSE 8000
 
 # Run the application
-CMD ["uvicorn", "kb.api.app:create_app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "kb.api.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

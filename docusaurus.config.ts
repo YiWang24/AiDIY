@@ -25,7 +25,7 @@ const config = {
   // Custom fields accessible via useDocusaurusContext
   customFields: {
     frontendUrl: process.env.FRONTEND_URL || 'https://www.yiw.me',
-    backendUrl: process.env.BACKEND_URL || 'http://localhost:8000',
+    backendUrl: process.env.BACKEND_URL || 'http://localhost:8001',
     cfClientId: process.env.CF_CLIENT_ID || '',
   },
 

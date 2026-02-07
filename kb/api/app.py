@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg
 
-from kb.api.routes import search, ask, stream
+from kb.api.routes import stream
 from kb.api.dependencies import get_config
 from kb.storage.docstore import DocStore
 from kb.storage.vectorstore import VectorStore
@@ -85,8 +85,6 @@ def create_app() -> FastAPI:
     )
 
     # Include routers
-    app.include_router(search.router)
-    app.include_router(ask.router)
     app.include_router(stream.router)
 
     @app.get("/")
@@ -98,10 +96,6 @@ def create_app() -> FastAPI:
             "primary_endpoint": {
                 "stream": "/stream",
                 "description": "Unified streaming API for all agent interactions",
-            },
-            "legacy_endpoints": {
-                "search": "/search (deprecated, use /stream)",
-                "ask": "/ask (deprecated, use /stream)",
             },
         }
 

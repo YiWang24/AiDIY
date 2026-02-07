@@ -1,132 +1,107 @@
-"""Index building - orchestrates chunking and incremental indexing."""
+"""Index building - simple functional approach."""
 
 import json
 from typing import Iterator
 from tqdm import tqdm
 
 from kb.domain.document import Document
-from kb.pipeline.chunk import ChunkingStrategy
+from kb.pipeline.chunk import split_document
 from kb.pipeline.config import Config
-from kb.pipeline.index_signature import compute_signature
-from kb.pipeline.incremental import IncrementalIndexer
 from kb.storage.docstore import DocStore
 from kb.storage.vectorstore import VectorStore
 
 
-class IndexBuilder:
-    """Main index builder orchestrator."""
+def build_index(
+    config: Config,
+    input_jsonl: str,
+    force_rebuild: bool = False,
+) -> dict:
+    """Build vector index from JSONL file.
 
-    def __init__(
-        self,
-        config: Config,
-    ):
-        """Initialize index builder.
+    Args:
+        config: Pipeline configuration
+        input_jsonl: Path to JSONL file
+        force_rebuild: Force rebuild all documents
 
-        Args:
-            config: Pipeline configuration
-        """
-        self._config = config
-        self._chunking_config = config.chunking
+    Returns:
+        Statistics dict with indexing results
+    """
+    # Initialize storage
+    docstore = DocStore(config.get_database_url())
+    vectorstore = VectorStore(
+        database_url=config.get_database_url(),
+        embedding_model=config.embedding_model,
+        gemini_api_key=config.gemini_api_key,
+        table_name=config.vector_store_table_name,
+        batch_size=config.vector_store_batch_size,
+    )
 
-        # Initialize storage
-        self._docstore = DocStore(config.get_database_url())
-        self._vectorstore = VectorStore(
-            database_url=config.get_database_url(),
-            embedding_model=config.embedding_model,
-            gemini_api_key=config.gemini_api_key,
-            table_name=config.vector_store_table_name,
-            batch_size=config.vector_store_batch_size,
-        )
+    try:
+        docstore.initialize()
+        vectorstore.initialize()
 
-        # Initialize components
-        self._chunker = ChunkingStrategy(self._chunking_config)
-        self._incremental = IncrementalIndexer(self._docstore, self._vectorstore)
-        self._force_rebuild_override = False
-
-    def initialize(self) -> None:
-        """Initialize storage connections."""
-        self._docstore.initialize()
-        self._vectorstore.initialize()
-
-        signature = compute_signature(self._config, self._vectorstore.EMBEDDING_DIM)
-        stored_signature = self._docstore.get_index_signature()
-        if stored_signature and stored_signature != signature:
-            # Config changed: clear existing data and force rebuild.
-            self._vectorstore.reset_table()
-            self._docstore.clear_documents()
-            self._force_rebuild_override = True
-
-        self._docstore.set_index_signature(signature)
-
-    def close(self) -> None:
-        """Close storage connections."""
-        self._docstore.close()
-        self._vectorstore.close()
-
-    def build_from_jsonl(
-        self,
-        input_path: str,
-        force_rebuild: bool = False,
-    ) -> dict:
-        """Build index from JSONL file.
-
-        Args:
-            input_path: Path to JSONL file
-            force_rebuild: Force rebuild all documents
-
-        Returns:
-            Build statistics dict
-        """
+        # Process documents
         stats = {
             "total": 0,
             "indexed": 0,
             "skipped": 0,
             "chunks_added": 0,
-            "chunks_deleted": 0,
             "errors": [],
         }
 
-        effective_force_rebuild = force_rebuild or self._force_rebuild_override
-
-        # Process each document (streaming)
-        for doc_dict in tqdm(self._load_jsonl(input_path), desc="Indexing"):
+        for doc_dict in tqdm(_load_jsonl(input_jsonl), desc="Indexing"):
             stats["total"] += 1
             try:
                 document = Document.from_dict(doc_dict)
 
-                # Force rebuild: delete existing chunks first
-                if effective_force_rebuild:
-                    old_chunk_ids = self._docstore.get_chunk_ids(document.id)
-                    if old_chunk_ids:
-                        self._vectorstore.delete_chunks(old_chunk_ids)
-
-                # Chunk document
-                chunks = self._chunker.split(document)
-
-                # Index with incremental logic
-                result = self._incremental.index_document(document, chunks)
-
-                # Update stats
-                if result["status"] == "indexed":
-                    stats["indexed"] += 1
-                    stats["chunks_added"] += result["chunks_added"]
-                    stats["chunks_deleted"] += result["chunks_deleted"]
-                else:
+                # Check if already indexed
+                existing_chunks = docstore.get_chunk_ids(document.id)
+                if existing_chunks and not force_rebuild:
                     stats["skipped"] += 1
+                    continue
+
+                # Delete old chunks if rebuilding
+                if force_rebuild and existing_chunks:
+                    vectorstore.delete_chunks(existing_chunks)
+
+                # Split document into chunks
+                chunks = split_document(
+                    document,
+                    chunk_size=config.chunking.chunk_size,
+                    chunk_overlap=config.chunking.chunk_overlap,
+                    max_section_chars=config.chunking.max_section_chars,
+                )
+
+                # Add chunks to vector store
+                if chunks:
+                    vectorstore.add_chunks(chunks)
+                    docstore.upsert_document(
+                        doc_id=document.id,
+                        path=document.path,
+                        title=document.title,
+                        checksum=document.checksum,
+                        chunk_ids=[c.chunk_id for c in chunks],
+                        version=document.version,
+                    )
+                    stats["indexed"] += 1
+                    stats["chunks_added"] += len(chunks)
 
             except Exception as e:
-                stats["errors"].append(
-                    {
-                        "doc_id": doc_dict.get("id", "unknown"),
-                        "error": str(e),
-                    }
-                )
+                stats["errors"].append({
+                    "doc_id": doc_dict.get("id", "unknown"),
+                    "error": str(e),
+                })
 
         return stats
 
-    def _load_jsonl(self, path: str) -> Iterator[dict]:
-        """Load documents from JSONL file."""
-        with open(path, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip():
-                    yield json.loads(line)
+    finally:
+        docstore.close()
+        vectorstore.close()
+
+
+def _load_jsonl(path: str) -> Iterator[dict]:
+    """Load documents from JSONL file."""
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip():
+                yield json.loads(line)

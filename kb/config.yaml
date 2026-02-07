@@ -14,7 +14,6 @@ chunking:
 # Embedding configuration
 embedding:
   provider: gemini                                 # gemini only
-  # NOTE: Available models vary by API key; `models/gemini-embedding-001` is a commonly available embedding model.
   model: models/gemini-embedding-001               # Gemini: models/gemini-embedding-001
 
 # Gemini API configuration (for embedding provider: gemini)
@@ -40,7 +39,7 @@ vector_store:
 # LLM configuration
 llm:
   provider: gemini                                  # gemini (LLM for answer generation)
-  model: gemini-2.5-flash                       # Model: gemini-2.0-flash-001, gemini-flash-latest
+  model: gemini-2.5-flash                           # Model: gemini-2.0-flash-001, gemini-flash-latest
   api_key: ${GEMINI_API_KEY:-}                      # Get from environment variable
   temperature: 0.3                                  # Low temperature for factual accuracy
   max_tokens: 1024                                  # Max tokens for answer generation

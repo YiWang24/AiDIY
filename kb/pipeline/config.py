@@ -74,6 +74,7 @@ class Config:
     vector_store_batch_size: int = 32
     llm: dict = field(default_factory=dict)
     rag: dict = field(default_factory=dict)
+    web_search_api_key: str = ""
 
     def get_database_url(self) -> str:
         """Get database connection URL.
@@ -119,6 +120,7 @@ class Config:
         vector_store_data = data.get("vector_store", {})
         llm_data = data.get("llm", {})
         rag_data = data.get("rag", {})
+        web_search_data = data.get("web_search", {})
 
         # Expand environment variables in config values
         database_url = storage_data.get("database_url", "")
@@ -152,6 +154,10 @@ class Config:
         if not gemini_api_key or "${" in str(gemini_api_key):
             gemini_api_key = os.environ.get("GEMINI_API_KEY", "")
 
+        web_search_api_key = web_search_data.get("api_key", "")
+        if not web_search_api_key or "${" in str(web_search_api_key):
+            web_search_api_key = os.environ.get("TAVILY_API_KEY", "")
+
         embedding_provider = embedding_data.get("provider", "gemini")
         if embedding_provider != "gemini":
             raise ValueError(
@@ -175,6 +181,7 @@ class Config:
             vector_store_batch_size=vector_store_data.get("batch_size", 32),
             llm=llm_data,
             rag=rag_data,
+            web_search_api_key=web_search_api_key,
         )
 
     @classmethod
@@ -192,6 +199,6 @@ class Config:
             docs_dir=os.environ.get("DOCS_DIR", "docs"),
             output_jsonl=os.environ.get("OUTPUT_JSONL", "kb/data/cleaned/docs.jsonl"),
             gemini_api_key=os.environ.get("GEMINI_API_KEY", ""),
-            vector_store_table_name=os.environ.get("VECTOR_TABLE_NAME", ""),
+            vector_store_table_name=os.environ.get("VECTOR_TABLE_NAME", "kb_vector_store"),
             vector_store_batch_size=int(os.environ.get("VECTOR_BATCH_SIZE", "32")),
         )

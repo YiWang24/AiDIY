@@ -78,18 +78,7 @@ def get_doc_store() -> Generator[DocStore, None, None]:
     yield _doc_store_instance
 
 
-# ========== RAG Configuration ==========
-
-
-def get_rag_config() -> dict:
-    """Get RAG configuration.
-
-    Returns:
-        RAG configuration dictionary
-    """
-    config = get_config()
-    return config.rag
-
+# ========== LLM Configuration ==========
 
 def get_llm_config() -> dict:
     """Get LLM configuration.

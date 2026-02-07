@@ -71,6 +71,14 @@ class VectorStore:
         )
 
         # Create table and indexes using langchain
+        # Suppress collation warnings by setting client_min_messages
+        import psycopg
+        conn = psycopg.connect(self._database_url)
+        try:
+            conn.execute("SET client_min_messages TO WARNING")
+        finally:
+            conn.close()
+
         self._vectorstore.create_tables_if_not_exists()
 
     def close(self) -> None:
@@ -149,11 +157,18 @@ class VectorStore:
             raise RuntimeError("VectorStore not initialized")
 
         # Use langchain's similarity_search_with_score
+        # Note: some langchain-postgres versions don't support score_threshold.
         docs_with_scores = self._vectorstore.similarity_search_with_score(
             query=query_text,
             k=top_k,
-            score_threshold=score_threshold,
         )
+
+        if score_threshold is not None:
+            docs_with_scores = [
+                (doc, score)
+                for doc, score in docs_with_scores
+                if float(score) >= score_threshold
+            ]
 
         # Convert to our format
         return [

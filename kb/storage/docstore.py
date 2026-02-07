@@ -46,6 +46,8 @@ class DocStore:
 
         # Create table if not exists
         with self._pool.connection() as conn:
+            # Suppress collation version mismatch warning
+            conn.execute("SET client_min_messages TO WARNING")
             self._create_table(conn)
             self._create_meta_table(conn)
 
@@ -98,6 +100,34 @@ class DocStore:
             row = cursor.fetchone()
 
             return row[0] if row else None
+
+    def get_document(self, doc_id: str) -> dict | None:
+        """Get basic document metadata.
+
+        Args:
+            doc_id: Document identifier
+
+        Returns:
+            Dict with doc_id, path, title or None if not found
+        """
+        if not self._pool:
+            raise RuntimeError("DocStore not initialized")
+
+        with self._pool.connection() as conn:
+            cursor = conn.execute(
+                "SELECT doc_id, path, title FROM kb_documents WHERE doc_id = %s",
+                (doc_id,),
+            )
+            row = cursor.fetchone()
+
+            if not row:
+                return None
+
+            return {
+                "doc_id": row[0],
+                "path": row[1],
+                "title": row[2],
+            }
 
     def get_chunk_ids(self, doc_id: str) -> list[str]:
         """Get chunk IDs for a document.

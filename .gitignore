@@ -46,3 +46,19 @@ Thumbs.db
 # Temporary files
 *.log
 *.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+kb/.venv/
+kb/.uv_cache/
+kb/kb_agent.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
