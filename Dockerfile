@@ -49,8 +49,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create symlink for Python to match builder stage paths
-RUN ln -s /usr/local/bin/python3.11 /usr/local/bin/python
+# Create symlink for Python to match builder stage paths (force overwrite if exists)
+RUN ln -sf /usr/local/bin/python3.11 /usr/local/bin/python
 
 # Copy Python dependencies from builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
