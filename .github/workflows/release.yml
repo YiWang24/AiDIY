@@ -167,8 +167,6 @@ jobs:
           ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
           ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-          DOPPLER_PROJECT: ${{ secrets.DOPPLER_PROJECT }}
-          DOPPLER_CONFIG: ${{ secrets.DOPPLER_CONFIG }}
           IMAGE_TAG: ${{ needs.build_and_push.outputs.image_tag }}
         with:
           host: ${{ secrets.INTERNAL_SSH_HOST }}
@@ -179,7 +177,7 @@ jobs:
           proxy_port: ${{ secrets.DEPLOY_SSH_PORT }}
           proxy_key: ${{ secrets.DEPLOY_SSH_KEY }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: ACR_LOGIN_SERVER,ACR_REPOSITORY,ACR_USERNAME,ACR_PASSWORD,DOPPLER_TOKEN,DOPPLER_PROJECT,DOPPLER_CONFIG,IMAGE_TAG
+          envs: ACR_LOGIN_SERVER,ACR_REPOSITORY,ACR_USERNAME,ACR_PASSWORD,DOPPLER_TOKEN,IMAGE_TAG
           script: |
             set -euo pipefail
 
@@ -205,19 +203,10 @@ jobs:
             # Write env file (Doppler + compose vars)
             umask 077
             echo "Downloading secrets from Doppler..."
-            if [[ -n "${DOPPLER_PROJECT:-}" && -n "${DOPPLER_CONFIG:-}" ]]; then
-              doppler secrets download \
-                --project "$DOPPLER_PROJECT" \
-                --config "$DOPPLER_CONFIG" \
-                --format env \
-                --no-file \
-                --token "$DOPPLER_TOKEN" > .env.doppler
-            else
-              doppler secrets download \
-                --format env \
-                --no-file \
-                --token "$DOPPLER_TOKEN" > .env.doppler
-            fi
+            doppler secrets download \
+              --format env \
+              --no-file \
+              --token "$DOPPLER_TOKEN" > .env.doppler
 
             {
               cat .env.doppler
