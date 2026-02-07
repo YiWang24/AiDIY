@@ -30,8 +30,10 @@ RUN cd /app/kb && \
 # Copy application code
 COPY kb/ /app/kb/
 
-# Install project using pip (ensures proper package installation)
-RUN cd /app/kb && pip install --no-cache-dir --no-deps .
+# Install project and verify installation
+RUN cd /app && pip install --no-cache-dir ./kb && \
+    python -c "import kb; print('kb package installed successfully')" && \
+    which kb-build && kb-build --help
 
 # Final stage
 FROM python:3.11-slim
