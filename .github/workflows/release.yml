@@ -208,8 +208,11 @@ jobs:
               --no-file \
               --token "$DOPPLER_TOKEN" > .env.doppler
 
+            # Remove quotes from env file (Doppler outputs KEY="value")
+            sed 's/^\([^=]*\)= "\(.*\)"$/\1=\2/g' .env.doppler > .env.doppler.clean
+
             {
-              cat .env.doppler
+              cat .env.doppler.clean
               echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER"
               echo "ACR_REPOSITORY=$ACR_REPOSITORY"
               echo "IMAGE_TAG=$IMAGE_TAG"
