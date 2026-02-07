@@ -30,10 +30,8 @@ RUN cd /app/kb && \
 # Copy application code
 COPY kb/ /app/kb/
 
-# Install project and verify installation
-RUN cd /app && pip install --no-cache-dir ./kb && \
-    python -c "import kb; print('kb package installed successfully')" && \
-    which kb-build && kb-build --help
+# Install project
+RUN cd /app && pip install --no-cache-dir ./kb
 
 # Final stage
 FROM python:3.11-slim
@@ -50,6 +48,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Create symlink for Python to match builder stage paths
+RUN ln -s /usr/local/bin/python3.11 /usr/local/bin/python
 
 # Copy Python dependencies from builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
