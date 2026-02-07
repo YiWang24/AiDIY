@@ -88,7 +88,8 @@ class Config:
         # If individual params are set, build URL from them
         if self.postgres_host and self.postgres_user and self.postgres_db:
             port = self.postgres_port or 5432
-            return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{port}/{self.postgres_db}"
+            # Add sslmode=require for Azure PostgreSQL compatibility
+            return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{port}/{self.postgres_db}?sslmode=require"
 
         # Otherwise use database_url
         return self.database_url
