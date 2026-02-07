@@ -16,8 +16,7 @@ export default {
   "onBrokenLinks": "ignore",
   "customFields": {
     "frontendUrl": "http://localhost:3000",
-    "backendUrl": "http://localhost:8000",
-    "cfClientId": "839d24dc84d7cbf40f67aa2cd10aac67.access"
+    "backendUrl": "http://localhost:8001"
   },
   "i18n": {
     "defaultLocale": "en",
@@ -32,7 +31,7 @@ export default {
       "classic",
       {
         "docs": {
-          "sidebarPath": "/Users/wy/Documents/Projects/AiDIY/sidebars.ts",
+          "sidebarPath": "/home/wy/projects/AiDIY/sidebars.ts",
           "editUrl": "https://github.com/YiWang24/portfolio/tree/main/docs/",
           "remarkPlugins": [
             [
@@ -82,7 +81,7 @@ export default {
           ]
         },
         "theme": {
-          "customCss": "/Users/wy/Documents/Projects/AiDIY/src/css/custom.css"
+          "customCss": "/home/wy/projects/AiDIY/src/css/custom.css"
         }
       }
     ]

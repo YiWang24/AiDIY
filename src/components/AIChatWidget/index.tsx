@@ -5,7 +5,6 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import styles from "./AIChatWidget.module.css";
@@ -52,11 +51,6 @@ interface AskResponse {
 }
 
 export default function AIChatWidget(): JSX.Element {
-  const { siteConfig } = useDocusaurusContext();
-  // Use backend API for RAG Q&A
-  const BACKEND_API_URL =
-    (siteConfig.customFields?.backendUrl as string) || "http://localhost:8000";
-
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -122,38 +116,12 @@ export default function AIChatWidget(): JSX.Element {
     ]);
 
     try {
-      // Forward Cloudflare Access JWT token from cookies
-      // Cloudflare Access sets CF_Authorization cookie
-      const getCFAccessToken = () => {
-        const cookies = document.cookie.split(";");
-        for (const cookie of cookies) {
-          const trimmed = cookie.trim();
-          const equalIndex = trimmed.indexOf("=");
-          if (equalIndex === -1) continue; // Skip invalid cookies
-
-          const name = trimmed.substring(0, equalIndex);
-          const value = trimmed.substring(equalIndex + 1);
-
-          if (name === "CF_Authorization") {
-            return value;
-          }
-        }
-        return null;
-      };
-
-      const cfToken = getCFAccessToken();
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-
-      // Forward CF_Authorization token if present
-      if (cfToken) {
-        headers["CF-Access-Client-Id"] = cfToken;
-      }
-
-      const response = await fetch(`${BACKEND_API_URL}/stream`, {
+      // Call Edge Function proxy (handles Cloudflare Access authentication)
+      const response = await fetch(`/api/stream`, {
         method: "POST",
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           question: userMessage.content,
           session_id: sessionId,
@@ -312,7 +280,7 @@ export default function AIChatWidget(): JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, [inputValue, isLoading, BACKEND_API_URL, sessionId]);
+  }, [inputValue, isLoading, sessionId]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
