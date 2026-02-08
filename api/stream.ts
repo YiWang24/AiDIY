@@ -22,6 +22,12 @@ export default async function handler(req: Request) {
       "Content-Type": "application/json",
     };
 
+    // Forward client IP headers so backend per-IP rate limiting works
+    for (const name of ["x-forwarded-for", "x-real-ip", "cf-connecting-ip"]) {
+      const value = req.headers.get(name);
+      if (value) headers[name] = value;
+    }
+
     // Add Cloudflare Access Service Authentication
     // https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/advanced-service-auth/
     if (CF_CLIENT_ID && CF_CLIENT_SECRET) {
@@ -39,6 +45,20 @@ export default async function handler(req: Request) {
 
     if (!response.ok) {
       const errorText = await response.text();
+
+      // Preserve backend 429 payload + rate limit headers so the client can
+      // surface accurate retry timing.
+      if (response.status === 429) {
+        const passthroughHeaders = new Headers(response.headers);
+        if (!passthroughHeaders.get("Content-Type")) {
+          passthroughHeaders.set("Content-Type", "application/json");
+        }
+        return new Response(errorText, {
+          status: response.status,
+          headers: passthroughHeaders,
+        });
+      }
+
       return new Response(
         JSON.stringify({
           error: `Backend error: ${response.status}`,
@@ -52,13 +72,14 @@ export default async function handler(req: Request) {
     }
 
     // Return streaming response
+    const streamHeaders = new Headers(response.headers);
+    streamHeaders.set("Content-Type", "text/event-stream");
+    streamHeaders.set("Cache-Control", "no-cache");
+    streamHeaders.set("Connection", "keep-alive");
+
     return new Response(response.body, {
       status: response.status,
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
+      headers: streamHeaders,
     });
   } catch (error) {
     console.error("Edge Function error:", error);

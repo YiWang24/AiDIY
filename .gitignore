@@ -39,6 +39,9 @@ yarn-error.log*
 *.swo
 *~
 
+# Vercel
+.vercel/
+
 # OS
 Thumbs.db
 
@@ -55,6 +58,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.venv/
 kb/.venv/
 kb/.uv_cache/
 kb/kb_agent.egg-info/

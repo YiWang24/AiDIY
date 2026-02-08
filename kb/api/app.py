@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import psycopg
 
 from kb.api.routes import stream
+from kb.api.ratelimit import DailyRateLimitMiddleware, DailyRateLimitConfig
 from kb.api.dependencies import get_config
 from kb.storage.docstore import DocStore
 from kb.storage.vectorstore import VectorStore
@@ -83,6 +84,19 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+    )
+
+    # Daily rate limiting (in-memory, per process)
+    # - Global: 10k/day
+    # - Per IP: 50/day
+    # Applied to: /stream
+    app.add_middleware(
+        DailyRateLimitMiddleware,
+        config=DailyRateLimitConfig(
+            global_daily_limit=10_000,
+            per_ip_daily_limit=50,
+            path_prefixes=("/stream",),
+        ),
     )
 
     # Include routers
