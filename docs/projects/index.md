@@ -27,19 +27,19 @@ Technical skills are demonstrated not just through code, but through:
 
 ## 📖 Featured Projects
 
-### [Enterprise RAG Knowledge Base](/documentation/docs/projects/rag-knowledge-base)
+### [Enterprise RAG Knowledge Base](/docs/projects/rag-knowledge-base)
 Building a production RAG system for internal documentation search.
 - **Challenge**: PDF table parsing and multi-modal document processing
 - **Stack**: Spring Boot, PgVector, OpenAI, LangChain
 - **Key Learning**: Chunking strategy critically impacts retrieval quality
 
-### [E-commerce Microservices Refactor](/documentation/docs/projects/ecommerce-refactor)
+### [E-commerce Microservices Refactor](/docs/projects/ecommerce-refactor)
 Migrating a monolith to microservices while handling flash sales.
 - **Challenge**: Preventing overselling during high-traffic flash sales
 - **Stack**: Spring Cloud, Redis, RocketMQ, Kubernetes
 - **Key Learning**: Distributed systems require different thinking
 
-### [AI-Powered Portfolio Website](/documentation/docs/projects/portfolio-website)
+### [AI-Powered Portfolio Website](/docs/projects/portfolio-website)
 Creating an interactive portfolio with AI chat capabilities.
 - **Challenge**: Real-time AI responses with edge deployment
 - **Stack**: Next.js, Tailwind CSS, Spring Boot, OpenAI

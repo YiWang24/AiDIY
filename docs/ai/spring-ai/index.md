@@ -309,11 +309,11 @@ public class RAGService {
 
 ## 📝 Detailed Topics
 
-- [Multi-Provider Setup](/documentation/docs/ai/spring-ai/providers)
-- [Advisors & Middleware](/documentation/docs/ai/spring-ai/advisors)
-- [Observability & Tracing](/documentation/docs/ai/spring-ai/observability)
-- [Testing AI Components](/documentation/docs/ai/spring-ai/testing)
-- [Production Best Practices](/documentation/docs/ai/spring-ai/production)
+- [Multi-Provider Setup](/docs/ai/spring-ai/providers)
+- [Advisors & Middleware](/docs/ai/spring-ai/advisors)
+- [Observability & Tracing](/docs/ai/spring-ai/observability)
+- [Testing AI Components](/docs/ai/spring-ai/testing)
+- [Production Best Practices](/docs/ai/spring-ai/production)
 
 ---
 

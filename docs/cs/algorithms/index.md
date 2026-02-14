@@ -78,11 +78,11 @@ public class SimpleHashMap<K, V> {
 
 Explore specific algorithm categories:
 
-- [Two Pointers Pattern](/documentation/docs/cs/algorithms/two-pointers)
-- [Sliding Window Pattern](/documentation/docs/cs/algorithms/sliding-window)
-- [Dynamic Programming](/documentation/docs/cs/algorithms/dynamic-programming)
-- [Graph Algorithms](/documentation/docs/cs/algorithms/graphs)
-- [Tree Traversals](/documentation/docs/cs/algorithms/trees)
+- [Two Pointers Pattern](/docs/cs/algorithms/two-pointers)
+- [Sliding Window Pattern](/docs/cs/algorithms/sliding-window)
+- [Dynamic Programming](/docs/cs/algorithms/dynamic-programming)
+- [Graph Algorithms](/docs/cs/algorithms/graphs)
+- [Tree Traversals](/docs/cs/algorithms/trees)
 
 ---
 

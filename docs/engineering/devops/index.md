@@ -361,11 +361,11 @@ scrape_configs:
 
 ## 📝 Detailed Topics
 
-- [Docker Networking](/documentation/docs/engineering/devops/docker-networking)
-- [Kubernetes RBAC](/documentation/docs/engineering/devops/k8s-rbac)
-- [Helm Charts](/documentation/docs/engineering/devops/helm)
-- [Infrastructure as Code (Terraform)](/documentation/docs/engineering/devops/terraform)
-- [Security Best Practices](/documentation/docs/engineering/devops/security)
+- [Docker Networking](/docs/engineering/devops/docker-networking)
+- [Kubernetes RBAC](/docs/engineering/devops/k8s-rbac)
+- [Helm Charts](/docs/engineering/devops/helm)
+- [Infrastructure as Code (Terraform)](/docs/engineering/devops/terraform)
+- [Security Best Practices](/docs/engineering/devops/security)
 
 ---
 

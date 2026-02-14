@@ -20,25 +20,25 @@ In interviews and real-world engineering, understanding **why** things work is j
 
 ## 📚 Topics Covered
 
-### [Algorithms & Data Structures](/documentation/docs/cs/algorithms)
+### [Algorithms & Data Structures](/docs/cs/algorithms)
 Systematic problem-solving patterns and efficient data organization.
 - LeetCode patterns (Two Pointers, Sliding Window, DP, etc.)
 - Core data structure implementations in Java
 - Time & Space complexity analysis
 
-### [System Design](/documentation/docs/cs/system-design)
+### [System Design](/docs/cs/system-design)
 Building scalable, reliable, and maintainable systems.
 - High concurrency & availability patterns
 - Distributed systems fundamentals (CAP, BASE)
 - Load balancing & caching strategies
 
-### [Database Internals](/documentation/docs/cs/database)
+### [Database Internals](/docs/cs/database)
 Understanding how databases work under the hood.
 - MySQL indexing & query optimization
 - Transaction isolation levels (ACID)
 - Redis caching strategies & persistence
 
-### [Network & OS](/documentation/docs/cs/network-os)
+### [Network & OS](/docs/cs/network-os)
 The infrastructure that powers everything.
 - TCP/IP handshake, HTTP/HTTPS protocols
 - Linux essentials & process management

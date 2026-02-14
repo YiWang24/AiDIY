@@ -292,11 +292,11 @@ function Counter() {
 
 ## 📝 Detailed Topics
 
-- [React Performance Optimization](/documentation/docs/engineering/frontend/performance)
-- [Form Handling](/documentation/docs/engineering/frontend/forms)
-- [Authentication Patterns](/documentation/docs/engineering/frontend/auth)
-- [Animation with Framer Motion](/documentation/docs/engineering/frontend/animation)
-- [Testing (Jest, Testing Library)](/documentation/docs/engineering/frontend/testing)
+- [React Performance Optimization](/docs/engineering/frontend/performance)
+- [Form Handling](/docs/engineering/frontend/forms)
+- [Authentication Patterns](/docs/engineering/frontend/auth)
+- [Animation with Framer Motion](/docs/engineering/frontend/animation)
+- [Testing (Jest, Testing Library)](/docs/engineering/frontend/testing)
 
 ---
 

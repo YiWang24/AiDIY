@@ -135,11 +135,11 @@ public User getUser(Long id) {
 
 ## 📝 Detailed Topics
 
-- [MySQL Query Optimization](/documentation/docs/cs/database/mysql-optimization)
-- [Deadlock Prevention](/documentation/docs/cs/database/deadlocks)
-- [Redis Cluster Setup](/documentation/docs/cs/database/redis-cluster)
-- [Connection Pooling](/documentation/docs/cs/database/connection-pooling)
-- [NoSQL Comparison](/documentation/docs/cs/database/nosql-comparison)
+- [MySQL Query Optimization](/docs/cs/database/mysql-optimization)
+- [Deadlock Prevention](/docs/cs/database/deadlocks)
+- [Redis Cluster Setup](/docs/cs/database/redis-cluster)
+- [Connection Pooling](/docs/cs/database/connection-pooling)
+- [NoSQL Comparison](/docs/cs/database/nosql-comparison)
 
 ---
 

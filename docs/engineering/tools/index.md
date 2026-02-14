@@ -261,11 +261,11 @@ jcmd <pid> JFR.start duration=60s filename=recording.jfr
 
 ## 📝 Detailed Topics
 
-- [Git Rebase Strategies](/documentation/docs/engineering/tools/git-rebase)
-- [Docker for Development](/documentation/docs/engineering/tools/docker-dev)
-- [VS Code Setup](/documentation/docs/engineering/tools/vscode)
-- [Productivity Workflows](/documentation/docs/engineering/tools/productivity)
-- [API Testing (Postman, httpie)](/documentation/docs/engineering/tools/api-testing)
+- [Git Rebase Strategies](/docs/engineering/tools/git-rebase)
+- [Docker for Development](/docs/engineering/tools/docker-dev)
+- [VS Code Setup](/docs/engineering/tools/vscode)
+- [Productivity Workflows](/docs/engineering/tools/productivity)
+- [API Testing (Postman, httpie)](/docs/engineering/tools/api-testing)
 
 ---
 

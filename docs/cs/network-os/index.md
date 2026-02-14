@@ -157,11 +157,11 @@ stateDiagram-v2
 
 ## 📝 Detailed Topics
 
-- [DNS Resolution](/documentation/docs/cs/network-os/dns)
-- [TLS/SSL Handshake](/documentation/docs/cs/network-os/tls)
-- [Linux Performance Tuning](/documentation/docs/cs/network-os/linux-performance)
-- [Container Networking](/documentation/docs/cs/network-os/container-networking)
-- [System Calls](/documentation/docs/cs/network-os/syscalls)
+- [DNS Resolution](/docs/cs/network-os/dns)
+- [TLS/SSL Handshake](/docs/cs/network-os/tls)
+- [Linux Performance Tuning](/docs/cs/network-os/linux-performance)
+- [Container Networking](/docs/cs/network-os/container-networking)
+- [System Calls](/docs/cs/network-os/syscalls)
 
 ---
 

@@ -16,28 +16,28 @@ This section covers the **practical engineering skills** needed to build, deploy
 
 ## 📚 Topics Covered
 
-### [Backend (Java Ecosystem)](/documentation/docs/engineering/backend)
+### [Backend (Java Ecosystem)](/docs/engineering/backend)
 Building robust, scalable server-side applications.
 - Spring Boot core concepts & annotations
 - Concurrency with JUC (java.util.concurrent)
 - JVM internals & garbage collection tuning
 - API design & microservices patterns
 
-### [Frontend (Modern Web)](/documentation/docs/engineering/frontend)
+### [Frontend (Modern Web)](/docs/engineering/frontend)
 Creating responsive, interactive user experiences.
 - React fundamentals & hooks
 - Next.js for full-stack applications
 - Tailwind CSS & modern styling
 - State management patterns
 
-### [DevOps & Cloud](/documentation/docs/engineering/devops)
+### [DevOps & Cloud](/docs/engineering/devops)
 Deploying and operating applications at scale.
 - Docker containerization
 - Kubernetes orchestration
 - AWS / Google Cloud services
 - CI/CD with GitHub Actions
 
-### [Developer Tools](/documentation/docs/engineering/tools)
+### [Developer Tools](/docs/engineering/tools)
 Maximizing productivity with the right tooling.
 - Git advanced workflows
 - IDE mastery (IntelliJ IDEA)

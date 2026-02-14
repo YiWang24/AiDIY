@@ -1872,6 +1872,6 @@ public class AgentMetrics {
 ---
 
 **Next Topics**:
-- [Database Access (JPA/JDBC)](/documentation/docs/engineering/backend/database)
-- [Caching Strategies](/documentation/docs/engineering/backend/caching)
-- [Microservices Patterns](/documentation/docs/engineering/backend/microservices)
+- [Database Access (JPA/JDBC)](/docs/engineering/backend/database)
+- [Caching Strategies](/docs/engineering/backend/caching)
+- [Microservices Patterns](/docs/engineering/backend/microservices)

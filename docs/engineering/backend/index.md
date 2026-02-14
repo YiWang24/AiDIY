@@ -257,12 +257,12 @@ public record ApiResponse<T>(
 
 ## 📝 Detailed Topics
 
-- **[Concurrency Programming](/documentation/docs/engineering/backend/concurrency)** - From fundamentals to virtual threads and AI Agent applications
-- [Spring Security](/documentation/docs/engineering/backend/spring-security)
-- [Database Access (JPA/JDBC)](/documentation/docs/engineering/backend/database)
-- [Caching Strategies](/documentation/docs/engineering/backend/caching)
-- [Microservices Patterns](/documentation/docs/engineering/backend/microservices)
-- [Testing Best Practices](/documentation/docs/engineering/backend/testing)
+- **[Concurrency Programming](/docs/engineering/backend/concurrency)** - From fundamentals to virtual threads and AI Agent applications
+- [Spring Security](/docs/engineering/backend/spring-security)
+- [Database Access (JPA/JDBC)](/docs/engineering/backend/database)
+- [Caching Strategies](/docs/engineering/backend/caching)
+- [Microservices Patterns](/docs/engineering/backend/microservices)
+- [Testing Best Practices](/docs/engineering/backend/testing)
 
 ---
 
