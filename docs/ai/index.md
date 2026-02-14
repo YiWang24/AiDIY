@@ -130,15 +130,15 @@ Essential resources for common tasks - avoid deep-diving into documentation.
 
 ### Standard Agent System Prompt Template
 
-[See Template Guide](/llm-foundamentals/prompts)
+[See Template Guide](./prompt-engineering/)
 
 ### MCP Server Standard Code Structure (Java/Spring)
 
-[See Java Implementation Guide](/ai/spring-ai)
+[See Java Implementation Guide](./spring-ai/)
 
 ### RAG Chunking Strategy Cheat Sheet
 
-[See RAG Optimization Guide](/ai/rag)
+[See RAG Optimization Guide](./rag/)
 
 ### Recommended LLM Parameters
 
@@ -155,17 +155,17 @@ Essential resources for common tasks - avoid deep-diving into documentation.
 
 ### Core Modules
 
-- **[LLM Foundational](/ai/llm-fundamentals)** - Transformer architecture, training, inference, limitations
-- **[Prompt Engineering](/ai/prompt-engineering)** - CoT, few-shot, ReAct patterns, output formatting
-- **[RAG](/ai/rag)** - Vector databases, embeddings, retrieval strategies, grounding
-- **[Agents](/ai/agents)** - Orchestration, multi-agent systems, planning, reflection
-- **[MCP](/ai/mcp)** - Protocol specification, server implementation, tools, resources
-- **[Context Engineering](/ai/context-engineering)** - Context windows, memory systems, optimization
-- **[AgentOps & Security](/ai/agentops-security)** - Deployment, monitoring, safety, incident response
+- **[LLM Foundational](./llm-fundamentals/)** - Transformer architecture, training, inference, limitations
+- **[Prompt Engineering](./prompt-engineering/)** - CoT, few-shot, ReAct patterns, output formatting
+- **[RAG](./rag/)** - Vector databases, embeddings, retrieval strategies, grounding
+- **[Agents](./agents/)** - Orchestration, multi-agent systems, planning, reflection
+- **[MCP](./mcp/)** - Protocol specification, server implementation, tools, resources
+- **[Context Engineering](./context-engineering/)** - Context windows, memory systems, optimization
+- **[AgentOps & Security](./agentops-security/)** - Deployment, monitoring, safety, incident response
 
 ### Additional Resources
 
-- **[Java & AI Internship Guide](/ai/internship/internship)** - Career development, practical skills
+- **[Java & AI Internship Guide](./internship/)** - Career development, practical skills
 
 ---
 
@@ -241,9 +241,9 @@ Before deploying to production:
 ---
 
 :::tip Get Started
-New to AI engineering? Start with **[LLM Foundational](/ai/llm-fundamentals)** to understand how models work, then move to **[Prompt Engineering](/ai/prompt-engineering)** to learn effective prompting patterns.
+New to AI engineering? Start with **[LLM Foundational](./llm-fundamentals/)** to understand how models work, then move to **[Prompt Engineering](./prompt-engineering/)** to learn effective prompting patterns.
 :::
 
 :::info For Java Developers
-If you're building AI applications with Spring Boot, check out **[MCP](/ai/mcp)** for standardized tool integration and **[AgentOps](/ai/agentops-security)** for production deployment patterns.
+If you're building AI applications with Spring Boot, check out **[MCP](./mcp/)** for standardized tool integration and **[AgentOps](./agentops-security/)** for production deployment patterns.
 :::

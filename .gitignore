@@ -10,7 +10,7 @@
 /build
 /.docusaurus
 /.cache-loader
-
+kb/data/
 # Misc
 .DS_Store
 *.pem

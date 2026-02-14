@@ -117,37 +117,37 @@ flowchart TB
 
 This chapter is structured to take you from fundamentals to production-ready systems:
 
-### 1. [Introduction](./01-introduction) - Core Concepts
+### 1. [Introduction](./introduction) - Core Concepts
 - **What makes something an "Agent"?**
 - The evolution from chatbots to autonomous systems
 - Core capabilities: Perception, Reasoning, Action, Reflection
 - When to use agents vs. traditional automation
 
-### 2. [Architecture](./02-architecture) - Building Blocks
+### 2. [Architecture](./architecture) - Building Blocks
 - **The Agent Loop**: Observe → Reason → Act → Observe
 - **Memory Systems**: Buffer, Summary, Vector, Entity, Episodic
 - **Tool Systems**: MCP, Function Calling, Error Handling
 - **Planning**: Task decomposition, Re-planning, Goal-directed
 
-### 3. [Design Patterns](./03-design-patterns) - Proven Solutions
+### 3. [Design Patterns](./design-patterns) - Proven Solutions
 - **Single-Agent Patterns**: ReAct, Reflection, Self-Consistency
 - **Multi-Agent Patterns**: Supervisor, Hierarchical, Debate
 - **Router Pattern**: Query classification and routing
 - **Case Studies**: Real-world implementations
 
-### 4. [Frameworks](./04-frameworks) - Tech Stack & Tools
+### 4. [Frameworks](./frameworks) - Tech Stack & Tools
 - **Framework Comparison**: LangChain, LangGraph, Semantic Kernel, AutoGen
 - **Spring AI Deep Dive**: Building production agents with Java
 - **Developer Tools**: LangSmith, Arize Phoenix, PromptLayer
 - **Complete Example**: End-to-end Spring Boot agent
 
-### 5. [Engineering](./05-engineering) - Production Readiness
+### 5. [Engineering](./engineering) - Production Readiness
 - **Evaluation**: LLM-as-a-Judge, metrics, testing frameworks
 - **Challenges**: Hallucination, infinite loops, cost control
 - **Security**: Prompt injection, access control, HITL
 - **Deployment**: Docker, observability, A/B testing
 
-### 6. [Frontier](./06-frontier) - Future Trends
+### 6. [Frontier](./frontier) - Future Trends
 - **Agentic V2**: Long-term planning, self-improvement
 - **Multi-Agent Research**: MetaGPT, ChatDev, AgentVerse
 - **Emerging Directions**: GUI agents, embodied agents
@@ -228,19 +228,19 @@ Researcher   Writer    Reviewer
 
 Before diving into agents, make sure you're comfortable with:
 
-1. **LLM Fundamentals** ([Module 01](/ai/llm-fundamentals))
+1. **LLM Fundamentals** ([Module 01](/docs/ai/llm-fundamentals/))
    - Tokenization, embeddings, inference
    - Model capabilities and limitations
 
-2. **Prompt Engineering** ([Module 02](/ai/prompt-engineering))
+2. **Prompt Engineering** ([Module 02](/docs/ai/prompt-engineering/))
    - System prompts, few-shot learning
    - Structured output, reasoning patterns
 
-3. **RAG** ([Module 03](/ai/rag))
+3. **RAG** ([Module 03](/docs/ai/rag/))
    - Vector databases, retrieval strategies
    - Context management
 
-4. **MCP** ([Module 05](/ai/mcp))
+4. **MCP** ([Module 05](/docs/ai/mcp/))
    - Tool protocol, server implementation
    - Resources, tools, and prompts
 
@@ -299,13 +299,13 @@ Before deploying an agent to production:
 ---
 
 :::tip Get Started
-New to agents? Start with **[01 Introduction](./01-introduction)** to understand the core concepts and evolution from chatbots to autonomous systems.
+New to agents? Start with **[01 Introduction](./introduction)** to understand the core concepts and evolution from chatbots to autonomous systems.
 :::
 
 :::info For Spring Boot Developers
-If you're building agents with Java, jump to **[04 Frameworks](./04-frameworks)** for Spring AI implementation guides and complete code examples.
+If you're building agents with Java, jump to **[04 Frameworks](./frameworks)** for Spring AI implementation guides and complete code examples.
 :::
 
 :::warning Production Readiness
-Deploying agents to production requires careful planning. See **[05 Engineering](./05-engineering)** for evaluation, security, and deployment best practices.
+Deploying agents to production requires careful planning. See **[05 Engineering](./engineering)** for evaluation, security, and deployment best practices.
 :::
