@@ -18,20 +18,47 @@ const sidebars: SidebarsConfig = {
           id: "cs/algorithms/index",
           label: "Overview",
         },
-        // Add more algorithm topics here as they are created
       ],
     },
     {
       type: "category",
       label: "System Design",
+      link: {
+        type: "doc",
+        id: "cs/system-design/index",
+      },
       collapsed: false,
       items: [
         {
           type: "doc",
-          id: "cs/system-design/index",
-          label: "Overview",
+          label: "1. Entry Layer",
+          id: "cs/system-design/entry-layer",
         },
-        // Add more system design topics here
+        {
+          type: "doc",
+          label: "2. Service Layer",
+          id: "cs/system-design/service-layer",
+        },
+        {
+          type: "doc",
+          label: "3. Storage Layer",
+          id: "cs/system-design/storage-layer",
+        },
+        {
+          type: "doc",
+          label: "4. Caching Layer",
+          id: "cs/system-design/caching-layer",
+        },
+        {
+          type: "doc",
+          label: "5. Messaging & Analytics",
+          id: "cs/system-design/messaging-analytics-layer",
+        },
+        {
+          type: "doc",
+          label: "6. Back-of-the-Envelope Estimation",
+          id: "cs/system-design/back-of-envelope-estimation",
+        },
       ],
     },
     {
@@ -44,7 +71,6 @@ const sidebars: SidebarsConfig = {
           id: "cs/database/index",
           label: "Overview",
         },
-        // Add more database topics here
       ],
     },
     {
@@ -57,7 +83,6 @@ const sidebars: SidebarsConfig = {
           id: "cs/network-os/index",
           label: "Overview",
         },
-        // Add more network/OS topics here
       ],
     },
   ],
@@ -71,7 +96,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "LLM Foundational",
+      label: "LLM Fundamentals",
       collapsed: false,
       items: [
         {
@@ -106,13 +131,13 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
-          id: "ai/llm-fundamentals/training-pipeline",
-          label: "6. Training Pipeline",
+          id: "ai/llm-fundamentals/limitations",
+          label: "7. Limitations",
         },
         {
           type: "doc",
-          id: "ai/llm-fundamentals/limitations",
-          label: "7. Cognitive Limitations",
+          id: "ai/llm-fundamentals/training-pipeline",
+          label: "6. Training Pipeline",
         },
       ],
     },
@@ -134,7 +159,7 @@ const sidebars: SidebarsConfig = {
         {
           type: "doc",
           id: "ai/prompt-engineering/prompt-anatomy",
-          label: "2.1 Anatomy of a Prompt",
+          label: "2.1 Prompt Anatomy",
         },
         {
           type: "doc",
@@ -159,17 +184,17 @@ const sidebars: SidebarsConfig = {
         {
           type: "doc",
           id: "ai/prompt-engineering/advanced-techniques",
-          label: "3.1 Advanced Techniques",
-        },
-        {
-          type: "doc",
-          id: "ai/prompt-engineering/multimodal",
-          label: "3.2 Multi-modal Prompting",
+          label: "2.6 Advanced Techniques",
         },
         {
           type: "doc",
           id: "ai/prompt-engineering/agent-orchestration",
-          label: "3.3 Agent Orchestration",
+          label: "2.7 Agent Orchestration",
+        },
+        {
+          type: "doc",
+          id: "ai/prompt-engineering/multimodal",
+          label: "2.8 Multimodal",
         },
       ],
     },
@@ -195,13 +220,8 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
-          id: "ai/rag/vector-indexing",
-          label: "3. Vector Indexing",
-        },
-        {
-          type: "doc",
           id: "ai/rag/retrieval",
-          label: "4. Retrieval",
+          label: "3. Retrieval",
         },
         {
           type: "doc",
@@ -303,7 +323,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "AgentOps and Security",
+      label: "AgentOps & Security",
       collapsed: false,
       items: [
         {
@@ -314,9 +334,16 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
-      type: "doc",
-      id: "ai/internship/internship",
-      label: "Java & AI Internship Guide",
+      type: "category",
+      label: "Java & AI Internship",
+      collapsed: false,
+      items: [
+        {
+          type: "doc",
+          id: "ai/internship/internship",
+          label: "Java & AI Internship Guide",
+        },
+      ],
     },
   ],
 
@@ -342,7 +369,6 @@ const sidebars: SidebarsConfig = {
           id: "engineering/backend/concurrency",
           label: "Concurrency Programming",
         },
-        // Add more backend topics here
       ],
     },
     {
@@ -355,7 +381,6 @@ const sidebars: SidebarsConfig = {
           id: "engineering/frontend/index",
           label: "Overview",
         },
-        // Add more frontend topics here
       ],
     },
     {
@@ -368,7 +393,6 @@ const sidebars: SidebarsConfig = {
           id: "engineering/devops/index",
           label: "Overview",
         },
-        // Add more DevOps topics here
       ],
     },
     {
@@ -381,7 +405,6 @@ const sidebars: SidebarsConfig = {
           id: "engineering/tools/index",
           label: "Overview",
         },
-        // Add more tool topics here
       ],
     },
   ],
@@ -394,21 +417,29 @@ const sidebars: SidebarsConfig = {
       label: "Case Studies Overview",
     },
     {
-      type: "doc",
-      id: "projects/rag-knowledge-base",
+      type: "category",
       label: "RAG Knowledge Base",
+      collapsed: false,
+      items: [
+        {
+          type: "doc",
+          id: "projects/rag-knowledge-base",
+          label: "RAG Knowledge Base",
+        },
+      ],
     },
     {
-      type: "doc",
-      id: "projects/kb-rag-system",
-      label: "RAG System Architecture",
-    },
-    {
-      type: "doc",
-      id: "projects/ecommerce-refactor",
+      type: "category",
       label: "E-commerce Refactor",
+      collapsed: false,
+      items: [
+        {
+          type: "doc",
+          id: "projects/ecommerce-refactor",
+          label: "E-commerce Refactor",
+        },
+      ],
     },
-    // Add more case studies here
   ],
 };
 

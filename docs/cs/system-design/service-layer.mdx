@@ -1,0 +1,479 @@
+---
+id: service-layer
+title: 2. Service Layer
+sidebar_label: "2. Service Layer"
+description: "Service boundaries, communication patterns, monolith vs microservices, and resilience strategies."
+---
+
+# 2. Service Layer
+
+The Service Layer is where business capabilities live. It is also where the hardest scaling problems often appear: not raw throughput, but coordination, failure propagation, and organizational complexity.
+
+Good service-layer design makes change cheap and failure contained. Bad service-layer design makes every change risky and every incident confusing. The structure of your service layer defines how your organization moves, how failures cascade, and how quickly you can ship new features.
+
+## What Belongs In This Layer
+
+- Service boundaries: what a service owns (behavior, data, APIs) and what it does not.
+- Collaboration patterns: synchronous calls vs asynchronous events, and how workflows coordinate.
+- Reliability behavior: timeouts, retries, backpressure, circuit breaking, and bulkheads.
+- Consistency strategy: how the system behaves when parts of a workflow fail.
+- Observability expectations: what must be traceable and measurable across service boundaries.
+
+## Why It Matters
+
+### 1. Team Autonomy
+When boundaries are clean and ownership is real, teams can deploy independently and move faster without stepping on each other. Clear service ownership aligns technical boundaries with organizational structure, reducing coordination overhead.
+
+### 2. Fault Isolation
+Failures become local rather than systemic if you explicitly design for partial failure and avoid "tight coupling by default." Well-designed service boundaries prevent cascading failures from bringing down the entire system.
+
+### 3. Evolutionary Architecture
+You can replace or rewrite parts of the system with less risk when contracts are stable and dependencies are constrained. This allows you to adopt new technologies and fix architectural mistakes incrementally rather than through painful rewrites.
+
+### 4. Scalability Alignment
+Service boundaries allow you to scale the parts of your system that need it most, rather than scaling everything uniformly. This optimizes infrastructure costs and improves resource utilization.
+
+## Downsides and Risks
+
+- Debugging becomes harder as call graphs grow.
+- Networks fail frequently at scale; you must treat timeouts and retries as core design, not afterthoughts.
+- Consistency moves from "a database concern" to "a workflow concern."
+- Operational overhead grows quickly: deployments, access control, on-call, and incident response.
+- Distributed transactions are orders of magnitude harder than in-process transactions.
+- Performance overhead from network serialization and protocol processing.
+- Integration testing becomes exponentially more complex with more services.
+
+## Key Trade-offs and How to Decide
+
+### Service Granularity
+
+**Too Coarse (Monolithic Service):**
+- Multiple teams working in same codebase creates deployment conflicts
+- Changes require coordination across team boundaries
+- Scaling is all-or-nothing (must scale entire service even if only one feature is hot)
+- Technology choices affect entire codebase
+- Testing surface grows with entire system
+
+**Too Fine (Nanoservices):**
+- Network latency overhead dominates request time
+- Operational complexity explodes (many more deployments, monitoring, on-call rotations)
+- Debugging requires tracing through many services
+- Distributed transactions become nearly impossible
+- Shared infrastructure concerns duplicate across many services
+
+**Monolith vs Microservices Decision Framework:**
+
+**Monolith Advantages:**
+- Simple deployment (single artifact)
+- No network latency between components
+- Simple transactions and consistency
+- Easier testing and debugging
+- Lower operational overhead
+- Better for small teams and early products
+
+**Monolith Disadvantages:**
+- Technology lock-in (single language/framework)
+- Hard to scale individual components
+- Organizational boundaries become artificial
+- All changes affect entire system
+- Deployments become riskier as codebase grows
+
+**Microservices Advantages:**
+- Independent deployment and scaling
+- Technology diversity (right tool for each job)
+- Clear team ownership boundaries
+- Fault isolation (one service failure doesn't necessarily take down entire system)
+- Enables organizational scaling
+
+**Microservices Disadvantages:**
+- Network latency and reliability concerns
+- Distributed transactions are difficult
+- Operational complexity increases dramatically
+- Integration testing is expensive
+- Requires mature DevOps practices
+
+**Business Scenario Guidance:**
+
+**Start with Monolith when:**
+- Team size is small (< 10-15 developers)
+- Product-market fit is uncertain (requirements changing rapidly)
+- Traffic and data scale are unknown
+- Limited operational expertise in organization
+- Need to iterate quickly on product features
+
+**Split into Microservices when:**
+- Multiple teams need independent deployment cycles
+- Different components have conflicting scaling requirements
+- Different components benefit from different technology stacks
+- Organizational structure has clear domain boundaries
+- Operations team can support distributed system complexity
+
+**Never split into microservices just because:**
+- It's the trendy architecture
+- You want to use multiple technologies (technology diversity should be need-driven)
+- You think it will "solve" all scalability problems
+- You want to hire "microservices engineers"
+
+### Communication Protocols: REST vs GraphQL vs gRPC
+
+**REST (Representational State Transfer):**
+
+**Advantages:**
+- Ubiquitous tooling and ecosystem support
+- Cache-friendly through HTTP semantics
+- Broad compatibility across languages and platforms
+- Simple and human-readable
+- Excellent for public APIs and external integrations
+
+**Disadvantages:**
+- Over-fetching and under-fetching problems
+- Multiple round trips for related data
+- Less efficient serialization (text-based JSON)
+- Limited type safety (depends on implementation)
+- Versioning can be complex
+
+**Best for:**
+- Public-facing APIs
+- Integration with third parties
+- Simple CRUD operations
+- Web applications with standard HTTP clients
+
+**GraphQL:**
+
+**Advantages:**
+- Clients request exactly the data they need (no over-fetching)
+- Single request for complex, nested data
+- Strongly typed schema
+- Self-documenting API
+- Excellent for BFF (Backend for Frontend) patterns
+
+**Disadvantages:**
+- More complex server implementation
+- Caching is harder (POST requests, no HTTP semantics)
+- Query complexity can cause performance issues (nested queries, N+1 problems)
+- Requires careful schema design and evolution
+- Overkill for simple APIs
+
+**Best for:**
+- Mobile applications (bandwidth optimization)
+- Complex data relationships and aggregations
+- Client-driven data requirements
+- BFF (Backend for Frontend) patterns
+
+**gRPC (Remote Procedure Call):**
+
+**Advantages:**
+- Highly efficient binary serialization (Protocol Buffers)
+- Strong contract enforcement and type safety
+- Built-in code generation for multiple languages
+- Bidirectional streaming (server push, client push)
+- Excellent for internal service-to-service communication
+
+**Disadvantages:**
+- Limited human readability (binary protocol)
+- Limited browser support
+- More complex debugging and tooling
+- Tight coupling through shared schemas
+- Less suitable for public APIs
+
+**Best for:**
+- High-performance internal microservices
+- Real-time streaming applications
+- Polyglot environments (services in different languages)
+- Low-latency requirements
+
+**Business Trade-off Summary:**
+- **Public APIs:** REST for broad compatibility, GraphQL for complex data needs
+- **Internal microservices:** gRPC for performance and type safety, REST for simplicity
+- **Mobile clients:** GraphQL to minimize data transfer, REST with versioning for stability
+
+### Synchronous vs Asynchronous Collaboration
+
+**Synchronous Communication (Request/Response):**
+
+**Advantages:**
+- Simpler mental model and debugging flow
+- Immediate feedback (errors returned directly to caller)
+- Easier to reason about system state
+- Natural for user-facing operations requiring confirmation
+- Straightforward error handling
+
+**Disadvantages:**
+- Amplifies tail latency (caller waits for entire chain)
+- Creates cascading failures (downstream failure affects upstream)
+- Tight temporal coupling between services
+- Harder to scale under load (all services must be available)
+- No natural retry or dead letter queuing
+
+**Best for:**
+- User-facing operations requiring immediate confirmation (payments, critical writes)
+- Simple query operations where data must be fresh
+- Operations where business rules require synchronous validation
+- Low-latency requirement paths
+
+**Asynchronous Communication (Events, Messages):**
+
+**Advantages:**
+- Natural fault isolation (sender doesn't depend on receiver availability)
+- Smooths traffic spikes (message queues buffer load)
+- Enables retry and dead letter handling
+- Services can scale independently
+- Better for long-running operations
+
+**Disadvantages:**
+- More complex mental model (message flow is less obvious)
+- Eventual consistency (data is stale until processed)
+- Harder debugging (must trace through message history)
+- Requires durable message infrastructure
+- Potential for message ordering and duplication challenges
+
+**Best for:**
+- Background processing (email notifications, reports, data aggregation)
+- High-volume write operations where immediate confirmation isn't required
+- Cross-service communication where fault isolation is critical
+- Long-running workflows (order processing, data pipelines)
+
+**Business Scenario Guidance:**
+
+**Synchronous for:**
+- Payment processing (user must know if payment succeeded)
+- Inventory checks (user must know if item is available)
+- Authentication and authorization (user must know immediately)
+- Critical writes where consistency is more important than availability
+
+**Asynchronous for:**
+- Welcome emails and notifications
+- Analytics collection
+- Search indexing
+- Data synchronization between services
+- Recommendation generation
+- Report generation
+
+**Hybrid Approach (Common Pattern):**
+- Synchronous: Accept user request and create domain entity
+- Asynchronous: Process side effects (notifications, indexing, analytics)
+- User sees "processing" state for complex operations
+- Backend updates user when processing completes (WebSocket, polling)
+
+### Service Discovery Patterns
+
+**Client-Side Service Discovery:**
+- Services query registry directly, call other services
+- Pros: No additional hop, simpler infrastructure
+- Cons: Clients couple to registry, versioning complexity
+- Best for: Performance-optimized internal services, controlled environments
+
+**Server-Side Service Discovery:**
+- Load balancer/gateway queries registry, routes requests
+- Pros: Centralized policies, client-agnostic
+- Cons: Additional hop, gateway dependency
+- Best for: Public APIs, multi-client environments
+
+**Registration Approaches:**
+- **Self-registration:** Services register themselves (simple, risk of stale entries)
+- **Third-party registration:** Platform manages registration (reliable, infra coupling)
+
+## Resilience Patterns
+
+### Circuit Breaker Pattern
+
+**Purpose:** Prevent cascading failures by failing fast when a dependency is consistently failing.
+
+**How it works:**
+- Track failures to a dependency over a time window
+- When failure threshold is reached, circuit opens
+- Open circuit: immediately fail requests without calling dependency
+- After timeout, attempt single request (half-open state)
+- If request succeeds, close circuit; if fails, reopen
+
+**Advantages:**
+- Prevents cascading failures
+- Fast failure saves resources for healthy paths
+- Graceful degradation possible (fallback responses)
+- Protects failing dependency from overload
+
+**Disadvantages:**
+- Adds complexity to service logic
+- Requires tuning (thresholds, timeouts)
+- Partial failures become visible to users (graceful degradation required)
+- Must distinguish between transient and permanent failures
+
+**Best for:**
+- Calls to external services with known failure modes
+- Critical dependencies where failure should trigger fallback
+- Protecting shared resources from overload during degradation
+
+**Business Scenario Examples:**
+- **E-commerce:** Product recommendation service down → Show default bestsellers instead
+- **Search:** Search service degraded → Show cached popular results
+- **Payments:** Payment gateway timeout → Queue for retry and show "processing" state
+
+### Retry Pattern
+
+**Purpose:** Handle transient failures by retrying failed operations.
+
+**Critical Consideration:** Unbounded retries cause retry storms and amplify outages. Always retry with budget.
+
+**Exponential Backoff with Jitter:**
+- Initial retry after short delay (e.g., 50ms)
+- Each subsequent retry waits exponentially longer (100ms, 200ms, 400ms...)
+- Add jitter (random variation) to prevent thundering herd
+- Set maximum retry limit and maximum timeout
+
+**Advantages:**
+- Handles transient failures (network blips, temporary overload)
+- Simple to implement
+- Improves overall success rate for unreliable dependencies
+
+**Disadvantages:**
+- Can amplify load on struggling dependencies (retry storms)
+- Increases latency for callers (retries take time)
+- Idempotency requirements (must handle duplicate requests)
+- Can mask real problems (everything looks fine but retries are high)
+
+**Best for:**
+- Network-based service calls where transient failures are common
+- Non-user-facing background operations
+- Operations with clear idempotency guarantees
+
+**Avoid for:**
+- User-facing interactive requests (retries feel like slow performance)
+- Non-idempotent operations (can't safely retry)
+- Operations where fast failure is better than delayed success
+
+### Bulkhead Pattern
+
+**Purpose:** Isolate resource pools so one failing component doesn't consume all resources.
+
+**How it works:**
+- Separate thread pools, connection pools, or resource limits per dependency
+- One hot dependency cannot consume resources needed for healthy paths
+- Failed component saturates its own pool, not global resources
+
+**Advantages:**
+- Prevents resource exhaustion from cascading
+- Enables graceful degradation (some features work, others fail fast)
+- Predictable resource allocation per feature
+- Easier capacity planning
+
+**Disadvantages:**
+- Underutilized resources (idle pools can't be shared)
+- More complex configuration (tune pool sizes per dependency)
+- Must choose right isolation boundaries
+
+**Best for:**
+- Services with multiple client types or feature areas
+- Third-party integrations with unpredictable performance
+- Background processing mixed with user-facing operations
+
+**Business Scenario Examples:**
+- **API service:** Separate connection pools for internal vs external APIs (external API problems don't affect internal)
+- **File processing:** Separate thread pools for user uploads vs. batch imports (large batch jobs don't slow user uploads)
+- **Database:** Separate connection pools for read replicas vs. write primary (slow reads don't consume write connections)
+
+### Timeout Patterns
+
+**Purpose:** Prevent indefinite waiting and fast-fail unhealthy operations.
+
+**Timeout Hierarchy:**
+- **Per-operation timeout:** Maximum time for specific operation (e.g., database query)
+- **Overall request timeout:** Maximum time for entire user request (sum of all operations)
+- **Connection timeout:** Maximum time to establish connection
+- **Read/Write timeout:** Maximum time for I/O operations
+
+**Advantages:**
+- Prevents threads/connections from hanging indefinitely
+- Forces system to handle overload gracefully
+- Protects both callers and callees from stuck operations
+- Essential for circuit breaker to function
+
+**Disadvantages:**
+- Requires careful tuning (too short: false failures; too long: slow detection)
+- Different operation types require different timeouts
+- Must account for tail latency, not average
+
+**Best for:**
+- All network-based operations (no exceptions)
+- User-facing requests (users shouldn't wait indefinitely)
+- Any operation with resource dependency (database, queue, cache)
+
+**Timeout Tuning Guidance:**
+- Set timeouts based on p99.9 expected latency, not average
+- Consider degradation scenarios (slow database, network congestion)
+- Separate timeouts for different operation classes (fast reads vs. complex aggregations)
+- Document timeout assumptions and monitor p99 latencies
+
+## Distributed Transaction Patterns
+
+### Saga Pattern
+
+**Purpose:** Manage transactions across multiple services without distributed locking.
+
+**How it works:**
+- Break transaction into sequence of local transactions
+- Each service performs its local transaction and publishes event
+- Next service in sequence executes its transaction based on event
+- If any step fails, execute compensating transactions in reverse order
+
+**Advantages:**
+- Avoids distributed locks and long-held locks
+- Each service owns its data and transaction logic
+- Scales better than distributed transactions
+- Clear audit trail (sequence of events)
+
+**Disadvantages:**
+- Eventual consistency (system is inconsistent until saga completes)
+- More complex programming model (must define compensating actions)
+- Can have visible intermediate states to users
+- Harder to reason about than ACID transactions
+
+**Best for:**
+- Long-running business processes (order fulfillment, travel booking)
+- Multi-service workflows where distributed locking is unacceptable
+- Operations where eventual consistency is acceptable
+
+**Business Scenario Examples:**
+- **Order fulfillment:** Create order → Reserve inventory → Charge payment → Ship order (each step has compensating action)
+- **Travel booking:** Book flight → Book hotel → Book rental car (if hotel unavailable, cancel flight)
+- **Account migration:** Validate source account → Create destination account → Transfer funds → Close source account
+
+### Orchestration vs Choreography
+
+**Orchestration:**
+- Central coordinator (orchestrator) manages workflow
+- Coordinator calls each service in sequence
+- Coordinator handles failures and compensating transactions
+- **Advantages:** Easier to visualize workflow, centralized error handling
+- **Disadvantages:** Coordinator becomes critical infrastructure, coordinator must understand entire workflow
+
+**Choreography:**
+- Each service listens for events and performs next step
+- No central coordinator; workflow emerges from event flow
+- **Advantages:** No single point of coordination, services are decoupled
+- **Disadvantages:** Harder to understand total workflow, debugging distributed event flows
+
+**Best for:**
+- **Orchestration:** Complex workflows requiring centralized logic (order processing with complex business rules)
+- **Choreography:** Simple event-driven flows (user created → send welcome email → update analytics)
+
+## Reliability Defaults (Non-Negotiable at Scale)
+
+- Timeouts everywhere: a call without a timeout is a latent incident.
+- Retries with budgets: retries help only when they are constrained; otherwise they multiply load during failure.
+- Backpressure: protect dependencies by shedding load early and predictably.
+- Bulkheads: isolate resource pools so one hot path does not starve everything.
+
+## Consistency as User-Visible Behavior
+
+“Eventual consistency” is not a technical property you declare. It is a user experience you design.
+
+- Define which states are acceptable to show (pending, processing, partial completion).
+- Define compensation behavior for partial failures (refund, rollback, retry later, manual intervention).
+- Define idempotency rules for every operation that can be retried.
+
+## Operational Checklist
+
+- Explicit service ownership, including data ownership.
+- Contract evolution policy (backward compatibility and deprecation windows).
+- A standard resilience library or platform defaults (timeouts, retry policies, circuit breaking).
+- Tracing and correlation across boundaries (not optional for multi-service systems).

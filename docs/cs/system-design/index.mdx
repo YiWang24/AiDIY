@@ -1,0 +1,74 @@
+---
+id: index
+title: System Design
+sidebar_label: Overview
+description: A concept-first, trade-off-driven guide to system design, organized by layers.
+---
+
+# System Design
+
+System design is not a collection of buzzwords. It is the practice of making explicit trade-offs under constraints: latency, throughput, availability, consistency, cost, security, and organizational complexity.
+
+This knowledge base is organized as a layered mental model. Layers are not “mandatory components”; they are a way to reason about where responsibilities live and how failure modes propagate.
+
+## Layer Map
+
+| Layer | Primary Goal | Typical Responsibilities | Core Trade-off |
+|---|---|---|---|
+| 1. [Entry Layer](./entry-layer.mdx) | Safe, governed ingress | Load balancing, gateway policies, auth, rate limiting, edge routing | Governance vs latency and blast radius |
+| 2. [Service Layer](./service-layer.mdx) | Business capability delivery | Service boundaries, communication patterns, resilience behaviors | Team autonomy vs distributed complexity |
+| 3. [Storage Layer](./storage-layer.mdx) | Correctness and scale ceiling | Data modeling, replication, sharding, consistency models | Strong guarantees vs availability/throughput |
+| 4. [Caching Layer](./caching-layer.mdx) | Low latency and origin protection | Cache patterns, invalidation strategy, distributed caches | Speed vs staleness and operational risk |
+| 5. [Messaging & Analytics](./messaging-analytics-layer.mdx) | Async collaboration and insight | Queues/logs, events, indexing/search, analytics | Decoupling vs observability and semantics |
+| 6. [BOE Estimation](./back-of-envelope-estimation.mdx) | Quick feasibility assessment | Capacity planning, bottleneck identification, cost estimation | Precision vs speed of decision-making |
+
+## How To Use This Section
+
+Read in this order for most systems:
+
+- Entry and Service: define request paths and responsibility boundaries.
+- Storage and Caching: define correctness, consistency, and latency strategy.
+- Messaging and Analytics: define async semantics, workflows, and query/insight needs.
+- BOE Estimation: use back-of-the-envelope calculations throughout design process.
+
+## A Practical Trade-off Framework
+
+When deciding between designs, answer these questions explicitly:
+
+1. Which metrics are protected first (p99 latency, error rate, availability, cost, security)?
+2. Under peak load or partial failure, what breaks first and how does it degrade?
+3. Where does complexity move (product teams, platform team, ops/SRE, data team)?
+4. What is the migration cost in three months when requirements change?
+5. What is the “escape hatch” when your current assumptions stop holding?
+
+## Common Anti-Patterns
+
+- Designing the system before agreeing on SLOs, scale, and constraints.
+- Over-optimizing early (sharding on day one, microservices everywhere, “event-driven” without clear semantics).
+- Treating “eventual consistency” as a free performance win without defining user-visible behavior.
+- Adding layers without owning their operational costs (on-call, monitoring, incident response).
+- Relying on retries everywhere without budgets (retry storms create outages).
+
+## Navigation
+
+- [1. Entry Layer](./entry-layer.mdx)
+- [2. Service Layer](./service-layer.mdx)
+- [3. Storage Layer](./storage-layer.mdx)
+- [4. Caching Layer](./caching-layer.mdx)
+- [5. Messaging & Analytics Layer](./messaging-analytics-layer.mdx)
+- [6. Back-of-the-Envelope Estimation](./back-of-envelope-estimation.mdx)
+
+## Further Reading (Selected)
+
+- Martin Fowler: Microservices and evolutionary architecture essays.
+- Martin Kleppmann: Designing Data-Intensive Applications (replication, consistency, streams).
+- AWS Builders Library: reliability, timeouts/retries, and operational excellence patterns.
+- Elastic documentation: shard sizing, replicas, and lifecycle management concepts.
+
+## 章节导航
+
+- [1. Entry Layer](./entry-layer.mdx)
+- [2. Service Layer](./service-layer.mdx)
+- [3. Storage Layer](./storage-layer.mdx)
+- [4. Caching Layer](./caching-layer.mdx)
+- [5. Messaging & Analytics Layer](./messaging-analytics-layer.mdx)

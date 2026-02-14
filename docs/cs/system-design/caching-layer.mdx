@@ -1,0 +1,477 @@
+---
+id: caching-layer
+title: 4. Caching Layer
+sidebar_label: "4. Caching Layer"
+description: "Low latency at scale: cache patterns, invalidation, failure modes, and trade-offs."
+---
+
+# 4. Caching Layer
+
+Caching buys latency and reduces origin load, but it also introduces correctness risk and operational complexity. A cache is not a “free speed-up”; it is a distributed system component with its own failure modes.
+
+## What Belongs In This Layer
+
+- Cache access patterns: cache-aside, read-through, write-through, write-behind, refresh-ahead.
+- Expiration and invalidation strategy: TTL, explicit invalidation, event-driven invalidation, versioning.
+- Multi-level caching: edge/CDN, application “near cache,” and shared distributed caches.
+- Hot key and overload protection: request coalescing, jittered TTLs, and safe fallbacks.
+
+## Why It Matters
+
+### 1. It Improves Tail Latency
+Even if average database latency looks fine, tail latency can dominate user experience. Cache hits reduce variance and protect p99.
+
+### 2. It Protects Origins
+Databases and critical services fail under sudden bursts. Caching can turn a “traffic spike outage” into a “degraded but alive” event.
+
+### 3. It Reduces Cost
+When used correctly, caches delay expensive database scaling and reduce repeated computation.
+
+## Downsides and Risks
+
+- Staleness: the fastest data is sometimes the wrong data.
+- Invalidation complexity: correctness often depends on getting invalidation right.
+- Cache outages: when caches fail, origins can be overwhelmed by sudden backfill.
+- Write-path complexity: write-through/write-behind patterns add coordination and failure handling.
+
+## Key Trade-offs and How to Decide
+
+### Cache Placement Strategies
+
+**Browser Cache (Client-Side):**
+
+**How it works:** Browser stores responses locally based on HTTP headers (Cache-Control, ETag, Last-Modified).
+
+**Advantages:**
+- Zero network requests (optimal performance)
+- Zero server load
+- Excellent for static assets and user-specific data
+- Simple to implement via HTTP headers
+
+**Disadvantages:**
+- Limited control (user can clear cache)
+- Storage varies by browser and device
+- Difficult to invalidate before expiry
+- Not suitable for sensitive or personalized data
+
+**Best for:**
+- Static assets (CSS, JS, images, fonts)
+- Public API responses with infrequent changes
+- User profile data (cache per browser, expires reasonable timeframe)
+
+**Business Scenario Examples:**
+- **Marketing sites:** Static HTML, CSS, JS (hours/days cache duration)
+- **Product images:** Static product photography (days/weeks cache duration)
+- **User settings:** Preferences, language settings (hours cache duration)
+
+**CDN / Edge Cache:**
+
+**How it works:** Content delivery network stores content at edge locations globally, serves from nearest location.
+
+**Advantages:**
+- Geographic latency reduction (content close to users)
+- Massive origin load reduction (most requests never reach origin)
+- DDoS absorption at edge (attacks absorbed before origin)
+- Built-in HTTP header support
+- Global invalidation capability
+
+**Disadvantages:**
+- Staleness risk (updates propagate slowly)
+- Invalidation cost (global invalidation can be expensive)
+- Limited control over cache behavior
+- Vendor lock-in risk
+- Cost for high traffic volume
+
+**Best for:**
+- Static assets globally (images, media, downloads)
+- Public API responses
+- Media streaming (video chunks)
+- Software downloads
+
+**Business Scenario Examples:**
+- **Media streaming:** Video chunks cached globally (minutes/hours cache)
+- **Software distribution:** Application installers, updates (days cache)
+- **Public APIs:** Product listings, public data (minutes cache with invalidation)
+- **Documentation:** Technical documentation, help content (hours/days cache)
+
+**Application-Level Cache (Near Cache / Local Cache):**
+
+**How it works:** In-memory cache within application process (e.g., Guava, Caffeine, JavaScript Map).
+
+**Advantages:**
+- Extremely fast (no network round-trip, in-memory)
+- Simple to implement
+- No shared infrastructure needed
+- Application has full control
+
+**Disadvantages:**
+- Inconsistent across instances (each instance has own cache)
+- Limited memory capacity (competes with application memory)
+- Data duplicated across instances (memory inefficient)
+- Invalidation challenges (must invalidate across all instances)
+- Cache cold start on new instances
+
+**Best for:**
+- Configuration data (feature flags, settings)
+- Small, frequently accessed data
+- Data where slight inconsistency is acceptable
+- Read-heavy reference data (lookup tables, mappings)
+
+**Business Scenario Examples:**
+- **Feature flags:** Feature configuration (seconds/minutes cache)
+- **Country/region mappings:** IP geolocation mappings (hours cache)
+- **Exchange rates:** Currency conversion rates (minutes cache)
+- **Product categories:** Category hierarchies (minutes/hours cache)
+
+**Shared Distributed Cache (Redis, Memcached):**
+
+**How it works:** Dedicated caching infrastructure accessible via network from all application instances.
+
+**Advantages:**
+- Consistent view across all instances
+- Large capacity (can cache more data than local memory)
+- Single place to invalidate
+- Can persist data (Redis persistence options)
+- Advanced features (expirations, pub/sub, data structures)
+
+**Disadvantages:**
+- Network latency overhead
+- Additional infrastructure to operate
+- Single point of failure (requires replication/HA)
+- Operational complexity
+- Cost (dedicated infrastructure)
+
+**Best for:**
+- User session data
+- Shopping cart contents
+- Expensive query results
+- Rate limiting counters
+- User-specific frequently accessed data
+
+**Business Scenario Examples:**
+- **Shopping sessions:** Active shopping carts (minutes/hours cache)
+- **User profiles:** Profile data, preferences (minutes cache)
+- **API responses:** Expensive database query results (minutes cache)
+- **Rate limiting:** Request counters, quota tracking (seconds/minutes cache)
+
+**Database Query Cache:**
+
+**How it works:** Database caches query execution plans and result sets internally.
+
+**Advantages:**
+- Transparent to application (automatic)
+- Optimized by database engine
+- No additional infrastructure
+- Handled by database experts
+
+**Disadvantages:**
+- Limited control (database controls cache)
+- Shared with other database operations
+- Limited capacity
+- Invalidated by database writes
+
+**Best for:**
+- Frequently executed queries
+- Read-heavy workloads
+- Analytical queries with repeated patterns
+
+**Business Scenario Examples:**
+- **Reporting queries:** Daily reports with predictable query patterns
+- **Dashboard queries:** Metrics and aggregations (seconds/minutes cache)
+- **Product lookups:** Frequently accessed product data (seconds cache)
+
+**Full-Page Cache:**
+
+**How it works:** Cache entire rendered HTML page, serve without executing application logic.
+
+**Advantages:**
+- Maximum performance (no application execution)
+- Minimal server load
+- Simple architecture
+
+**Disadvantages:**
+- Not suitable for personalized content
+- Invalidation challenges (any content change invalidates page)
+- Limited to pages with low personalization
+- Stale content risk
+
+**Best for:**
+- Public pages (home, marketing pages)
+- Blog posts and articles
+- Product listing pages
+- Documentation pages
+
+**Business Scenario Examples:**
+- **Marketing sites:** Home page, about pages (minutes/hours cache)
+- **Blog:** Article pages (hours/days cache)
+- **Documentation:** Help and documentation pages (hours cache)
+- **Product listings:** Category browse pages (seconds/minutes cache)
+
+**Object Cache (Partial Page Cache):**
+
+**How it works:** Cache data objects, render pages dynamically by assembling cached objects.
+
+**Advantages:**
+- Flexible (can personalize while caching shared content)
+- Better hit rates than full-page cache
+- Suitable for personalized experiences
+- Cache at natural object boundaries
+
+**Disadvantages:**
+- More complex than full-page cache
+- Still requires application logic
+- Multiple cache lookups per page
+- Assembly overhead
+
+**Best for:**
+- Pages with mix of personalized and shared content
+- Dynamic pages with expensive object loading
+- User dashboards (personalized view of shared data)
+
+**Business Scenario Examples:**
+- **Social feed:** User-specific feed composed of cached posts (seconds cache)
+- **User dashboard:** Personalized view of cached data (minutes cache)
+- **Product pages:** Product details + user-specific pricing (minutes cache)
+
+### Cache Algorithms and Eviction Policies
+
+**LRU (Least Recently Used):**
+
+**How it works:** Evict items that haven't been accessed for the longest time.
+
+**Advantages:**
+- Simple to implement
+- Good for temporal locality (recently used items likely to be used again)
+- Reasonable performance for many workloads
+
+**Disadvantages:**
+- Can be expensive to implement perfectly (requires tracking access order)
+- One-time access patterns (scan) pollute cache
+- Susceptible to cache thrashing
+
+**Best for:**
+- General-purpose caching
+- Web application data
+- Frequently used reference data
+
+**LFU (Least Frequently Used):**
+
+**How it works:** Evict items with lowest access frequency.
+
+**Advantages:**
+- Excellent for stable access patterns
+- Popular items stay in cache
+- Good for read-heavy workloads
+
+**Disadvantages:**
+- Requires tracking access frequency (overhead)
+- New items risk eviction before establishing frequency
+- Cold start problem
+- Changes in access patterns slow to adapt
+
+**Best for:**
+- Static content with predictable popularity
+- Long-lived cached data
+- Reference data
+
+**ARC (Adaptive Replacement Cache):**
+
+**How it works:** Dynamically balances between LRU and LFU based on workload.
+
+**Advantages:**
+- Adapts to changing workloads
+- Balances recency and frequency
+- Better hit rates than fixed policies for variable workloads
+
+**Disadvantages:**
+- More complex to implement
+- Tuning parameters required
+- Overhead compared to simple policies
+
+**Best for:**
+- Variable workloads
+- Mixed access patterns
+- Production systems requiring adaptive behavior
+
+**Random Eviction:**
+
+**How it works:** Randomly select item to evict when cache is full.
+
+**Advantages:**
+- Extremely simple to implement
+- Minimal overhead
+- Surprisingly effective for some workloads
+
+**Disadvantages:**
+- May evict hot items
+- No consideration of access patterns
+- Unpredictable performance
+
+**Best for:**
+- Very small caches
+- Simple use cases
+- Workloads where all items have similar value
+
+**Time-Based Expiration (TTL):**
+
+**How it works:** Items expire after fixed time duration from write or access.
+
+**Advantages:**
+- Simple to reason about
+- Natural bound on staleness
+- Easy to communicate
+- Prevents stale data
+
+**Disadvantages:**
+- Hot items may expire prematurely
+- Cold items may stay in cache wasting space
+- Requires careful TTL selection
+
+**Best for:**
+- Data with known staleness tolerance
+- Time-sensitive data
+- Simple cache management
+
+### Freshness vs Speed
+
+**Freshness Strategies by Use Case:**
+
+**Real-Time (Seconds):**
+- Stock prices, cryptocurrency rates
+- Inventory levels (for high-demand items)
+- Authentication/authorization (security requires freshness)
+- User session state
+- **Trade-off:** Higher origin load for correctness
+
+**Near Real-Time (Minutes):**
+- User profile data
+- Product information
+- Social media feeds
+- Dashboard metrics
+- **Trade-off:** Minimal staleness for significant load reduction
+
+**Eventual (Hours/Days):**
+- Analytics and reports
+- Historical data
+- Archive content
+- Recommendations (stale recommendations acceptable)
+- **Trade-off:** Maximum load reduction for acceptable staleness
+
+### Distributed Caching Considerations
+
+**Cache Consistency:**
+
+**Eventual Consistency (Acceptable for Most Use Cases):**
+- Accept short divergence between cache replicas
+- TTL bounds maximum staleness
+- Simple architecture
+- **Best for:** Product data, user profiles, recommendations
+
+**Strong Consistency (Expensive, Rarely Needed):**
+- Synchronous updates across cache replicas
+- Higher latency
+- More complex failure modes
+- **Best for:** Authentication sessions, critical business data
+
+**Cache Replication:**
+
+**No Replication (Data Loss on Failure):**
+- Simple, low latency
+- Acceptable for cache (regenerable from origin)
+- **Best for:** Performance-critical, low-value cached data
+
+**Async Replication (Eventual Consistency):**
+- Master-slave replication
+- Fast writes (async)
+- Temporary divergence between replicas
+- **Best for:** Most production use cases
+
+**Sync Replication (Strong Consistency):**
+- All replicas updated on write
+- Slower writes
+- No data loss, no divergence
+- **Best for:** Critical cached data, sessions
+
+**Cache Sharding:**
+
+**Why Shard Cache:**
+- Single cache instance limits capacity
+- Sharding increases total cache capacity
+- Distributes load across multiple cache nodes
+
+**Sharding Strategies:**
+- **Hash-based:** Consistent hash of cache key to node
+- **Range-based:** Key ranges assigned to nodes
+- **Directory-based:** Lookup service maps keys to nodes
+
+**Trade-offs:**
+- **Capacity:** Sharding enables larger total cache
+- **Latency:** Single shard access (if key known)
+- **Complexity:** Routing logic, rebalancing
+- **Operational cost:** More cache infrastructure to manage
+
+### Cache Warming Strategies
+
+**Passive Warming (On-Demand Loading):**
+- Load items into cache when first requested
+- Simple, no infrastructure needed
+- **Disadvantage:** Cold cache after restart causes origin load spike
+- **Best for:** Low-scale applications, resilient origins
+
+**Active Warming (Preloading):**
+- Populate cache before serving traffic
+- Application starts warm, no cold starts
+- **Disadvantage:** Warming infrastructure required, startup delay
+- **Best for:** High-scale applications, fragile origins
+
+**Background Warming:**
+- Periodically refresh hot items
+- Keeps frequently accessed data fresh
+- **Disadvantage:** Background load on origin and cache
+- **Best for:** Critical paths, predictable access patterns
+
+**Warming Strategies:**
+
+**Full Cache Warmup:**
+- Preload all cacheable data
+- Predictable cache state
+- **Best for:** Small datasets, critical systems
+
+**Selective Warmup:**
+- Preload only hot items (top 20% by access frequency)
+- Faster warmup, less origin load
+- **Best for:** Large datasets, power-law access distributions
+
+**Gradual Warmup:**
+- Ramp up preload over time
+- Smooth origin load
+- **Best for:** Large datasets, fragile origins
+
+**Cache Warming Triggers:**
+- **Application deployment:** Warm cache before serving production traffic
+- **Cache flush:** After cache clear or restart
+- **Scheduled:** Periodic refresh of hot items
+- **Invalidation-driven:** After bulk invalidation
+
+## Failure Modes You Must Design For
+
+- Cache stampede: many concurrent misses overwhelm the origin.
+- Cache penetration: repeated requests for non-existent keys hit the origin.
+- Cache avalanche: synchronized expirations create a sudden wave of misses.
+- Hot keys: one key dominates traffic and becomes a bottleneck.
+
+Mitigations are conceptual and usually combine: coalescing, backoff, jitter, negative caching, graceful degradation, and load shedding.
+
+## What to Measure (So Caching Is Not Guesswork)
+
+- Hit ratio by endpoint and by key group (not just global hit rate).
+- Origin QPS saved and origin saturation reduction.
+- p95/p99 latency improvement, not only mean latency.
+- Error rates during cache disruptions and recoveries.
+
+## Operational Checklist
+
+- Define freshness requirements and user-visible semantics.
+- Prevent stampedes and avalanches by design, not by luck.
+- Have a plan for cache outages (fallback and load shedding).
+- Treat cache configuration changes like production changes (review, staged rollout).

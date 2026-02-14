@@ -1,0 +1,507 @@
+---
+id: back-of-envelope-estimation
+title: 6. Back-of-the-Envelope Estimation
+sidebar_label: "6. Back-of-the-Envelope"
+description: "Quick estimation techniques for system design interviews and architecture decisions: capacity, performance, and cost estimation."
+---
+
+# 6. Back-of-the-Envelope Estimation
+
+Back-of-the-envelope (BOE) estimation is a critical skill for system design interviews and real-world architecture decisions. It allows you to quickly evaluate whether a proposed design is feasible, identify bottlenecks, and make informed trade-offs without detailed calculations.
+
+## What is Back-of-the-Envelope Estimation?
+
+BOE estimation is the practice of making quick, rough calculations to:
+- **Validate feasibility:** Can this design handle the required scale?
+- **Identify bottlenecks:** Which component will fail first?
+- **Guide architecture decisions:** What trade-offs make sense?
+- **Estimate costs:** Rough order-of-magnitude cost projections
+- **Enable communication:** Explain your reasoning to stakeholders
+
+**Key Principle:** BOE is about being right within an order of magnitude (2x-10x), not about being precise. In system design, precise numbers are often wrong anyway because assumptions change. Good approximate reasoning is more valuable than false precision.
+
+## Why It Matters
+
+### 1. Quick Feasibility Assessment
+In interviews and design meetings, you need to quickly determine if a design is in the right ballpark. BOE lets you reject obviously infeasible approaches early.
+
+### 2. Bottleneck Identification
+By estimating capacity of each component, you find the weakest link. This guides where to focus optimization effort.
+
+### 3. Cost-Benefit Analysis
+Quick estimates let you compare approaches. Is this expensive solution worth it for the expected scale?
+
+### 4. Communication
+Stating "this design can handle ~1M QPS with these 4 servers" is more convincing than "this should work."
+
+## Common Estimation Scenarios
+
+### Request Rate Estimation
+
+**Starting Point:** Number of users and their behavior
+
+**Helpful Numbers to Remember:**
+- **Active users:** DAU (Daily Active Users) or MAU (Monthly Active Users)
+- **Request patterns:** Average requests per user per session/day
+- **Peak vs Average:** Peak is typically 2-5x average (plan for 3x as rough heuristic)
+
+**Estimation Steps:**
+
+1. **Estimate user base:**
+   - New product: Make reasonable assumptions (e.g., 10M users over 3 years)
+   - Existing product: Use current numbers
+
+2. **Estimate active users:**
+   - Consumer apps: 10-30% of registered users are DAU
+   - Enterprise tools: 50-80% of registered users are DAU
+   - Social media: 20-50% DAU/MAU ratio
+
+3. **Estimate requests per user:**
+   - Read-heavy: 5-20 requests/day
+   - Interactive: 20-100 requests/day
+   - Write-heavy: 1-5 requests/day
+
+4. **Calculate average QPS:**
+   ```
+   DAU × requests_per_user_per_day = total_requests_per_day
+   total_requests_per_day / 86400 = average_QPS
+   ```
+
+5. **Apply peak multiplier:**
+   ```
+   peak_QPS = average_QPS × 3 (heuristic)
+   ```
+
+**Example: Twitter-like Service**
+- 100M registered users
+- 20% DAU (20M daily active)
+- 10 requests per user per day
+- Peak multiplier: 3x
+
+**Calculation:**
+```
+Total requests/day = 20M users × 10 requests = 200M requests/day
+Average QPS = 200,000,000 / 86,400 ≈ 2,300 QPS
+Peak QPS = 2,300 × 3 ≈ 7,000 QPS
+```
+
+### Storage Estimation
+
+**Starting Point:** Data model and retention requirements
+
+**Key Components:**
+- Object size (average size per item)
+- Number of objects
+- Retention period
+- Replication factor
+
+**Estimation Steps:**
+
+1. **Estimate object size:**
+   - User profile: ~1-5 KB
+   - Tweet/post: ~200 bytes - 1 KB
+   - Photo: ~100 KB - 5 MB
+   - Video: Minutes × bitrate
+
+2. **Estimate object count:**
+   - Users × objects_per_user
+   - Growth rate: new objects per day
+
+3. **Calculate storage:**
+   ```
+   total_storage = object_count × object_size × replication_factor
+   ```
+
+4. **Account for growth:**
+   - Plan for 1-3 years out
+   - Consider expected growth rate
+
+**Example: Photo Storage Service**
+- 10M users
+- 100 photos per user on average
+- Average photo size: 500 KB
+- 2 replicas (for availability)
+- 50% growth per year
+
+**Calculation:**
+```
+Current storage = 10M × 100 × 500 KB × 2 = 1 TB
+1 year growth = 1 TB × 1.5 = 1.5 TB
+2 years = 1 TB × (1 + 1.5 + 1.5²) ≈ 5.5 TB
+3 years = 1 TB × (1 + 1.5 + 1.5² + 1.5³) ≈ 12 TB
+
+Plan for: 12-15 TB storage
+```
+
+### Bandwidth Estimation
+
+**Starting Point:** Request/response size and request rate
+
+**Key Components:**
+- Request size (outbound)
+- Response size (inbound)
+- Request rate
+- Read/Write ratio (typical 10:1 read-to-write)
+
+**Estimation Steps:**
+
+1. **Calculate average request size:**
+   - API request: ~100 bytes - 1 KB
+   - Photo upload: Up to 5 MB
+   - Video: Highly variable
+
+2. **Calculate average response size:**
+   - Read response: ~1-10 KB (depends on use case)
+   - Write confirmation: ~100 bytes
+
+3. **Calculate bandwidth:**
+   ```
+   bandwidth_per_second = QPS × (request_size + response_size)
+   ```
+
+**Example: API Service**
+- Peak QPS: 10,000
+- Request size: 200 bytes
+- Response size: 2 KB
+- Read/write ratio: 9:1 (9 reads, 1 write)
+
+**Calculation:**
+```
+Read bandwidth = 10,000 QPS × 0.9 × 2 KB = 18 MB/s
+Write bandwidth = 10,000 QPS × 0.1 × 0.2 KB = 0.2 MB/s
+Total bandwidth = 18.2 MB/s ≈ 146 Mbps
+
+Add overhead: HTTP headers (20-30%), encryption (5-10%)
+Final estimate: 146 Mbps × 1.3 ≈ 190 Mbps
+```
+
+**Network Cost Considerations:**
+- Data transfer egress charges (AWS, GCP, Azure)
+- 1 TB/month is common free tier
+- Calculate monthly cost: bandwidth × seconds_per_month
+
+### Database Capacity Estimation
+
+**Starting Point:** Data model and access patterns
+
+**Single Machine Limits:**
+- Modern database server: ~10K-50K QPS (depends on query complexity)
+- IOPS limit: ~5K-10K random IOPS per SSD
+- Network: ~1 Gbps common
+
+**Estimation Steps:**
+
+1. **Estimate read vs write ratio:**
+   - Social media: 100:1 read-heavy
+   - E-commerce: 10:1 to 50:1
+   - Messaging: 1:1 balanced
+
+2. **Calculate read and write QPS separately:**
+   ```
+   read_QPS = total_QPS × (read_ratio / (read_ratio + write_ratio))
+   write_QPS = total_QPS - read_QPS
+   ```
+
+3. **Estimate machines needed:**
+   ```
+   machines_for_reads = read_QPS / machine_read_capacity
+   machines_for_writes = write_QPS / machine_write_capacity
+   total_machines = machines_for_reads + machines_for_writes
+   ```
+
+4. **Add replicas for availability:**
+   - Typical: 2-3 replicas
+   - Factor into machine count
+
+**Example: Social Media Post**
+- Peak QPS: 7,000
+- Read/write ratio: 100:1
+- Single machine capacity: 10K QPS (reads), 5K QPS (writes)
+- 3 replicas for availability
+
+**Calculation:**
+```
+Read QPS = 7,000 × (100 / 101) ≈ 6,930 QPS
+Write QPS = 7,000 × (1 / 101) ≈ 70 QPS
+
+Read machines = 6,930 / 10,000 ≈ 0.7 → Use 1 (with headroom)
+Write machines = 70 / 5,000 ≈ 0.01 → Use 1 (with headroom)
+
+Primary machines: 2 (1 for reads + 1 for writes, with headroom)
+Replica machines: 4 (for HA, 2 replicas)
+Total machines: 6
+```
+
+### Cache Capacity Estimation
+
+**Starting Point:** Cache hit ratio and working set size
+
+**Key Concepts:**
+- Cache hit ratio: Percentage of requests served from cache
+- Working set: Frequently accessed data
+- Cache size: Should accommodate working set with room for growth
+
+**Estimation Steps:**
+
+1. **Estimate cacheable data:**
+   - What % of requests can be cached?
+   - Hot data vs long-tail data
+
+2. **Estimate hit ratio:**
+   - Well-designed cache: 70-90% hit ratio
+   - Poor cache: 20-40% hit ratio
+
+3. **Calculate cache size:**
+   - Estimate hot data set
+   - Multiply by object size
+   - Add 2-3x headroom
+
+**Example: Product Catalog Cache**
+- Total products: 10M
+- Hot products (80% of traffic): 100K
+- Product data size: 5 KB per product
+- 90% hit ratio target
+
+**Calculation:**
+```
+Hot data size = 100,000 × 5 KB = 500 MB
+Add headroom: 500 MB × 2 = 1 GB
+Add metadata/overhead: 1 GB × 1.2 = 1.2 GB
+
+Plan per cache node: 1.5-2 GB
+```
+
+### Memory Estimation
+
+**Starting Point:** Application memory requirements
+
+**Key Components:**
+- Base memory (framework, runtime overhead)
+- Per-connection memory
+- Cached data
+- Worker/Thread memory
+
+**Estimation Steps:**
+
+1. **Base memory per instance:**
+   - Simple API: 100-500 MB
+   - Complex application: 1-4 GB
+   - Java applications: 512 MB - 2 GB (JVM overhead)
+
+2. **Per-connection memory:**
+   - HTTP connection: ~10-50 KB
+   - Database connection: ~1-5 MB
+
+3. **Calculate total memory:**
+   ```
+   total_memory = base_memory + (max_connections × per_connection_memory)
+   ```
+
+4. **Add headroom (2-4x):**
+   - Prevents OOM
+   - Allows for GC overhead (managed languages)
+   - Peak traffic headroom
+
+**Example: API Server**
+- Base memory: 500 MB
+- Max concurrent connections: 10,000
+- Per-connection memory: 20 KB
+- Headroom multiplier: 2
+
+**Calculation:**
+```
+Connection memory = 10,000 × 20 KB = 200 MB
+Total working memory = 500 MB + 200 MB = 700 MB
+With headroom: 700 MB × 2 = 1.4 GB
+
+Plan per instance: 2 GB memory
+```
+
+## Common Mistakes in BOE Estimation
+
+### 1. Being Too Precise
+**Mistake:** Calculating to many significant figures ("we need exactly 1,247 machines")
+
+**Why it's wrong:** Assumptions are rough, so precise calculations give false impression of accuracy
+
+**Better approach:** "We need roughly 1,200-1,300 machines" or "~1.3K machines"
+
+### 2. Forgetting Peak vs Average
+**Mistake:** Planning for average load only
+
+**Why it's wrong:** Peak is when failures happen. Systems sized for average fail during peak
+
+**Better approach:** Size for peak (typically 2-5x average, use 3x as heuristic)
+
+### 3. Ignoring Replication and Overhead
+**Mistake:** Calculating raw storage only
+
+**Why it's wrong:** Need replication for availability, overhead for indexing/metadata
+
+**Better approach:** Multiply by replication factor (2-3x) and overhead (1.2-1.5x)
+
+### 4. Not Considering Growth
+**Mistake:** Calculating for current load only
+
+**Why it's wrong:** System will be outdated quickly if you don't plan for growth
+
+**Better approach:** Plan 1-3 years out with growth rate (50-100% per year common)
+
+### 5. Single-Component Focus
+**Mistake:** Optimizing one component's estimate while ignoring others
+
+**Why it's wrong:** Bottleneck moves to next component
+
+**Better approach:** Estimate all components in path to find true bottleneck
+
+### 6. Using Wrong Units
+**Mistake:** Mixing bits/bytes, MB/miB, or confusing time units
+
+**Why it's wrong:** Order-of-magnitude errors (8x difference between bits and bytes)
+
+**Better approach:** Be explicit about units, convert carefully
+
+## Reference Numbers to Remember
+
+**User Behavior:**
+- Active user ratio: 10-30% (consumer), 50-80% (enterprise)
+- Requests per user per day: 5-20 (read-heavy), 20-100 (interactive)
+- Session duration: 10-30 minutes (consumer apps), 2-8 hours (enterprise tools)
+
+**System Capacity (per modern machine):**
+- API server: 1K-10K QPS (depends on complexity)
+- Database (reads): 10K-50K QPS (simple queries)
+- Database (writes): 5K-20K QPS (depends on transaction complexity)
+- Cache (Redis): 10K-100K QPS
+- Load balancer: 10K-100K QPS (L4), 1K-10K QPS (L7)
+
+**Storage Costs (rough AWS equivalents):**
+- S3: ~$0.02-0.03/GB/month
+- EBS SSD: ~$0.08-0.15/GB/month
+- S3 Standard vs IA: 3-5x cost difference
+
+**Bandwidth Costs:**
+- Outbound: ~$0.05-0.15/GB (varies by region)
+- Inbound: Often free
+
+**Data Sizes:**
+- Short text (tweet): 200 bytes - 1 KB
+- User profile: 1-5 KB
+- Photo (compressed): 100 KB - 500 KB
+- Photo (original): 1-5 MB
+- Full HD movie: ~4-8 GB
+- Full HD TV show episode: ~1-3 GB
+
+## Practical Estimation Framework
+
+### Step 1: Clarify Requirements
+- Users: How many total? How many active?
+- Growth: What's expected growth rate?
+- Timeline: How many years should this design last?
+
+### Step 2: Identify Key Constraints
+Which matters most for this design?
+- **Read-heavy:** Focus on read capacity, caching
+- **Write-heavy:** Focus on write capacity, database sharding
+- **Storage-heavy:** Focus on storage cost, retention
+- **Latency-sensitive:** Focus on geographic distribution, caching
+
+### Step 3: Estimate Component by Component
+Start from user request, trace through each component:
+1. **Entry layer:** Load balancer capacity
+2. **API servers:** Request processing capacity
+3. **Cache:** Hit ratio, hot data size
+4. **Database:** Read/write split, per-machine limits
+5. **Storage:** Total storage, growth rate
+
+### Step 4: Find Bottleneck
+Compare component capacities. The component with lowest capacity (relative to requirements) is the bottleneck.
+
+### Step 5: Sanity Check
+- Are numbers reasonable? (Not "we need 1 billion machines")
+- Did I account for replication and overhead?
+- Is there headroom for growth and failures?
+
+## BOE in System Design Interviews
+
+**Interview Format:**
+1. Interviewer: "Design a URL shortener"
+2. You: Ask clarifying questions (scale, functional requirements)
+3. Interviewer: "100M URLs shortened per day, 100M daily reads"
+4. You: Do BOE estimation to guide design
+
+**Example Interview Estimation (URL Shortener):**
+
+**Requirements:**
+- 100M writes/day
+- 100M reads/day
+- 10:1 read:write ratio
+- Store for 5 years
+
+**Calculations:**
+```
+Write QPS = 100,000,000 / 86,400 ≈ 1,160 QPS
+Peak writes = 1,160 × 3 ≈ 3,500 QPS
+
+Read QPS = 100,000,000 / 86,400 ≈ 1,160 QPS
+Peak reads = 1,160 × 3 ≈ 3,500 QPS
+
+URL size: Short URL (7 chars) + Long URL (100 avg) = ~107 bytes
+5 years storage = 100M × 365 days × 5 years × 107 bytes ≈ 20 TB
+With replication (3x): 60 TB total
+
+Memory cache (hot URLs, 80% of traffic):
+20 TB × 0.2 = 4 TB working set
+Cache per node: 6-8 GB (with 2-3x headroom)
+
+Machine requirements (DB writes limited):
+Single DB: 5K write QPS
+DB machines needed = 3,500 / 5,000 ≈ 1
++ replicas for HA: 1 primary + 2 replicas = 3 machines
+API servers (10K QPS each):
+4,000 QPS / 10,000 = 1 API server (too tight)
+Use 2-3 API servers for headroom
+```
+
+**Key Insights from BOE:**
+- Write-heavy (DB bottleneck), need caching strategy
+- Storage manageable (60 TB over 5 years)
+- Read capacity needs optimization (aggressive caching)
+- Not many machines needed (can start small and scale)
+
+## When BOE is Insufficient
+
+**Need detailed calculation when:**
+- Making purchasing decisions (exact cost matters)
+- Performance-critical systems (milliseconds matter)
+- Expensive infrastructure (cloud costs significant)
+- Compliance requirements (exact numbers needed)
+
+**Use BOE for:**
+- Feasibility assessment (yes/no decision)
+- Architecture comparison (within 2-10x)
+- Interview design (order-of-magnitude sufficient)
+- Initial planning (before detailed design phase)
+
+## Common Estimation Shortcuts
+
+**Rough Conversions:**
+- 1 K = 1,000
+- 1 M = 1,000 K = 1,000,000
+- 1 B = 8 bits
+- 1 GB = 1,000 MB
+- 1 TB = 1,000 GB
+- 8 hours = ~30,000 seconds
+- 1 day = ~86,000 seconds
+
+**Useful Multiples:**
+- 2×: Double, significant change
+- 10×: Order of magnitude
+- 100×: Two orders of magnitude
+- 1000×: Three orders of magnitude
+
+**Rule of Thumb:**
+- If you're multiplying more than 3-4 numbers, write it out to avoid mistakes
+- Always sanity check: Does this number feel right?
+- When uncertain, round to 1 significant figure (1M, not 1.23M)
+- Use ranges for uncertain values (1-2M, not 1.5M)

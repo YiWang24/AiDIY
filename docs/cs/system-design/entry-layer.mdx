@@ -1,0 +1,447 @@
+---
+id: entry-layer
+title: 1. Entry Layer
+sidebar_label: "1. Entry Layer"
+description: "Ingress and traffic governance: load balancing, rate limiting, API gateways, CDN, and edge strategies."
+---
+
+# 1. Entry Layer
+
+The Entry Layer is your system's first boundary. Its job is to turn "untrusted, bursty, diverse" external traffic into "routable, authenticated, governed" internal requests.
+
+This layer is where many outages start and where many outages can be prevented. It is also where small configuration mistakes can create a large blast radius. A well-designed entry layer protects your system from abuse, distributes traffic efficiently, and provides a single point of governance for cross-cutting concerns.
+
+## What Belongs In This Layer
+
+- Traffic distribution: load balancing, health checks, and safe failover.
+- Policy enforcement: authentication, authorization, rate limiting, quotas, and abuse protection.
+- Routing and versioning: path/host/header routing, canarying, and compatibility management.
+- Edge hardening: TLS termination strategy, WAF/DDoS posture, request normalization.
+- Ingress observability: access logs, high-cardinality request metadata policy, and request correlation entry points.
+- Global content delivery: CDN caching, edge computation, and geographic routing.
+
+If you keep adding "just one more rule" here, treat it as a product: configuration review, change management, and rollback must be first-class.
+
+## Why It Matters
+
+### 1. It Moves Reliability Upstream
+Rejecting or shaping traffic early is more effective than handling overload deep in your service graph. A failed request at the edge is cheaper than a failed request after five internal hops.
+
+### 2. It Centralizes Cross-Cutting Concerns
+Auth, rate limiting, routing, and compatibility rules are hard to implement consistently across many services. A controlled entry point prevents "policy drift."
+
+### 3. It Enables Back-End Evolution
+When clients call a stable contract (gateway/BFF), your internal topology can evolve without constantly breaking clients.
+
+### 4. It Optimizes User Experience Globally
+Edge caching and computation bring content closer to users, reducing latency and improving perceived performance regardless of geographic location.
+
+## Downsides and Risks
+
+- Latency overhead: every edge feature costs time and compute.
+- Configuration risk: "one bad rule" can take down everything.
+- Bottlenecks: centralized gateways can become scaling limits if not designed for scale-out.
+- Governance friction: overly centralized control can slow teams and cause workarounds.
+- Operational complexity: more moving parts at the edge means more potential failure points.
+- Cost: global edge deployment and premium load balancers can be expensive at scale.
+
+## Load Balancing Fundamentals
+
+### L4 vs L7 Load Balancing
+
+**Layer 4 (Transport Layer) Load Balancing:**
+
+L4 load balancers operate at the connection level, distributing traffic based on IP addresses and ports. They make routing decisions based on packet headers without inspecting content.
+
+**Advantages:**
+- Lower latency and higher throughput (no content inspection overhead)
+- Simpler configuration and operation
+- Lower cost per request processed
+- Protocol-agnostic (works for TCP, UDP, TLS)
+- Better for high-volume, low-latency requirements
+
+**Disadvantages:**
+- Limited visibility into request semantics (URL, headers, methods)
+- Cannot route based on application-level attributes
+- Limited protocol support (no HTTP/2 routing, gRPC awareness)
+- Cannot terminate TLS or perform content-based transformations
+
+**Use Cases:**
+- High-volume internal service-to-service traffic
+- Database connection routing
+- Non-HTTP protocols (MySQL, Redis, custom TCP)
+- Performance-sensitive paths where microsecond latency matters
+
+**Layer 7 (Application Layer) Load Balancing:**
+
+L7 load balancers operate at the application level, inspecting full requests and making intelligent routing decisions based on URLs, headers, cookies, and content.
+
+**Advantages:**
+- Content-aware routing (by URL path, headers, query parameters)
+- Protocol-specific optimizations (HTTP/2, gRPC, WebSocket support)
+- TLS termination and certificate management
+- Request/response modification capabilities
+- Rich traffic management (canary deployments, A/B testing)
+
+**Disadvantages:**
+- Higher computational cost (parsing full requests)
+- More complex configuration and operation
+- Higher latency per request
+- More expensive infrastructure and scaling
+
+**Use Cases:**
+- Public-facing APIs requiring content-based routing
+- Multi-tenant systems requiring tenant-based routing
+- Canary deployments and blue-green releases
+- API consolidation and protocol translation
+
+**Trade-off Decision Framework:**
+- Use L4 for internal, high-volume traffic with simple routing needs
+- Use L7 for external traffic requiring rich routing logic and security features
+- Consider hybrid: L4 for performance-critical internal paths, L7 for edge/public APIs
+
+### Load Balancing Algorithms
+
+**Round Robin:**
+- Distributes requests sequentially across servers
+- **Pros:** Simple, fair distribution, no state needed
+- **Cons:** Ignores server capacity and current load, uneven distribution with variable request duration
+- **Best for:** Homogeneous servers with similar request processing times
+
+**Least Connections:**
+- Routes to server with fewest active connections
+- **Pros:** Accounts for current load, better adaptation
+- **Cons:** Requires tracking connection state, can be skewed by long-lived connections
+- **Best for:** Variable request durations, HTTP/1.1 with keep-alive
+
+**Weighted Round Robin / Least Connections:**
+- Assigns weights to servers based on capacity
+- **Pros:** Supports heterogeneous infrastructure, predictable capacity allocation
+- **Cons:** Manual weight tuning required, can become outdated as infrastructure changes
+- **Best for:** Gradual migration scenarios, mixed instance sizes during scaling transitions
+
+**IP Hash / Consistent Hashing:**
+- Routes based on client IP (or session key) hash
+- **Pros:** Session affinity by design, predictable routing
+- **Cons:** Can create uneven distribution with certain IP distributions, not resilient to server changes
+- **Best for:** Stateful protocols requiring session stickiness
+
+**Least Response Time (Latency-Based):**
+- Routes to server with lowest response time
+- **Pros:** Optimizes for user experience, adapts to performance degradation
+- **Cons:** Requires active monitoring, can oscillate under rapid changes
+- **Best for:** Performance-sensitive applications, auto-scaling environments
+
+## Rate Limiting Strategies
+
+### Rate Limiting Algorithms
+
+**Fixed Window Counter:**
+- Tracks request count in fixed time windows (e.g., 100 requests per minute)
+- **Pros:** Simple to implement and explain, minimal memory usage
+- **Cons:** Edge spikiness (bursts at window boundaries), unfair distribution within window
+- **Best for:** Simple protection against sustained abuse, non-critical rate limiting
+- **Business impact:** Users may experience bursts of access followed by blocking, creating poor UX
+
+**Sliding Window Log:**
+- Tracks timestamps of all requests in a rolling window
+- **Pros:** Smooth rate limiting, no boundary spikes, accurate enforcement
+- **Cons:** High memory usage (O(N) space for N requests per window), expensive at scale
+- **Best for:** Low-volume APIs requiring precise rate limiting, expensive operations
+- **Business impact:** Predictable user experience, high operational cost at scale
+
+**Sliding Window Counter:**
+- Hybrid approach: approximates sliding window with fixed counters
+- **Pros:** Good balance of accuracy and performance, smoother than fixed window
+- **Cons:** More complex than fixed window, occasional approximation errors
+- **Best for:** General-purpose rate limiting at scale
+- **Business impact:** Good user experience with reasonable operational cost
+
+**Token Bucket:**
+- Tokens accumulate at a fixed rate, requests consume tokens
+- **Pros:** Allows bursts up to bucket capacity, flexible rate shaping
+- **Cons:** More complex state management, requires tuning burst size
+- **Best for:** APIs allowing bursty traffic (batch operations, file uploads)
+- **Business impact:** Users benefit from burst capacity while protecting sustained load
+
+**Leaky Bucket:**
+- Requests queue at a fixed rate, queue has maximum depth
+- **Pros:** Smooths output rate completely, predictable downstream load
+- **Cons:** Queue wait time increases latency, can drop requests if queue full
+- **Best for:** Protecting downstream services with strict capacity limits, expensive operations
+- **Business impact:** Consistent performance at cost of queueing latency
+
+### Rate Limiting Scope and Granularity
+
+**Global Rate Limiting:**
+- Single limit across all users or all API keys
+- **Pros:** Simple operational model, protects overall system capacity
+- **Cons:** Noisy neighbor problem (one abusive user affects all), unfair to legitimate users
+- **Best for:** System-wide capacity protection, free tier protection, preventing cascading failures
+- **Business trade-off:** Sacrifices individual user fairness for system stability
+
+**Per-User / Per-API Key Rate Limiting:**
+- Separate limits for each user or credential
+- **Pros:** Fair resource allocation, noisy neighbor isolation, supports tiered pricing
+- **Cons:** Higher memory and state management overhead, requires identity resolution
+- **Best for:** SaaS products, multi-tenant systems, freemium models
+- **Business trade-off:** Operational complexity for better user experience and monetization flexibility
+
+**Per-IP Rate Limiting:**
+- Limits based on client IP address
+- **Pros:** Simple to implement, protects against basic abuse, no authentication required
+- **Cons:** Affected by NAT/proxies (many users share IP), IP spoofing, unfair to shared IPs
+- **Best for:** DDoS mitigation, abuse protection for public endpoints, anonymous usage
+- **Business trade-off:** Simple protection with risk of collateral blocking
+
+**Per-Endpoint Rate Limiting:**
+- Different limits for different API endpoints or operations
+- **Pros:** Reflects actual resource costs, allows fine-tuned protection
+- **Cons:** Complex configuration, harder to understand and communicate
+- **Best for:** APIs with heterogeneous operation costs (read vs write, simple query vs complex computation)
+- **Business trade-off:** Configuration complexity for optimized resource utilization and pricing models
+
+### Rate Limiting Strategy Selection
+
+**For Consumer-Facing Public APIs:**
+- Use per-API key rate limiting with tiered limits (free, basic, premium)
+- Implement token bucket for burst capacity on expensive operations
+- Add per-IP limits as DDoS protection
+- **Business rationale:** Protects system while supporting freemium monetization
+
+**For Internal Microservices:**
+- Use per-service rate limiting with circuit breaker patterns
+- Implement token bucket for burst absorption and traffic shaping
+- Add global limits for critical shared resources (databases, external APIs)
+- **Business rationale:** Prevents cascading failures while maintaining service autonomy
+
+**For High-Frequency Trading / Real-Time Systems:**
+- Prefer leaky bucket for predictable latency
+- Use sliding window for precision in critical paths
+- Implement per-client limits with fair queuing
+- **Business rationale:** Consistency and predictability over absolute throughput
+
+**For Batch Processing / Background Jobs:**
+- Use token bucket with large burst capacity
+- Implement per-job queue depth limits
+- Add backpressure signals to upstream producers
+- **Business rationale:** Prevents system overload while allowing efficient batch processing
+
+## API Gateway Patterns
+
+### Centralized Gateway Pattern
+
+**Single API Gateway for All Services:**
+All external traffic routes through one unified gateway handling auth, rate limiting, routing, and monitoring.
+
+**Advantages:**
+- Centralized policy enforcement and governance
+- Simplified client integration (single endpoint, unified authentication)
+- Consistent monitoring, logging, and observability
+- Easier implementation of cross-cutting concerns (TLS, WAF, DDoS protection)
+- Reduced operational complexity for security and compliance
+
+**Disadvantages:**
+- Single point of failure and potential performance bottleneck
+- Can become release coordination bottleneck (multiple teams dependent on one gateway)
+- Risk of feature creep (gateway becomes a dumping ground for "just this one rule")
+- Difficult to scale independently of backend services
+- Potential for excessive latency with too many middleware layers
+
+**Best for:**
+- Small to medium-sized systems with limited team count
+- Highly regulated industries requiring strict control (finance, healthcare)
+- APIs requiring uniform security posture and compliance enforcement
+- Startup phase before service boundaries have stabilized
+
+**Business Trade-offs:**
+- **Operational simplicity vs. team velocity:** Easier ops but can slow down independent team deployments
+- **Security consistency vs. flexibility:** Uniform protection but may not fit all service needs
+- **Cost efficiency:** Single gateway infrastructure vs. multiple gateway costs
+
+### Backend for Frontend (BFF) Pattern
+
+**Dedicated Gateway per Client Type:**
+Each client type (web, mobile, IoT, third-party integrations) has its own tailored API gateway.
+
+**Advantages:**
+- Optimized data shapes per client (mobile gets minimal payloads, web gets rich data)
+- Independent deployment cycles (mobile team can update without coordinating with web team)
+- Client-specific logic isolated from shared backend services
+- Reduced over-fetching and under-fetching problems
+- Better performance through client-optimized response aggregation
+
+**Disadvantages:**
+- Code duplication across multiple BFFs (common transformation logic)
+- More infrastructure to operate and maintain
+- Risk of behavior divergence between clients
+- Increased testing surface (must verify each BFF contract)
+- Potential for inconsistent business logic enforcement
+
+**Best for:**
+- Products with highly different client needs (mobile vs desktop vs smart watch)
+- Organizations with autonomous client teams
+- Cases where client-specific optimization provides clear business value
+- API evolution scenarios where clients can't upgrade synchronously
+
+**Business Trade-offs:**
+- **Development velocity vs. maintenance cost:** Faster client team iteration at cost of more code
+- **User experience vs. operational overhead:** Tailored UX requires more infrastructure
+- **Client autonomy vs. consistency:** Independent evolution risks fragmented product experience
+
+### Sidecar Gateway Pattern (Service Mesh)
+
+**Gateway Co-Located with Service:**
+Each service has its own sidecar proxy handling ingress, egress, and service-to-service communication.
+
+**Advantages:**
+- True service autonomy (teams own their gateway configuration)
+- Fine-grained per-service rate limiting and security policies
+- Natural scaling (gateway scales with service)
+- Clear ownership and accountability
+- Supports polyglot environments (different languages/frameworks coexist)
+
+**Disadvantages:**
+- Significant operational overhead (many more moving parts)
+- Inconsistent policies across services unless governance is enforced
+- Higher resource consumption (every service needs gateway infrastructure)
+- Complex debugging and troubleshooting (request paths become labyrinthine)
+- Risk of configuration drift and inconsistent security posture
+
+**Best for:**
+- Large organizations with strong platform engineering capabilities
+- Polyglot microservices architectures
+- Highly regulated environments with per-service compliance requirements
+- Organizations investing in service mesh (Istio, Linkerd, AWS App Mesh)
+
+**Business Trade-offs:**
+- **Team autonomy vs. operational complexity:** Maximum team freedom at cost of significant platform investment
+- **Flexibility vs. efficiency:** Tailored per-service configuration vs. standardized, optimized patterns
+- **Scalability vs. cost:** Natural service-scale alignment vs. overhead of many gateways
+
+## CDN and Edge Computing Strategies
+
+### Static Content Caching
+
+**What to Cache at Edge:**
+- Static assets: images, CSS, JavaScript bundles, fonts, videos
+- Public API responses with slow change rates (product listings, public profiles)
+- Documentation, marketing pages, and low-frequency-change content
+- Time-limited signed URLs for private content (preventing hotlinking)
+
+**Advantages:**
+- Dramatic latency reduction (content served from nearest edge location)
+- Reduced origin load (most requests never hit your servers)
+- Better global user experience (geographic proximity)
+- Built-in DDoS absorption (edge network absorbs traffic spikes)
+- Lower bandwidth costs (edge-to-user is often cheaper than origin-to-user globally)
+
+**Disadvantages:**
+- Staleness risk (cached content may be outdated)
+- Cache invalidation complexity (must propagate globally)
+- Limited control (cache behavior depends on CDN headers and configuration)
+- Potential for serving outdated configuration or critical content
+- Vendor lock-in (migration to different CDN requires revalidation and warming)
+
+**Trade-off Considerations:**
+- **Cache duration vs. freshness:** Longer TTLs save money and improve performance but increase staleness risk
+- **Global invalidation cost vs. consistency:** Immediate global invalidation is expensive but necessary for critical updates
+- **Edge coverage vs. cost:** Comprehensive global edge presence increases costs significantly
+
+**Best for:**
+- Media-heavy applications (images, videos, static assets)
+- Globally distributed user bases
+- Content with high read-to-write ratios
+- Marketing sites and public-facing documentation
+- Mobile applications requiring fast asset loading
+
+**Business Scenario Examples:**
+- **E-commerce:** Product images and descriptions cached for hours; inventory and pricing data cached for seconds or minutes depending on business needs
+- **Media streaming:** Video chunks cached aggressively; authentication tokens validated at edge
+- **SaaS marketing:** Documentation and marketing pages cached for extended periods; API responses cached based on data sensitivity
+
+### Edge Computing and Serverless at Edge
+
+**What to Run at Edge:**
+- Authentication and authorization token validation
+- Request routing and A/B testing logic
+- Header manipulation and request/response transformation
+- Simple API composition and aggregation (BFF pattern at edge)
+- Web Application Firewall (WAF) rules and DDoS protection
+- URL rewriting and redirect logic
+- Custom rate limiting and bot detection
+
+**Advantages:**
+- Sub-millisecond latency for security and routing decisions
+- Reduced origin load (compute happens before request reaches origin)
+- Global consistency (rules deployed everywhere simultaneously)
+- Better user experience (faster response times globally)
+- Cost efficiency (edge compute often cheaper than origin compute for simple operations)
+
+**Disadvantages:**
+- Limited compute model (CPU, memory, execution time constraints)
+- Limited libraries and framework support
+- Vendor-specific implementations (hard to migrate between CDN providers)
+- Debugging complexity (distributed execution environments)
+- Cold starts for serverless edge functions
+- Limited state management (edge compute should be stateless)
+
+**Business Trade-offs:**
+- **Development flexibility vs. performance constraints:** Edge compute is faster but more restrictive than origin compute
+- **Vendor lock-in vs. performance optimization:** Custom edge logic provides superior performance but binds you to specific CDN vendor
+- **Feature complexity vs. edge capabilities:** Rich features may not fit within edge constraints
+
+**Best for:**
+- Authentication and authorization (JWT validation at edge)
+- Dynamic routing and feature flag delivery
+- Simple API transformations and protocol translation
+- Security filtering and request normalization
+- Location-based content customization
+
+**Business Scenario Examples:**
+- **Multi-region SaaS:** JWT validation at edge prevents unauthenticated requests from reaching origin
+- **A/B testing platforms:** Feature flag routing at edge ensures users get consistent experience across requests
+- **Content localization:** Geographic routing at edge directs users to regional origin for compliance (GDPR data residency)
+
+### Geographic Routing and Latency Optimization
+
+**DNS-Based Geographic Routing (GeoDNS):**
+- Resolves different IP addresses based on client location
+- Simple to implement at DNS layer
+- Limited granularity (country or regional level)
+- Can be cached by DNS resolvers, reducing effectiveness
+- **Best for:** Coarse-grained regional routing, backup/failover scenarios
+
+**Anycast Routing:**
+- Multiple origin servers announce same IP address from different locations
+- BGP routing determines nearest server automatically
+- True network-level optimization
+- Requires network infrastructure and BGP configuration
+- **Best for:** High-volume services requiring network-level optimization, large-scale CDNs
+
+**Latency-Based Routing (LBR):**
+- Actively measures latency from client to multiple data centers
+- Routes to lowest-latency endpoint
+- Requires continuous measurement infrastructure
+- Can oscillate under rapidly changing network conditions
+- **Best for:** Performance-critical applications with global user base
+
+**Trade-off Framework:**
+- **Implementation complexity vs. performance:** Anycast provides best performance but is most complex to implement
+- **Cost vs. coverage:** Global presence is expensive; regional hubs may be more cost-effective
+- **Reliability vs. optimization:** Simple DNS routing is more reliable than complex active measurement systems
+
+## Failure Modes to Plan For
+
+- Overload and queueing: protecting p99 latency often matters more than average latency.
+- Retry storms from clients: edge throttling should account for retries, not just initial requests.
+- Partial outages: prefer fast-fail and graceful degradation over slow timeouts.
+- Misconfigurations: require change review, staged rollout, and fast rollback for edge policy changes.
+
+## Operational Checklist
+
+- Clear ownership of gateway and ingress policies.
+- Rate limit and quota strategy aligned to user identity and abuse model.
+- Defined routing/versioning policy (and a deprecation plan).
+- Safe deployment pattern for policy changes (canary and rollback).
+- Metrics you actively use: request rate, error rate, saturation, and tail latency.
