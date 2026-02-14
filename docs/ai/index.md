@@ -134,11 +134,11 @@ Essential resources for common tasks - avoid deep-diving into documentation.
 
 ### MCP Server Standard Code Structure (Java/Spring)
 
-[See Java Implementation Guide](/mcp/java-spring-server)
+[See Java Implementation Guide](/ai/spring-ai)
 
 ### RAG Chunking Strategy Cheat Sheet
 
-[See RAG Optimization Guide](/rag/chunking-strategies)
+[See RAG Optimization Guide](/ai/rag)
 
 ### Recommended LLM Parameters
 
