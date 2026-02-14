@@ -114,7 +114,7 @@ export default function Home(): JSX.Element {
 
             <div className="knowledge__grid">
               <Link
-                to="/docs/cs/index"
+                to="/docs/cs/"
                 className="knowledge__card knowledge__card--primary"
                 style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80)' }}
               >
@@ -130,7 +130,7 @@ export default function Home(): JSX.Element {
               </Link>
 
               <Link
-                to="/docs/engineering/frontend/index"
+                to="/docs/engineering/frontend/"
                 className="knowledge__card knowledge__card--secondary"
                 style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&q=80)' }}
               >
@@ -146,7 +146,7 @@ export default function Home(): JSX.Element {
               </Link>
 
               <Link
-                to="/docs/engineering/backend/index"
+                to="/docs/engineering/backend/"
                 className="knowledge__card knowledge__card--accent"
                 style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800&q=80)' }}
               >
@@ -162,7 +162,7 @@ export default function Home(): JSX.Element {
               </Link>
 
               <Link
-                to="/docs/ai/index"
+                to="/docs/ai/"
                 className="knowledge__card knowledge__card--quaternary"
                 style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80)' }}
               >
@@ -178,7 +178,7 @@ export default function Home(): JSX.Element {
               </Link>
 
               <Link
-                to="/docs/cs/system-design/index"
+                to="/docs/cs/system-design/"
                 className="knowledge__card knowledge__card--quinary"
                 style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80)' }}
               >
@@ -194,7 +194,7 @@ export default function Home(): JSX.Element {
               </Link>
 
               <Link
-                to="/docs/engineering/devops/index"
+                to="/docs/engineering/devops/"
                 className="knowledge__card knowledge__card--senary"
                 style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=800&q=80)' }}
               >

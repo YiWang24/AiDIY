@@ -1,0 +1,27 @@
+---
+id: advisors
+title: Advisors and Middleware
+sidebar_label: Advisors
+description: "How Spring AI advisors shape prompts, policies, safety, and tool behavior."
+---
+
+# Advisors and Middleware
+
+Advisors are the middleware layer around model calls. Use them to apply consistent behaviors across your application: safety policies, context injection, caching, and observability hooks.
+
+## What Belongs Here
+
+- Prompt/policy shaping (system policies, formatting constraints, guardrails).
+- Context enrichment (RAG context injection, user profile, session context).
+- Tool calling policies (which tools are allowed, how errors are handled).
+- Cross-cutting concerns (logging, tracing, caching).
+
+## Trade-offs
+
+- Centralized advisors improve consistency but can become “magic” without strong conventions.
+- Per-feature customization improves control but fragments behavior.
+
+## Coming Next
+
+- A recommended advisor stack and ordering strategy.
+- “Policy as code” change management patterns.

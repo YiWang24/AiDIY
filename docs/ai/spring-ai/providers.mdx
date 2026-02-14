@@ -1,0 +1,27 @@
+---
+id: providers
+title: Providers and Credentials
+sidebar_label: Providers
+description: "Configure multiple AI providers in Spring AI and manage credentials safely."
+---
+
+# Providers and Credentials
+
+This page covers how to think about provider configuration in Spring AI: selecting providers, managing credentials, and handling provider-specific capabilities without leaking them into your core business logic.
+
+## What You Configure
+
+- Provider selection (OpenAI, Anthropic, Azure OpenAI, Ollama, etc.).
+- Model selection and per-model constraints (context length, tool calling support, pricing).
+- Runtime options (temperature, top-p, max tokens) as product defaults, not ad-hoc constants.
+- Credential management (environment variables, secret managers, rotation, least privilege).
+
+## Trade-offs
+
+- Single provider is simpler, but increases vendor risk.
+- Multi-provider improves resilience and cost control, but increases testing and compatibility work.
+
+## Coming Next
+
+- A provider capability matrix and a “portable baseline” configuration strategy.
+- Patterns for provider failover and graceful degradation.

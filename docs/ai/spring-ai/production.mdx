@@ -1,0 +1,28 @@
+---
+id: production
+title: Production Best Practices
+sidebar_label: Production
+description: "Production practices for Spring AI: safety, reliability, cost control, and rollout strategy."
+---
+
+# Production Best Practices
+
+Productionizing LLM features is primarily an engineering discipline problem: reliability under load, safety under adversarial input, and cost control at scale.
+
+## Key Practices
+
+- Explicit SLOs (latency, availability, and quality targets).
+- Rate limits and concurrency controls to prevent cost blowups.
+- Safe fallbacks when models/tools fail (graceful degradation).
+- Strict input/output validation for tool calls.
+- Canary rollout and rollback plans for prompt and policy changes.
+
+## Trade-offs
+
+- More guardrails improve safety but can increase false refusals.
+- More caching reduces cost but increases staleness risk.
+
+## Coming Next
+
+- A reference rollout playbook for LLM features.
+- Incident response checklist for prompt injection and tool misuse.

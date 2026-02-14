@@ -1,0 +1,28 @@
+---
+id: testing
+title: Testing AI Components
+sidebar_label: Testing
+description: "Testing strategies for LLM features: deterministic checks, evals, and regressions."
+---
+
+# Testing AI Components
+
+Testing LLM applications requires a layered strategy: deterministic unit tests for glue code, contract tests for tools, and evaluation suites for model behavior.
+
+## What to Test
+
+- Prompt construction and formatting rules.
+- Tool calling contracts and error handling.
+- RAG retrieval correctness (queries, filters, ranking expectations).
+- Safety policies and refusal behavior.
+- Regression protection using a curated evaluation set.
+
+## Trade-offs
+
+- Mocking models improves determinism but reduces realism.
+- End-to-end tests are realistic but slower and more expensive.
+
+## Coming Next
+
+- A practical test pyramid for LLM apps.
+- Guidance for building evaluation datasets and CI gating.

@@ -1,0 +1,28 @@
+---
+id: observability
+title: Observability and Tracing
+sidebar_label: Observability
+description: "How to observe Spring AI calls: latency, cost, quality, and failure modes."
+---
+
+# Observability and Tracing
+
+LLM systems fail in different ways than traditional APIs. Observability must cover latency and errors, but also cost and output quality.
+
+## What to Measure
+
+- Request volume, error rates, and tail latency.
+- Token usage and cost per request, per feature, and per user cohort.
+- Tool call success rates and tool latency distribution.
+- Cache hit rates (if you cache prompts/responses).
+- Quality signals (human feedback, automated checks, eval scores).
+
+## Trade-offs
+
+- High-cardinality logging is useful, but can become expensive and risky.
+- Sampling reduces cost, but can miss rare failure modes.
+
+## Coming Next
+
+- A minimal “production dashboard” template for LLM features.
+- Tracing strategies for tool calls and RAG retrieval steps.
