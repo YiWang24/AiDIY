@@ -19,9 +19,6 @@ const config = {
   projectName: "portfolio",
   deploymentBranch: "main",
 
-  onBrokenLinks: "ignore",
-  onBrokenMarkdownLinks: "warn",
-
   // Custom fields accessible via useDocusaurusContext
   customFields: {
     frontendUrl: process.env.FRONTEND_URL || 'https://www.yiw.me',
@@ -49,6 +46,11 @@ const config = {
           // npm2yarn: auto-generate npm/yarn/pnpm tabs for install commands
           remarkPlugins: [[npm2yarn, { sync: true }], [math, { strict: false }]],
           rehypePlugins: [require('rehype-katex')],
+          markdown: {
+            hooks: {
+              onBrokenMarkdownLinks: "warn",
+            },
+          },
         },
         blog: {
           showReadingTime: true,
