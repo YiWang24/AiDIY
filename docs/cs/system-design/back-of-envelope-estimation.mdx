@@ -36,6 +36,76 @@ Stating "this design can handle ~1M QPS with these 4 servers" is more convincing
 
 ## Common Estimation Scenarios
 
+### Systematic Estimation Framework
+
+```mermaid
+graph TD
+    Start["Start: Understand Requirements"]
+
+    step1["Step 1: Identify Constraints"]
+    question1{"What are we estimating?"}
+
+    step2["Step 2: Gather Key Metrics"]
+    question2{"What metrics matter?"}
+
+    step3["Step 3: Make Reasonable Assumptions"]
+    question3{"What are reasonable assumptions?"]
+
+    step4["Step 4: Calculate Core Metrics"]
+    question4{"Calculate QPS, Storage, Bandwidth"]
+
+    step5["Step 5: Identify Bottlenecks"]
+    question5{"What limits scale first?"]
+
+    step6["Step 6: Add Safety Margin"]
+    question6["Multiply by 2-5x for buffer"]
+
+    End["Present Estimate with Confidence Range"]
+
+    Start --> step1
+    step1 --> question1
+    question1 -->|"Traffic"| step2a["Users, DAU, MAU"]
+    question1 -->|"Data"| step2b["Object size, count"]
+    question1 -->|"Performance"| step2c["Latency, QPS"]
+
+    step2a --> step2
+    step2b --> step2
+    step2c --> step2
+
+    step2 --> question2
+    question2 -->|"Assumptions"| step3
+
+    step3 --> question3
+    question3 -->|"Assumption examples"| step3a["Peak = 3x avg<br/>Read:Write = 10:1<br/>Growth = 50%/year"]
+
+    step3a --> step4
+    step4 --> question4
+    question4 -->|"Calculations"| step4a["QPS = Users × Requests / 86400<br/>Storage = Count × Size × Replication<br/>Bandwidth = QPS × (Req+Resp Size)"]
+
+    step4a --> step5
+    step5 --> question5
+    question5 -->|"Bottlenecks"| step5a["Database QPS limit<br/>Network bandwidth<br/>Storage capacity<br/>Cache hit ratio"]
+
+    step5a --> step6
+    step6 --> question6
+    question6 -->|"Add margin"| step6a["Average × 3 for peak<br/>Estimate × 2 for safety<br/>Plan 2-3 years growth"]
+
+    step6a --> End
+
+    style Start fill:#90cdf4,stroke:#4299e1,stroke-width:2px
+    style End fill:#68d391,stroke:#38a169,stroke-width:2px
+    style step1 fill:#fbd38d,stroke:#ed8936,stroke-width:2px
+    style step6 fill:#fc8181,stroke:#e53e3e,stroke-width:2px
+```
+
+**Key Principles:**
+- **Start with constraints:** What are you estimating? (traffic, storage, performance)
+- **Use reasonable assumptions:** Document assumptions explicitly
+- **Calculate step by step:** Show your work, don't skip steps
+- **Identify bottlenecks:** Which component fails first?
+- **Add safety margin:** Systems rarely perform as expected in production
+- **Present with confidence:** "We can handle ~1M QPS with these 4 servers" (not "exactly 987,654 QPS")
+
 ### Request Rate Estimation
 
 **Starting Point:** Number of users and their behavior
@@ -84,6 +154,61 @@ Total requests/day = 20M users × 10 requests = 200M requests/day
 Average QPS = 200,000,000 / 86,400 ≈ 2,300 QPS
 Peak QPS = 2,300 × 3 ≈ 7,000 QPS
 ```
+
+```mermaid
+graph TB
+    subgraph Users["User Base"]
+        Registered["100M Registered Users"]
+        DAU["20M Daily Active Users<br/>(20% of registered)"]
+    end
+
+    subgraph Traffic["Traffic Estimation"]
+        DailyReqs["200M Requests/Day<br/>(20M × 10 req/user)"]
+        AvgQPS["2,300 Average QPS<br/>(200M / 86,400s)"]
+        PeakQPS["7,000 Peak QPS<br/>(2,300 × 3x peak multiplier)"]
+    end
+
+    subgraph Capacity["System Capacity Required"]
+        API["API Servers<br/>(handles 7K QPS)"]
+        DB["Primary Database<br/>(read replicas for scale)"]
+        Cache["Cache Layer<br/>(Redis: 80% hit rate)"]
+        Storage["Storage<br/>(tweet data, user profiles)"]
+    end
+
+    subgraph Bandwidth["Bandwidth Requirements"]
+        ReadBW["Read: ~14 MB/s<br/>(9 reads × 2 KB × 7K QPS)"]
+        WriteBW["Write: ~0.7 MB/s<br/>(1 write × 0.1 KB × 7K QPS)"]
+        TotalBW["Total: ~15 MB/s<br/>(≈120 Mbps + overhead)"]
+    end
+
+    Registered --> DAU
+    DAU --> DailyReqs
+    DailyReqs --> AvgQPS
+    AvgQPS --> PeakQPS
+
+    PeakQPS --> API
+    API --> DB
+    API --> Cache
+    API --> Storage
+
+    PeakQPS --> ReadBW
+    PeakQPS --> WriteBW
+    ReadBW --> TotalBW
+    WriteBW --> TotalBW
+
+    style Registered fill:#90cdf4,stroke:#4299e1,stroke-width:2px
+    style DAU fill:#90cdf4,stroke:#4299e1,stroke-width:2px
+    style PeakQPS fill:#fbd38d,stroke:#ed8936,stroke-width:3px
+    style API fill:#68d391,stroke:#38a169,stroke-width:2px
+    style DB fill:#fc8181,stroke:#e53e3e,stroke-width:2px
+    style TotalBW fill:#b794f4,stroke:#805ad5,stroke-width:2px
+```
+
+**System Design Implications:**
+- **API Servers:** 7K QPS is manageable with 4-8 servers (1K-2K QPS per server)
+- **Database:** Primary handles writes (~700 QPS), read replicas handle reads (~6.3K QPS)
+- **Cache:** Critical for read-heavy workload (80% cache hit = 5K QPS from cache, 1.3K from DB)
+- **Bandwidth:** 120 Mbps is modest, well within single 1 Gbps network capacity
 
 ### Storage Estimation
 

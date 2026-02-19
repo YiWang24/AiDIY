@@ -23,12 +23,13 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "System Design",
-      link: {
-        type: "doc",
-        id: "cs/system-design/index",
-      },
       collapsed: false,
       items: [
+        {
+          type: "doc",
+          id: "cs/system-design/index",
+          label: "Index",
+        },
         {
           type: "doc",
           label: "1. Entry Layer",
@@ -58,6 +59,16 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           label: "6. Back-of-the-Envelope Estimation",
           id: "cs/system-design/back-of-envelope-estimation",
+        },
+        {
+          type: "doc",
+          label: "7. Consistent Hashing",
+          id: "cs/system-design/consistent-hashing",
+        },
+        {
+          type: "doc",
+          label: "8. Notification System",
+          id: "cs/system-design/notification-system",
         },
       ],
     },

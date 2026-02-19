@@ -2,7 +2,7 @@
 id: entry-layer
 title: 1. Entry Layer
 sidebar_label: "1. Entry Layer"
-description: "Ingress and traffic governance: load balancing, rate limiting, API gateways, CDN, and edge strategies."
+description: "Ingress and traffic governance: DNS, WAF, load balancing, rate limiting, API gateways, CDN, and edge strategies."
 ---
 
 # 1. Entry Layer
@@ -13,37 +13,728 @@ This layer is where many outages start and where many outages can be prevented. 
 
 ## What Belongs In This Layer
 
+- Global traffic management: DNS routing, geographic distribution, and failover coordination.
+- Edge security: WAF policies, DDoS mitigation, bot detection, and traffic filtering.
 - Traffic distribution: load balancing, health checks, and safe failover.
 - Policy enforcement: authentication, authorization, rate limiting, quotas, and abuse protection.
 - Routing and versioning: path/host/header routing, canarying, and compatibility management.
-- Edge hardening: TLS termination strategy, WAF/DDoS posture, request normalization.
-- Ingress observability: access logs, high-cardinality request metadata policy, and request correlation entry points.
-- Global content delivery: CDN caching, edge computation, and geographic routing.
+- API gateway functions: request/response transformation, protocol translation, and aggregation.
+- Edge caching and computation: CDN caching, edge computation, and content delivery optimization.
+- Ingress observability: access logs, high-cardinality request metadata, and request correlation.
 
 If you keep adding "just one more rule" here, treat it as a product: configuration review, change management, and rollback must be first-class.
 
 ## Why It Matters
 
 ### 1. It Moves Reliability Upstream
-Rejecting or shaping traffic early is more effective than handling overload deep in your service graph. A failed request at the edge is cheaper than a failed request after five internal hops.
+Rejecting or shaping traffic early is more effective than handling overload deep in your service graph. A failed request at the edge is cheaper than a failed request after five internal hops. DNS-level failover and edge-based blocking prevent bad traffic from ever reaching your infrastructure.
 
 ### 2. It Centralizes Cross-Cutting Concerns
-Auth, rate limiting, routing, and compatibility rules are hard to implement consistently across many services. A controlled entry point prevents "policy drift."
+Auth, rate limiting, routing, and compatibility rules are hard to implement consistently across many services. A controlled entry point prevents "policy drift" and ensures consistent security posture across all services.
 
 ### 3. It Enables Back-End Evolution
-When clients call a stable contract (gateway/BFF), your internal topology can evolve without constantly breaking clients.
+When clients call a stable contract (gateway/BFF), your internal topology can evolve without constantly breaking clients. DNS abstraction allows you to move infrastructure without breaking clients.
 
 ### 4. It Optimizes User Experience Globally
-Edge caching and computation bring content closer to users, reducing latency and improving perceived performance regardless of geographic location.
+Edge caching, computation, and intelligent routing bring content closer to users, reducing latency and improving perceived performance regardless of geographic location. Proper DNS routing ensures users reach optimal endpoints automatically.
 
 ## Downsides and Risks
 
 - Latency overhead: every edge feature costs time and compute.
 - Configuration risk: "one bad rule" can take down everything.
+- DNS propagation delays: changes take time to propagate globally, causing inconsistency.
 - Bottlenecks: centralized gateways can become scaling limits if not designed for scale-out.
 - Governance friction: overly centralized control can slow teams and cause workarounds.
 - Operational complexity: more moving parts at the edge means more potential failure points.
-- Cost: global edge deployment and premium load balancers can be expensive at scale.
+- Cost: global edge deployment, premium load balancers, and DNS services can be expensive at scale.
+- Caching complexity: stale content propagation and invalidation challenges at global scale.
+
+## DNS as Global Traffic Scheduler
+
+DNS (Domain Name System) is the internet's directory service, but for high-availability systems, it functions as a global traffic scheduler. It is the first decision point in routing user requests to your infrastructure, making it a critical component of entry layer reliability.
+
+### DNS Resolution Flow
+
+When a user requests your service, DNS resolution happens before any network connection to your infrastructure:
+
+```mermaid
+sequenceDiagram
+    participant User as User's Device
+    participant Resolver as Local DNS Resolver<br/>(ISP/public DNS)
+    participant Root as Root Server
+    participant TLD as TLD Server
+    participant Auth as Authoritative DNS<br/>(Route53/Cloudflare)
+    participant Server as Your Server
+
+    User->>Resolver: 1. Query "api.example.com"
+    Resolver->>Resolver: Check cache
+    alt Cache Miss
+        Resolver->>Root: 2. Query root for ".com"
+        Root->>Resolver: 3. Return TLD servers
+        Resolver->>TLD: 4. Query TLD for "example.com"
+        TLD->>Resolver: 5. Return authoritative servers
+        Resolver->>Auth: 6. Query authoritative for "api.example.com"
+        Auth->>Resolver: 7. Return IP address (with TTL)
+    end
+    Resolver->>User: 8. Return IP address
+    User->>Server: 9. Direct connection to IP
+```
+
+**Flow Steps:**
+1. **User's device queries local DNS resolver** (typically ISP or public DNS like Google 8.8.8.8)
+2. **DNS resolver checks cache** - if cached and not expired, skip to step 8
+3. **Resolver queries root server** for the TLD (.com, .org, etc.)
+4. **Root returns TLD servers** responsible for that domain extension
+5. **Resolver queries TLD server** for the domain (example.com)
+6. **TLD returns authoritative DNS servers** for that domain
+7. **Resolver queries authoritative DNS** for the full hostname
+8. **Authoritative DNS returns IP address** based on your routing policies
+9. **User's device connects directly** to the returned IP address
+
+**Critical implication:** DNS decisions happen outside your infrastructure. Once an IP is returned, you cannot redirect the request until DNS cache expires.
+
+### Geographic Routing (GeoDNS)
+
+**Purpose:** Route users to nearest or most appropriate region based on geographic location.
+
+**How it works:**
+- DNS provider identifies user's location from source IP of DNS query
+- Returns IP address of nearest data center or optimal region
+- Can route at country, region, or city level depending on provider capabilities
+
+**Advantages:**
+- Reduced latency for global users (connects to nearest region)
+- Compliance benefits (data residency requirements, GDPR)
+- Load distribution across regions
+- Automatic failover to healthy regions
+
+**Disadvantages:**
+- Limited granularity (country or regional level, not city-level precision)
+- DNS resolver location may not match user location (ISP DNS, corporate DNS, public DNS)
+- Cached responses reduce routing effectiveness (TTL challenges)
+- Complex configuration for multi-region strategies
+
+**Accuracy limitations:**
+- DNS queries come from DNS resolvers, not user devices
+- Corporate VPNs, public DNS services (Google, Cloudflare), and ISP infrastructure obscure user location
+- Typical accuracy: country-level (95%+), regional-level (70-80%), city-level (50-60%)
+
+```mermaid
+graph TB
+    subgraph Users["Users Worldwide"]
+        EU["European User"]
+        US["US User"]
+        Asia["Asian User"]
+    end
+
+    subgraph DNS["DNS Provider (GeoDNS)"]
+        Provider["Geographic Routing Logic"]
+    end
+
+    subgraph Regions["Regional Data Centers"]
+        EU_DC["Europe Region<br/>Frankfurt"]
+        US_DC["US Region<br/>Virginia"]
+        Asia_DC["Asia Region<br/>Tokyo"]
+    end
+
+    EU -->|"DNS Query"| Provider
+    US -->|"DNS Query"| Provider
+    Asia -->|"DNS Query"| Provider
+
+    Provider -->|"Route to nearest<br/>Based on resolver IP"| EU_DC
+    Provider -->|"Route to nearest<br/>Based on resolver IP"| US_DC
+    Provider -->|"Route to nearest<br/>Based on resolver IP"| Asia_DC
+
+    EU_DC -.->|"Failover if<br/>unhealthy"| US_DC
+    US_DC -.->|"Failover if<br/>unhealthy"| EU_DC
+    Asia_DC -.->|"Failover if<br/>unhealthy"| US_DC
+
+    style Provider fill:#fbd38d,stroke:#f6ad55,stroke-width:2px
+    style EU_DC fill:#90cdf4,stroke:#4299e1,stroke-width:2px
+    style US_DC fill:#90cdf4,stroke:#4299e1,stroke-width:2px
+    style Asia_DC fill:#90cdf4,stroke:#4299e1,stroke-width:2px
+```
+
+**Best for:**
+- Global SaaS with regional data centers
+- Compliance-driven routing (data residency requirements)
+- Performance optimization for global user base
+- Multi-region active-active architectures
+
+**Business Scenario Examples:**
+
+*Global SaaS Platform:*
+- European users routed to Frankfurt region (GDPR compliance)
+- Asian users routed to Tokyo region (latency optimization)
+- US users routed to Virginia region (largest user base)
+- Failover: If Frankfurt region fails, European users route to Virginia (increased latency but system stays available)
+
+*Content Delivery Strategy:*
+- Route users to nearest edge POP (Point of Presence)
+- Static content from CDN edge nodes
+- Dynamic content from regional origin servers
+- Geographic-based feature flagging (gradual regional rollouts)
+
+### Weighted Traffic Distribution
+
+**Purpose:** Distribute traffic percentage across multiple endpoints, enabling gradual migration and capacity management.
+
+**How it works:**
+- Assign weights to each DNS record (e.g., 50% to Region A, 50% to Region B)
+- DNS provider rotates responses based on weights
+- Enables blue-green deployments and canary releases
+
+**Use Cases:**
+
+**Blue-Green Deployment:**
+- 100% to current version (Region A)
+- Switch to 0% Region A, 100% Region B (instant cutover)
+- Rollback: switch back to 100% Region A
+- **Business value:** Zero-downtime deployments, instant rollback capability
+
+**Gradual Migration (Canary):**
+- Week 1: 90% Region A (old), 10% Region B (new)
+- Week 2: 75% Region A, 25% Region B
+- Week 3: 50% Region A, 50% Region B
+- Week 4: 0% Region A, 100% Region B
+- **Business value:** Controlled risk exposure, gradual capacity building
+
+**Capacity Management:**
+- 70% to primary region (larger capacity)
+- 30% to secondary region (smaller capacity)
+- Adjust weights based on cost and capacity constraints
+- **Business value:** Optimize infrastructure costs while maintaining performance
+
+**Advantages:**
+- Simple traffic splitting without infrastructure changes
+- Enables gradual rollouts and testing
+- No client-side changes required
+- Fast rollback capability
+
+**Disadvantages:**
+- DNS caching reduces precision (users stick to cached IPs)
+- Not suitable for per-request routing (too coarse-grained)
+- Limited splitting granularity (depends on DNS provider)
+- Client-visible IP changes during cache expiration
+
+### DNS Health Checks and Failover
+
+**Purpose:** Automatically route traffic away from unhealthy endpoints to maintain availability.
+
+**How it works:**
+- DNS provider continuously monitors health of each endpoint
+- Health checks: HTTP/HTTPS probes, TCP connection checks, or custom health check endpoints
+- Unhealthy endpoints automatically removed from DNS responses
+- Traffic redirects to healthy endpoints automatically
+
+**Health Check Configuration:**
+
+**Check Types:**
+- **HTTP/HTTPS checks:** Request specific path (e.g., `/health`), expect 200 OK response
+- **TCP checks:** Verify port is accepting connections
+- **Custom checks:** Domain-specific health logic (database connectivity, external dependencies)
+
+**Check Parameters:**
+- **Check interval:** How often to probe (typically 10-60 seconds)
+- **Timeout:** How long to wait for response (typically 2-10 seconds)
+- **Failure threshold:** How many consecutive failures before marking unhealthy (typically 2-5)
+- **Recovery threshold:** How many consecutive successes before marking healthy (typically 2-5)
+
+**Advantages:**
+- Automatic failover without human intervention
+- Reduced MTTR (Mean Time To Recovery)
+- Geographic redundancy (failover to different region)
+- Simple configuration, no complex routing infrastructure
+
+**Disadvantages:**
+- Failover time limited by DNS caching (TTL)
+- False positives (temporary network blips trigger failover)
+- Flapping (rapid state changes if health check is unstable)
+- Health check overhead on target infrastructure
+
+**Failover Scenarios:**
+
+*Regional Outage:*
+1. US-East region becomes unhealthy (health checks fail)
+2. DNS removes US-East IPs from responses
+3. New DNS queries return only US-West IPs
+4. Existing users with cached US-East IPs experience errors until cache expires
+5. **Business impact:** New users work immediately, existing users recover in TTL time
+
+*Gradual Degradation:*
+- Health checks detect increased response times
+- Automatic routing shifts traffic to healthier region
+- Prevents cascading failures by redistributing load
+- **Business impact:** Maintains performance under partial degradation
+
+### TTL Configuration Trade-offs
+
+**TTL (Time To Live):** How long DNS responses are cached by DNS resolvers and clients.
+
+**Low TTL (30-60 seconds):**
+
+**Advantages:**
+- Fast failover (changes propagate quickly)
+- Ability to respond to incidents rapidly
+- Flexible traffic management
+
+**Disadvantages:**
+- Higher DNS query volume (more frequent queries to authoritative DNS)
+- Increased DNS provider costs
+- Slightly increased initial connection latency (more DNS lookups)
+
+**Best for:**
+- Active-passive failover scenarios
+- Rapidly changing infrastructure
+- Incident response requiring quick changes
+- Blue-green deployments with quick rollback needs
+
+**High TTL (300-3600 seconds):**
+
+**Advantages:**
+- Reduced DNS query volume (lower costs)
+- Faster resolution (cached responses)
+- Reduced load on authoritative DNS infrastructure
+
+**Disadvantages:**
+- Slow failover (cached IPs persist for TTL duration)
+- Limited ability to respond to incidents
+- Changes take time to propagate globally
+
+**Best for:**
+- Stable infrastructure with rare changes
+- Cost-sensitive deployments
+- Static IPs with high availability requirements
+
+**TTL Strategy Framework:**
+
+*Critical Production Services:*
+- Primary records: 60-120 seconds (balance fast failover and cost)
+- Emergency override: 5-10 seconds (incident response only, high cost)
+- Static assets: 3600+ seconds (infrequently changing)
+
+*Development/Staging:*
+- 300-600 seconds (changes acceptable, cost optimization)
+
+*Internal Services:*
+- 60-300 seconds (operational flexibility)
+
+**Business Impact:**
+
+*Fast Failover Scenario:*
+- TTL: 30 seconds
+- Outage detected at 00:00:00
+- DNS updated at 00:00:30
+- Last cached response expires at 00:01:00
+- Total failover time: ~60 seconds
+- User impact: 60 seconds of errors for new requests
+
+*Slow Failover Scenario:*
+- TTL: 300 seconds (5 minutes)
+- Outage detected at 00:00:00
+- DNS updated at 00:02:30
+- Last cached response expires at 00:05:00
+- Total failover time: ~5 minutes
+- User impact: 5 minutes of errors for new requests
+
+## Web Application Firewall (WAF)
+
+### WAF Fundamentals and Placement
+
+**Purpose:** Protect web applications from application-layer attacks (Layer 7) that bypass traditional network firewalls.
+
+**What WAF Protects Against:**
+- OWASP Top 10 vulnerabilities (SQL injection, XSS, CSRF, etc.)
+- Bot traffic and automated attacks
+- DDoS attacks at application layer
+- Zero-day exploits through virtual patching
+- Malicious file uploads and injection attacks
+
+**WAF Placement in Architecture:**
+
+**WAF Before Load Balancer (Cloud WAF / CDN-integrated):**
+
+```
+User → DNS → WAF/DDoS Protection → Load Balancer → Application Servers
+```
+
+**Advantages:**
+- Blocks malicious traffic before it reaches your infrastructure
+- Scales independently of your infrastructure (cloud provider scales)
+- DDoS absorption at edge (your infrastructure never sees attack traffic)
+- Managed security rules and threat intelligence
+- Global distribution (protection everywhere)
+
+**Disadvantages:**
+- Additional per-request cost
+- Vendor lock-in (proprietary rule syntax)
+- Limited visibility into blocked requests (log access depends on vendor)
+- Potential false positives blocking legitimate traffic
+- Less control over rule evaluation process
+
+**Best for:**
+- Public-facing web applications
+- High-risk targets (finance, healthcare, e-commerce)
+- Teams without dedicated security expertise
+- Applications requiring global DDoS protection
+
+**Business Scenario:** E-commerce site during holiday sales uses cloud WAF to block SQL injection attempts and scrape attacks while absorbing DDoS traffic, ensuring legitimate customers can always complete purchases.
+
+**WAF After Load Balancer (Self-Hosted WAF):**
+
+```
+User → DNS → Load Balancer → WAF → Application Servers
+```
+
+**Advantages:**
+- Full control over rules and evaluation logic
+- No additional per-request cost (software-based)
+- Detailed visibility into all requests (including blocked)
+- Custom rules for application-specific threats
+- No vendor lock-in
+
+**Disadvantages:**
+- Your infrastructure must handle attack traffic (scale risk)
+- Requires security expertise to configure and maintain
+- DDoS attacks can overwhelm infrastructure before WAF evaluation
+- Operational overhead (rule updates, log analysis, tuning)
+
+**Best for:**
+- Internal applications with compliance requirements (data residency)
+- Applications with very specific security requirements
+- Organizations with strong security teams
+- Scenarios where vendor lock-in is unacceptable
+
+**Business Scenario:** Financial services company runs self-hosted WAF for transaction processing systems to maintain complete control over security rules and ensure all logs remain within regulated infrastructure.
+
+### OWASP Top 10 Protection
+
+**OWASP Top 10:** The ten most critical web application security risks, as identified by the Open Web Application Security Project.
+
+**WAF Protection Coverage:**
+
+**1. Injection (SQL, NoSQL, OS Command, LDAP):**
+- **Attack:** Malicious data in user input executes commands on backend
+- **WAF Protection:** Pattern matching for SQL syntax, command metacharacters, encoding anomalies
+- **Trade-off:** Aggressive blocking may break legitimate input (e.g., text containing SQL-like strings)
+- **Business impact:** Database compromise, data breach, complete system compromise
+
+**2. Broken Authentication:**
+- **Attack:** Exploits authentication flaws (session hijacking, credential stuffing)
+- **WAF Protection:** Detects brute force patterns, credential stuffing attacks, session anomalies
+- **Trade-off:** May block legitimate users sharing credentials or from same IP
+- **Business impact:** Unauthorized account access, data theft, privacy violations
+
+**3. Sensitive Data Exposure:**
+- **Attack:** Exposes sensitive data through poor encryption or data leakage
+- **WAF Protection:** Detects data leakage patterns (credit card numbers, SSNs in responses)
+- **Trade-off:** Requires careful tuning to avoid false positives on legitimate data
+- **Business impact:** Regulatory fines, reputational damage, legal liability
+
+**4. XML External Entities (XXE):**
+- **Attack:** Exploits XML processors to access local files or cause denial of service
+- **WAF Protection:** Blocks XML with entity declarations or suspicious XML structures
+- **Trade-off:** May break legitimate XML-based APIs
+- **Business impact:** Data breach, system compromise, denial of service
+
+**5. Broken Access Control:**
+- **Attack:** Bypasses authorization to access unauthorized data
+- **WAF Protection:** Detects path traversal attempts, forced browsing, IDOR patterns
+- **Trade-off:** Complex authorization logic difficult to express in WAF rules
+- **Business impact:** Unauthorized data access, privacy violations
+
+**6. Security Misconfiguration:**
+- **Attack:** Exploits default configurations, exposed admin panels, verbose error messages
+- **WAF Protection:** Blocks access to common administrative paths, sensitive file extensions
+- **Trade-off:** May prevent legitimate administrative access if rules too broad
+- **Business impact:** System compromise, data breach, complete system takeover
+
+**7. Cross-Site Scripting (XSS):**
+- **Attack:** Injects malicious scripts that execute in victim's browser
+- **WAF Protection:** Pattern matching for script tags, event handlers, JavaScript injection
+- **Trade-off:** May block legitimate user-generated content (forums, comments)
+- **Business impact:** User session hijacking, malware distribution, phishing
+
+**8. Insecure Deserialization:**
+- **Attack:** Exploits deserialization of untrusted data to execute code
+- **WAF Protection:** Detects serialized object patterns, known gadget chains
+- **Trade-off:** Difficult to detect without deep protocol understanding
+- **Business impact:** Remote code execution, complete system compromise
+
+**9. Using Components with Known Vulnerabilities:**
+- **Attack:** Exploits known vulnerabilities in libraries and frameworks
+- **WAF Protection:** Virtual patching (blocks exploit attempts for known CVEs)
+- **Trade-off:** Dependent on vendor for CVE coverage and rule updates
+- **Business impact:** System compromise using publicly known exploits
+
+**10. Insufficient Logging & Monitoring:**
+- **Attack:** Exploits lack of visibility to conduct attacks undetected
+- **WAF Protection:** Provides security logging, attack alerting, metrics
+- **Trade-off:** High log volume requires storage and analysis infrastructure
+- **Business impact:** Delayed incident detection, extended attacker dwell time
+
+**False Positive vs False Negative Trade-off:**
+
+**Conservative Mode (Low False Positives):**
+- Blocks only clearly malicious traffic
+- Some attacks pass through to application (application must handle)
+- Best for: APIs with complex input requirements, user-generated content
+- **Business cost:** Increased application-level security burden
+
+**Aggressive Mode (Low False Negatives):**
+- Blocks anything suspicious
+- May block legitimate user traffic (false positives)
+- Best for: High-security applications, low-volume internal systems
+- **Business cost:** User experience impact, support burden from blocked users
+
+### Bot Management Strategies
+
+**Bot Categories:**
+
+**Good Bots (Allow):**
+- Search engine crawlers (Googlebot, Bingbot)
+- Monitoring services (uptime checks, availability monitoring)
+- Aggregators (news readers, price comparison)
+- **Strategy:** Whitelist by user agent and/or IP verification
+
+**Bad Bots (Block):**
+- Credential stuffing bots (stolen password testing)
+- Scalper bots (inventory hoarding, ticket scalping)
+- Scrapers (content theft, price scraping)
+- DDoS bots (participation in botnet attacks)
+- Spam bots (comment spam, form submission abuse)
+- **Strategy:** Block, rate limit, or challenge
+
+**Gray Area (Manage):**
+- Aggressive monitoring tools (may impact performance)
+- Research crawlers (unknown reputation)
+- Automated API clients (legitimate but aggressive)
+- **Strategy:** Rate limit, monitor, require API keys
+
+**Bot Detection Techniques:**
+
+**1. User-Agent Analysis:**
+- Simple identifier check
+- Easily spoofed by sophisticated bots
+- **Effectiveness:** Low (good for coarse filtering, bad for security)
+
+**2. IP Reputation:**
+- Maintain list of known bot/vpn/hosting provider IPs
+- Block or challenge traffic from suspicious IPs
+- **Effectiveness:** Medium (good for known bad actors, misses new threats)
+
+**3. Rate Limiting and Behavioral Analysis:**
+- Detect non-human patterns (consistent request timing, impossible navigation)
+- Detect high-volume requests from single source
+- **Effectiveness:** High (catchs automated behavior, legitimate users unaffected)
+
+**4. JavaScript Challenges:**
+- Require JavaScript execution to prove browser
+- Blocks headless browsers and simple HTTP clients
+- **Effectiveness:** Medium-High (inconvenience to users, sophisticated bots can execute JS)
+
+**5. CAPTCHA Challenges:**
+- Require human interaction (image recognition, puzzles)
+- Highly effective but poor user experience
+- **Effectiveness:** High (should be last resort for suspicious traffic only)
+
+**6. Device Fingerprinting:**
+- Analyze browser characteristics (TLS fingerprint, HTTP/2 fingerprint, headers)
+- Detect automated tools and emulators
+- **Effectiveness:** Medium-High (can be bypassed, privacy concerns)
+
+**7. Token-Based Verification:**
+- Require tokens from reputable sources (Cloudflare, Google)
+- Verify tokens before allowing access
+- **Effectiveness:** High (relies on third-party bot detection)
+
+**Business Scenario Examples:**
+
+*E-commerce Inventory Scalping:*
+- **Problem:** Bots buy limited inventory instantly for resale
+- **Solution:** Bot detection + JavaScript challenges for checkout
+- **Trade-off:** Legitimate users may face slightly slower checkout
+- **Business result:** Fair inventory distribution, improved customer satisfaction
+
+*Credential Stuffing on Login:*
+- **Problem:** Bots test stolen passwords across accounts
+- **Solution:** Rate limiting + IP reputation + device fingerprinting
+- **Trade-off:** Users from shared IPs (offices, campuses) may face challenges
+- **Business result:** Reduced account takeover, improved security posture
+
+*API Scraping:*
+- **Problem:** Competitors scrape pricing and product data
+- **Solution:** Require API keys, rate limit per key, detect scraping patterns
+- **Trade-off:** Increased friction for legitimate API users
+- **Business result:** Protect competitive intelligence, ensure fair API usage
+
+### DDoS Mitigation and Traffic Cleaning
+
+**DDoS (Distributed Denial of Service):** Overwhelming a service with traffic from multiple sources to make it unavailable to legitimate users.
+
+**DDoS Attack Types:**
+
+**Volumetric Attacks (Layer 3/4):**
+- **Goal:** Consume all available bandwidth
+- **Methods:** UDP floods, ICMP floods, amplified reflection attacks
+- **Typical size:** 100-1000+ Gbps
+- **Mitigation:** Anycast network, traffic scrubbing centers
+
+**Protocol Attacks (Layer 3/4):**
+- **Goal:** Exhaust server resources (connections, CPU, memory)
+- **Methods:** SYN floods, ACK floods, connection exhaustion
+- **Typical size:** Lower bandwidth but high connection count
+- **Mitigation:** Connection rate limiting, SYN cookies, anycast
+
+**Application Layer Attacks (Layer 7):**
+- **Goal:** Exhaust application resources (database, API, application logic)
+- **Methods:** HTTP floods, slow POST attacks, request to expensive endpoints
+- **Typical size:** Low bandwidth, high request rate
+- **Mitigation:** WAF, rate limiting, application-level protection
+
+**DDoS Mitigation Strategies:**
+
+**1. Anycast Routing:**
+
+*How it works:*
+- Multiple data centers announce same IP address globally
+- BGP routes traffic to nearest data center
+- DDoS traffic distributed across multiple locations
+
+*Advantages:*
+- No single point of failure
+- Natural traffic distribution
+- Absorbs attacks by distributing load
+
+*Disadvantages:*
+- Requires network infrastructure and BGP expertise
+- Limited to large providers with global presence
+- Complex configuration
+
+*Best for:* Large-scale attacks (100+ Gbps), global services
+
+**2. CDN-Based DDoS Protection:**
+
+*How it works:*
+- CDN edge nodes absorb and filter attack traffic
+- Only legitimate traffic reaches origin
+- Leveraged global network capacity
+
+*Advantages:*
+- Scales to massive attacks (CDN has more capacity than origin)
+- No infrastructure changes required
+- Always-on protection
+
+*Disadvantages:*
+- Additional cost (especially during large attacks)
+- Limited to CDN-supported protocols (HTTP/HTTPS mainly)
+- Vendor dependency
+
+*Best for:* Web applications, HTTP floods, small to medium attacks
+
+**3. On-Premises Traffic Scrubbing:**
+
+*How it works:*
+- Deploy scrubbing appliances before application infrastructure
+- Inspect and filter traffic at network perimeter
+- Can be combined with cloud scrubbing for hybrid approach
+
+*Advantages:*
+- Full control over filtering logic
+- No additional per-request cost
+- Keeps traffic analysis in-house
+
+*Disadvantages:*
+- Your bandwidth still consumed by attack traffic
+- Limited capacity (can only handle what your network supports)
+- Hardware and maintenance costs
+
+*Best for:* Compliance requirements (data can't leave infrastructure), small-scale attacks
+
+**4. Cloud Scrubbing Services (Always-On vs On-Demand):**
+
+*Always-On:*
+- All traffic routes through scrubbing center
+- No activation latency
+- Higher ongoing costs
+- Best for: High-risk targets, 24/7 critical services
+
+*On-Demand:*
+- Normal traffic goes direct to origin
+- During attack, DNS changes to route through scrubbing center
+- Lower ongoing costs, activation latency (DNS propagation time)
+- Best for: Cost-sensitive deployments, intermittent attack risk
+
+**Business Scenario Examples:**
+
+*Gaming Platform During Launch:*
+- **Attack:** 500 Gbps volumetric attack during game launch
+- **Mitigation:** Anycast + CDN-based protection
+- **Result:** Legitimate players connect to nearest edge, attack traffic distributed globally
+- **Business outcome:** Successful launch, no downtime, positive user experience
+
+*Financial Services During Trading Hours:*
+- **Attack:** Application-layer attack targeting expensive trade endpoints
+- **Mitigation:** WAF + rate limiting + bot detection
+- **Result:** Malicious requests blocked, legitimate trades processed normally
+- **Business outcome:** No trading interruption, regulatory compliance maintained
+
+*News Site During Breaking Events:*
+- **Attack:** Layer 7 attack during high-traffic breaking news
+- **Challenge:** Distinguish attack from legitimate traffic surge
+- **Mitigation:** Progressive challenges (JS verification → CAPTCHA) for suspicious clients
+- **Result:** Attack traffic blocked, legitimate readers served with minimal friction
+- **Business outcome:** Journalism remains available during critical events
+
+### Rule Management and Operational Complexity
+
+**WAF Rule Lifecycle:**
+
+**1. Rule Creation:**
+- Start with vendor-provided rule sets (OWASP Core Rule Set)
+- Add application-specific rules (known vulnerabilities, custom endpoints)
+- Tune rules for application behavior (whitelist legitimate patterns)
+- **Time investment:** 40-100 hours initial setup depending on application complexity
+
+**2. Rule Tuning:**
+- Monitor false positives (legitimate traffic blocked)
+- Monitor false negatives (attacks passing through)
+- Adjust rules based on production traffic patterns
+- **Ongoing effort:** 4-8 hours per week for active applications
+
+**3. Rule Testing:**
+- Test rules in logging-only mode before enforcement
+- Validate rules don't break critical flows
+- Gradual rollout (percentage of traffic)
+- **Critical step:** Never enforce untested rules
+
+**4. Rule Maintenance:**
+- Regular updates from vendor (new CVE signatures)
+- Application changes require rule updates
+- Quarterly rule audits and cleanup
+- **Ongoing effort:** 2-4 hours per month for maintenance
+
+**Operational Anti-Patterns:**
+
+**1. Alert Fatigue:**
+- **Problem:** Too many alerts, team stops paying attention
+- **Solution:** Tune thresholds, focus on actionable alerts, automate known-safe patterns
+- **Business risk:** Real attacks missed in noise
+
+**2. False Positive Embargo:**
+- **Problem:** Legitimate users blocked, no one notices until revenue drops
+- **Solution:** Regular false positive audits, automated testing of critical flows, user feedback mechanism
+- **Business risk:** User abandonment, support burden, revenue loss
+
+**3. Rule Bloat:**
+- **Problem:** Thousands of rules, unclear what each does, fear of removing rules
+- **Solution:** Regular rule audits, remove unused rules, document rule purpose, version control for rules
+- **Business risk:** Slow WAF evaluation, increased latency, operational paralysis
+
+**4. One-Size-Fits-All:**
+- **Problem:** Same WAF rules for admin panel as public pages
+- **Solution:** Separate rules per application zone, authentication-aware rules (stricter for authenticated users)
+- **Business risk:** Poor security posture, or excessive blocking of legitimate admin actions
 
 ## Load Balancing Fundamentals
 
@@ -227,7 +918,7 @@ L7 load balancers operate at the application level, inspecting full requests and
 - Add backpressure signals to upstream producers
 - **Business rationale:** Prevents system overload while allowing efficient batch processing
 
-## API Gateway Patterns
+## API Gateway Architecture
 
 ### Centralized Gateway Pattern
 
@@ -319,7 +1010,321 @@ Each service has its own sidecar proxy handling ingress, egress, and service-to-
 - **Flexibility vs. efficiency:** Tailored per-service configuration vs. standardized, optimized patterns
 - **Scalability vs. cost:** Natural service-scale alignment vs. overhead of many gateways
 
+### Architecture Planes: Control, Data, and Management
+
+Modern API gateways and service meshes separate concerns into three architectural planes.
+
+**Control Plane:**
+
+*Purpose:* Configuration management and policy distribution.
+
+*Responsibilities:*
+- Accepting configuration changes (routes, rate limits, auth policies)
+- Validating configuration changes
+- Distributing configuration to data plane nodes
+- Managing certificate lifecycle
+- Versioning and rolling back configurations
+
+*Key Characteristics:*
+- Eventually consistent with data plane (changes take time to propagate)
+- Critical path for deployments but not for request handling
+- Can be single instance or highly available depending on requirements
+
+*Business Impact:*
+- Configuration deployment latency: How fast changes take effect (typically seconds to minutes)
+- Single point of failure for deployments (not for traffic)
+- Requires careful change management and validation
+
+**Data Plane:**
+
+*Purpose:* Runtime request processing and traffic management.
+
+*Responsibilities:*
+- Handling incoming requests
+- Executing routing logic
+- Enforcing rate limits
+- Performing authentication and authorization
+- Request/response transformation
+- Metrics and logging emission
+
+*Key Characteristics:*
+- Highly available and horizontally scalable
+- Minimal state (mostly stateless for scalability)
+- Optimized for performance (low latency, high throughput)
+- Receives configuration from control plane
+
+*Business Impact:*
+- Direct impact on user experience (latency, availability)
+- Scaling cost (must provision for peak load with headroom)
+- Failure directly impacts users (no graceful degradation in most implementations)
+
+**Management Plane:**
+
+*Purpose:* Observability, administration, and user interface.
+
+*Responsibilities:*
+- API for human operators and automation
+- Metrics dashboards and visualization
+- Log aggregation and search
+- Alert management
+- Audit logging
+- Debugging tools
+
+*Key Characteristics:*
+- Not in critical path for traffic
+- Can be simpler availability requirements
+- Richer, more complex functionality (not performance-critical)
+
+*Business Impact:*
+- Operational efficiency (good tools reduce toil)
+- Debugging and incident response speed
+- Compliance and audit requirements
+- Team productivity and onboarding
+
+**Trade-offs:**
+
+*Separation Benefits:*
+- Control plane failures don't affect traffic (data plane continues serving last-known config)
+- Data plane can scale independently of management plane
+- Management plane can be richer/slower without affecting performance
+- Clear separation of concerns aids debugging
+
+*Separation Costs:*
+- More complex architecture (more moving parts)
+- Configuration propagation latency (changes not instant)
+- Eventual consistency challenges (troubleshooting config sync issues)
+- More infrastructure to operate and monitor
+
+### Technology Selection Framework
+
+**Java Ecosystem:**
+
+*Spring Cloud Gateway:*
+- **Foundation:** Project Reactor, Spring WebFlux (non-blocking, reactive)
+- **Architecture:** Reactive programming model, event-driven
+- **Strengths:** Java ecosystem familiarity, spring integration, dynamic routing
+- **Considerations:** Reactive model learning curve, JVM overhead
+- **Best for:** Spring-based applications, teams with Java expertise
+
+*Zuul 2.0:*
+- **Foundation:** Netflix OSS, asynchronous non-blocking
+- **Architecture:** Origin server model, embedded into application
+- **Strengths:** Battle-tested at Netflix scale, flexible filters
+- **Considerations:** Netflix-specific patterns, operational complexity
+- **Best for:** Netflix-style microservices, custom filtering requirements
+
+**Nginx Ecosystem:**
+
+*Kong (based on OpenResty):*
+- **Foundation:** Nginx + LuaJIT
+- **Architecture:** Standalone gateway, plugin-based extensibility
+- **Strengths:** High performance, rich plugin ecosystem, community support
+- **Considerations:** Lua for custom plugins, operational complexity at scale
+- **Best for:** High-performance requirements, API management needs
+
+*APISIX (based on OpenResty):*
+- **Foundation:** Apache project, cloud-native design
+- **Architecture:** Dynamic configuration without restart, etcd-based
+- **Strengths:** Cloud-native, dynamic configuration, modern feature set
+- **Considerations:** Newer ecosystem than Kong, smaller community
+- **Best for:** Kubernetes environments, cloud-native architectures
+
+**Service Mesh Ecosystem:**
+
+*Envoy (data plane):*
+- **Foundation:** C++ , Lyft created, CNCF project
+- **Architecture:** Sidecar proxy, extensible via filters
+- **Strengths:** High performance, observability first-class, protocol-agnostic
+- **Considerations:** Requires control plane (Istio, etc.), complex configuration
+- **Best for:** Service mesh deployments, polyglot environments
+
+*Istio (control plane for Envoy):*
+- **Foundation:** Google, IBM, Lyft collaboration
+- **Architecture:** Control plane + Envoy data plane
+- **Strengths:** Rich feature set (traffic management, security, observability)
+- **Considerations:** Significant operational complexity, steep learning curve
+- **Best for:** Large organizations investing in platform engineering
+
+**Cloud Provider Managed:**
+
+*AWS API Gateway:*
+- **Strengths:** Fully managed, AWS integration, pay-per-request
+- **Considerations:** Vendor lock-in, request limits, cold starts
+- **Best for:** AWS-centric applications, minimal operational overhead preference
+
+*Google Cloud Endpoints / API Gateway:*
+- **Strengths:** GCP integration, Cloud ESP (Extensible Service Proxy)
+- **Considerations:** GCP ecosystem dependency
+- **Best for:** GCP-centric applications, Google Cloud customers
+
+*Azure API Management:*
+- **Strengths:** Enterprise features, hybrid deployment support
+- **Considerations:** Complex pricing tiers, enterprise focus
+- **Best for:** Enterprise customers, hybrid cloud scenarios
+
+**Decision Framework:**
+
+*Choose Java Ecosystem when:*
+- Team has strong Java expertise
+- Existing Spring-based microservices
+- Need tight integration with Java ecosystem services
+- Prefer type-safe configuration and JVM tooling
+
+*Choose Nginx Ecosystem when:*
+- Performance is critical (low latency, high throughput)
+- Team has operations/background in Nginx
+- Need flexible plugin system
+- Prefer standalone deployment model
+
+*Choose Service Mesh when:*
+- Polyglot microservices environment
+- Need service-to-service authentication and mTLS
+- Require uniform observability across all services
+- Have strong platform engineering team
+
+*Choose Cloud Managed when:*
+- Want minimal operational overhead
+- Already committed to cloud provider ecosystem
+- Don't require custom extension needs
+- Prefer OPEX over CAPEX (pay-per-request vs. infrastructure investment)
+
+### Critical Design Considerations
+
+**Performance Bottleneck Risk:**
+
+*Problem:* API gateway can become bottleneck if not properly designed.
+
+*Symptoms:*
+- Increased latency through gateway
+- Gateway CPU/memory saturation before backend services
+- Gateway throughput limits
+
+*Mitigation:*
+- Stateless design (no in-memory session state)
+- Horizontal scaling capability
+- Connection pooling to backends
+- Efficient algorithmic complexity (regex routing can be expensive)
+- Load testing at scale before production
+
+*Business Impact:* Gateway bottleneck affects entire system, limits scalability
+
+**High Availability Patterns:**
+
+*Redundancy:*
+- Deploy multiple gateway instances behind load balancer
+- Multi-AZ or multi-region deployment for critical systems
+- Health check-based failover
+
+*Graceful Degradation:*
+- Cache rate limit state (avoid single point of failure)
+- Allow operation with degraded features (e.g., logging vs. request processing)
+- Fallback to safe defaults if control plane unavailable
+
+*Deployment Safety:*
+- Blue-green or canary deployments
+- Automated rollback capability
+- Pre-production testing environment
+
+*Business Impact:* Gateway downtime affects all services, HA is critical
+
+**Stateless Requirements:**
+
+*Why Stateless:*
+- Horizontal scaling without sticky sessions
+- Instance failure doesn't affect sessions
+- Simplified deployments and rollbacks
+
+*State in Gateway (Anti-Patterns):*
+- In-memory rate limiting state (lost on restart, inconsistent across instances)
+- Session storage for authentication (use external session store or JWT)
+- Request correlation data (use headers or distributed tracing)
+
+*Handling State Correctly:*
+- Rate limiting: Use Redis, DynamoDB, or consistent hashing with distributed state
+- Authentication: Use JWT or external session store
+- Configuration: External configuration store (etcd, Consul)
+
+*Business Impact:* Stateless design enables scaling and resilience
+
+**Plugin Extensibility:**
+
+*Extension Points:*
+- Authentication plugins (OAuth, JWT, custom auth)
+- Rate limiting plugins (different algorithms, scope)
+- Transformation plugins (request/response modification)
+- Observability plugins (custom metrics, logging formats)
+
+*Plugin Trade-offs:*
+- Rich plugin ecosystem: faster development but larger attack surface
+- Custom plugins: exact fit but maintenance burden
+- Plugin versioning: backward compatibility complexity
+
+*Best Practices:*
+- Minimize plugin count (performance, complexity)
+- Prefer standard plugins over custom when possible
+- Version and test plugins as first-class software
+- Monitor plugin performance impact
+
+*Business Impact:* Plugins enable customization but increase operational burden
+
 ## CDN and Edge Computing Strategies
+
+### CDN Cache Hierarchy
+
+Content Delivery Networks use a hierarchical caching structure to optimize content delivery:
+
+```mermaid
+graph TB
+    User[User Request]
+
+    subgraph Edge["Edge Layer (Global POPs)"]
+        Edge1["Edge Node 1<br/>New York"]
+        Edge2["Edge Node 2<br/>London"]
+        Edge3["Edge Node 3<br/>Tokyo"]
+    end
+
+    subgraph Regional["Regional Layer (Mid-Level Caches)"]
+        Regional1["Regional Cache 1<br/>US East"]
+        Regional2["Regional Cache 2<br/>Europe"]
+        Regional3["Regional Cache 3<br/>Asia Pacific"]
+    end
+
+    subgraph Origin["Origin Infrastructure"]
+        CDN["CDN Origin Shield<br/>Central Cache"]
+        OriginServer["Origin Server<br/>Your Application"]
+    end
+
+    User -->|"1. Request"| Edge1
+
+    Edge1 -->|"2. Cache Miss<br/>Look for content"| Regional1
+    Edge2 -->|"2. Cache Miss"| Regional2
+    Edge3 -->|"2. Cache Miss"| Regional3
+
+    Regional1 -->|"3. Cache Miss<br/>Aggregate requests"| CDN
+    Regional2 -->|"3. Cache Miss"| CDN
+    Regional3 -->|"3. Cache Miss"| CDN
+
+    CDN -->|"4. Cache Miss<br/>Last resort"| OriginServer
+    OriginServer -->|"5. Response"| CDN
+    CDN -->|"6. Cache & forward"| Regional1
+    Regional1 -->|"7. Cache & forward"| Edge1
+    Edge1 -->|"8. Deliver to user<br/>< 50ms latency"| User
+
+    style Edge1 fill:#68d391,stroke:#38a169,stroke-width:2px
+    style Edge2 fill:#68d391,stroke:#38a169,stroke-width:2px
+    style Edge3 fill:#68d391,stroke:#38a169,stroke-width:2px
+    style Regional1 fill:#90cdf4,stroke:#4299e1,stroke-width:2px
+    style Regional2 fill:#90cdf4,stroke:#4299e1,stroke-width:2px
+    style Regional3 fill:#90cdf4,stroke:#4299e1,stroke-width:2px
+    style CDN fill:#fbd38d,stroke:#f6ad55,stroke-width:2px
+    style OriginServer fill:#fc8181,stroke:#e53e3e,stroke-width:2px
+```
+
+**Cache Hierarchy Benefits:**
+- **Edge POPs**: Fastest response (< 50ms), highest churn rate
+- **Regional Caches**: Aggregate edge misses, reduce origin load by 90%+
+- **Origin Shield**: Final cache layer before origin, protects from thundering herds
+- **Origin Server**: Only handles unique cache misses (5-10% of total traffic)
 
 ### Static Content Caching
 
@@ -359,6 +1364,107 @@ Each service has its own sidecar proxy handling ingress, egress, and service-to-
 - **E-commerce:** Product images and descriptions cached for hours; inventory and pricing data cached for seconds or minutes depending on business needs
 - **Media streaming:** Video chunks cached aggressively; authentication tokens validated at edge
 - **SaaS marketing:** Documentation and marketing pages cached for extended periods; API responses cached based on data sensitivity
+
+### CDN Mechanics: Pull vs Push
+
+**Pull CDN (On-Demand Caching):**
+
+*How it works:*
+1. Client requests content from edge node
+2. Edge node checks local cache
+3. If cache miss, edge node fetches content from origin
+4. Edge node caches content locally
+5. Edge node serves content to client
+6. Subsequent requests served from cache until TTL expires
+
+*Characteristics:*
+- Lazy loading (content fetched on first request)
+- Automatic cache population
+- Origin receives requests for cache misses
+- Cache warming happens organically through traffic
+
+*Advantages:*
+- Simple setup (just configure CDN, point to origin)
+- No content upload or pre-warming required
+- Automatic scaling (popular content cached naturally)
+- Lower operational overhead
+
+*Disadvantages:*
+- Cold start for new content (first request from each region hits origin)
+- Origin traffic spikes during cache expiration (all edge nodes refetch simultaneously)
+- Limited control over what gets cached and when
+- Potential for cache stampede (thundering herd on cache miss)
+
+*Best for:*
+- Content with predictable access patterns
+- Gradual content rollouts
+- Sites with moderate traffic (origin can handle cache miss load)
+- Small teams with limited operational capacity
+
+*Business Scenario:* Blog platform where popular articles are cached after first few reads from each region. Origin handles initial load but benefits from caching over time as content popularity grows.
+
+**Push CDN (Pre-Warming / Content Pre-Positioning):**
+
+*How it works:*
+1. Content uploaded or invalidated through CDN API
+2. CDN actively pushes content to edge nodes
+3. Content pre-populated in edge caches
+4. First request from any region served from cache
+5. No origin requests for pushed content
+
+*Characteristics:*
+- Eager loading (content proactively distributed)
+- Explicit cache population control
+- Origin isolated from cache miss traffic
+- Requires content change triggers
+
+*Advantages:*
+- No cold starts (content available globally immediately)
+- Origin protection (no surprise traffic spikes)
+- Predictable cache behavior
+- Better for high-traffic events (product launches, live content)
+
+*Disadvantages:*
+- Complex setup (must implement push logic, handle failures)
+- Content management overhead (must trigger pushes for updates)
+- Higher costs (push operations often charged separately)
+- Risk of pushing content that's never accessed (wasted resources)
+
+*Best for:*
+- Time-sensitive content (software releases, news)
+- High-traffic events (product launches, live streaming)
+- Large files (videos, software installers)
+- Global content requiring immediate availability
+
+*Business Scenario:* Software company releasing new version. Binaries pushed to all edge nodes before release announcement. All users download from local edge, origin never overloaded.
+
+**Pull vs Push Decision Framework:**
+
+| Factor | Pull CDN | Push CDN |
+|--------|----------|----------|
+| **Setup Complexity** | Low (configure and go) | High (requires integration) |
+| **Origin Protection** | Limited (cache misses hit origin) | Excellent (no cache misses) |
+| **First-Request Latency** | Higher (cache fetch) | Low (already cached) |
+| **Operational Overhead** | Low (automatic) | High (manual triggering) |
+| **Cost Structure** | Per-request | Per-request + push operations |
+| **Best Traffic Pattern** | Organic, gradual access | Planned bursts, launches |
+| **Team Expertise Required** | Basic CDN configuration | Content engineering, automation |
+
+**Hybrid Approach:**
+
+*Strategy:* Use Pull for most content, Push for critical/high-traffic content.
+
+*Implementation:*
+- Pull: Regular content (articles, product pages, documentation)
+- Push: Critical assets (software installers, high-traffic landing pages)
+- Push: Time-sensitive content (live event pages, breaking news)
+- Pull: User-generated content (unpredictable access patterns)
+
+*Business Scenario:* E-commerce platform:
+- Product images: Pull (organic access, moderate traffic)
+- Sale landing page: Push (planned traffic spike)
+- Software updates: Push (critical assets, immediate availability)
+- User-generated reviews: Pull (unpredictable, moderate traffic)
 
 ### Edge Computing and Serverless at Edge
 
@@ -436,12 +1542,56 @@ Each service has its own sidecar proxy handling ingress, egress, and service-to-
 - Overload and queueing: protecting p99 latency often matters more than average latency.
 - Retry storms from clients: edge throttling should account for retries, not just initial requests.
 - Partial outages: prefer fast-fail and graceful degradation over slow timeouts.
-- Misconfigurations: require change review, staged rollout, and fast rollback for edge policy changes.
+- DNS propagation delays: plan for DNS cache during failover (5 minutes TTL = 5 minutes partial outage).
+- Cache invalidation failures: design for stale content (validate freshness at application layer).
+- WAF false positives: ensure users can report blocks and team has fast rollback procedure.
+- CDN origin connectivity: edge nodes should serve stale content if origin unavailable (where acceptable).
+- Rate limit counter failures: fail open (allow traffic) or fail closed (block traffic) based on security posture.
 
 ## Operational Checklist
 
-- Clear ownership of gateway and ingress policies.
-- Rate limit and quota strategy aligned to user identity and abuse model.
-- Defined routing/versioning policy (and a deprecation plan).
-- Safe deployment pattern for policy changes (canary and rollback).
-- Metrics you actively use: request rate, error rate, saturation, and tail latency.
+### DNS Operations
+- **Ownership:** Clear ownership of DNS records and routing policies
+- **TTL Strategy:** Configured based on failover requirements (critical services: 30-120s)
+- **Health Checks:** Configured with appropriate intervals and failure thresholds
+- **Failover Testing:** Regular failover drills (quarterly for critical services)
+- **Monitoring:** DNS query volume, response times, health check status
+
+### Security Operations
+- **WAF Rules:** Documented, tested, and version controlled
+- **Rule Review:** Quarterly audit of WAF rules for accuracy and necessity
+- **False Positive Process:** User feedback mechanism for blocked traffic
+- **Bot Management:** Regular review of bot detection effectiveness
+- **Incident Response:** Runbooks for DDoS response, WAF bypass escalation
+
+### Load Balancing Operations
+- **Health Check Configuration:** Appropriate intervals and thresholds for each backend
+- **Algorithm Selection:** Justified based on backend characteristics (homogeneous vs heterogeneous)
+- **Session Affinity:** Documented rationale for sticky sessions (stateful services)
+- **Capacity Planning:** Regular load testing for peak traffic scenarios
+
+### Rate Limiting Operations
+- **Strategy Alignment:** Rate limits aligned to business tiers and abuse models
+- **Monitoring:** Rate limit hit rates, user impact, false positive rates
+- **Incident Response:** Procedures for adjusting limits during incidents
+- **User Communication:** Clear documentation of rate limits and error messages
+
+### API Gateway Operations
+- **Configuration Review:** Change management for gateway configuration
+- **Performance Monitoring:** Latency, throughput, error rate per gateway instance
+- **Plugin Maintenance:** Regular updates and security patches for gateway software
+- **Deployment Safety:** Canary deployments, automated rollback capability
+
+### CDN Operations
+- **Cache Strategy:** TTLs configured based on content freshness requirements
+- **Invalidation Procedures:** Documented process for cache invalidation
+- **Origin Protection:** Pull vs Push strategy documented and implemented
+- **Cost Monitoring:** CDN costs tracked per service or content type
+- **Failover Testing:** Regular testing of CDN origin failover
+
+### Cross-Cutting Concerns
+- **Metrics:** Request rate, error rate, saturation, tail latency (per component)
+- **Logging:** Access logs, security events, configuration changes
+- **Tracing:** Request tracing across entry layer components
+- **Alerting:** Alert thresholds configured based on SLA requirements
+- **Documentation:** Architecture diagrams, runbooks, change procedures
