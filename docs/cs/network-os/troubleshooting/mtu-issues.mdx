@@ -1,0 +1,18 @@
+---
+title: MTU Issues
+description: Diagnosing path MTU mismatch and fragmentation problems
+---
+
+# MTU Issues
+
+## Frequent Symptoms
+
+- Requests hang only for large payloads
+- Intermittent TLS handshake failure over VPN/tunnel
+- Retransmission spikes without obvious app errors
+
+## Triage
+
+1. Probe MTU with `ping -M do -s <size>`.
+2. Capture ICMP fragmentation-needed packets.
+3. Adjust interface MTU and/or TCP MSS.

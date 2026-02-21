@@ -1,0 +1,30 @@
+---
+title: DNS Resolution
+description: DNS query flow, caching, and backend debugging tips
+---
+
+# DNS Resolution
+
+## Query Flow
+
+1. Client stub resolver asks recursive resolver.
+2. Resolver queries root -> TLD -> authoritative nameserver.
+3. Response is cached according to TTL.
+
+## Common Failure Modes
+
+- `NXDOMAIN` from wrong record name.
+- Stale cache after recent migration.
+- Resolver timeout under traffic spikes.
+
+## Useful Commands
+
+```bash
+dig api.example.com
+dig +trace api.example.com
+```
+
+## Related Reading
+
+- [Application Layer - DNS](../application-layer#dns)
+- [DNS Issues](../troubleshooting/dns-issues)

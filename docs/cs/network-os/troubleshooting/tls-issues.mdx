@@ -1,0 +1,18 @@
+---
+title: TLS Issues
+description: Certificate and handshake debugging checklist
+---
+
+# TLS Issues
+
+## Frequent Symptoms
+
+- Handshake failure
+- Certificate verify error
+- Hostname mismatch
+
+## Triage
+
+1. Inspect cert chain with `openssl s_client`.
+2. Validate server name against SAN/CN.
+3. Check protocol and cipher compatibility.

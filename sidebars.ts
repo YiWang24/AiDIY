@@ -212,15 +212,58 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Network & OS (Temporarily Disabled)",
-      collapsed: true,
+      label: "Network & OS",
+      collapsed: false,
       items: [
-        // Temporarily disabled due to build issues
-        // {
-        //   type: "doc",
-        //   id: "cs/network-os/index",
-        //   label: "Overview",
-        // },
+        {
+          type: "doc",
+          id: "cs/network-os/index",
+          label: "Overview",
+        },
+        {
+          type: "category",
+          label: "TCP/IP Five-Layer Model",
+          collapsed: false,
+          items: [
+            {
+              type: "doc",
+              id: "cs/network-os/physical-layer",
+              label: "1. Physical Layer",
+            },
+            {
+              type: "doc",
+              id: "cs/network-os/data-link-layer",
+              label: "2. Data Link Layer",
+            },
+            {
+              type: "doc",
+              id: "cs/network-os/network-layer",
+              label: "3. Network Layer",
+            },
+            {
+              type: "doc",
+              id: "cs/network-os/transport-layer",
+              label: "4. Transport Layer",
+            },
+            {
+              type: "doc",
+              id: "cs/network-os/application-layer",
+              label: "5. Application Layer",
+            },
+          ],
+        },
+        {
+          type: "category",
+          label: "Troubleshooting",
+          collapsed: true,
+          items: [
+            {
+              type: "doc",
+              id: "cs/network-os/troubleshooting/index",
+              label: "Overview",
+            },
+          ],
+        },
       ],
     },
   ],

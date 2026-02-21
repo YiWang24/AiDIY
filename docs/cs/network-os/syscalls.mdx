@@ -1,0 +1,19 @@
+---
+title: System Calls
+description: Using system calls and strace to debug backend runtime issues
+---
+
+# System Calls
+
+System calls are the interface between user-space programs and the kernel.
+
+## Why It Helps
+
+When logs are insufficient, syscall traces show where a process blocks or fails.
+
+## Commands
+
+```bash
+strace -p <pid>
+strace -f -tt -o trace.log <command>
+```

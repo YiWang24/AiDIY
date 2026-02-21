@@ -1,455 +1,85 @@
-#TroubleshootingOverview
-
-##Methodology
-
-###StructuredDebuggingProcess
-
-Whenencounteringnetworkissues,followthissystematicdiagnosticprocess:
-
-```mermaid
-graphTD
-A[ProblemFound]-->B{ProblemDefinition}
-B-->C[Symptom:Whathappened?]
-B-->D[Scope:Impactrange?]
-B-->E[Time:Whendiditstart?]
-
-C-->F[CollectInformation]
-D-->F
-E-->F
-
-F-->G[IsolateLayer]
-G-->H{PhysicalLayer?}
-G-->I{DataLinkLayer?}
-G-->J{NetworkLayer?}
-G-->K{TransportLayer?}
-G-->L{ApplicationLayer?}
-
-H-->M[LocateRootCause]
-I-->M
-J-->M
-K-->M
-L-->M
-
-M-->N[ImplementFix]
-N-->O[Verify]
-O-->P{ProblemResolved?}
-P-->|No|F
-P-->|Yes|Q[SummarizeandDocument]
-```
-
-###ProblemDefinitionTemplate
-
-**1.Symptom(What)**
-
-|ProblemType|TypicalSymptoms|Example|
-|---------|---------|------|
-|**Performance**|Slowresponse,lowthroughput|APIresponsetimeincreasedfrom100msto5s|
-|**Availability**|Cannotconnect,connectiondropped|50%requeststimeout|
-|**Correctness**|Dataerrors,garbledcontent|Responsecontenttruncated|
-
-**2.Scope(Where)**
-
--**GeographicScope**:Specificregion?Allusers?
--**UserScope**:Specificusers?Allusers?
--**ServiceScope**:Specificservice?Allservices?
--**NetworkScope**:Specificsubnet?Entirenetwork?
-
-**3.Time(When)**
-
--**StartTime**:Whendiditstart?
--**Frequency**:Continuous?Intermittent?
--**Pattern**:Specifictimeperiod?Specificload?
-
-###OSISeven-LayerModelDebugging
-
-Diagnosefrombottomtotop:
-
-|Layer|CheckItems|Tools|
-|------|--------|------|
-|**7.ApplicationLayer**|HTTPstatuscodes,APIresponses|curl,browserDevTools|
-|**6.PresentationLayer**|TLShandshake,certificates|openssl,curl|
-|**5.SessionLayer**|Sessionstate,cookies|curl,browser|
-|**4.TransportLayer**|TCPconnections,ports|ss,netstat,telnet|
-|**3.NetworkLayer**|IProuting,ICMP|ping,traceroute,iproute|
-|**2.DataLinkLayer**|MACaddresses,ARP|arping,ipneigh|
-|**1.PhysicalLayer**|Linkstatus,opticalattenuation|ethtool,ping|
-
+---
+title: Troubleshooting Overview
+description: Structured network troubleshooting workflow and command reference
 ---
 
-##DebuggingToolsOverview
+# Troubleshooting Overview
 
-###ConnectivityTesting
+Use a layer-by-layer process to avoid random fixes.
 
-####ping
+## Standard Workflow
 
-**Purpose:**Testhostreachability
+1. Define symptom precisely (timeout, reset, DNS failure, packet loss).
+2. Reproduce with the smallest possible command.
+3. Locate failing layer (DNS, TCP, TLS, app).
+4. Capture evidence (`ss`, `tcpdump`, `dig`, logs).
+5. Change one variable and re-test.
 
-```bash
-#Basicping
-ping-c48.8.8.8
+## Fast Triage Matrix
 
-#Setpacketsize
-ping-s14728.8.8.8
+| Symptom | Likely Layer | First Commands |
+| --- | --- | --- |
+| Name does not resolve | DNS/Application | `dig`, `nslookup` |
+| Timeout before connect | Network/Transport | `traceroute`, `nc`, `ss` |
+| TLS handshake failed | Application/TLS | `openssl s_client`, `curl -v` |
+| Slow but successful | Transport/App | `ss -ti`, request trace |
 
-#Setinterval
-ping-i0.28.8.8.8
+## Core Commands
 
-#Floodping(100timespersecond)
-sudoping-f8.8.8.8
-
-#Outputinterpretation
-#64bytesfrom8.8.8.8:icmp_seq=1ttl=118time=15.2ms
-#Packetloss:packetloss
-#RTT:min/avg/max/mdev
-```
-
-**Scenarios:**
--Networkreachability
--Packetlossrate
--Latencymeasurement
-
-####traceroute
-
-**Purpose:**Discoverroutingpath
+### Connectivity
 
 ```bash
-#UDPtraceroute(default)
-traceroutegoogle.com
-
-#ICMPtraceroute
-traceroute-Igoogle.com
-
-#TCPtraceroute
-traceroute-T-p80google.com
-
-#Specifypacketcount
-traceroute-m15google.com
-
-#Outputinterpretation
-#Eachline:Onehoprouter
-#IPaddress:Routeraddress
-#RTT:Threesamples(x3)
+ping -c 4 <host>
+traceroute <host>
+mtr -rw <host>
 ```
 
-**Scenarios:**
--Discoverroutingpath
--Locatelatencybottlenecks
--Diagnoseroutingloops
-
-####mtr
-
-**Purpose:**Combinepingandtraceroute,real-timemonitoring
+### DNS
 
 ```bash
-#Basicmtr
-mtrgoogle.com
-
-#Reportmode(nointerface)
-mtr-r-c100google.com
-
-#Outputinterpretation
-#Loss%:Packetlossrate
-#Snt:Sentpackets
-#Last/Avg/Best/Wrst:Latency
-#StDev:Latencyjitter
+dig <host>
+nslookup <host>
 ```
 
-**Scenarios:**
--Real-timepathmonitoring
--Continuouspacketlossdiagnosis
-
-###DNSDebugging
-
-####dig
+### TCP and Port Reachability
 
 ```bash
-#Basicquery
-digapi.example.com
-
-#Queryspecificrecordtype
-digapi.example.comA
-digapi.example.comAAAA
-digapi.example.comTXT
-
-#QueryspecificDNSserver
-dig@8.8.8.8api.example.com
-
-#ViewTTL
-digapi.example.com+noall+answer
-
-#Tracequerypath
-digapi.example.com+trace
-
-#Reversequery
-dig-x8.8.8.8
+ss -tulpen
+nc -vz <host> <port>
 ```
 
-**Scenarios:**
--DNSresolutionissues
--DNScacheissues
--DNSdebugging
-
-####nslookup
+### Packet Capture
 
 ```bash
-#Basicquery
-nslookupapi.example.com
-
-#QueryspecificDNSserver
-nslookupapi.example.com8.8.8.8
-
-#Interactivemode
-nslookup
->server8.8.8.8
->api.example.com
+tcpdump -i any host <host> -nn
+tcpdump -i any tcp port 443 -nn
 ```
 
-###TCPDebugging
+## Decision Trees
 
-####ss/netstat
+### Cannot connect to service
 
-```bash
-#ViewallTCPconnections
-ss-t
+1. DNS resolves?
+2. Port reachable?
+3. TLS handshake succeeds?
+4. App returns expected response?
 
-#Viewlisteningports
-ss-tln
+### Intermittent failure
 
-#ViewTCPdetails(window,RTT)
-ss-ti
+1. Compare by AZ/region/path.
+2. Check MTU and retransmissions.
+3. Correlate with deployment and traffic spikes.
 
-#Filterbystate
-ss-tstateestablished
-ss-tstatetime-wait
+## Topic-Specific Guides
 
-#Statisticsbystate
-ss-s
+- [TCP Issues](./tcp-issues)
+- [DNS Issues](./dns-issues)
+- [TLS Issues](./tls-issues)
+- [MTU Issues](./mtu-issues)
 
-#Outputinterpretation
-#State:Connectionstate
-#Recv-Q/Send-Q:Queuesize
-#LocalAddress:Port:Localaddressandport
-#PeerAddress:Port:Remoteaddressandport
-```
+## Related Reading
 
-####telnet/nc
-
-```bash
-#Testportreachability
-telnet192.168.1.103306
-nc-zv192.168.1.103306
-
-#Outputinterpretation
-#Connected:Portopen
-#Connectionrefused:Portnotlistening
-#Connectiontimedout:Firewallorroutingissue
-```
-
-###PacketCaptureAnalysis
-
-####tcpdump
-
-```bash
-#CaptureTCPhandshake
-tcpdump-ieth0-n'tcp[tcpflags]&(tcp-syn|tcp-fin)!=0'
-
-#Capturespecificport
-tcpdump-ieth0-n'port3306'
-
-#Captureanddisplaydetailedcontent
-tcpdump-ieth0-n-v'port3306'
-
-#Captureandsavetofile
-tcpdump-ieth0-n-w/tmp/capture.pcap'port3306'
-
-#CaptureARP
-tcpdump-ieth0-narp
-
-#CaptureICMP
-tcpdump-ieth0-nicmp
-
-#Outputinterpretation
-#Timestamp:Packetarrivaltime
-#Source/DestinationIPandport
-#Flags:S=SYN,A=ACK,F=FIN,R=RST,P=PUSH
-#Sequencenumberandacknowledgmentnumber
-```
-
-**Scenarios:**
--Protocolanalysis
--Problemreproduction
--Contentinspection
-
-####Wireshark
-
-**Graphicalpacketcaptureanalysistool:**
-
-1.Capture:`tcpdump-ieth0-wcapture.pcap`
-2.Downloadtolocal
-3.OpenwithWireshark
-
-**Features:**
--Protocolparsing
--Flowreconstruction
--Statisticalanalysis
--Expertinformation
-
----
-
-##QuickDiagnosticFlowcharts
-
-###Problem:CannotConnecttoService
-
-```mermaid
-graphTD
-A[Cannotconnect]-->B{Pingsuccessful?}
-B-->|No|C[Networklayerproblem]
-B-->|Yes|D{Portopen?}
-
-C-->E{Localnetwork?}
-E-->|Yes|F[Checkrouting,ARP]
-E-->|No|G[Checkfirewall,ISP]
-
-D-->|No|H{Portlistening?}
-D-->|Yes|I[Transportlayerproblem]
-
-H-->|No|J[Servicenotstarted]
-H-->|Yes|K[Firewallblocking]
-
-I-->L[Checkapplicationlayer,TLS]
-```
-
-###Problem:SlowConnection
-
-```mermaid
-graphTD
-A[Slowconnection]-->B{DNSresolution?}
-B-->|Yes|C[DNSproblem]
-B-->|No|D{TCPhandshake?}
-
-D-->|Yes|E[Networklatency]
-D-->|No|F{TLShandshake?}
-
-F-->|Yes|G[TLSproblem]
-F-->|No|H[Applicationslowresponse]
-```
-
-###Problem:IntermittentDisconnection
-
-```mermaid
-graphTD
-A[Intermittentdisconnection]-->B{Allapplications?}
-B-->|Yes|C[Networklayerproblem]
-B-->|No|D[Applicationlayerproblem]
-
-C-->E{Physicallink?}
-E-->|Yes|F[Checkcable,opticalattenuation]
-E-->|No|G[CheckMTU,NAT]
-
-D-->H[Checkconnectionpool,timeout]
-```
-
----
-
-##CommonErrorCategories
-
-###ICMPMessages
-
-|Message|Meaning|CommonCauses|
-|------|------|---------|
-|**DestinationNetUnreachable**|Networkunreachable|Nomatchingrouteinroutingtable|
-|**DestinationHostUnreachable**|Hostunreachable|ARPfailed,hostdown|
-|**DestinationPortUnreachable**|Portunreachable|Portnotlistening|
-|**TimeExceeded**|TTLexpired|Routingloop|
-|**FragmentationNeeded**|Fragmentationrequired|MTUissue|
-
-###TCPFlags
-
-|Flag|Meaning|Scenario|
-|------|------|------|
-|**SYN**|Synchronizesequencenumber|Connectionestablishment|
-|**ACK**|Acknowledgmentnumber|Allsegments(exceptSYN)|
-|**FIN**|Finishconnection|Connectionclosure|
-|**RST**|Resetconnection|Abnormalclosure|
-|**PSH**|Pushdata|Immediatedeliverytoapplication|
-
-###HTTPStatusCodes
-
-|StatusCode|Meaning|Scenario|
-|--------|------|------|
-|**200**|Success|Normalresponse|
-|**301**|Permanentredirect|URLchanged|
-|**302**|Temporaryredirect|Temporaryjump|
-|**400**|Badrequest|Parametererror|
-|**401**|Unauthorized|Loginrequired|
-|**403**|Forbidden|Insufficientpermissions|
-|**404**|Notfound|Resourcedoesnotexist|
-|**500**|Servererror|Applicationexception|
-|**502**|Badgateway|Upstreamserviceunavailable|
-|**503**|Serviceunavailable|Overload,maintenance|
-|**504**|Gatewaytimeout|Upstreamservicetimeout|
-
----
-
-##TroubleshootingChecklist
-
-###InformationCollection
-
--[]Symptomdescription
--[]Impactscope
--[]Starttime
--[]Changelog(deployment,configuration)
--[]Monitoringdata(latency,errorrate)
--[]Logs(application,system,networkdevices)
-
-###IsolateLayer
-
--[]**PhysicalLayer**:Linkstatus,opticalattenuation
--[]**DataLinkLayer**:MACaddresses,ARP
--[]**NetworkLayer**:IProuting,ICMP
--[]**TransportLayer**:TCPconnections,ports
--[]**ApplicationLayer**:HTTP,DNS,TLS
-
-###LocateCause
-
--[]Networktopologychanges
--[]Configurationchanges
--[]Resourceexhaustion(bandwidth,connectioncount)
--[]Hardwarefailure
--[]Softwaredefects
-
-###ImplementFix
-
--[]Configurationmodification
--[]Resourcescaling
--[]Codefixes
--[]Rollbackchanges
-
-###VerifyandDocument
-
--[]Verifyproblemresolved
--[]Monitorrecovery
--[]Summarydocumentation
--[]Improveprocess
-
----
-
-##FurtherReading
-
-###Topic-SpecificTroubleshooting
-
--[TCPIssues](./tcp-issues):Connectiontimeout,connectionreset,TIME_WAIT
--[DNSIssues](./dns-issues):Resolutionfailure,cacheissues
--[TLSIssues](./tls-issues):Handshakefailure,certificateissues
-
-###RelatedDocumentation
-
--[TransportLayer-TCP](../transport-layer)
--[ApplicationLayer-DNS](../application-layer/#dns)
--[ApplicationLayer-TLS](../application-layer/#tls-ssl)
-
-###ExternalResources
-
--**WiresharkWiki**:https://wiki.wireshark.org/
--**TCP/IPIllustrated**:W.RichardStevens
--**NetworkWarrior**:GaryA.Donahue
+- [Network Layer](../network-layer)
+- [Transport Layer](../transport-layer)
+- [Application Layer - DNS](../application-layer#dns)
+- [Application Layer - TLS](../application-layer#tls-ssl)

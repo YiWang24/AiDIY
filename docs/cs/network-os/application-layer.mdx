@@ -1,0 +1,85 @@
+---
+title: Application Layer
+description: HTTP, DNS, TLS, and practical application-layer debugging
+---
+
+# Application Layer
+
+The application layer is where backend services expose APIs and where most user-visible failures first appear.
+
+## Why It Matters
+
+Backend incidents often look like "application bugs" but are caused by protocol behavior:
+
+- Slow response: keep-alive disabled or DNS latency spikes.
+- Intermittent 502/504: upstream timeout mismatch.
+- TLS failure: certificate or SNI mismatch.
+
+## HTTP {#http}
+
+### Core Concepts
+
+- Methods: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`.
+- Status families: 2xx success, 4xx client issues, 5xx server issues.
+- Connection model: short-lived vs persistent keep-alive.
+
+### Practical Guidance
+
+- Set explicit connect/read/write timeouts.
+- Keep upstream and gateway timeout budgets consistent.
+- Use idempotency keys for retry-sensitive write APIs.
+
+## DNS {#dns}
+
+DNS translates service names to IP addresses and can become a hidden latency source.
+
+### Common Pitfalls
+
+- Stale cache after record change.
+- Low TTL causing high resolver load.
+- Split-horizon DNS mismatch between environments.
+
+### Commands
+
+```bash
+dig api.example.com
+nslookup api.example.com
+```
+
+## TLS/SSL {#tls-ssl}
+
+TLS secures HTTP traffic and validates server identity.
+
+### Failure Patterns
+
+- Certificate expired or wrong SAN.
+- SNI host does not match cert CN/SAN.
+- Client and server cipher/protocol mismatch.
+
+### Commands
+
+```bash
+openssl s_client -connect api.example.com:443 -servername api.example.com
+curl -v https://api.example.com/health
+```
+
+## Application-Layer Performance
+
+- Reuse connections with keep-alive/pooling.
+- Compress large payloads where appropriate.
+- Avoid chatty request patterns across service boundaries.
+
+## Incident Triage Checklist
+
+1. Confirm DNS resolution is correct.
+2. Verify TCP connectivity to target port.
+3. Check TLS handshake and certificate validity.
+4. Compare request timeout chain across client, gateway, and server.
+5. Inspect server logs with request IDs.
+
+## Related Reading
+
+- [Transport Layer](../transport-layer)
+- [DNS Resolution](../dns)
+- [TLS Handshake](../tls)
+- [Troubleshooting Overview](../troubleshooting)

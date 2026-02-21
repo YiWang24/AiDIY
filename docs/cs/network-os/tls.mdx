@@ -1,0 +1,26 @@
+---
+title: TLS Handshake
+description: TLS handshake basics and cert troubleshooting
+---
+
+# TLS Handshake
+
+TLS establishes encryption and authenticates the server before HTTP exchange.
+
+## Verify in Practice
+
+```bash
+openssl s_client -connect api.example.com:443 -servername api.example.com
+curl -v https://api.example.com/health
+```
+
+## Common Problems
+
+- Certificate expired or missing intermediate CA.
+- Hostname mismatch between SNI and SAN/CN.
+- Unsupported protocol or cipher overlap.
+
+## Related Reading
+
+- [Application Layer - TLS](../application-layer#tls-ssl)
+- [TLS Issues](../troubleshooting/tls-issues)

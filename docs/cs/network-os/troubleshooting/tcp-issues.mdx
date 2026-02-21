@@ -1,0 +1,18 @@
+---
+title: TCP Issues
+description: Timeout, reset, and TIME_WAIT troubleshooting steps
+---
+
+# TCP Issues
+
+## Frequent Symptoms
+
+- Connection timeout
+- Connection reset
+- Excessive `TIME_WAIT`
+
+## Triage
+
+1. Check socket state with `ss -tan`.
+2. Verify port reachability with `nc -vz`.
+3. Capture packets with `tcpdump` if behavior is intermittent.

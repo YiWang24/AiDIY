@@ -1,0 +1,17 @@
+---
+title: Linux Performance Tuning
+description: Practical Linux-level checks for backend performance incidents
+---
+
+# Linux Performance Tuning
+
+## Baseline Checks
+
+- CPU: `top`, `mpstat`
+- Memory: `free`, `vmstat`
+- Disk: `iostat`
+- Network: `ss`, `sar -n`
+
+## Rule
+
+Measure first, tune second. Avoid kernel tuning without a reproducible bottleneck.

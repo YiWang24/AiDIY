@@ -1,0 +1,18 @@
+---
+title: DNS Issues
+description: Resolver and record troubleshooting for production incidents
+---
+
+# DNS Issues
+
+## Frequent Symptoms
+
+- Intermittent name resolution failure
+- Wrong target IP after deployment
+- High lookup latency
+
+## Triage
+
+1. Query with `dig` from caller and callee environment.
+2. Compare authoritative and cached results.
+3. Verify TTL and propagation timeline.

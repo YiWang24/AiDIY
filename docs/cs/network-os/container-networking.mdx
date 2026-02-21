@@ -1,0 +1,22 @@
+---
+title: Container Networking
+description: Namespaces, bridges, CNI, and container-level diagnostics
+---
+
+# Container Networking
+
+Container networking usually combines Linux namespaces, virtual interfaces, and overlay/bridge networks.
+
+## Checks
+
+- Pod/container IP and route table.
+- DNS resolution inside container namespace.
+- Service/pod CIDR overlap.
+
+## Commands
+
+```bash
+ip a
+ip route
+nslookup kubernetes.default.svc.cluster.local
+```
