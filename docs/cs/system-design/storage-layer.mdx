@@ -264,40 +264,40 @@ Indexes, replication, and storage growth turn into real money and real on-call w
 
 ```mermaid
 graph TD
-    Start["What are your requirements?"] --> Q1{"Need complex<br/>joins and<br/>relations?"}
+    Start["What are your requirements?"] --> Q1["Need complex joins and relations?"]
 
-    Q1 -->|Yes| Relational["Relational Database<br/>(PostgreSQL, MySQL)"]
-    Q1 -->|No| Q2{"Need flexible<br/>schema or<br/>rapid evolution?"}
+    Q1 -->|Yes| Relational["Relational Database (PostgreSQL, MySQL)"]
+    Q1 -->|No| Q2["Need flexible schema or rapid evolution?"]
 
-    Q2 -->|Yes| Document["Document Database<br/>(MongoDB, Couchbase)"]
-    Q2 -->|No| Q3{"Primary access<br/>by key only?"}
+    Q2 -->|Yes| Document["Document Database (MongoDB, Couchbase)"]
+    Q2 -->|No| Q3["Primary access by key only?"]
 
-    Q3 -->|Yes| Q4{"Need sub-millisecond<br/>latency or caching?"}
-    Q3 -->|No| Q5{"Heavy write<br/>workload or<br/>time-series data?"}
+    Q3 -->|Yes| Q4["Need sub-millisecond latency or caching?"]
+    Q3 -->|No| Q5["Heavy write workload or time-series data?"]
 
-    Q4 -->|Yes| KV["Key-Value Store<br/>(Redis, DynamoDB)"]
-    Q4 -->|No| WideColumn["Wide-Column Store<br/>(Cassandra, ScyllaDB)"]
+    Q4 -->|Yes| KV["Key-Value Store (Redis, DynamoDB)"]
+    Q4 -->|No| WideColumn["Wide-Column Store (Cassandra, ScyllaDB)"]
 
-    Q5 -->|Yes| Column["Column-Family Store<br/>(Cassandra, ScyllaDB)"]
-    Q5 -->|No| Q6{"Need full-text<br/>search or<br/>complex aggregations?"}
+    Q5 -->|Yes| Column["Column-Family Store (Cassandra, ScyllaDB)"]
+    Q5 -->|No| Q6["Need full-text search or complex aggregations?"]
 
-    Q6 -->|Yes| Search["Search Engine<br/>(Elasticsearch)"]
-    Q6 -->|No| Q7{"Large files<br/>or blob storage?"}
+    Q6 -->|Yes| Search["Search Engine (Elasticsearch)"]
+    Q6 -->|No| Q7["Large files or blob storage?"]
 
-    Q7 -->|Yes| Object["Object Storage<br/>(S3, GCS, Azure Blob)"]
-    Q7 -->|No| Q8{"Time-series<br/>data?"}
+    Q7 -->|Yes| Object["Object Storage (S3, GCS, Azure Blob)"]
+    Q7 -->|No| Q8["Time-series data?"]
 
-    Q8 -->|Yes| TS["Time-Series DB<br/>(InfluxDB, TimescaleDB)"]
-    Q8 -->|No| Default["Relational Database<br/>(PostgreSQL, MySQL)"]
+    Q8 -->|Yes| TS["Time-Series DB (InfluxDB, TimescaleDB)"]
+    Q8 -->|No| Default["Relational Database (PostgreSQL, MySQL)"]
 
-    Relational --> R1["Use cases:<br/>- Financial transactions<br/>- Complex queries<br/>- Strong consistency"]
-    Document --> D1["Use cases:<br/>- Content management<br/>- Product catalogs<br/>- User profiles"]
-    KV --> K1["Use cases:<br/>- Sessions/caching<br/>- Real-time leaderboards<br/>- Shopping carts"]
-    WideColumn --> WC1["Use cases:<br/>- High write volume<br/>- Time-series data<br/>- Multi-region"]
-    Column --> C1["Use cases:<br/>- IoT sensors<br/>- Metrics/events<br/>- Log data"]
-    Search --> S1["Use cases:<br/>- Product search<br/>- Log analytics<br/>- Autocomplete"]
-    Object --> O1["Use cases:<br/>- Media files<br/>- Backups<br/>- Data lakes"]
-    TS --> T1["Use cases:<br/>- Monitoring metrics<br/>- IoT data<br/>- Market data"]
+    Relational --> R1["Use cases: Financial transactions, Complex queries, Strong consistency"]
+    Document --> D1["Use cases: Content management, Product catalogs, User profiles"]
+    KV --> K1["Use cases: Sessions/caching, Real-time leaderboards, Shopping carts"]
+    WideColumn --> WC1["Use cases: High write volume, Time-series data, Multi-region"]
+    Column --> C1["Use cases: IoT sensors, Metrics/events, Log data"]
+    Search --> S1["Use cases: Product search, Log analytics, Autocomplete"]
+    Object --> O1["Use cases: Media files, Backups, Data lakes"]
+    TS --> T1["Use cases: Monitoring metrics, IoT data, Market data"]
 
     style Relational fill:#90cdf4,stroke:#4299e1,stroke-width:2px
     style Document fill:#fbd38d,stroke:#ed8936,stroke-width:2px
@@ -319,19 +319,19 @@ graph TD
 ```mermaid
 graph TB
     subgraph CAP["CAP Theorem Triangle"]
-        C["Consistency (C)<br/>Every read receives<br/>the most recent write<br/>or an error"]
-        A["Availability (A)<br/>Every request receives<br/>a response, without<br/>guarantee of latest write"]
-        P["Partition Tolerance (P)<br/>System continues to operate<br/>despite network failures"]
+        C["Consistency (C): Every read receives the most recent write or an error"]
+        A["Availability (A): Every request receives a response, without guarantee of latest write"]
+        P["Partition Tolerance (P): System continues to operate despite network failures"]
     end
 
     C --- P
     A --- P
-    C -.-"Must choose<br/>during partition"-.-> A
+    C -.-"Must choose during partition"-.-> A
 
     subgraph Systems["Trade-offs in Practice"]
-        CP["CP Systems<br/>Choose Consistency<br/>Returns errors<br/>during partitions<br/>Examples: HBase,<br/>MongoDB (strong)"]
-        AP["AP Systems<br/>Choose Availability<br/>May serve stale data<br/>Examples: Cassandra,<br/>DynamoDB"]
-        CA["CA Systems<br/>Single-node only<br/>Not truly distributed<br/>Examples: PostgreSQL<br/>single instance"]
+        CP["CP Systems: Choose Consistency, Returns errors during partitions. Examples: HBase, MongoDB (strong)"]
+        AP["AP Systems: Choose Availability, May serve stale data. Examples: Cassandra, DynamoDB"]
+        CA["CA Systems: Single-node only, Not truly distributed. Examples: PostgreSQL single instance"]
     end
 
     P --> CP
@@ -453,7 +453,7 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant Client as Application
-    participant Leader as Primary Node<br/>(Leader)
+    participant Leader as Primary Node (Leader)
     participant R1 as Replica 1
     participant R2 as Replica 2
     participant R3 as Replica N

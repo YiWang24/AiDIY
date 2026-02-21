@@ -18,6 +18,36 @@ const sidebars: SidebarsConfig = {
           id: "cs/algorithms/index",
           label: "Overview",
         },
+        {
+          type: "category",
+          label: "Data Structures",
+          collapsed: false,
+          items: [
+            { type: "doc", id: "cs/algorithms/arrays-strings", label: "1. Arrays & Strings" },
+            { type: "doc", id: "cs/algorithms/linked-lists", label: "2. Linked Lists" },
+            { type: "doc", id: "cs/algorithms/stacks-queues", label: "3. Stacks & Queues" },
+            { type: "doc", id: "cs/algorithms/hash-maps", label: "4. HashMaps & HashSets" },
+            { type: "doc", id: "cs/algorithms/trees", label: "5. Trees" },
+            { type: "doc", id: "cs/algorithms/heaps", label: "6. Heaps" },
+            { type: "doc", id: "cs/algorithms/graphs", label: "7. Graphs" },
+            { type: "doc", id: "cs/algorithms/tries", label: "8. Tries" },
+            { type: "doc", id: "cs/algorithms/sorting", label: "9. Sorting" },
+          ],
+        },
+        {
+          type: "category",
+          label: "Algorithm Patterns",
+          collapsed: false,
+          items: [
+            { type: "doc", id: "cs/algorithms/two-pointers", label: "10. Two Pointers" },
+            { type: "doc", id: "cs/algorithms/sliding-window", label: "11. Sliding Window" },
+            { type: "doc", id: "cs/algorithms/binary-search", label: "12. Binary Search" },
+            { type: "doc", id: "cs/algorithms/greedy", label: "13. Greedy" },
+            { type: "doc", id: "cs/algorithms/backtracking", label: "14. Backtracking" },
+            { type: "doc", id: "cs/algorithms/dynamic-programming", label: "15. Dynamic Programming" },
+            { type: "doc", id: "cs/algorithms/searching", label: "16. Search Strategies" },
+          ],
+        },
       ],
     },
     {
@@ -74,13 +104,109 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Database Internals",
+      label: "Database",
       collapsed: false,
       items: [
         {
           type: "doc",
           id: "cs/database/index",
           label: "Overview",
+        },
+        {
+          type: "category",
+          label: "MySQL",
+          collapsed: false,
+          items: [
+            {
+              type: "doc",
+              id: "cs/database/mysql/index",
+              label: "Overview",
+            },
+            {
+              type: "doc",
+              id: "cs/database/mysql/architecture",
+              label: "Architecture & Storage Engines",
+            },
+            {
+              type: "doc",
+              id: "cs/database/mysql/indexes",
+              label: "Indexes",
+            },
+            {
+              type: "doc",
+              id: "cs/database/mysql/transactions",
+              label: "Transactions",
+            },
+            {
+              type: "doc",
+              id: "cs/database/mysql/locking",
+              label: "Locking",
+            },
+            {
+              type: "doc",
+              id: "cs/database/mysql/logging-replication",
+              label: "Logging & Replication",
+            },
+            {
+              type: "doc",
+              id: "cs/database/mysql/optimization",
+              label: "SQL Optimization",
+            },
+          ],
+        },
+        {
+          type: "category",
+          label: "Redis",
+          collapsed: false,
+          items: [
+            {
+              type: "doc",
+              id: "cs/database/redis/index",
+              label: "Overview",
+            },
+            {
+              type: "doc",
+              id: "cs/database/redis/data-structures",
+              label: "Data Structures",
+            },
+            {
+              type: "doc",
+              id: "cs/database/redis/persistence",
+              label: "Persistence (RDB & AOF)",
+            },
+            {
+              type: "doc",
+              id: "cs/database/redis/cluster",
+              label: "Cluster & Sentinel",
+            },
+            {
+              type: "doc",
+              id: "cs/database/redis/caching-patterns",
+              label: "Caching Patterns",
+            },
+          ],
+        },
+        {
+          type: "category",
+          label: "Advanced Topics",
+          collapsed: true,
+          items: [
+            {
+              type: "doc",
+              id: "cs/database/advanced/deadlocks",
+              label: "Deadlock Prevention",
+            },
+            {
+              type: "doc",
+              id: "cs/database/advanced/connection-pooling",
+              label: "Connection Pooling",
+            },
+            {
+              type: "doc",
+              id: "cs/database/advanced/nosql-comparison",
+              label: "NoSQL Comparison",
+            },
+          ],
         },
       ],
     },
@@ -93,6 +219,50 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "cs/network-os/index",
           label: "Overview",
+        },
+        {
+          type: "category",
+          label: "TCP/IP Five-Layer Model",
+          collapsed: false,
+          items: [
+            {
+              type: "doc",
+              id: "cs/network-os/physical-layer",
+              label: "1. Physical Layer",
+            },
+            {
+              type: "doc",
+              id: "cs/network-os/data-link-layer",
+              label: "2. Data Link Layer",
+            },
+            {
+              type: "doc",
+              id: "cs/network-os/network-layer",
+              label: "3. Network Layer",
+            },
+            {
+              type: "doc",
+              id: "cs/network-os/transport-layer",
+              label: "4. Transport Layer",
+            },
+            {
+              type: "doc",
+              id: "cs/network-os/application-layer",
+              label: "5. Application Layer",
+            },
+          ],
+        },
+        {
+          type: "category",
+          label: "Troubleshooting",
+          collapsed: true,
+          items: [
+            {
+              type: "doc",
+              id: "cs/network-os/troubleshooting/index",
+              label: "Overview",
+            },
+          ],
         },
       ],
     },

@@ -1,0 +1,552 @@
+---
+sidebar_position: 2
+title: Data Structures
+sidebar_label: Data Structures
+description: Redis data structures - String, Hash, List, Set, Sorted Set with examples and use cases
+---
+
+# Data Structures
+
+Redis provides rich data structures that enable powerful operations with minimal code.
+
+## Why Data Structures Matter
+
+Choosing the right data structure is critical for:
+- **Performance**: O(1) vs O(N) operations
+- **Code simplicity**: Use built-in operations instead of application logic
+- **Memory efficiency**: Compact storage
+
+**Example**: Leaderboard with sorted set vs maintaining sorted list in application
+- **Sorted set**: `ZINCRBY leaderboard 50 "alice"` (O(log N))
+- **Application**: Read all scores, sort, increment, write back (O(N log N))
+
+## String
+
+### Overview
+
+**Binary-safe string**: Can store any data (text, JSON, binary, serialized objects)
+
+**Max size**: 512 MB
+
+### Common Commands
+
+```bash
+# Set and get
+SET key value
+GET key
+
+# Set with expiry (seconds)
+SETEX key 3600 value
+
+# Set if not exists (useful for distributed lock)
+SETNX lock:resource 1  # Returns 1 if set, 0 if already exists
+
+# Atomic increment (useful for counters)
+INCR counter  # Increment by 1
+INCRBY counter 10  # Increment by 10
+DECR counter  # Decrement by 1
+
+# Multiple operations
+MSET key1 value1 key2 value2
+MGET key1 key2
+
+# Append to string
+APPEND key "suffix"
+
+# Get substring
+GETRANGE key 0 4  # Characters 0-4 (5 characters)
+
+# Set substring
+SETRANGE key 5 "hello"  # Overwrite starting at position 5
+```
+
+### Use Cases
+
+#### 1. Caching
+
+```bash
+# Cache API response
+SETEX api:user:123 3600 '{"name":"Alice","age":25}'
+
+# Retrieve cache
+GET api:user:123  # Returns JSON string
+```
+
+#### 2. Counter
+
+```bash
+# Page view counter
+INCR page:home:views
+
+# Rate limiting
+INCR ratelimit:user:123:2024-02-14
+EXPIRE ratelimit:user:123:2024-02-14 86400
+GET ratelimit:user:123:2024-02-14  # Check count
+```
+
+#### 3. Distributed Lock
+
+```bash
+# Acquire lock (SETNX + SET with expiry available in Redis 2.6.12+)
+SET lock:order:123 "unique_value" NX EX 10  # Set if not exists, expire in 10s
+
+# Release lock (only if value matches)
+GET lock:order:123
+if value == "unique_value":
+    DEL lock:order:123
+
+# Better: Use Lua script for atomic check-and-delete
+EVAL "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end" 1 lock:order:123 "unique_value"
+```
+
+#### 4. Session Storage
+
+```bash
+# Store session data
+HSET session:abc123 user_id 123 login_time "2024-02-14T10:00:00Z"
+EXPIRE session:abc123 3600
+
+# Check session
+EXISTS session:abc123  # Returns 1 if exists
+```
+
+## Hash
+
+### Overview
+
+**Field-value pairs**: Like a map/dictionary (similar to JSON object or HashMap)
+
+**Max fields**: 4 billion per hash
+
+### Common Commands
+
+```bash
+# Set field
+HSET key field value
+HMSET key field1 value1 field2 value2  # Multiple fields
+
+# Get field
+HGET key field
+HMGET key field1 field2  # Multiple fields
+HGETALL key  # All fields and values
+
+# Check existence
+HEXISTS key field
+
+# Increment field (useful for counters within hash)
+HINCRBY key field 1
+
+# Delete field
+HDEL key field
+
+# Get all fields or values
+HKEYS key  # All field names
+HVALS key  # All values
+
+# Number of fields
+HLEN key
+```
+
+### Use Cases
+
+#### 1. Object Storage (User Profile)
+
+```bash
+# Store user profile
+HSET user:123 name "Alice" email "alice@example.com" age 25
+
+# Get specific field
+HGET user:123 name  # Returns "Alice"
+
+# Update single field
+HSET user:123 age 26
+
+# Get all fields
+HGETALL user:123
+# Returns: name "Alice" email "alice@example.com" age 26
+```
+
+#### 2. Shopping Cart
+
+```bash
+# Add item to cart
+HSET cart:user:123 product:456 2  # 2 units of product 456
+
+# Get cart contents
+HGETALL cart:user:123
+
+# Update quantity
+HINCRBY cart:user:123 product:456 1  # Add 1 more
+
+# Remove item
+HDEL cart:user:123 product:456
+```
+
+#### 3. Counters
+
+```bash
+# Page views by URL
+HINCRBY page:views:/home 1
+
+# Daily stats
+HINCRBY stats:2024-02-14 page_views 1
+HINCRBY stats:2024-02-14 unique_visitors 1
+```
+
+## List
+
+### Overview
+
+**Linked list**: Ordered collection of strings (duplicate values allowed)
+
+**Max elements**: 4 billion per list
+
+**Operations**: O(1) for head/tail operations, O(N) for indexing
+
+### Common Commands
+
+```bash
+# Push to head (left) or tail (right)
+LPUSH key value1 value2  # Push to head (left)
+RPUSH key value1 value2  # Push to tail (right)
+
+# Pop from head or tail
+LPOP key  # Pop from head
+RPOP key  # Pop from tail
+
+# Blocking pop (wait if list empty)
+BLPOP key timeout  # Blocking left pop
+BRPOP key timeout  # Blocking right pop
+
+# Get range
+LRANGE key 0 -1  # All elements (0 to -1)
+LRANGE key 0 9  # First 10 elements
+
+# Get length
+LLEN key
+
+# Trim list (keep only specified range)
+LTRIM key 0 99  # Keep first 100 elements
+
+# Get by index
+LINDEX key 0  # First element
+
+# Set by index
+LSET key 0 "new_value"
+```
+
+### Use Cases
+
+#### 1. Queue (FIFO)
+
+```bash
+# Producer (enqueue)
+RPUSH queue:tasks "task1"
+RPUSH queue:tasks "task2"
+
+# Consumer (dequeue)
+RPOP queue:tasks  # Returns "task1"
+
+# Blocking queue (wait if empty)
+BRPOP queue:tasks 30  # Wait up to 30 seconds
+```
+
+#### 2. Stack (LIFO)
+
+```bash
+# Push
+LPUSH stack:items "item1"
+
+# Pop
+LPOP stack:items  # Returns "item1"
+```
+
+#### 3. Timeline (Activity Feed)
+
+```bash
+# Add activity (newest first)
+LPUSH timeline:user:123 "Post: Hello world"
+
+# Get recent 20 activities
+LRANGE timeline:user:123 0 19
+
+# Trim to keep only latest 100
+LTRIM timeline:user:123 0 99
+```
+
+#### 4. Message Queue
+
+```bash
+# Producer
+LPUSH queue:emails '{"to":"alice@example.com","subject":"Welcome"}'
+
+# Consumer (blocking)
+BRPOP queue:emails 0  # Block indefinitely
+```
+
+## Set
+
+### Overview
+
+**Unordered collection of unique strings**: No duplicates, unordered
+
+**Max elements**: 4 billion per set
+
+**Operations**: O(1) for add/remove/check membership
+
+### Common Commands
+
+```bash
+# Add members
+SADD key member1 member2
+
+# Remove members
+SREM key member1
+
+# Check membership
+SISMEMBER key member  # Returns 1 if member exists
+
+# Get all members
+SMEMBERS key
+
+# Get cardinality (size)
+SCARD key
+
+# Random member
+SRANDMEMBER key  # Return random member (don't remove)
+SPOP key  # Remove and return random member
+
+# Set operations
+SINTER key1 key2  # Intersection (members in both sets)
+SUNION key1 key2  # Union (all members)
+SDIFF key1 key2  # Difference (members in key1 but not in key2)
+
+# Store operation result
+SINTERSTORE dest key1 key2
+SUNIONSTORE dest key1 key2
+SDIFFSTORE dest key1 key2
+```
+
+### Use Cases
+
+#### 1. Tags
+
+```bash
+# Add tags to article
+SADD article:123:tags "redis" "database" "nosql"
+
+# Get all tags
+SMEMBERS article:123:tags
+
+# Find articles with tag (inverse index)
+SADD tag:redis:articles 123
+SADD tag:database:articles 123
+
+# Articles with both "redis" and "database" tags
+SINTER tag:redis:articles tag:database:articles
+```
+
+#### 2. Followers/Following
+
+```bash
+# User follows others
+SADD user:123:following 456 789
+
+# User's followers
+SADD user:123:followers 456 789
+
+# Check if following
+SISMEMBER user:123:following 456
+
+# Common followers (who follows both user 123 and 456)
+SINTER user:123:followers user:456:followers
+
+# Follow count
+SCARD user:123:following
+```
+
+#### 3. Unique Visitors
+
+```bash
+# Track unique visitors per day
+SADD visitors:2024-02-14 "ip:1.2.3.4" "ip:5.6.7.8"
+
+# Count unique visitors
+SCARD visitors:2024-02-14
+
+# Check if visited
+SISMEMBER visitors:2024-02-14 "ip:1.2.3.4"
+```
+
+#### 4. Recommendation Engine
+
+```bash
+# User's liked items
+SADD user:123:likes item:1 item:2 item:3
+
+# Items similar to item:1
+SADD item:1:similar item:4 item:5
+
+# Recommend items liked by users who liked item:1 (not already liked by user:123)
+SUNIONSTORE temp item:1:similar
+SDIFF temp user:123:likes
+```
+
+## Sorted Set (ZSet)
+
+### Overview
+
+**Ordered set of unique members**: Each member has associated score (floating-point)
+
+**Ordering**: Sorted by score (ascending by default)
+
+**Max elements**: 4 billion per sorted set
+
+**Operations**: O(log N) for insert/delete/rank
+
+### Common Commands
+
+```bash
+# Add member with score
+ZADD key score member
+ZADD key 100 "alice" 95 "bob" 120 "charlie"
+
+# Get score
+ZSCORE key member
+
+# Increment score
+ZINCRBY key 10 "alice"  # alice's score becomes 110
+
+# Get range by rank (index)
+ZRANGE key 0 -1  # All members (ascending by score)
+ZRANGE key 0 9 WITHSCORES  # Top 10 members (lowest scores)
+ZREVRANGE key 0 9 WITHSCORES  # Top 10 members (highest scores)
+
+# Get range by score
+ZRANGEBYSCORE key 0 100  # Members with score 0-100
+ZREVRANGEBYSCORE key 100 0  # Reverse (100 to 0)
+
+# Get rank (0-indexed)
+ZRANK key member  # Rank in ascending order
+ZREVRANK key member  # Rank in descending order
+
+# Count members in score range
+ZCOUNT key 0 100
+
+# Remove member
+ZREM key member
+
+# Get by rank (remove and return)
+ZPOPMAX key  # Remove and return member with highest score
+ZPOPMIN key  # Remove and return member with lowest score
+```
+
+### Use Cases
+
+#### 1. Leaderboard
+
+```bash
+# Add scores
+ZADD leaderboard 1000 "alice" 950 "bob" 1200 "charlie"
+
+# Get top 10
+ZREVRANGE leaderboard 0 9 WITHSCORES
+
+# Get user rank
+ZREVRANK leaderboard "alice"  # Returns 2 (0-indexed)
+
+# Increment score
+ZINCRBY leaderboard 50 "alice"  # Alice's score: 1000 → 1050
+
+# Get user's score
+ZSCORE leaderboard "alice"  # Returns 1050
+```
+
+#### 2. Priority Queue
+
+```bash
+# Add tasks with priority (score = priority, higher = more important)
+ZADD queue:tasks 10 "task1" 5 "task2" 8 "task3"
+
+# Get highest priority task
+ZPOPMAX queue:tasks  # Returns "task1" (priority 10)
+
+# Get top N tasks
+ZREVRANGE queue:tasks 0 4 WITHSCORES  # Top 5 tasks
+```
+
+#### 3. Rate Limiting (Sliding Window)
+
+```bash
+# Add request with timestamp as score
+ZADD ratelimit:user:123 1707880000 "req1" 1707880001 "req2"
+
+# Remove old requests (older than 60 seconds)
+ZREMRANGEBYSCORE ratelimit:user:123 0 (1707880000 - 60000)
+
+# Count requests in last 60 seconds
+ZCARD ratelimit:user:123
+
+# If count > 100, rate limit exceeded
+```
+
+#### 4. Time Series
+
+```bash
+# Add data point (timestamp as score)
+ZADD temperature:sensor:1 1707880000 "25.3" 1707880060 "25.5"
+
+# Get last 10 readings
+ZREVRANGE temperature:sensor:1 0 9 WITHSCORES
+
+# Get data in time range
+ZRANGEBYSCORE temperature:sensor:1 1707880000 1707883600
+```
+
+#### 5. Ranking by Multiple Criteria
+
+```bash
+# Composite score: e.g., (rating * 10) + (review_count / 100)
+ZADD products:ranked 95.23 "product:1" 87.45 "product:2"
+
+# Search by score range
+ZRANGEBYSCORE products:ranked 90 100 WITHSCORES
+```
+
+## Data Structure Comparison
+
+| Structure | Ordered | Unique | Operations | Use Case |
+|-----------|---------|--------|------------|----------|
+| **String** | N/A | N/A | O(1) | Cache, counter, lock |
+| **Hash** | No | Fields unique | O(1) | Object, profile |
+| **List** | Yes | No | O(1) head/tail | Queue, stack, timeline |
+| **Set** | No | Members unique | O(1) | Tags, followers, unique |
+| **ZSet** | Yes (by score) | Members unique | O(log N) | Leaderboard, ranking |
+
+## Interview Questions
+
+### Q1: How do you implement a leaderboard in Redis?
+
+**Answer**: Use sorted set (ZSet). Add scores with `ZADD`, get top N with `ZREVRANGE`, get rank with `ZREVRANK`, increment with `ZINCRBY`.
+
+### Q2: What's the difference between List and Set?
+
+**Answer**: List is ordered and allows duplicates, Set is unordered and enforces uniqueness. Use List for queues/timelines, Set for tags/followers.
+
+### Q3: How do you store user profiles in Redis?
+
+**Answer**: Use Hash. Each field is a profile attribute (name, email, age). Allows partial updates with `HSET` and retrieval of specific fields with `HGET`.
+
+### Q4: How do you implement rate limiting?
+
+**Answer**: Use counter with `INCR` and `EXPIRE` (fixed window) or sorted set with timestamps (sliding window). Check count, allow/deny based on limit.
+
+### Q5: What's the time complexity of ZADD?
+
+**Answer**: O(log N) where N is number of elements in sorted set. Uses skip list internally.
+
+## Further Reading
+
+- **[Persistence](../persistence)** - How data is persisted to disk
+- **[Caching Patterns](../caching-patterns)** - Cache strategies and invalidation
+- **[Cluster](../cluster)** - Scaling Redis with clustering

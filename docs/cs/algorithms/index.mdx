@@ -1,0 +1,245 @@
+---
+id: index
+title: Algorithms & Data Structures
+sidebar_label: Overview
+description: Complete guide to algorithms and data structures for interview preparation and backend engineering
+---
+
+# Algorithms & Data Structures
+
+> **"An algorithm must be seen to be believed."** — Donald Knuth
+
+Mastering algorithms is about recognizing **patterns**, not memorizing solutions. This comprehensive guide covers data structures and algorithm patterns essential for both **interview preparation** and **practical backend engineering**.
+
+---
+
+## 🎯 Why This Matters
+
+### For Interviews
+
+- **80%+** of coding interview questions focus on arrays, strings, and data structures
+- Companies expect fluency with core algorithms (DFS, BFS, DP, binary search)
+- Pattern recognition helps solve unseen problems by analogy to known patterns
+
+### For Backend Engineering
+
+- **Data structures** directly impact system performance (HashMap for O(1) lookups, B+ Trees for database indexes)
+- **Algorithms** power critical features (search engines use tries, route planners use Dijkstra)
+- **Performance** differences between O(n²) and O(n log n) can determine system scalability
+
+**Real-world impact**: A backend engineer choosing the wrong data structure can degrade API response time from 10ms to 1 second—a **100x slowdown** affecting user experience.
+
+---
+
+## 📚 Learning Path
+
+### Phase 1: Foundation (Start Here)
+
+These are the most frequently tested topics:
+
+1. **[Arrays & Strings](./arrays-strings)** - Memory layout, StringBuilder, 2D arrays
+2. **[HashMaps & HashSets](./hash-maps)** - Hash functions, collision resolution, load factor
+3. **[Trees](./trees)** - BSTs, traversals, LCA, serialization
+4. **[Two Pointers](./two-pointers)** - Opposite direction, fast/slow pointers
+
+**Time investment**: 2-3 weeks | **Interview frequency**: 60%+
+
+### Phase 2: Core Patterns
+
+Build on foundation with algorithm patterns:
+
+5. **[Linked Lists](./linked-lists)** - Reversal, cycle detection, merge operations
+6. **[Stacks & Queues](./stacks-queues)** - ArrayDeque, monotonic stacks, priority queues
+7. **[Sliding Window](./sliding-window)** - Fixed and dynamic windows, substring problems
+8. **[Binary Search](./binary-search)** - Standard, rotated arrays, lower/upper bound
+
+**Time investment**: 2-3 weeks | **Interview frequency**: 25%+
+
+### Phase 3: Advanced Topics
+
+Tackle more complex data structures:
+
+9. **[Heaps](./heaps)** - Binary heaps, PriorityQueue, Top K problems
+10. **[Graphs](./graphs)** - BFS/DFS, Dijkstra, topological sort
+11. **[Dynamic Programming](./dynamic-programming)** - Memoization, tabulation, optimization problems
+
+**Time investment**: 3-4 weeks | **Interview frequency**: 15%+
+
+### Phase 4: Specialized
+
+Special-purpose structures:
+
+12. **[Tries](./tries)** - Prefix trees, autocomplete, dictionary applications
+13. **[Sorting](./sorting)** - Merge sort, quicksort, TimSort, non-comparison sorts
+14. **[Greedy](./greedy)** - Activity selection, interval scheduling, Huffman coding
+15. **[Backtracking](./backtracking)** - Permutations, combinations, N-Queens
+16. **[Search Strategies](./searching)** - Interpolation search, exponential search, matrix search
+
+**Time investment**: 2-3 weeks | **Interview frequency**: 5%+
+
+---
+
+## 🏗️ Data Structures Reference
+
+### Complexity at a Glance
+
+| Structure | Access | Search | Insert | Delete | Use Case |
+|-----------|--------|--------|--------|--------|----------|
+| **Array** | O(1) | O(n) | O(n) | O(n) | Random access, small datasets |
+| **ArrayList** | O(1) | O(n) | O(1)* | O(n) | Dynamic arrays, frequent access |
+| **LinkedList** | O(n) | O(n) | O(1) | O(1) | Frequent insert/delete |
+| **HashMap** | - | O(1)* | O(1)* | O(1)* | Fast lookups, caching |
+| **TreeMap** | - | O(log n) | O(log n) | O(log n) | Sorted iteration, ranges |
+| **HashSet** | - | O(1)* | O(1)* | O(1)* | Deduplication, membership |
+| **PriorityQueue** | - | O(n) | O(log n) | O(log n) | Priority tasks, Top K |
+| **Trie** | - | O(L) | O(L) | O(L) | Prefix search, autocomplete |
+
+\*Average case; worst case O(n) with poor hash function
+
+### Java Collections Quick Reference
+
+```java
+// Lists
+List<Integer> arrayList = new ArrayList<>();      // Fast access
+List<Integer> linkedList = new LinkedList<>();     // Fast insert/delete
+
+// Sets
+Set<Integer> hashSet = new HashSet<>();             // Fast, unordered
+Set<Integer> treeSet = new TreeSet<>();             // Sorted, O(log n)
+
+// Maps
+Map<K, V> hashMap = new HashMap<>();                // Fast, unordered
+Map<K, V> treeMap = new TreeMap<>();                // Sorted, O(log n)
+Map<K, V> linkedMap = new LinkedHashMap<>();        // Insertion order
+
+// Deque
+Deque<Integer> deque = new ArrayDeque<>();          // Fast, resizable
+Queue<Integer> queue = new LinkedList<>();         // FIFO
+Stack<Integer> stack = new Stack<>();              // LIFO (legacy)
+
+// Priority Queue
+PriorityQueue<Integer> minHeap = new PriorityQueue<>();  // Min at top
+PriorityQueue<Integer> maxHeap = new PriorityQueue<>(
+    Collections.reverseOrder());                     // Max at top
+```
+
+---
+
+## 🧠 Algorithm Patterns
+
+### Pattern Recognition Guide
+
+| Pattern | When to Use | Key Insight |
+|---------|-------------|-------------|
+| **Two Pointers** | Sorted array, pair sum, palindrome | Converge from both ends |
+| **Sliding Window** | Substring/subarray with constraints | Maintain valid window |
+| **Fast/Slow Pointers** | Cycle detection, middle element | Move at different speeds |
+| **Merge Intervals** | Overlapping intervals | Sort by start time |
+| **Binary Search** | Sorted array, monotonic predicate | Discard half each iteration |
+| **Greedy** | Local optimal → Global optimal | Make best choice now |
+| **Backtracking** | All combinations/permutations | Explore all, prune invalid |
+| **DP** | Overlapping subproblems, optimal structure | Cache results |
+| **BFS** | Shortest path (unweighted), level order | Queue-based exploration |
+| **DFS** | Path finding, connectivity | Stack/recursion exploration |
+
+---
+
+## 📊 Interview Readiness Checklist
+
+### Must Know (85% of interviews)
+
+- ✅ Array/String manipulation
+- ✅ HashMap usage and internals
+- ✅ Binary tree traversals (recursive + iterative)
+- ✅ BST operations (search, insert, validate)
+- ✅ BFS/DFS basics
+- ✅ Two pointers technique
+- ✅ Binary search implementation
+- ✅ Time/space complexity analysis
+
+### Should Know (12% of interviews)
+
+- ✅ Heaps and PriorityQueue
+- ✅ Graph cycle detection
+- ✅ Topological sort
+- ✅ Dynamic programming basics (1D DP)
+- ✅ Recursion with memoization
+- ✅ Linked list reversal
+
+### Nice to Have (3% of interviews)
+
+- ⭐ Advanced DP (2D, state machines)
+- ⭐ Advanced graph (Dijkstra, A*)
+- ⭐ Tries and radix trees
+- ⭐ Advanced sorting algorithms
+- ⭐ String algorithms (KMP, Rabin-Karp)
+
+---
+
+## 🔗 Cross-References
+
+### Related Topics
+
+- **[Database: MySQL Indexes](/docs/cs/database/mysql/indexes)** - B+ Tree indexes use tree structures
+- **[System Design](/docs/cs/system-design/)** - Algorithm applications in system design
+
+---
+
+## 📝 Study Tips
+
+### Effective Practice Strategy
+
+1. **Learn the pattern, not the problem**
+   - Solve 2-3 problems per pattern
+   - Focus on approach, not memorization
+
+2. **Implement from scratch**
+   - Don't use library functions for core algorithms
+   - Build your own HashMap, BST, Queue
+
+3. **Analyze after solving**
+   - Could space be optimized?
+   - What if input was sorted?
+   - Edge cases considered?
+
+4. **Spaced repetition**
+   - Revisit problems after 1 week, 1 month
+   - Active recall > passive reading
+
+### Complexity Analysis Rules of Thumb
+
+- **Single loop** over n items: O(n)
+- **Nested loops** over n items: O(n²)
+- **Binary search** on n items: O(log n)
+- **Sorting** n items: O(n log n)
+- **Iterating** over 2D array (m × n): O(m × n)
+- **Recursive calls** branching to k subproblems of size n: O(kⁿ) without memoization
+
+---
+
+## 🚀 Quick Start
+
+### Beginner? Start Here
+
+1. Read [Arrays & Strings](./arrays-strings) → Implement examples
+2. Practice [Two Pointers](./two-pointers) → 5 problems on LeetCode
+3. Learn [HashMaps](./hash-maps) → Understand collisions
+4. Review [Trees](./trees) → Master traversals
+
+### Intermediate? Fill Gaps
+
+1. Skim [Heaps](./heaps) → Implement heap from array
+2. Study [Graphs](./graphs) → BFS vs DFS use cases
+3. Practice [DP](./dynamic-programming) → Start with 1D DP
+4. Learn [Sliding Window](./sliding-window) → Substring problems
+
+### Advanced? Optimize
+
+1. Master [Advanced DP](./dynamic-programming) → 2D DP, state machines
+2. Learn [Greedy](./greedy) → Proof techniques
+3. Study [Tries](./tries) → Space optimization
+4. Practice [Backtracking](./backtracking) → Pruning strategies
+
+---
+
+**Ready to dive in?** Choose a topic from the sidebar and start building your algorithmic toolkit!

@@ -1,0 +1,595 @@
+---
+sidebar_position: 7
+title: SQL Optimization
+sidebar_label: SQL Optimization
+description: EXPLAIN analysis, query optimization techniques, deep pagination, and schema design
+---
+
+# SQL Optimization
+
+## Why Optimization Matters
+
+Query optimization is critical for application performance:
+
+- **User experience**: Slow queries = slow page loads
+- **System load**: Unoptimized queries consume excessive CPU, I/O, memory
+- **Scalability**: Poor queries limit your ability to scale
+- **Cost**: Inefficient queries require more hardware
+
+**Real-world impact**:
+- A single unoptimized query can degrade your entire application
+- Adding an index can improve performance by 1000x
+- Proper schema design avoids costly refactors later
+
+**Example**:
+```sql
+-- Before: Full table scan on 10M rows (10 seconds)
+SELECT * FROM orders WHERE user_id = 123;
+
+-- After: Index lookup (10 milliseconds)
+CREATE INDEX idx_user_id ON orders(user_id);
+SELECT * FROM orders WHERE user_id = 123;  -- 1000x faster
+```
+
+## EXPLAIN Analysis
+
+### What is EXPLAIN?
+
+`EXPLAIN` shows how MySQL executes a query, revealing:
+- **Access type**: Full table scan vs index lookup
+- **Index usage**: Which index is used
+- **Join order**: How tables are joined
+- **Rows examined**: How many rows read
+
+### Basic Usage
+
+```sql
+EXPLAIN SELECT * FROM orders WHERE user_id = 123;
+
++----+-------------+-------+------+---------------+---------+---------+-------+------+-------------+
+| id | select_type | table | type | possible_keys | key     | key_len | ref   | rows | Extra       |
++----+-------------+-------+------+---------------+---------+---------+-------+------+-------------+
+|  1 | SIMPLE      | orders| ref  | idx_user_id   | idx_u   | 5       | const |  100 | Using index |
++----+-------------+-------+------+---------------+---------+---------+-------+------+-------------+
+```
+
+### Key Columns Explained
+
+#### select_type
+
+**Query type**:
+
+| Type | Description | Example |
+|------|-------------|---------|
+| **SIMPLE** | Simple SELECT without subqueries/UNION | `SELECT * FROM users` |
+| **PRIMARY** | Outermost SELECT (in subquery) | `SELECT * FROM (SELECT ...)` |
+| **SUBQUERY** | First SELECT in subquery | `WHERE id IN (SELECT ...)` |
+| **DERIVED** | Derived table (subquery in FROM) | `FROM (SELECT ...)` |
+| **UNION** | Second or later SELECT in UNION | `SELECT a UNION SELECT b` |
+
+**Example**:
+```sql
+EXPLAIN SELECT * FROM users WHERE id IN (SELECT user_id FROM orders);
+
+-- select_type: PRIMARY (outer query), SUBQUERY (subquery)
+```
+
+#### type (Access Type)
+
+**MOST IMPORTANT column**: Ranges from best to worst
+
+| Type | Description | Example |
+|------|-------------|---------|
+| **system** | Table has 1 row | `SELECT * FROM config WHERE id = 1` |
+| **const** | Primary key or unique index lookup (1 row) | `WHERE id = 123` |
+| **eq_ref** | Unique index scan (JOIN) | `JOIN users ON orders.user_id = users.id` |
+| **ref** | Non-unique index lookup | `WHERE user_id = 123` |
+| **range** | Index range scan | `WHERE id > 100 AND id < 200` |
+| **index** | Full index scan | `SELECT COUNT(*) FROM orders` |
+| **ALL** | Full table scan ❌ | `WHERE name = 'Alice'` (no index) |
+
+**Goal**: Avoid `type=ALL` (full table scan). Aim for `ref`, `range`, or better.
+
+**Example**:
+```sql
+-- Good: ref (index lookup)
+EXPLAIN SELECT * FROM orders WHERE user_id = 123;
+-- type: ref
+
+-- Bad: ALL (full table scan)
+EXPLAIN SELECT * FROM orders WHERE DATE(created_at) = '2024-02-14';
+-- type: ALL (function on column breaks index)
+```
+
+#### key
+
+**Index actually used** (from `possible_keys`)
+
+```sql
+EXPLAIN SELECT * FROM orders WHERE user_id = 123;
+-- key: idx_user_id (using index on user_id)
+
+EXPLAIN SELECT * FROM orders WHERE user_id = 123 AND status = 'pending';
+-- key: idx_user_status (composite index used, not just user_id)
+```
+
+#### rows
+
+**Estimated rows examined** (not exact, but useful for comparison)
+
+```sql
+-- Before adding index
+EXPLAIN SELECT * FROM orders WHERE user_id = 123;
+-- rows: 1000000 (estimated)
+
+-- After adding index
+EXPLAIN SELECT * FROM orders WHERE user_id = 123;
+-- rows: 100 (much better)
+```
+
+#### Extra
+
+**Additional information**:
+
+| Value | Meaning | Good/Bad |
+|-------|---------|----------|
+| **Using index** | Covering index (no table lookup) | ✅ Best |
+| **Using where** | WHERE clause filtering | ✅ Normal |
+| **Using index condition** | Index condition pushdown optimization | ✅ Good |
+| **Using filesort** | Extra sort pass (ORDER BY not using index) | ❌ Bad |
+| **Using temporary** | Temporary table for GROUP BY / DISTINCT | ❌ Bad |
+| **Using join buffer** | Join buffering (no index on join column) | ⚠️ Warning |
+
+**Example**:
+```sql
+-- Good: Covering index
+EXPLAIN SELECT user_id, status FROM orders WHERE user_id = 123;
+-- Extra: Using index
+
+-- Bad: Filesort
+EXPLAIN SELECT * FROM orders WHERE user_id = 123 ORDER BY created_at;
+-- Extra: Using filesort (no index on created_at)
+```
+
+### EXPLAIN Examples
+
+#### Good Query (Index Lookup)
+
+```sql
+CREATE INDEX idx_user_status ON orders(user_id, status);
+
+EXPLAIN SELECT * FROM orders WHERE user_id = 123 AND status = 'pending';
+
++----+-------+-------+------+------------------+---------+-------+------+-------------+
+| id | type  | table | type | key              | ref     | rows  | Extra |
++----+-------+-------+------+------------------+---------+-------+------+-------------+
+|  1 | SIMPLE| orders| ref  | idx_user_status  | const   |  100  | Using index |
++----+-------+-------+------+------------------+---------+-------+------+-------------+
+```
+
+**Analysis**: ✅ Uses index, ref type, covering index
+
+#### Bad Query (Full Table Scan)
+
+```sql
+EXPLAIN SELECT * FROM orders WHERE YEAR(created_at) = 2024;
+
++----+-------+-------+------+------+---------+------+-------------+
+| id | type  | table | type | key  | rows    | Extra |
++----+-------+-------+------+------+---------+------+-------------+
+|  1 | SIMPLE| orders| ALL  | NULL | 1000000 | Using where |
++----+-------+-------+------+------+---------+------+-------------+
+```
+
+**Analysis**: ❌ Full table scan (type=ALL), no index used
+
+**Fix**: Rewrite query
+```sql
+SELECT * FROM orders
+WHERE created_at >= '2024-01-01' AND created_at < '2025-01-01';
+```
+
+## Optimization Techniques
+
+### 1. Avoid Full Table Scan
+
+**Problem**: Query reads entire table instead of using index
+
+```sql
+-- ❌ Function on column (index invalidation)
+SELECT * FROM users WHERE LOWER(email) = 'test@example.com';
+-- EXPLAIN: type=ALL
+
+-- ✅ Rewrite: Use functional index or store lowercase
+ALTER TABLE users ADD COLUMN email_lower VARCHAR(255);
+UPDATE users SET email_lower = LOWER(email);
+CREATE INDEX idx_email_lower ON users(email_lower);
+SELECT * FROM users WHERE email_lower = 'test@example.com';
+
+-- ❌ Type conversion
+SELECT * FROM users WHERE phone = 13800138000;  -- phone is VARCHAR
+-- EXPLAIN: type=ALL (implicit conversion)
+
+-- ✅ Use string literal
+SELECT * FROM users WHERE phone = '13800138000';
+```
+
+### 2. Optimize JOINs
+
+**Problem**: Inefficient join order, missing indexes on join columns
+
+```sql
+-- ❌ No index on join column
+SELECT * FROM orders o JOIN users u ON o.user_id = u.id WHERE o.status = 'pending';
+-- EXPLAIN: type=ALL on users table
+
+-- ✅ Add index on join column
+CREATE INDEX idx_user_id ON orders(user_id);  -- Already there (foreign key)
+-- JOIN now uses index (eq_ref type)
+
+-- ❌ Join order (MySQL optimizer usually handles this)
+SELECT * FROM small_table s JOIN large_table l ON s.id = l.small_id;
+-- If optimizer chooses wrong order, use STRAIGHT_JOIN:
+SELECT * FROM small_table s STRAIGHT_JOIN large_table l ON s.id = l.small_id;
+-- Forces small_table to be first (left table)
+```
+
+### 3. Deep Pagination Optimization
+
+**Problem**: `LIMIT offset, count` requires scanning `offset + count` rows
+
+```sql
+-- ❌ Slow: Scans 1,000,010 rows
+SELECT * FROM orders ORDER BY id LIMIT 1000000, 10;
+-- EXPLAIN: rows=1000010
+
+-- ✅ Solution 1: Delayed association (subquery with only primary key)
+SELECT o.* FROM orders o
+INNER JOIN (
+    SELECT id FROM orders ORDER BY id LIMIT 1000000, 10
+) tmp ON o.id = tmp.id;
+-- EXPLAIN: rows=10 (subquery scans index only)
+
+-- ✅ Solution 2: Remember last ID (requires sequential access)
+SELECT * FROM orders WHERE id > last_seen_id ORDER BY id LIMIT 10;
+-- First page: SELECT * FROM orders ORDER BY id LIMIT 10;
+-- Second page: SELECT * FROM orders WHERE id > 10 ORDER BY id LIMIT 10;
+-- Third page: SELECT * FROM orders WHERE id > 20 ORDER BY id LIMIT 10;
+
+-- Visualization
+-- Bad: Scan [0, 1, 2, ..., 999999, 1000000, ..., 1000009]
+-- Good: Scan [1000000, ..., 1000009] (seek to offset)
+```
+
+**Performance comparison**:
+- `LIMIT 1000000, 10`: ~10 seconds (scans 1M rows)
+- Delayed association: ~0.1 seconds (scans 10 rows via index)
+
+### 4. Subquery vs JOIN
+
+**Problem**: Correlated subqueries execute once per row
+
+```sql
+-- ❌ Subquery (executed per row)
+SELECT * FROM users
+WHERE id IN (SELECT user_id FROM orders WHERE status = 'pending');
+-- If 1000 users, executes subquery 1000 times
+
+-- ✅ JOIN (optimizer can optimize better)
+SELECT DISTINCT u.* FROM users u
+INNER JOIN orders o ON u.id = o.user_id
+WHERE o.status = 'pending';
+-- Single query execution plan
+
+-- ✅ Alternative: EXISTS (often faster with proper indexes)
+SELECT * FROM users u
+WHERE EXISTS (
+    SELECT 1 FROM orders o WHERE o.user_id = u.id AND o.status = 'pending'
+);
+```
+
+### 5. COUNT Optimization
+
+**Problem**: `COUNT(*)` slow on large tables (requires full scan)
+
+```sql
+-- ❌ Slow: Full table scan or index scan
+SELECT COUNT(*) FROM orders WHERE status = 'pending';
+-- EXPLAIN: rows=1000000 (scans entire table/index)
+
+-- ✅ Solution 1: Maintain counter table
+CREATE TABLE counters (
+    name VARCHAR(50) PRIMARY KEY,
+    value INT NOT NULL
+);
+
+INSERT INTO counters (name, value) VALUES ('pending_orders', 0);
+
+-- Update counter on INSERT/UPDATE/DELETE
+INSERT INTO orders (user_id, status) VALUES (123, 'pending');
+UPDATE counters SET value = value + 1 WHERE name = 'pending_orders';
+
+-- Fast read
+SELECT value FROM counters WHERE name = 'pending_orders';
+
+-- ✅ Solution 2: Approximate count (table statistics)
+SELECT TABLE_ROWS
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = 'test' AND TABLE_NAME = 'orders';
+-- Not exact, but fast (estimated from statistics)
+
+-- ✅ Solution 3: Covering index (if WHERE on indexed column)
+CREATE INDEX idx_status ON orders(status);
+SELECT COUNT(*) FROM orders WHERE status = 'pending';
+-- EXPLAIN: Extra='Using index' (index only scan)
+```
+
+### 6. Avoid Filesort
+
+**Problem**: `ORDER BY` requires extra sort pass (not using index)
+
+```sql
+-- ❌ Filesort: ORDER BY not using index
+SELECT * FROM orders WHERE user_id = 123 ORDER BY created_at;
+-- EXPLAIN: Extra='Using filesort'
+
+-- ✅ Add covering index
+CREATE INDEX idx_user_created ON orders(user_id, created_at);
+-- EXPLAIN: type=ref, Extra='' (no filesort, index already sorted)
+
+-- ❌ ORDER BY with DESC not using index (before MySQL 8.0)
+SELECT * FROM orders WHERE user_id = 123 ORDER BY created_at DESC;
+-- MySQL 8.0+: Supports DESC indexes
+CREATE INDEX idx_user_created_desc ON orders(user_id, created_at DESC);
+```
+
+### 7. Optimize GROUP BY
+
+**Problem**: Temporary table for GROUP BY
+
+```sql
+-- ❌ Temporary table
+SELECT user_id, COUNT(*) FROM orders GROUP BY user_id;
+-- EXPLAIN: Extra='Using temporary'
+
+-- ✅ Add index on GROUP BY column
+CREATE INDEX idx_user_id ON orders(user_id);
+-- EXPLAIN: Extra='Using index' (no temporary table)
+```
+
+## Schema Design
+
+### Data Types
+
+**Principle**: Use smallest sufficient type
+
+```sql
+-- ❌ Overkill: BIGINT for small numbers
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY,  -- 8 bytes, not needed for < 2B users
+    age INT                 -- 4 bytes, age < 255
+);
+
+-- ✅ Appropriate types
+CREATE TABLE users (
+    id INT PRIMARY KEY,                 -- 4 bytes, up to 2B users
+    age TINYINT UNSIGNED,               -- 1 byte, 0-255
+    status ENUM('pending', 'paid', 'shipped'),  -- 1 byte, not VARCHAR
+    created_at TIMESTAMP                -- 4 bytes, not DATETIME (8 bytes)
+);
+```
+
+**Comparison**:
+
+| Type | Storage | Range |
+|------|---------|-------|
+| **TINYINT** | 1 byte | -128 to 127 |
+| **SMALLINT** | 2 bytes | -32768 to 32767 |
+| **INT** | 4 bytes | -2B to 2B |
+| **BIGINT** | 8 bytes | -9E18 to 9E18 |
+| **VARCHAR(255)** | Variable | 0-255 chars + 1-2 bytes length |
+| **CHAR(10)** | Fixed | 10 chars (padded) |
+| **DATE** | 3 bytes | '1000-01-01' to '9999-12-31' |
+| **DATETIME** | 8 bytes | '1000-01-01 00:00:00' to '9999-12-31 23:59:59' |
+| **TIMESTAMP** | 4 bytes | '1970-01-01 00:00:01' UTC to '2038-01-19 03:14:07' UTC |
+
+**Best practices**:
+- Use `INT` instead of `BIGINT` if possible (saves 4 bytes per row)
+- Use `VARCHAR` instead of `CHAR` for variable-length data
+- Use `TIMESTAMP` instead of `DATETIME` for timezone-aware timestamps
+- Use `ENUM` for fixed sets of strings
+
+### Normalization vs Denormalization
+
+**Normalization (3NF)**: Eliminate redundancy, ensure data integrity
+
+```sql
+-- Normalized schema
+CREATE TABLE users (
+    id INT PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+CREATE TABLE orders (
+    id INT PRIMARY KEY,
+    user_id INT,
+    total DECIMAL(10, 2),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Pros: Data integrity, no redundancy
+-- Cons: Requires JOIN to get user name with order
+```
+
+**Denormalization**: Duplicate data for read performance
+
+```sql
+-- Denormalized schema
+CREATE TABLE orders_with_user (
+    id INT PRIMARY KEY,
+    user_id INT,
+    user_name VARCHAR(100),   -- Denormalized: user name stored with order
+    user_email VARCHAR(100),  -- Denormalized: user email stored with order
+    total DECIMAL(10, 2)
+);
+
+-- Pros: Fast reads (no JOIN)
+-- Cons: Data redundancy (user name duplicated across orders), update anomalies
+```
+
+**When to denormalize**:
+- Read-heavy workloads (analytics, reporting)
+- Frequently accessed data (user profile with posts)
+- Performance-critical queries
+
+**Trade-off**:
+- Normalized: Better write performance, data integrity
+- Denormalized: Better read performance, redundancy
+
+### Partitioning
+
+**Definition**: Split large table into smaller, more manageable pieces
+
+**Benefits**:
+- Faster queries (query only relevant partition)
+- Easier maintenance (drop partition instead of DELETE)
+- Parallel I/O (scan multiple partitions in parallel)
+
+**Range partitioning (by date)**:
+```sql
+CREATE TABLE orders (
+    id INT PRIMARY KEY,
+    user_id INT,
+    created_at DATE,
+    total DECIMAL(10, 2)
+) PARTITION BY RANGE (YEAR(created_at)) (
+    PARTITION p2023 VALUES LESS THAN (2024),
+    PARTITION p2024 VALUES LESS THAN (2025),
+    PARTITION p2025 VALUES LESS THAN (2026),
+    PARTITION pmax VALUES LESS THAN MAXVALUE
+);
+
+-- Query uses partition pruning
+SELECT * FROM orders WHERE created_at >= '2024-01-01';
+-- Only scans p2024 partition, not entire table
+
+-- Drop old data (fast)
+ALTER TABLE orders DROP PARTITION p2023;
+```
+
+**Hash partitioning**:
+```sql
+CREATE TABLE users (
+    id INT PRIMARY KEY,
+    name VARCHAR(100)
+) PARTITION BY HASH(id) PARTITIONS 4;
+```
+
+## Common Optimization Pitfalls
+
+### 1. Over-Indexing
+
+**Problem**: Too many indexes slow down writes
+
+```sql
+-- ❌ Too many indexes on write-heavy table
+CREATE TABLE logs (
+    id INT PRIMARY KEY,
+    user_id INT,
+    action VARCHAR(50),
+    created_at TIMESTAMP,
+    INDEX idx_user_id (user_id),        -- Index 1
+    INDEX idx_action (action),          -- Index 2
+    INDEX idx_created_at (created_at),  -- Index 3
+    INDEX idx_user_action (user_id, action),  -- Index 4 (redundant)
+    INDEX idx_user_created (user_id, created_at)  -- Index 5 (redundant)
+);
+
+-- Each INSERT/UPDATE/DELETE must update all 5 indexes
+-- Better: Keep only frequently used indexes
+```
+
+**Rule**: Create indexes for queries that run frequently or are performance-critical. Remove unused indexes.
+
+### 2. Not Using Covering Index
+
+```sql
+-- ❌ Query: SELECT user_id, status, created_at FROM orders WHERE user_id = 123
+-- Index: (user_id)
+-- EXPLAIN: type=ref, Extra='' (needs table lookup)
+
+-- ✅ Add covering index
+CREATE INDEX idx_covering ON orders(user_id, status, created_at);
+-- EXPLAIN: type=ref, Extra='Using index' (no table lookup)
+```
+
+### 3. SELECT *
+
+```sql
+-- ❌ SELECT * (retrieves all columns)
+SELECT * FROM orders WHERE user_id = 123;
+-- Reads unnecessary columns, more I/O
+
+-- ✅ Select only needed columns
+SELECT id, status, total FROM orders WHERE user_id = 123;
+-- If covering index exists, can avoid table lookup entirely
+```
+
+## Interview Questions
+
+### Q1: How do you analyze a slow query?
+
+**Answer**:
+1. Enable slow query log (`slow_query_log = 1`, `long_query_time = 1`)
+2. Run `EXPLAIN` on query to see execution plan
+3. Check `type` column (avoid `ALL`), `key` (index usage), `Extra` (filesort, temporary)
+4. Check `rows` column (estimated rows examined)
+5. Add missing indexes, rewrite query, optimize schema
+
+### Q2: What's the difference between `ref` and `eq_ref` in EXPLAIN?
+
+**Answer**:
+- **ref**: Non-unique index lookup (multiple rows may match)
+- **eq_ref**: Unique index lookup (only one row per join, typically for primary key or unique index in JOIN)
+
+### Q3: How do you optimize deep pagination?
+
+**Answer**:
+- **Delayed association**: Subquery with only primary key, then join to full rows
+- **Remember last ID**: `WHERE id > last_seen_id ORDER BY id LIMIT 10`
+- **Seek method**: Use covering index to seek to offset
+
+### Q4: Why does `WHERE LOWER(name) = 'alice'` not use an index?
+
+**Answer**: Function on column prevents index usage because index stores raw values, not computed results. Rewrite to:
+- Store lowercase column and index it: `WHERE name_lower = 'alice'`
+- Use functional index (MySQL 8.0+): `CREATE INDEX idx_lower_name ON users((LOWER(name)))`
+
+### Q5: When should you denormalize your schema?
+
+**Answer**:
+- Read-heavy workloads (analytics, reporting)
+- Frequently accessed data (user profile with posts)
+- Performance-critical queries where JOIN is too slow
+- **Trade-off**: Better read performance vs data redundancy and update anomalies
+
+### Q6: What's the difference between `Using index` and `Using index condition`?
+
+**Answer**:
+- **Using index**: Covering index (all columns from index, no table lookup)
+- **Using index condition**: Index condition pushdown optimization (uses index to filter rows, but still needs table lookup for some columns)
+
+### Q7: How do you optimize `COUNT(*)` queries?
+
+**Answer**:
+- Maintain counter table (update on INSERT/DELETE)
+- Use approximate count from `information_schema.TABLES`
+- Use covering index if WHERE on indexed column
+- For exact count on large table, consider scheduled aggregation
+
+## Further Reading
+
+- **[Indexes](../indexes)** - Deep dive into index types and optimization
+- **[Architecture & Storage Engines](../architecture)** - Understanding buffer pool and caches
+- **[Transactions](../transactions)** - How transactions affect performance

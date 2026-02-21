@@ -129,7 +129,7 @@ graph TB
             Payments["Payment Service"]
             Inventory["Inventory Service"]
             Notifications["Notification Service"]
-            DB[(("Single Database"))]
+            DB["Database"]
         end
 
         Client -->|"HTTP/REST"| MonoApp
@@ -150,16 +150,16 @@ graph TB
         Client2["Client Applications"]
         API["API Gateway"]
 
-        AuthSvc["Auth Service<br/>Team: Auth"]
-        OrderSvc["Order Service<br/>Team: Orders"]
-        PaySvc["Payment Service<br/>Team: Payments"]
-        InvSvc["Inventory Service<br/>Team: Inventory"]
-        NotifSvc["Notification Service<br/>Team: Notifications"]
+        AuthSvc["Auth Service (Team: Auth)"]
+        OrderSvc["Order Service (Team: Orders)"]
+        PaySvc["Payment Service (Team: Payments)"]
+        InvSvc["Inventory Service (Team: Inventory)"]
+        NotifSvc["Notification Service (Team: Notifications)"]
 
-        AuthDB[(("Auth DB"))]
-        OrderDB[(("Order DB"))]
-        PayDB[(("Payment DB"))]
-        InvDB[(("Inventory DB"))]
+        AuthDB["Auth DB"]
+        OrderDB["Order DB"]
+        PayDB["Payment DB"]
+        InvDB["Inventory DB"]
 
         Client2 --> API
         API --> AuthSvc
@@ -833,7 +833,7 @@ stateDiagram-v2
     [*] --> Closed: Initial State
 
     Closed --> Closed: Request Success
-    Closed --> Open: Failure Threshold<br/>Exceeded<br/>(e.g., 5 failures in 1 min)
+    Closed --> Open: Failure Threshold Exceeded (e.g. 5 failures in 1 min)
 
     note right of Closed
         Normal operation
@@ -841,7 +841,7 @@ stateDiagram-v2
         Track success/failure
     end note
 
-    Open --> HalfOpen: Timeout Expires<br/>(e.g., 60 seconds)
+    Open --> HalfOpen: Timeout Expires (e.g. 60 seconds)
 
     note right of Open
         Circuit is open
@@ -850,8 +850,8 @@ stateDiagram-v2
         Protects system
     end note
 
-    HalfOpen --> Closed: Test Request<br/>Success
-    HalfOpen --> Open: Test Request<br/>Failure
+    HalfOpen --> Closed: Test Request Success
+    HalfOpen --> Open: Test Request Failure
 
     note right of HalfOpen
         Testing recovery

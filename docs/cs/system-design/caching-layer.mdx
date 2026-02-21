@@ -59,24 +59,24 @@ Caches are typically deployed in a hierarchical structure, from the closest to t
 graph TB
     User["User Request"]
 
-    subgraph L1["Level 1: Client-Side Cache<br/>(Browser/App)"]
-        ClientCache["Browser Cache<br/>&lt;1ms latency<br/>Limited capacity<br/>User-controlled"]
+    subgraph L1["Level 1: Client-Side Cache (Browser/App)"]
+        ClientCache["Browser Cache: <1ms latency, Limited capacity, User-controlled"]
     end
 
-    subgraph L2["Level 2: CDN/Edge Cache<br/>(Global POPs)"]
-        Edge["Edge CDN<br/>10-50ms latency<br/>Global distribution<br/>Vendor-managed"]
+    subgraph L2["Level 2: CDN/Edge Cache (Global POPs)"]
+        Edge["Edge CDN: 10-50ms latency, Global distribution, Vendor-managed"]
     end
 
-    subgraph L3["Level 3: Application Cache<br/>(In-Process)"]
-        AppCache["Local Cache<br/>&lt;0.1ms latency<br/>Per-instance<br/>Small capacity"]
+    subgraph L3["Level 3: Application Cache (In-Process)"]
+        AppCache["Local Cache: <0.1ms latency, Per-instance, Small capacity"]
     end
 
-    subgraph L4["Level 4: Distributed Cache<br/>(Shared Cluster)"]
-        Redis["Redis/Memcached<br/>1-10ms latency<br/>Shared across instances<br/>Large capacity"]
+    subgraph L4["Level 4: Distributed Cache (Shared Cluster)"]
+        Redis["Redis/Memcached: 1-10ms latency, Shared across instances, Large capacity"]
     end
 
-    subgraph L5["Level 5: Database<br/>(Persistent Storage)"]
-        DB["Database<br/>10-100ms latency<br/>Persistent storage<br/>Source of truth"]
+    subgraph L5["Level 5: Database (Persistent Storage)"]
+        DB["Database: 10-100ms latency, Persistent storage, Source of truth"]
     end
 
     User -->|"1. Check"| ClientCache
@@ -1013,7 +1013,7 @@ sequenceDiagram
     Attacker->>App: 7. Request same non-existent key
     App->>Cache: 8. Get key (still miss)
     App->>DB: 9. Query database again
-    Note over App,DB: Every request hits DB<br/>Database overwhelmed
+    Note over App,DB: Every request hits DB. Database overwhelmed.
 
     rect rgb(200, 240, 200)
         Note over Attacker,DB: Solution: Cache Null Objects
@@ -1037,7 +1037,7 @@ sequenceDiagram
         Note over Attacker,DB: Solution: Bloom Filter
         Attacker->>App: 1. Request non-existent key
         App->>App: 2. Check bloom filter
-        App-->>Attacker: 3. Reject immediately<br/>(key doesn't exist)
+        App-->>Attacker: 3. Reject immediately (key doesn't exist)
         Note over Attacker,App: Never reaches cache or DB
     end
 ```

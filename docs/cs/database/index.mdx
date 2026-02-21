@@ -1,0 +1,108 @@
+---
+id: index
+title: Database Internals
+sidebar_label: Database Internals
+description: MySQL optimization, transaction isolation, and Redis caching strategies
+---
+
+# Database Internals
+
+> **"The database is the heart of any application."**
+
+Understanding database internals helps you write efficient queries, choose the right data model, and optimize performance under load.
+
+## Overview
+
+This section covers the two most critical databases for backend engineers:
+
+### MySQL
+
+- [**MySQL Overview**](./mysql/index.mdx) - Architecture, storage engines, and fundamentals
+- [**Architecture & Storage Engines**](./mysql/architecture.mdx) - InnoDB vs MyISAM, query execution flow
+- [**Indexes**](./mysql/indexes.mdx) - B+ Tree, leftmost prefix rule, optimization
+- [**Transactions**](./mysql/transactions.mdx) - ACID, isolation levels, MVCC
+- [**Locking**](./mysql/locking.mdx) - Lock types, deadlock detection
+- [**Logging & Replication**](./mysql/logging-replication.mdx) - Binlog, redo log, undo log, master-slave
+- [**SQL Optimization**](./mysql/optimization.mdx) - EXPLAIN analysis, query tuning
+
+### Redis
+
+- [**Redis Overview**](./redis/index.mdx) - Fundamentals and use cases
+- [**Data Structures**](./redis/data-structures.mdx) - String, Hash, List, Set, ZSet
+- [**Persistence**](./redis/persistence.mdx) - RDB vs AOF, durability
+- [**Cluster & Sentinel**](./redis/cluster.mdx) - High availability and scaling
+- [**Caching Patterns**](./redis/caching-patterns.mdx) - Cache strategies and invalidation
+
+### Advanced Topics
+
+- [**Deadlock Prevention**](./advanced/deadlocks.mdx) - Detect and prevent deadlocks
+- [**Connection Pooling**](./advanced/connection-pooling.mdx) - Connection pool configuration
+- [**NoSQL Comparison**](./advanced/nosql-comparison.mdx) - MySQL vs Redis vs MongoDB
+
+## Quick Reference
+
+### MySQL Indexing
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| **B+ Tree** | Balanced tree, range queries | Primary keys, most columns |
+| **Primary** | Clustered index, data stored with index | Primary key |
+| **Secondary** | Non-clustered, stores primary key value | Frequent queries |
+| **Composite** | Multi-column | Multi-condition WHERE |
+
+### Transaction Isolation Levels
+
+| Level | Dirty Read | Non-Repeatable | Phantom | Performance |
+|-------|------------|----------------|---------|-------------|
+| **Read Uncommitted** | ✅ | ✅ | ✅ | Fastest |
+| **Read Committed (RC)** | ❌ | ✅ | ✅ | Fast |
+| **Repeatable Read (RR)** | ❌ | ❌ | ⚠️* | Medium |
+| **Serializable** | ❌ | ❌ | ❌ | Slowest |
+
+*MySQL InnoDB prevents phantom reads with Gap Locks
+
+### Redis Data Structures
+
+| Structure | Use Case | Commands |
+|-----------|----------|----------|
+| **String** | Simple cache, counters | `GET`, `SET`, `INCR` |
+| **Hash** | Object storage | `HGET`, `HSET`, `HGETALL` |
+| **List** | Message queues, feeds | `LPUSH`, `RPOP`, `LRANGE` |
+| **Set** | Unique items, tags | `SADD`, `SMEMBERS`, `SINTER` |
+| **Sorted Set** | Leaderboards, rankings | `ZADD`, `ZRANGE`, `ZRANK` |
+
+## Common Pitfalls
+
+### MySQL
+- ❌ Missing index on `WHERE` column → Full table scan
+- ❌ Function on column (`WHERE YEAR(date) = 2024`) → Index invalidation
+- ❌ Deep pagination (`LIMIT 1000000, 10`) → Scans millions of rows
+- ✅ Use `EXPLAIN` to analyze queries
+- ✅ Add indexes based on query patterns
+- ✅ Monitor slow query logs
+
+### Redis
+- ❌ No TTL set → Memory leak
+- ❌ Cache stampede → Database overload
+- ❌ Cache penetration → Repeated queries for non-existent data
+- ✅ Always set TTL for cache data
+- ✅ Use appropriate data structures (Hash for objects)
+- ✅ Monitor memory usage and hit rate
+
+## Learning Path
+
+**For interviews**:
+1. MySQL Architecture → Indexes → Transactions → Locking
+2. Redis Data Structures → Caching Patterns → Persistence
+
+**For production**:
+1. MySQL Optimization → Indexes → Transactions → Replication
+2. Redis Caching Patterns → Persistence → Cluster
+
+:::tip Production Tips
+1. **Always use connection pooling** (HikariCP for Java)
+2. **Add indexes based on query patterns**, not guesses
+3. **Monitor slow query logs** regularly
+4. **Set appropriate TTLs** for Redis cache entries
+5. **Use read replicas** for read-heavy workloads
+:::

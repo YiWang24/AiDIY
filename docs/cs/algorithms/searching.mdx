@@ -1,0 +1,247 @@
+---
+id: searching
+title: Search Strategies
+sidebar_label: "16. Search Strategies"
+description: Linear search optimizations, interpolation search, exponential search, and search in sorted matrices
+---
+
+# Search Strategies
+
+## Why Search Matters
+
+Search is fundamental to data access and retrieval:
+
+- **Database queries**: Finding records matching criteria
+- **File systems**: Locating files by name or content
+- **Web search**: Finding relevant pages
+- **APIs**: Filtering and searching collections
+
+**Real-world impact**:
+- Binary search on 1 billion elements: ~30 comparisons
+- Linear search: ~500 million comparisons
+- **16 million times faster**
+
+## Core Concepts
+
+### Search Algorithm Comparison
+
+| Algorithm | Time | Prerequisites | Best For |
+|-----------|------|---------------|----------|
+| **Linear Search** | O(n) | None | Unsorted data, small arrays |
+| **Binary Search** | O(log n) | Sorted array | Large sorted datasets |
+| **Interpolation Search** | O(log log n) avg | Uniformly distributed sorted | Numerical data, uniform distribution |
+| **Exponential Search** | O(log n) | Infinite/unbounded sorted arrays | Unknown size, infinite arrays |
+
+### Binary Search Refresher
+
+```java
+public int binarySearch(int[] arr, int target) {
+    int left = 0, right = arr.length - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (arr[mid] == target) return mid;
+        if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+
+    return -1;
+}
+```
+
+## Deep Dive
+
+### Interpolation Search
+
+Estimate position using value distribution:
+
+```java
+public int interpolationSearch(int[] arr, int target) {
+    int left = 0, right = arr.length - 1;
+
+    while (left <= right && target >= arr[left] && target <= arr[right]) {
+        if (left == right) {
+            return arr[left] == target ? left : -1;
+        }
+
+        // Estimate position
+        int pos = left + ((target - arr[left]) * (right - left)) /
+                          (arr[right] - arr[left]);
+
+        if (arr[pos] == target) return pos;
+        if (arr[pos] < target) left = pos + 1;
+        else right = pos - 1;
+    }
+
+    return -1;
+}
+```
+
+**Best case**: O(1) for uniform distribution
+**Worst case**: O(n) for skewed distribution
+
+### Exponential Search
+
+For arrays of unknown or infinite size:
+
+```java
+public int exponentialSearch(int[] arr, int target) {
+    if (arr[0] == target) return 0;
+
+    // Find range where target might exist
+    int i = 1;
+    while (i < arr.length && arr[i] <= target) {
+        i = i * 2;
+    }
+
+    // Binary search in found range
+    return binarySearch(arr, i / 2, Math.min(i, arr.length - 1), target);
+}
+
+private int binarySearch(int[] arr, int left, int right, int target) {
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (arr[mid] == target) return mid;
+        if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+
+    return -1;
+}
+```
+
+### Search in Sorted Matrix
+
+Matrix where rows and columns are sorted:
+
+```java
+public boolean searchMatrix(int[][] matrix, int target) {
+    if (matrix == null || matrix.length == 0) return false;
+
+    int row = 0, col = matrix[0].length - 1;  // Start from top-right
+
+    while (row < matrix.length && col >= 0) {
+        if (matrix[row][col] == target) return true;
+        if (matrix[row][col] > target) {
+            col--;  // Move left
+        } else {
+            row++;  // Move down
+        }
+    }
+
+    return false;
+}
+```
+
+**Time**: O(m + n) where m = rows, n = columns
+
+## Practical Applications
+
+### Search in Rotated Sorted Array
+
+```java
+public int search(int[] nums, int target) {
+    int left = 0, right = nums.length - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (nums[mid] == target) return mid;
+
+        if (nums[left] <= nums[mid]) {  // Left half is sorted
+            if (target >= nums[left] && target < nums[mid]) {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        } else {  // Right half is sorted
+            if (target > nums[mid] && target <= nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+    }
+
+    return -1;
+}
+```
+
+### Search Insert Position
+
+```java
+public int searchInsert(int[] nums, int target) {
+    int left = 0, right = nums.length;
+
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+
+        if (nums[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+
+    return left;
+}
+```
+
+## Interview Questions
+
+### Q1: Binary Search (Easy)
+
+**Problem**: Classic binary search implementation.
+
+**Approach**: Standard binary search
+
+**Complexity**: O(log n) time
+
+```java
+public int search(int[] nums, int target) {
+    int left = 0, right = nums.length - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (nums[mid] == target) return mid;
+        if (nums[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+
+    return -1;
+}
+```
+
+### Q2: Search a 2D Matrix II (Medium)
+
+**Problem**: Search in matrix with sorted rows and columns.
+
+**Approach**: Start from top-right or bottom-left
+
+**Complexity**: O(m + n) time
+
+```java
+public boolean searchMatrix(int[][] matrix, int target) {
+    if (matrix == null || matrix.length == 0) return false;
+
+    int row = 0, col = matrix[0].length - 1;
+
+    while (row < matrix.length && col >= 0) {
+        if (matrix[row][col] == target) return true;
+        if (matrix[row][col] > target) col--;
+        else row++;
+    }
+
+    return false;
+}
+```
+
+## Further Reading
+
+- **Binary Search**: Specialized search technique
+- **Two Pointers**: Often used in search
+- **Trees**: BST search
+- **LeetCode**: [Search problems](https://leetcode.com/tag/search/)

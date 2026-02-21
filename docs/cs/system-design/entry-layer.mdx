@@ -60,10 +60,10 @@ When a user requests your service, DNS resolution happens before any network con
 ```mermaid
 sequenceDiagram
     participant User as User's Device
-    participant Resolver as Local DNS Resolver<br/>(ISP/public DNS)
+    participant Resolver as Local DNS Resolver (ISP/public DNS)
     participant Root as Root Server
     participant TLD as TLD Server
-    participant Auth as Authoritative DNS<br/>(Route53/Cloudflare)
+    participant Auth as Authoritative DNS (Route53/Cloudflare)
     participant Server as Your Server
 
     User->>Resolver: 1. Query "api.example.com"
@@ -132,22 +132,22 @@ graph TB
     end
 
     subgraph Regions["Regional Data Centers"]
-        EU_DC["Europe Region<br/>Frankfurt"]
-        US_DC["US Region<br/>Virginia"]
-        Asia_DC["Asia Region<br/>Tokyo"]
+        EU_DC["Europe Region - Frankfurt"]
+        US_DC["US Region - Virginia"]
+        Asia_DC["Asia Region - Tokyo"]
     end
 
     EU -->|"DNS Query"| Provider
     US -->|"DNS Query"| Provider
     Asia -->|"DNS Query"| Provider
 
-    Provider -->|"Route to nearest<br/>Based on resolver IP"| EU_DC
-    Provider -->|"Route to nearest<br/>Based on resolver IP"| US_DC
-    Provider -->|"Route to nearest<br/>Based on resolver IP"| Asia_DC
+    Provider -->|"Route to nearest (Based on resolver IP)"| EU_DC
+    Provider -->|"Route to nearest (Based on resolver IP)"| US_DC
+    Provider -->|"Route to nearest (Based on resolver IP)"| Asia_DC
 
-    EU_DC -.->|"Failover if<br/>unhealthy"| US_DC
-    US_DC -.->|"Failover if<br/>unhealthy"| EU_DC
-    Asia_DC -.->|"Failover if<br/>unhealthy"| US_DC
+    EU_DC -.->|"Failover if unhealthy"| US_DC
+    US_DC -.->|"Failover if unhealthy"| EU_DC
+    Asia_DC -.->|"Failover if unhealthy"| US_DC
 
     style Provider fill:#fbd38d,stroke:#f6ad55,stroke-width:2px
     style EU_DC fill:#90cdf4,stroke:#4299e1,stroke-width:2px
@@ -1278,37 +1278,37 @@ graph TB
     User[User Request]
 
     subgraph Edge["Edge Layer (Global POPs)"]
-        Edge1["Edge Node 1<br/>New York"]
-        Edge2["Edge Node 2<br/>London"]
-        Edge3["Edge Node 3<br/>Tokyo"]
+        Edge1["Edge Node 1: New York"]
+        Edge2["Edge Node 2: London"]
+        Edge3["Edge Node 3: Tokyo"]
     end
 
     subgraph Regional["Regional Layer (Mid-Level Caches)"]
-        Regional1["Regional Cache 1<br/>US East"]
-        Regional2["Regional Cache 2<br/>Europe"]
-        Regional3["Regional Cache 3<br/>Asia Pacific"]
+        Regional1["Regional Cache 1: US East"]
+        Regional2["Regional Cache 2: Europe"]
+        Regional3["Regional Cache 3: Asia Pacific"]
     end
 
     subgraph Origin["Origin Infrastructure"]
-        CDN["CDN Origin Shield<br/>Central Cache"]
-        OriginServer["Origin Server<br/>Your Application"]
+        CDN["CDN Origin Shield: Central Cache"]
+        OriginServer["Origin Server: Your Application"]
     end
 
     User -->|"1. Request"| Edge1
 
-    Edge1 -->|"2. Cache Miss<br/>Look for content"| Regional1
+    Edge1 -->|"2. Cache Miss (Look for content)"| Regional1
     Edge2 -->|"2. Cache Miss"| Regional2
     Edge3 -->|"2. Cache Miss"| Regional3
 
-    Regional1 -->|"3. Cache Miss<br/>Aggregate requests"| CDN
+    Regional1 -->|"3. Cache Miss (Aggregate requests)"| CDN
     Regional2 -->|"3. Cache Miss"| CDN
     Regional3 -->|"3. Cache Miss"| CDN
 
-    CDN -->|"4. Cache Miss<br/>Last resort"| OriginServer
+    CDN -->|"4. Cache Miss (Last resort)"| OriginServer
     OriginServer -->|"5. Response"| CDN
     CDN -->|"6. Cache & forward"| Regional1
     Regional1 -->|"7. Cache & forward"| Edge1
-    Edge1 -->|"8. Deliver to user<br/>< 50ms latency"| User
+    Edge1 -->|"8. Deliver to user (< 50ms latency)"| User
 
     style Edge1 fill:#68d391,stroke:#38a169,stroke-width:2px
     style Edge2 fill:#68d391,stroke:#38a169,stroke-width:2px
