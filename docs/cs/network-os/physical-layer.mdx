@@ -1,585 +1,585 @@
-# Physical Layer
+#Physical Layer
 
-## Why is it Important?
+##Whyisit Important?
 
-The physical layer is the **foundation of the TCP/IP protocol stack**, responsible for transmitting bit streams over physical media. Although backend engineers rarely operate the physical layer directly, understanding it helps us:
+Thephysicallayeristhe**foundationofthe TCP/I Pprotocolstack**,responsiblefortransmittingbitstreamsoverphysicalmedia.Althoughbackendengineersrarelyoperatethephysicallayerdirectly,understandingithelpsus:
 
-- **Select Data Centers**: Understand why us-east-1 is faster for US East users
-- **Understand Latency**: Identify different types of latency: propagation, serialization, etc.
-- **Network Planning**: Understand trade-offs between single-region and multi-region deployment
-- **Fault Location**: Determine if issues are at the application layer or physical layer (fiber cut)
+-**Select Data Centers**:Understandwhyus-east-1isfasterfor US Eastusers
+-**Understand Latency**:Identifydifferenttypesoflatency:propagation,serialization,etc.
+-**Network Planning**:Understandtrade-offsbetweensingle-regionandmulti-regiondeployment
+-**Fault Location**:Determineifissuesareattheapplicationlayerorphysicallayer(fibercut)
 
-### After learning this section, you will be able to:
+###Afterlearningthissection,youwillbeableto:
 
-- Understand characteristics of different transmission media
-- Distinguish between bandwidth and throughput
-- Understand the components of latency
-- Understand cloud providers' physical infrastructure
-- Solve problems at the correct layer
+- Understandcharacteristicsofdifferenttransmissionmedia
+- Distinguishbetweenbandwidthandthroughput
+- Understandthecomponentsoflatency
+- Understandcloudproviders'physicalinfrastructure
+- Solveproblemsatthecorrectlayer
 
 ---
 
-## What Backend Engineers Need to Know
+##What Backend Engineers Needto Know
 
-### Abstraction Boundary
+###Abstraction Boundary
 
-**Physical Layer vs Other Layers:**
+**Physical Layervs Other Layers:**
 
-| Layer | Responsibility | When Network Engineers Involved |
+|Layer|Responsibility|When Network Engineers Involved|
 |------|------|-------------------|
-| **Physical Layer** | Cables, fiber, signals | Link down, fiber cut |
-| **Data Link Layer** | Ethernet, MAC, switching | VLAN, MTU |
-| **Network Layer** | IP, routing, NAT | Subnet planning, routing policies |
-| **Transport Layer** | TCP, UDP, ports | Connection management, performance tuning |
-| **Application Layer** | HTTP, DNS, TLS | API design, performance optimization |
+|**Physical Layer**|Cables,fiber,signals|Linkdown,fibercut|
+|**Data Link Layer**|Ethernet,MAC,switching|VLAN,MTU|
+|**Network Layer**|IP,routing,NAT|Subnetplanning,routingpolicies|
+|**Transport Layer**|TCP,UDP,ports|Connectionmanagement,performancetuning|
+|**Application Layer**|HTTP,DNS,TLS|AP Idesign,performanceoptimization|
 
-**When is Physical Layer Involved?**
-- Data center selection
-- CDN deployment
-- Cross-region latency issues
-- Network failures (fiber cut)
+**Whenis Physical Layer Involved?**
+- Datacenterselection
+- CD Ndeployment
+- Cross-regionlatencyissues
+- Networkfailures(fibercut)
 
-### Why is the Physical Layer Important?
+###Whyisthe Physical Layer Important?
 
-**Scenario 1: Debugging High Latency**
+**Scenario1:Debugging High Latency**
 
 ```
-API response slow: 200ms
+AP Iresponseslow:200ms
 
 Analysis:
-- Application processing: 50ms
-- Database query: 80ms
-- Network latency: 70ms
+- Applicationprocessing:50ms
+- Databasequery:80ms
+- Networklatency:70ms
 
-Physical layer perspective:
-- Transoceanic distance: 10,000 km
-- Speed of light: 200,000 km/s (in fiber)
-- Propagation latency: 50 ms (round trip)
-- Remaining 20ms: Router processing, queuing
-
-Conclusion:
-- Physical limit: 50 ms (cannot optimize)
-- Optimizable: Router processing, queuing (CDN, edge computing)
-```
-
-**Scenario 2: Selecting a Data Center**
-
-```
-User distribution:
-- US: 40%
-- Europe: 30%
-- Asia Pacific: 30%
-
-Single-region deployment (us-east-1):
-- US users: 20ms
-- Europe users: 150ms
-- Asia Pacific users: 200ms
-- Average latency: 97ms
-
-Multi-region deployment:
-- US (us-east-1): 20ms
-- Europe (eu-west-1): 30ms
-- Asia Pacific (ap-southeast-1): 40ms
-- Average latency: 29ms
+Physicallayerperspective:
+- Transoceanicdistance:10,000km
+- Speedoflight:200,000km/s(infiber)
+- Propagationlatency:50ms(roundtrip)
+- Remaining20ms:Routerprocessing,queuing
 
 Conclusion:
-- Physical distance determines latency lower bound
-- Multi-region deployment can significantly improve user experience
+- Physicallimit:50ms(cannotoptimize)
+- Optimizable:Routerprocessing,queuing(CDN,edgecomputing)
+```
+
+**Scenario2:Selectinga Data Center**
+
+```
+Userdistribution:
+- US:40%
+- Europe:30%
+- Asia Pacific:30%
+
+Single-regiondeployment(us-east-1):
+- U Susers:20ms
+- Europeusers:150ms
+- Asia Pacificusers:200ms
+- Averagelatency:97ms
+
+Multi-regiondeployment:
+- US(us-east-1):20ms
+- Europe(eu-west-1):30ms
+- Asia Pacific(ap-southeast-1):40ms
+- Averagelatency:29ms
+
+Conclusion:
+- Physicaldistancedetermineslatencylowerbound
+- Multi-regiondeploymentcansignificantlyimproveuserexperience
 ```
 
 ---
 
-## Transmission Media
+##Transmission Media
 
-### Copper Cable
+###Copper Cable
 
 **Types:**
 
-| Type | Bandwidth | Max Distance | Use Case |
+|Type|Bandwidth|Max Distance|Use Case|
 |------|------|---------|------|
-| **Cat5e** | 1 Gbps | 100 meters | Gigabit Ethernet |
-| **Cat6** | 10 Gbps | 55 meters | 10 Gigabit Ethernet |
-| **Cat6a** | 10 Gbps | 100 meters | Data center |
-| **Cat8** | 40 Gbps | 30 meters | High-performance computing |
+|**Cat5e**|1Gbps|100meters|Gigabit Ethernet|
+|**Cat6**|10Gbps|55meters|10Gigabit Ethernet|
+|**Cat6a**|10Gbps|100meters|Datacenter|
+|**Cat8**|40Gbps|30meters|High-performancecomputing|
 
 **Characteristics:**
-- Low cost
-- Easy installation
-- Susceptible to electromagnetic interference
-- Distance limitations
+- Lowcost
+- Easyinstallation
+- Susceptibletoelectromagneticinterference
+- Distancelimitations
 
 **Backend Relevance:**
-- Server connections in data centers
-- Top-of-rack switch to server connections
+- Serverconnectionsindatacenters
+- Top-of-rackswitchtoserverconnections
 
-### Fiber Optic
+###Fiber Optic
 
 **Types:**
 
-| Type | Bandwidth | Max Distance | Use Case |
+|Type|Bandwidth|Max Distance|Use Case|
 |------|------|---------|------|
-| **OS1 (Single-mode)** | 10 Gbps | 10 km | Long distance, telecom |
-| **OS2 (Single-mode)** | 100 Gbps | 80 km | Long distance, telecom |
-| **OM1 (Multi-mode)** | 1 Gbps | 300 meters | Data center |
-| **OM3 (Multi-mode)** | 10 Gbps | 300 meters | Data center |
-| **OM4 (Multi-mode)** | 40 Gbps | 400 meters | Data center |
+|**OS1(Single-mode)**|10Gbps|10km|Longdistance,telecom|
+|**OS2(Single-mode)**|100Gbps|80km|Longdistance,telecom|
+|**OM1(Multi-mode)**|1Gbps|300meters|Datacenter|
+|**OM3(Multi-mode)**|10Gbps|300meters|Datacenter|
+|**OM4(Multi-mode)**|40Gbps|400meters|Datacenter|
 
 **Characteristics:**
-- High bandwidth
-- Long distance
-- Immune to electromagnetic interference
-- High cost
+- Highbandwidth
+- Longdistance
+- Immunetoelectromagneticinterference
+- Highcost
 
 **Backend Relevance:**
-- Cross-data center connections
-- Inter-region connections for cloud providers
-- Submarine cables
+- Cross-datacenterconnections
+- Inter-regionconnectionsforcloudproviders
+- Submarinecables
 
-### Wireless
+###Wireless
 
 **Types:**
 
-| Type | Bandwidth | Frequency | Use Case |
+|Type|Bandwidth|Frequency|Use Case|
 |------|------|------|------|
-| **Wi-Fi 6** | 9.6 Gbps | 2.4/5 GHz | LAN |
-| **5G** | 20 Gbps | Millimeter wave | Mobile network |
-| **Satellite** | 100 Mbps | Ku/Ka band | Remote areas |
+|**Wi-Fi6**|9.6Gbps|2.4/5G Hz|LAN|
+|**5G**|20Gbps|Millimeterwave|Mobilenetwork|
+|**Satellite**|100Mbps|Ku/Kaband|Remoteareas|
 
 **Characteristics:**
 - Convenient
-- No physical limitations
-- High latency (satellite)
-- Susceptible to interference
+- Nophysicallimitations
+- Highlatency(satellite)
+- Susceptibletointerference
 
 **Backend Relevance:**
-- Mobile user access
-- Edge computing
+- Mobileuseraccess
+- Edgecomputing
 
 ---
 
-## Bandwidth and Speed Concepts
+##Bandwidthand Speed Concepts
 
-### Bandwidth vs Throughput
+###Bandwidthvs Throughput
 
-**Bandwidth:** Theoretical maximum transmission rate
+**Bandwidth:**Theoreticalmaximumtransmissionrate
 
-**Throughput:** Actual transmission rate
-
-```
-Bandwidth: 1 Gbps
-  Overhead:
-  - Ethernet header: 14 bytes
-  - IP header: 20 bytes
-  - TCP header: 20 bytes
-  - Application data: 1460 bytes (MSS)
-  Throughput: 1 Gbps  (1460 / 1514)  965 Mbps
-```
-
-**Why is 1 Gbps not equal to 1 Gbps of application data?**
+**Throughput:**Actualtransmissionrate
 
 ```
-Physical layer: 1 Gbps
-  Ethernet overhead (2%)
-Data link layer: 980 Mbps
-  IP/UDP overhead (3%)
-Network layer: 950 Mbps
-  TCP overhead (3%)
-Transport layer: 920 Mbps
-  Application layer protocol (HTTP 2%)
-Application layer: 900 Mbps
+Bandwidth:1Gbps
+Overhead:
+- Ethernetheader:14bytes
+- I Pheader:20bytes
+- TC Pheader:20bytes
+- Applicationdata:1460bytes(MSS)
+Throughput:1Gbps(1460/1514)965Mbps
 ```
 
-### Serialization Delay
+**Whyis1Gbpsnotequalto1Gbpsofapplicationdata?**
 
-**Definition:** Time to put data onto the physical link
+```
+Physicallayer:1Gbps
+Ethernetoverhead(2%)
+Datalinklayer:980Mbps
+IP/UD Poverhead(3%)
+Networklayer:950Mbps
+TC Poverhead(3%)
+Transportlayer:920Mbps
+Applicationlayerprotocol(HTTP2%)
+Applicationlayer:900Mbps
+```
+
+###Serialization Delay
+
+**Definition:**Timetoputdataontothephysicallink
 
 **Calculation:**
 
 ```
-Serialization delay = Packet size / Bandwidth
+Serializationdelay=Packetsize/Bandwidth
 
 Example:
-- 1500 byte packet, 1 Gbps link
-- Serialization delay = 1500  8 bits / 1 Gbps = 12 s
+-1500bytepacket,1Gbpslink
+- Serializationdelay=15008bits/1Gbps=12s
 
-- 1500 byte packet, 10 Mbps link
-- Serialization delay = 1500  8 bits / 10 Mbps = 1.2 ms
+-1500bytepacket,10Mbpslink
+- Serializationdelay=15008bits/10Mbps=1.2ms
 ```
 
 **Impact:**
-- Large packets on slow links have significant latency
-- Small packets have minimal impact
+- Largepacketsonslowlinkshavesignificantlatency
+- Smallpacketshaveminimalimpact
 
 ---
 
-## Latency Components
+##Latency Components
 
-### Latency Breakdown
+###Latency Breakdown
 
 ```
-Total latency = Propagation delay + Processing delay + Queuing delay + Serialization delay
+Totallatency=Propagationdelay+Processingdelay+Queuingdelay+Serializationdelay
 ```
 
-#### 1. Propagation Delay
+####1.Propagation Delay
 
-**Definition:** Time for signal to propagate through medium
+**Definition:**Timeforsignaltopropagatethroughmedium
 
 **Calculation:**
 
 ```
-Propagation delay = Distance / Speed of light
+Propagationdelay=Distance/Speedoflight
 
-Speed of light:
-- Vacuum: 300,000 km/s
-- Fiber: 200,000 km/s (refractive index 1.5)
-- Copper: ~200,000 km/s
+Speedoflight:
+- Vacuum:300,000km/s
+- Fiber:200,000km/s(refractiveindex1.5)
+- Copper:~200,000km/s
 
 Example:
-- Transoceanic distance: 10,000 km
-- Fiber propagation delay: 10,000 / 200,000 = 50 ms (one-way)
-- RTT: 100 ms
+- Transoceanicdistance:10,000km
+- Fiberpropagationdelay:10,000/200,000=50ms(one-way)
+- RTT:100ms
 ```
 
 **Key Points:**
-- Cannot optimize (physical limit)
-- Longer distance, higher latency
+- Cannotoptimize(physicallimit)
+- Longerdistance,higherlatency
 
-#### 2. Processing Delay
+####2.Processing Delay
 
-**Definition:** Time for routers/switches to process packets
+**Definition:**Timeforrouters/switchestoprocesspackets
 
-**Range:** Microseconds to milliseconds
-
-**Optimization:**
-- Faster hardware
-- More efficient routing algorithms
-- Hardware acceleration (ASIC, FPGA)
-
-#### 3. Queuing Delay
-
-**Definition:** Time packets wait in router queues
-
-**Range:** Milliseconds to seconds (when congested)
+**Range:**Microsecondstomilliseconds
 
 **Optimization:**
-- Increase bandwidth
-- QoS (Quality of Service)
-- Congestion control
+- Fasterhardware
+- Moreefficientroutingalgorithms
+- Hardwareacceleration(ASIC,FPGA)
+
+####3.Queuing Delay
+
+**Definition:**Timepacketswaitinrouterqueues
+
+**Range:**Millisecondstoseconds(whencongested)
+
+**Optimization:**
+- Increasebandwidth
+- Qo S(Qualityof Service)
+- Congestioncontrol
 
 **Scenario:**
 
 ```
-No congestion: Queuing delay  0 ms
-Light congestion: Queuing delay  10 ms
-Moderate congestion: Queuing delay  100 ms
-Severe congestion: Queuing delay > 1000 ms (packet loss)
+Nocongestion:Queuingdelay0ms
+Lightcongestion:Queuingdelay10ms
+Moderatecongestion:Queuingdelay100ms
+Severecongestion:Queuingdelay>1000ms(packetloss)
 ```
 
-#### 4. Serialization Delay
+####4.Serialization Delay
 
-**Definition:** Time to put data onto the link
+**Definition:**Timetoputdataontothelink
 
 **Calculation:**
 
 ```
-Serialization delay = Packet size / Bandwidth
+Serializationdelay=Packetsize/Bandwidth
 
 Example:
-- 1500 bytes, 1 Gbps: 12 s
-- 1500 bytes, 10 Mbps: 1.2 ms
+-1500bytes,1Gbps:12s
+-1500bytes,10Mbps:1.2ms
 ```
 
-### Latency Example
+###Latency Example
 
-**Scenario:** API request from New York to London
+**Scenario:**AP Irequestfrom New Yorkto London
 
 ```
-Distance: 5500 km
+Distance:5500km
 
-Propagation delay: 5500 / 200,000  2 (round trip) = 55 ms
-Processing delay: Router processing (5 hops)  0.1 ms = 0.5 ms
-Queuing delay: Light load  1 ms
-Serialization delay: 1500 bytes / 1 Gbps  2 = 24 s
+Propagationdelay:5500/200,0002(roundtrip)=55ms
+Processingdelay:Routerprocessing(5hops)0.1ms=0.5ms
+Queuingdelay:Lightload1ms
+Serializationdelay:1500bytes/1Gbps2=24s
 
-Total latency: 55 + 0.5 + 1 + 0.024  56.5 ms
+Totallatency:55+0.5+1+0.02456.5ms
 ```
 
 **Analysis:**
-- Propagation delay dominates (97%)
-- Queuing delay may vary (when congested)
-- Processing and serialization delays negligible
+- Propagationdelaydominates(97%)
+- Queuingdelaymayvary(whencongested)
+- Processingandserializationdelaysnegligible
 
 ---
 
-## Network Topology Impact on Backend Design
+##Network Topology Impacton Backend Design
 
-### Single Data Center vs Multi-Region
+###Single Data Centervs Multi-Region
 
 **Single Data Center:**
 
 ```
-Users (global)
+Users(global)
 
-Data center (us-east-1)
-  ├─ Database
-  ├─ Cache
-  └─ Application servers
+Datacenter(us-east-1)
+├─Database
+├─Cache
+└─Applicationservers
 
 Pros:
-  - Simple architecture
-  - Low cost
-  - Strong data consistency
+- Simplearchitecture
+- Lowcost
+- Strongdataconsistency
 
 Cons:
-  - High latency for distant users
-  - Single point of failure
+- Highlatencyfordistantusers
+- Singlepointoffailure
 
-Suitable for:
-  - Startups
-  - Users concentrated in single region
+Suitablefor:
+- Startups
+- Usersconcentratedinsingleregion
 ```
 
 **Multi-Region Deployment:**
 
 ```
-US users  US region (us-east-1)
-Europe users  Europe region (eu-west-1)
-Asia Pacific users  Asia Pacific region (ap-southeast-1)
+U Susers U Sregion(us-east-1)
+Europeusers Europeregion(eu-west-1)
+Asia Pacificusers Asia Pacificregion(ap-southeast-1)
 
-Inter-region synchronization:
-  - Database master-slave replication
-  - Cache synchronization
-  - Message queue
+Inter-regionsynchronization:
+- Databasemaster-slavereplication
+- Cachesynchronization
+- Messagequeue
 
 Pros:
-  - Low latency
-  - High availability
+- Lowlatency
+- Highavailability
 
 Cons:
-  - Complex architecture
-  - Data consistency issues
-  - High cost
+- Complexarchitecture
+- Dataconsistencyissues
+- Highcost
 
-Suitable for:
-  - Global users
-  - High availability requirements
+Suitablefor:
+- Globalusers
+- Highavailabilityrequirements
 ```
 
-### Edge Computing
+###Edge Computing
 
-**Purpose:** Push computation closer to users
+**Purpose:**Pushcomputationclosertousers
 
 ```
-Traditional architecture:
-  Users  CDN (static resources)  Origin (dynamic content)
+Traditionalarchitecture:
+Users CDN(staticresources)Origin(dynamiccontent)
 
-Edge computing:
-  Users  Edge node (compute + cache)  Origin
+Edgecomputing:
+Users Edgenode(compute+cache)Origin
 
 Examples:
-  - Cloudflare Workers
-  - AWS Lambda@Edge
-  - CloudFront Functions
+- Cloudflare Workers
+- AWS Lambda@Edge
+- Cloud Front Functions
 ```
 
 **Advantages:**
-- Lower latency
-- Reduce origin load
-- Better user experience
+- Lowerlatency
+- Reduceoriginload
+- Betteruserexperience
 
 ---
 
-## Cloud Provider Physical Infrastructure
+##Cloud Provider Physical Infrastructure
 
-### AWS Regions and Availability Zones
+###AWS Regionsand Availability Zones
 
 **Region:**
-- Geographically isolated areas
-- Example: us-east-1 (Virginia), ap-southeast-1 (Singapore)
+- Geographicallyisolatedareas
+- Example:us-east-1(Virginia),ap-southeast-1(Singapore)
 
-**Availability Zone (AZ):**
-- Isolated data centers within a region
-- Physical isolation (different buildings, different power)
-- Low latency interconnection (< 1 ms)
+**Availability Zone(AZ):**
+- Isolateddatacenterswithinaregion
+- Physicalisolation(differentbuildings,differentpower)
+- Lowlatencyinterconnection(<1ms)
 
 ```
-us-east-1 (Virginia)
-  ├─ us-east-1a (AZ A)
-  ├─ us-east-1b (AZ B)
-  └─ us-east-1c (AZ C)
+us-east-1(Virginia)
+├─us-east-1a(AZA)
+├─us-east-1b(AZB)
+└─us-east-1c(AZC)
 
-Between AZs:
-  - Physical isolation
-  - Independent power
-  - Low latency interconnection
+Between A Zs:
+- Physicalisolation
+- Independentpower
+- Lowlatencyinterconnection
 ```
 
-### Cross-Region Latency
+###Cross-Region Latency
 
-**Example: AWS Inter-Region Latency**
+**Example:AWS Inter-Region Latency**
 
-| Source Region | Destination Region | Latency |
+|Source Region|Destination Region|Latency|
 |--------|---------|------|
-| **us-east-1** | us-west-2 | 70 ms |
-| **us-east-1** | eu-west-1 | 80 ms |
-| **us-east-1** | ap-southeast-1 | 200 ms |
-| **eu-west-1** | ap-southeast-1 | 180 ms |
+|**us-east-1**|us-west-2|70ms|
+|**us-east-1**|eu-west-1|80ms|
+|**us-east-1**|ap-southeast-1|200ms|
+|**eu-west-1**|ap-southeast-1|180ms|
 
 **Design Impact:**
 
 ```
-Single region:
-  Read/write latency: < 1 ms
+Singleregion:
+Read/writelatency:<1ms
 
-Cross-region master-slave:
-  Write (master region): Local latency
-  Read (slave region): 100 ms+
+Cross-regionmaster-slave:
+Write(masterregion):Locallatency
+Read(slaveregion):100ms+
 
-Cross-region active-active:
-  Read/write latency: 100 ms+
-  Data consistency: Eventual consistency
+Cross-regionactive-active:
+Read/writelatency:100ms+
+Dataconsistency:Eventualconsistency
 ```
 
 ---
 
-## Debugging Tools
+##Debugging Tools
 
-### ping
+###ping
 
-**Measure latency:**
+**Measurelatency:**
 
 ```bash
-# Basic ping
-ping -c 4 8.8.8.8
+#Basicping
+ping-c48.8.8.8
 
-# Output:
-# 64 bytes from 8.8.8.8: icmp_seq=1 ttl=118 time=15.2 ms
-#                                ↑     ↑        ↑     ↑
-#                                │     │        │     └─ RTT (round trip time)
-#                                │     │        └─ TTL (time to live)
-#                                │     └─ Sequence number
-#                                └─ Packet size
+#Output:
+#64bytesfrom8.8.8.8:icmp_seq=1ttl=118time=15.2ms
+#↑↑↑↑
+#│││└─RTT(roundtriptime)
+#││└─TTL(timetolive)
+#│└─Sequencenumber
+#└─Packetsize
 ```
 
-### traceroute
+###traceroute
 
-**Discover routing path:**
+**Discoverroutingpath:**
 
 ```bash
-traceroute google.com
+traceroutegoogle.com
 
-# Output:
-# 1  _gateway (192.168.1.1)  1.234 ms
-# 2  10.0.0.1 (10.0.0.1)  15.234 ms
-# 3  72.14.195.1 (72.14.195.1)  20.234 ms
-# ...
+#Output:
+#1_gateway(192.168.1.1)1.234ms
+#210.0.0.1(10.0.0.1)15.234ms
+#372.14.195.1(72.14.195.1)20.234ms
+#...
 ```
 
-### mtr
+###mtr
 
-**Real-time path monitoring:**
+**Real-timepathmonitoring:**
 
 ```bash
-mtr google.com
+mtrgoogle.com
 
-# Output:
-# Host              Loss%   Snt   Last   Avg  Best  Wrst StDev
-# 1. _gateway        0.0%    10    1.2   1.3   1.1   1.5   0.1
-# 2. 10.0.0.1        0.0%    10   15.2  15.3  15.1  15.5   0.1
-# 3. 72.14.195.1     0.0%    10   20.2  20.3  20.1  20.5   0.1
+#Output:
+#Host Loss%Snt Last Avg Best Wrst St Dev
+#1._gateway0.0%101.21.31.11.50.1
+#2.10.0.0.10.0%1015.215.315.115.50.1
+#3.72.14.195.10.0%1020.220.320.120.50.1
 ```
 
 ---
 
-## Business Scenarios
+##Business Scenarios
 
-### Scenario 1: Global User Latency Optimization
+###Scenario1:Global User Latency Optimization
 
-**Background:** Global users, single-region deployment in us-east-1
+**Background:**Globalusers,single-regiondeploymentinus-east-1
 
 **Problem:**
-- US users: 20ms
-- Europe users: 150ms
-- Asia Pacific users: 250ms
+- U Susers:20ms
+- Europeusers:150ms
+- Asia Pacificusers:250ms
 
 **Solutions:**
 
-1. **CDN (Content Delivery Network)**
-   - Static resources: Edge caching
-   - Latency: 20-50ms
+1.**CDN(Content Delivery Network)**
+- Staticresources:Edgecaching
+- Latency:20-50ms
 
-2. **Multi-Region Deployment**
-   - Independent deployment per region
-   - Latency: 20-50ms
-   - Complexity: Data synchronization, consistency
+2.**Multi-Region Deployment**
+- Independentdeploymentperregion
+- Latency:20-50ms
+- Complexity:Datasynchronization,consistency
 
-3. **Edge Computing**
-   - Dynamic content executed at edge
-   - Latency: 20-50ms
-   - Limitation: Limited compute capacity
+3.**Edge Computing**
+- Dynamiccontentexecutedatedge
+- Latency:20-50ms
+- Limitation:Limitedcomputecapacity
 
 ---
 
-### Scenario 2: Cross-Region Database Replication
+###Scenario2:Cross-Region Database Replication
 
-**Background:** Master region us-east-1, slave region eu-west-1
+**Background:**Masterregionus-east-1,slaveregioneu-west-1
 
 **Problem:**
-- After writing to master region, slave region reads old data
-- Replication latency: 100ms
+- Afterwritingtomasterregion,slaveregionreadsolddata
+- Replicationlatency:100ms
 
 **Solutions:**
 
-1. **Synchronous Replication**
-   - Write waits for all regions to acknowledge
-   - Latency: 100ms+
-   - Availability: Reduced (any region failure, write fails)
+1.**Synchronous Replication**
+- Writewaitsforallregionstoacknowledge
+- Latency:100ms+
+- Availability:Reduced(anyregionfailure,writefails)
 
-2. **Asynchronous Replication**
-   - Write returns immediately
-   - Replication latency: 100ms
-   - Consistency: Eventual consistency
+2.**Asynchronous Replication**
+- Writereturnsimmediately
+- Replicationlatency:100ms
+- Consistency:Eventualconsistency
 
-3. **Application Layer Routing**
-   - Write operations: Route to master region
-   - Read operations: Route to nearest region
-   - May read stale data
-
----
-
-## Operations Checklist
-
-### Data Center Selection
-
-- [ ] User distribution analysis
-- [ ] Latency testing
-- [ ] Cost evaluation
-- [ ] Compliance requirements (GDPR, data sovereignty)
-
-### Monitoring Metrics
-
-- [ ] Inter-region latency
-- [ ] Inter-AZ latency
-- [ ] Network failures (fiber cuts)
-
-### Troubleshooting
-
-- [ ] High latency: Check routing, congestion
-- [ ] Intermittent disconnection: Check physical links
-- [ ] Inter-region communication: Check submarine cable status
+3.**Application Layer Routing**
+- Writeoperations:Routetomasterregion
+- Readoperations:Routetonearestregion
+- Mayreadstaledata
 
 ---
 
-## Further Reading
+##Operations Checklist
 
-### Related Documentation
+###Data Center Selection
 
-- [Data Link Layer - Ethernet](../data-link-layer.mdx)
-- [Network Layer - IP Routing](../network-layer.mdx)
-- [Network Performance Optimization - Latency Optimization](../network-performance.mdx)
+-[]Userdistributionanalysis
+-[]Latencytesting
+-[]Costevaluation
+-[]Compliancerequirements(GDPR,datasovereignty)
 
-### External Resources
+###Monitoring Metrics
 
-- **AWS Global Infrastructure**: https://aws.amazon.com/about-aws/global-infrastructure/
-- **Google Network**: https://cloud.google.com/networking
-- **Submarine Cable Map**: https://www.submarinecablemap.com/
+-[]Inter-regionlatency
+-[]Inter-A Zlatency
+-[]Networkfailures(fibercuts)
+
+###Troubleshooting
+
+-[]Highlatency:Checkrouting,congestion
+-[]Intermittentdisconnection:Checkphysicallinks
+-[]Inter-regioncommunication:Checksubmarinecablestatus
+
+---
+
+##Further Reading
+
+###Related Documentation
+
+-[Data Link Layer-Ethernet](../data-link-layer)
+-[Network Layer-IP Routing](../network-layer)
+-[Network Performance Optimization-Latency Optimization](../network-performance)
+
+###External Resources
+
+-**AWS Global Infrastructure**:https://aws.amazon.com/about-aws/global-infrastructure/
+-**Google Network**:https://cloud.google.com/networking
+-**Submarine Cable Map**:https://www.submarinecablemap.com/

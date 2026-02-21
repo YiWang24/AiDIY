@@ -1,1056 +1,1056 @@
-# Transport Layer
+#Transport Layer
 
-## Why is it Important?
+##Whyisit Important?
 
-The transport layer is **the layer that backend engineers need to understand most deeply**. Almost all performance, reliability, and timeout issues in backend systems are directly related to the transport layer.
+Thetransportlayeris**thelayerthatbackendengineersneedtounderstandmostdeeply**.Almostallperformance,reliability,andtimeoutissuesinbackendsystemsaredirectlyrelatedtothetransportlayer.
 
-### Real-World Impact
+###Real-World Impact
 
-- **Performance Bottlenecks**: TCP connection establishment overhead (1 RTT) accounts for 30% of total latency
-- **Resource Exhaustion**: Too many TIME_WAIT states causing "Too many open files"
-- **Connection Drops**: Improper Keep-alive configuration causing long connections to be dropped by intermediate devices
-- **Throughput Limits**: Unoptimized TCP window size results in only 1% bandwidth utilization on high-latency networks
+-**Performance Bottlenecks**:TC Pconnectionestablishmentoverhead(1RTT)accountsfor30%oftotallatency
+-**Resource Exhaustion**:Toomany TIME_WAI Tstatescausing"Toomanyopenfiles"
+-**Connection Drops**:Improper Keep-aliveconfigurationcausinglongconnectionstobedroppedbyintermediatedevices
+-**Throughput Limits**:Unoptimized TC Pwindowsizeresultsinonly1%bandwidthutilizationonhigh-latencynetworks
 
-### After learning this section, you will be able to:
+###Afterlearningthissection,youwillbeableto:
 
-- Understand every detail of TCP three-way handshake and four-way termination
-- Debug connection timeout, connection reset, and port exhaustion issues
-- Configure efficient connection pools to reduce handshake overhead
-- Tune TCP parameters to optimize throughput for high-latency networks
-- Understand congestion control and diagnose network congestion issues
+- Understandeverydetailof TC Pthree-wayhandshakeandfour-waytermination
+- Debugconnectiontimeout,connectionreset,andportexhaustionissues
+- Configureefficientconnectionpoolstoreducehandshakeoverhead
+- Tune TC Pparameterstooptimizethroughputforhigh-latencynetworks
+- Understandcongestioncontrolanddiagnosenetworkcongestionissues
 
 ---
 
-## Core Responsibilities of the Transport Layer
+##Core Responsibilitiesofthe Transport Layer
 
-The transport layer provides **end-to-end** communication services, responsible for:
+Thetransportlayerprovides**end-to-end**communicationservices,responsiblefor:
 
-1. **Inter-Process Communication**: Distinguishing different application processes through port numbers
-2. **Reliable Transmission** (TCP): Ensuring data arrives in order, complete, and without loss
-3. **Flow Control**: Preventing the sender from overwhelming the receiver
-4. **Congestion Control**: Preventing network overload
+1.**Inter-Process Communication**:Distinguishingdifferentapplicationprocessesthroughportnumbers
+2.**Reliable Transmission**(TCP):Ensuringdataarrivesinorder,complete,andwithoutloss
+3.**Flow Control**:Preventingthesenderfromoverwhelmingthereceiver
+4.**Congestion Control**:Preventingnetworkoverload
 
-### Major Protocol Comparison
+###Major Protocol Comparison
 
-| Feature | TCP | UDP |
+|Feature|TCP|UDP|
 |------|-----|-----|
-| **Connection** | Connection-oriented (three-way handshake) | Connectionless |
-| **Reliability** | Reliable (acknowledgments, retransmission) | Unreliable (best effort) |
-| **Ordering** | Ordered (sequence numbers) | Unordered |
-| **Flow Control** | Yes (sliding window) | No |
-| **Congestion Control** | Yes (slow start, congestion avoidance) | No |
-| **Speed** | Slower | Fast |
-| **Usage** | HTTP, FTP, SMTP, databases | DNS, video streaming, gaming, QUIC |
+|**Connection**|Connection-oriented(three-wayhandshake)|Connectionless|
+|**Reliability**|Reliable(acknowledgments,retransmission)|Unreliable(besteffort)|
+|**Ordering**|Ordered(sequencenumbers)|Unordered|
+|**Flow Control**|Yes(slidingwindow)|No|
+|**Congestion Control**|Yes(slowstart,congestionavoidance)|No|
+|**Speed**|Slower|Fast|
+|**Usage**|HTTP,FTP,SMTP,databases|DNS,videostreaming,gaming,QUIC|
 
 **Backend Engineer's Choice:**
-- 99% of applications use TCP (HTTP, databases, caching)
-- UDP is mainly used for:
-  - DNS queries (simple, fast)
-  - Video streaming (tolerates packet loss)
-  - Online gaming (low latency priority)
-  - HTTP/3 (QUIC) - reliable transmission over UDP
+-99%ofapplicationsuse TCP(HTTP,databases,caching)
+- UD Pismainlyusedfor:
+- DN Squeries(simple,fast)
+- Videostreaming(toleratespacketloss)
+- Onlinegaming(lowlatencypriority)
+- HTTP/3(QUIC)-reliabletransmissionover UDP
 
 ---
 
-## TCP: Transmission Control Protocol
+##TCP:Transmission Control Protocol
 
-### TCP Three-Way Handshake
+###TCP Three-Way Handshake
 
-Establishing a TCP connection requires a three-way handshake to ensure both parties are ready to receive data.
+Establishinga TC Pconnectionrequiresathree-wayhandshaketoensurebothpartiesarereadytoreceivedata.
 
 ```mermaid
-sequenceDiagram
-    participant Client as Client
-    participant Server as Server
+sequence Diagram
+participant Clientas Client
+participant Serveras Server
 
-    Note over Client,Server: SYN_SENT
-    Client->>Server: SYN<br/>seq=0, <br/>Window size=65535
+Noteover Client,Server:SYN_SENT
+Client->>Server:SYN<br/>seq=0,<br/>Windowsize=65535
 
-    Note over Server: SYN_RCVD
-    Server->>Client: SYN-ACK<br/>seq=0, ack=1<br/>Window size=8192
+Noteover Server:SYN_RCVD
+Server->>Client:SYN-ACK<br/>seq=0,ack=1<br/>Windowsize=8192
 
-    Note over Client,Server: ESTABLISHED
-    Client->>Server: ACK<br/>seq=1, ack=1
+Noteover Client,Server:ESTABLISHED
+Client->>Server:ACK<br/>seq=1,ack=1
 
-    Note over Server,Client: ESTABLISHED<br/>Connection established
+Noteover Server,Client:ESTABLISHED<br/>Connectionestablished
 ```
 
-#### Why Three Handshakes?
+####Why Three Handshakes?
 
-| Handshake Count | Problem |
+|Handshake Count|Problem|
 |---------|------|
-| **Two** | Cannot confirm both parties' receive capabilities are normal |
-| **Three** | Both parties can confirm each other's send and receive capabilities |
-| **Four** | Wastes one round trip (third can send data simultaneously) |
+|**Two**|Cannotconfirmbothparties'receivecapabilitiesarenormal|
+|**Three**|Bothpartiescanconfirmeachother'ssendandreceivecapabilities|
+|**Four**|Wastesoneroundtrip(thirdcansenddatasimultaneously)|
 
 **Key Points:**
-- **SYN**: Synchronize, synchronizing sequence numbers
-- **ACK**: Acknowledge, acknowledgment number
-- **seq**: Sequence number, byte sequence number
-- **ack**: Acknowledgment number, next byte sequence number expected to receive
+-**SYN**:Synchronize,synchronizingsequencenumbers
+-**ACK**:Acknowledge,acknowledgmentnumber
+-**seq**:Sequencenumber,bytesequencenumber
+-**ack**:Acknowledgmentnumber,nextbytesequencenumberexpectedtoreceive
 
-#### Performance Impact
+####Performance Impact
 
-Each new connection requires **1 RTT**:
+Eachnewconnectionrequires**1RTT**:
 
-- Local network (RTT < 1ms): Overhead negligible
-- Cross-region (RTT 50-100ms): Each request adds 50-100ms
-- Transoceanic (RTT 150-200ms): Each request adds 150-200ms
+- Localnetwork(RTT<1ms):Overheadnegligible
+- Cross-region(RTT50-100ms):Eachrequestadds50-100ms
+- Transoceanic(RTT150-200ms):Eachrequestadds150-200ms
 
-**Optimization: Connection Pool**
+**Optimization:Connection Pool**
 
 ```python
-# Without connection pool: Each request establishes a new connection
-for request in requests:
-    conn = create_new_connection()  # 1 RTT overhead
-    response = conn.send(request)
-    conn.close()
+#Withoutconnectionpool:Eachrequestestablishesanewconnection
+forrequestinrequests:
+conn=create_new_connection()#1RT Toverhead
+response=conn.send(request)
+conn.close()
 
-# Connection pool: Reuse connections
-pool = ConnectionPool(size=10)
-for request in requests:
-    conn = pool.acquire()  # No RTT overhead
-    response = conn.send(request)
-    pool.release(conn)
+#Connectionpool:Reuseconnections
+pool=Connection Pool(size=10)
+forrequestinrequests:
+conn=pool.acquire()#No RT Toverhead
+response=conn.send(request)
+pool.release(conn)
 ```
 
 **Performance Improvement:**
-- Local network: 30% improvement
-- Cross-region: 50% improvement
-- Transoceanic: 70% improvement
+- Localnetwork:30%improvement
+- Cross-region:50%improvement
+- Transoceanic:70%improvement
 
 ---
 
-### TCP Reliability Guarantees
+###TCP Reliability Guarantees
 
-TCP ensures reliability through the following mechanisms:
+TC Pensuresreliabilitythroughthefollowingmechanisms:
 
-#### 1. Sequence Number
+####1.Sequence Number
 
-Each byte is numbered, used by the receiver to:
-- **Order**: Reorder out-of-order packets
-- **Deduplicate**: Discard duplicate packets
-
-```
-Sender: [0-999] [1000-1999] [2000-2999]
-Receiver: [0-999] [2000-2999] (out of order) [1000-1999]
-         After ordering: [0-999] [1000-1999] [2000-2999]
-```
-
-#### 2. Acknowledgment
-
-Upon receiving data, the receiver sends an ACK to tell the sender:
-- Which data was received
-- The next byte sequence number expected
+Eachbyteisnumbered,usedbythereceiverto:
+-**Order**:Reorderout-of-orderpackets
+-**Deduplicate**:Discardduplicatepackets
 
 ```
-Sender: [0-999] ack=1000 (expects from 1000)
-Receiver: ACK ack=1000 (confirms 0-999 received)
+Sender:[0-999][1000-1999][2000-2999]
+Receiver:[0-999][2000-2999](outoforder)[1000-1999]
+Afterordering:[0-999][1000-1999][2000-2999]
 ```
 
-#### 3. Timeout Retransmission
+####2.Acknowledgment
 
-The sender starts a timer; if ACK is not received before timeout, it retransmits:
+Uponreceivingdata,thereceiversendsan AC Ktotellthesender:
+- Whichdatawasreceived
+- Thenextbytesequencenumberexpected
 
 ```
-Sender: [1000-1999] Start timer
-        Timeout! Retransmit [1000-1999] Start timer
-        Receive ACK ack=2000
+Sender:[0-999]ack=1000(expectsfrom1000)
+Receiver:AC Kack=1000(confirms0-999received)
 ```
 
-**Backend Impact: Packet loss manifests as latency**
+####3.Timeout Retransmission
 
-Users don't perceive "packet loss" but "slow response":
-- Packet loss Timeout Retransmission Add one RTT
-- If RTT = 100ms, packet loss adds 100ms+ latency
+Thesenderstartsatimer;if AC Kisnotreceivedbeforetimeout,itretransmits:
+
+```
+Sender:[1000-1999]Starttimer
+Timeout!Retransmit[1000-1999]Starttimer
+Receive AC Kack=2000
+```
+
+**Backend Impact:Packetlossmanifestsaslatency**
+
+Usersdon'tperceive"packetloss"but"slowresponse":
+- Packetloss Timeout Retransmission Addone RTT
+- If RTT=100ms,packetlossadds100ms+latency
 
 **Fast Retransmit**
 
-If 3 duplicate ACKs are received, retransmit immediately without waiting for timeout:
+If3duplicate AC Ksarereceived,retransmitimmediatelywithoutwaitingfortimeout:
 
 ```
-Sender: [1000-1999] [2000-2999] [3000-3999]
-        [1000-1999] lost
+Sender:[1000-1999][2000-2999][3000-3999]
+[1000-1999]lost
 
-Receiver: Receive [2000-2999] ACK ack=1000 (expecting 1000)
-        Receive [3000-3999] ACK ack=1000 (expecting 1000)
-        Receive [2000-2999] retransmit ACK ack=1000 (3rd duplicate ACK)
+Receiver:Receive[2000-2999]AC Kack=1000(expecting1000)
+Receive[3000-3999]AC Kack=1000(expecting1000)
+Receive[2000-2999]retransmit AC Kack=1000(3rdduplicate ACK)
 
-Sender: Receive 3 duplicate ACKs ack=1000
-        Immediately retransmit [1000-1999] (don't wait for timeout)
+Sender:Receive3duplicate AC Ksack=1000
+Immediatelyretransmit[1000-1999](don'twaitfortimeout)
 ```
 
 ---
 
-### Flow Control
+###Flow Control
 
-**Purpose:** Prevent the sender from overwhelming the receiver
+**Purpose:**Preventthesenderfromoverwhelmingthereceiver
 
-#### Sliding Window Mechanism
+####Sliding Window Mechanism
 
-The receiver advertises the **window size** (remaining receive buffer space) in the TCP header:
+Thereceiveradvertisesthe**windowsize**(remainingreceivebufferspace)inthe TC Pheader:
 
 ```
-Sender window: [Sent unacked] | [Can send] | [Cannot send]
-                      Window size advertised by receiver
+Senderwindow:[Sentunacked]|[Cansend]|[Cannotsend]
+Windowsizeadvertisedbyreceiver
 
-Receiver buffer: [Received] | [Free space Advertise to sender]
+Receiverbuffer:[Received]|[Freespace Advertisetosender]
 ```
 
 **Example:**
 
 ```mermaid
-sequenceDiagram
-    participant Sender as Sender
-    participant Receiver as Receiver
+sequence Diagram
+participant Senderas Sender
+participant Receiveras Receiver
 
-    Note over Sender: Window size = 4096
-    Sender->>Receiver: Send 2048 bytes<br/>Remaining window = 2048
+Noteover Sender:Windowsize=4096
+Sender->>Receiver:Send2048bytes<br/>Remainingwindow=2048
 
-    Note over Receiver: Buffer occupied 2048<br/>Free = 2048
-    Receiver-->>Sender: ACK ack=2048<br/>Window = 2048
+Noteover Receiver:Bufferoccupied2048<br/>Free=2048
+Receiver-->>Sender:AC Kack=2048<br/>Window=2048
 
-    Note over Sender: Update window = 2048
-    Sender->>Receiver: Send 1024 bytes<br/>Remaining window = 1024
+Noteover Sender:Updatewindow=2048
+Sender->>Receiver:Send1024bytes<br/>Remainingwindow=1024
 ```
 
-#### Zero Window
+####Zero Window
 
-Receiver buffer is full, advertised window size = 0:
+Receiverbufferisfull,advertisedwindowsize=0:
 
 ```
-Receiver: ACK ack=5000, Window=0
-Sender: Stop sending, periodically send zero window probe
-Receiver: Buffer cleared, ACK ack=5000, Window=4096
-Sender: Resume sending
+Receiver:AC Kack=5000,Window=0
+Sender:Stopsending,periodicallysendzerowindowprobe
+Receiver:Buffercleared,AC Kack=5000,Window=4096
+Sender:Resumesending
 ```
 
 **Backend Relevance:**
 
-- **Slow application reading** TCP buffer full Window = 0 Sender stops
-- **Backpressure**: TCP automatically implements backpressure, preventing memory overflow
-- **Buffer size configuration**: `net.core.rmem_max`, `net.core.wmem_max`
+-**Slowapplicationreading**TC Pbufferfull Window=0Senderstops
+-**Backpressure**:TC Pautomaticallyimplementsbackpressure,preventingmemoryoverflow
+-**Buffersizeconfiguration**:`net.core.rmem_max`,`net.core.wmem_max`
 
 ```bash
-# View receive window for current connections
-ss -ti  # Check "rcv_space" field
+#Viewreceivewindowforcurrentconnections
+ss-ti#Check"rcv_space"field
 
-# Adjust receive buffer (global)
-sysctl -w net.core.rmem_max=16777216  # 16 MB
+#Adjustreceivebuffer(global)
+sysctl-wnet.core.rmem_max=16777216#16MB
 
-# Adjust receive buffer (per connection)
-setsockopt(SOL_SOCKET, SO_RCVBUF, &size, sizeof(size))
+#Adjustreceivebuffer(perconnection)
+setsockopt(SOL_SOCKET,SO_RCVBUF,&size,sizeof(size))
 ```
 
 ---
 
-### Congestion Control
+###Congestion Control
 
-**Purpose:** Prevent the sender from overwhelming the network
+**Purpose:**Preventthesenderfromoverwhelmingthenetwork
 
-**Difference:** Flow control is end-to-end (receiver capability), congestion control is end-to-network (network capability).
+**Difference:**Flowcontrolisend-to-end(receivercapability),congestioncontrolisend-to-network(networkcapability).
 
-#### Congestion Window (cwnd)
+####Congestion Window(cwnd)
 
-The sender's actual send window = `min(receive window, congestion window)`
+Thesender'sactualsendwindow=`min(receivewindow,congestionwindow)`
 
 ```
-Can send = min(window advertised by receiver, congestion window)
+Cansend=min(windowadvertisedbyreceiver,congestionwindow)
 ```
 
-#### Congestion Control Algorithms
+####Congestion Control Algorithms
 
 ```mermaid
 graph LR
-    A[Slow Start<br/>cwnd exponential growth] -->|Reach threshold| B[Congestion Avoidance<br/>cwnd linear growth]
-    B -->|Packet loss| C[Fast Retransmit/Recovery<br/>cwnd halved]
-    C --> B
-    B -->|Timeout| A
+A[Slow Start<br/>cwndexponentialgrowth]-->|Reachthreshold|B[Congestion Avoidance<br/>cwndlineargrowth]
+B-->|Packetloss|C[Fast Retransmit/Recovery<br/>cwndhalved]
+C-->B
+B-->|Timeout|A
 ```
 
-**1. Slow Start**
+**1.Slow Start**
 
-When a connection is first established, cwnd starts at 1 MSS, doubling each RTT:
+Whenaconnectionisfirstestablished,cwndstartsat1MSS,doublingeach RTT:
 
 ```
-RTT 0: cwnd = 1 MSS (1460 bytes)
-RTT 1: cwnd = 2 MSS
-RTT 2: cwnd = 4 MSS
-RTT 3: cwnd = 8 MSS
+RTT0:cwnd=1MSS(1460bytes)
+RTT1:cwnd=2MSS
+RTT2:cwnd=4MSS
+RTT3:cwnd=8MSS
 ...
-RTT n: cwnd = 2^n MSS
+RT Tn:cwnd=2^n MSS
 ```
 
-**Why is it called "Slow" Start?**
-- Compared to sending large amounts of data immediately (which could cause congestion collapse)
-- Actually exponential growth, very fast
+**Whyisitcalled"Slow"Start?**
+- Comparedtosendinglargeamountsofdataimmediately(whichcouldcausecongestioncollapse)
+- Actuallyexponentialgrowth,veryfast
 
-**2. Congestion Avoidance**
+**2.Congestion Avoidance**
 
-When cwnd reaches threshold (ssthresh), increase by 1 MSS per RTT:
+Whencwndreachesthreshold(ssthresh),increaseby1MS Sper RTT:
 
 ```
-RTT 0: cwnd = 10 MSS
-RTT 1: cwnd = 11 MSS
-RTT 2: cwnd = 12 MSS
+RTT0:cwnd=10MSS
+RTT1:cwnd=11MSS
+RTT2:cwnd=12MSS
 ...
 ```
 
-**3. Fast Retransmit and Fast Recovery**
+**3.Fast Retransmitand Fast Recovery**
 
-- Receive 3 duplicate ACKs Immediate retransmit (fast retransmit)
-- cwnd halved, continue congestion avoidance (fast recovery)
-- Don't return to slow start
+- Receive3duplicate AC Ks Immediateretransmit(fastretransmit)
+-cwndhalved,continuecongestionavoidance(fastrecovery)
+- Don'treturntoslowstart
 
-**4. Timeout**
+**4.Timeout**
 
-- Timeout Return to slow start
-- cwnd reset to 1 MSS
+- Timeout Returntoslowstart
+-cwndresetto1MSS
 
-#### TCP Variants
+####TCP Variants
 
-| Algorithm | Features | Use Case |
+|Algorithm|Features|Use Case|
 |------|------|---------|
-| **Cubic** (default) | Balanced throughput and fairness | General scenarios |
-| **BBR** | Not loss-based, based on bandwidth and delay | High latency, high packet loss networks |
-| **Westwood** | Optimized for wireless networks | Mobile networks |
+|**Cubic**(default)|Balancedthroughputandfairness|Generalscenarios|
+|**BBR**|Notloss-based,basedonbandwidthanddelay|Highlatency,highpacketlossnetworks|
+|**Westwood**|Optimizedforwirelessnetworks|Mobilenetworks|
 
-**View and Modify:**
+**Viewand Modify:**
 
 ```bash
-# View current congestion control algorithm
-sysctl net.ipv4.tcp_congestion_control
-# Output: net.ipv4.tcp_congestion_control = cubic
+#Viewcurrentcongestioncontrolalgorithm
+sysctlnet.ipv4.tcp_congestion_control
+#Output:net.ipv4.tcp_congestion_control=cubic
 
-# Change to BBR
-sysctl -w net.ipv4.tcp_congestion_control=bbr
+#Changeto BBR
+sysctl-wnet.ipv4.tcp_congestion_control=bbr
 
-# Permanent change
-echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
+#Permanentchange
+echo"net.ipv4.tcp_congestion_control=bbr">>/etc/sysctl.conf
 ```
 
-**Backend Impact: Why network congestion feels like "application slowness"**
+**Backend Impact:Whynetworkcongestionfeelslike"applicationslowness"**
 
-- Network congestion Packet loss Fast retransmit cwnd halved Throughput decreases
-- User perception: API response slow
-- Diagnostic tools: `ss -ti` to view `cwnd` and `rtt`
+- Networkcongestion Packetloss Fastretransmitcwndhalved Throughputdecreases
+- Userperception:AP Iresponseslow
+- Diagnostictools:`ss-ti`toview`cwnd`and`rtt`
 
 ---
 
-### TCP Connection Termination
+###TCP Connection Termination
 
-Closing a connection requires four-way termination:
+Closingaconnectionrequiresfour-waytermination:
 
 ```mermaid
-sequenceDiagram
-    participant Client as Client
-    participant Server as Server
+sequence Diagram
+participant Clientas Client
+participant Serveras Server
 
-    Note over Client,Server: ESTABLISHED
+Noteover Client,Server:ESTABLISHED
 
-    Client->>Server: FIN<br/>seq=1000<br/>Application calls close()
-    Note over Client: FIN_WAIT_1
+Client->>Server:FIN<br/>seq=1000<br/>Applicationcallsclose()
+Noteover Client:FIN_WAIT_1
 
-    Server->>Client: ACK<br/>ack=1001<br/>seq=5000
-    Note over Client: FIN_WAIT_2
+Server->>Client:ACK<br/>ack=1001<br/>seq=5000
+Noteover Client:FIN_WAIT_2
 
-    Note over Server: Application calls close()
-    Server->>Client: FIN<br/>ack=1001<br/>seq=5001
-    Note over Server: LAST_ACK
+Noteover Server:Applicationcallsclose()
+Server->>Client:FIN<br/>ack=1001<br/>seq=5001
+Noteover Server:LAST_ACK
 
-    Client->>Server: ACK<br/>ack=5002<br/>seq=1001
-    Note over Client: TIME_WAIT (2MSL)
-    Note over Server: CLOSED
+Client->>Server:ACK<br/>ack=5002<br/>seq=1001
+Noteover Client:TIME_WAIT(2MSL)
+Noteover Server:CLOSED
 
-    Note over Client: Wait 2 MSL (60 seconds)
-    Note over Client: CLOSED
+Noteover Client:Wait2MSL(60seconds)
+Noteover Client:CLOSED
 ```
 
-#### Why is TIME_WAIT Needed?
+####Whyis TIME_WAIT Needed?
 
 **Purpose:**
-1. **Ensure the last ACK reaches the peer**
-   - If ACK is lost, peer will retransmit FIN
-   - TIME_WAIT ensures enough time for retransmission
+1.**Ensurethelast AC Kreachesthepeer**
+- If AC Kislost,peerwillretransmit FIN
+- TIME_WAI Tensuresenoughtimeforretransmission
 
-2. **Let old packets disappear from the network**
-   - Prevent old connection packets from being accepted by new connection
-   - 2 MSL (Maximum Segment Lifetime) 60 seconds
+2.**Letoldpacketsdisappearfromthenetwork**
+- Preventoldconnectionpacketsfrombeingacceptedbynewconnection
+-2MSL(Maximum Segment Lifetime)60seconds
 
-**Backend Pain Point: "Too many open files" / Port Exhaustion
+**Backend Pain Point:"Toomanyopenfiles"/Port Exhaustion
 
-**Scenario:** High-concurrency short-connection server
+**Scenario:**High-concurrencyshort-connectionserver
 
 ```
-Server handles many requests:
-Client: Request 1 Response 1 close() Server TIME_WAIT
-Client: Request 2 Response 2 close() Server TIME_WAIT
-Client: Request 3 Response 3 close() Server TIME_WAIT
+Serverhandlesmanyrequests:
+Client:Request1Response1close()Server TIME_WAIT
+Client:Request2Response2close()Server TIME_WAIT
+Client:Request3Response3close()Server TIME_WAIT
 ...
 
 Problem:
-- TIME_WAIT lasts 60 seconds
-- Each connection occupies a port and file descriptor
-- Limited port count (~28000 available ports)
-- Limited file descriptor count (ulimit -n)
+- TIME_WAI Tlasts60seconds
+- Eachconnectionoccupiesaportandfiledescriptor
+- Limitedportcount(~28000availableports)
+- Limitedfiledescriptorcount(ulimit-n)
 ```
 
 **Symptoms:**
-- `Cannot assign requested address` (EADDRNOTAVAIL)
-- `Too many open files` (EMFILE)
-- `ss -s` shows many `timewait` states
+-`Cannotassignrequestedaddress`(EADDRNOTAVAIL)
+-`Toomanyopenfiles`(EMFILE)
+-`ss-s`showsmany`timewait`states
 
 **Solutions:**
 
-| Solution | Configuration | Pros/Cons |
+|Solution|Configuration|Pros/Cons|
 |------|------|--------|
-| **Enable SO_LINGER** | `setsockopt(SO_LINGER, l_onoff=1, l_linger=0)` | Send RST instead of FIN, skip TIME_WAIT<br/>Immediately release resources<br/>May lose data |
-| **Enable SO_REUSEADDR** | `setsockopt(SO_REUSEADDR, ...)` | Allow binding to TIME_WAIT ports<br/>Solve port exhaustion<br/>Don't reduce TIME_WAIT count |
-| **Adjust tcp_tw_reuse** | `net.ipv4.tcp_tw_reuse=1` | Allow reuse of TIME_WAIT connections<br/>System-level optimization<br/>Safe (only for new connections) |
-| **Adjust tcp_fin_timeout** | `net.ipv4.tcp_fin_timeout=30` | Reduce TIME_WAIT duration (default 60 seconds)<br/>Reduce accumulation speed<br/>Not RFC compliant |
+|**Enable SO_LINGER**|`setsockopt(SO_LINGER,l_onoff=1,l_linger=0)`|Send RS Tinsteadof FIN,skip TIME_WAIT<br/>Immediatelyreleaseresources<br/>Maylosedata|
+|**Enable SO_REUSEADDR**|`setsockopt(SO_REUSEADDR,...)`|Allowbindingto TIME_WAI Tports<br/>Solveportexhaustion<br/>Don'treduce TIME_WAI Tcount|
+|**Adjusttcp_tw_reuse**|`net.ipv4.tcp_tw_reuse=1`|Allowreuseof TIME_WAI Tconnections<br/>System-leveloptimization<br/>Safe(onlyfornewconnections)|
+|**Adjusttcp_fin_timeout**|`net.ipv4.tcp_fin_timeout=30`|Reduce TIME_WAI Tduration(default60seconds)<br/>Reduceaccumulationspeed<br/>Not RF Ccompliant|
 
 **Recommended Configuration:**
 
 ```bash
-# /etc/sysctl.conf
-net.ipv4.tcp_tw_reuse = 1          # Reuse TIME_WAIT connections
-net.ipv4.tcp_fin_timeout = 30      # Reduce TIME_WAIT time (optional)
-net.ipv4.ip_local_port_range = 10000 65535  # Expand port range
+#/etc/sysctl.conf
+net.ipv4.tcp_tw_reuse=1#Reuse TIME_WAI Tconnections
+net.ipv4.tcp_fin_timeout=30#Reduce TIME_WAI Ttime(optional)
+net.ipv4.ip_local_port_range=1000065535#Expandportrange
 
-# Apply
-sysctl -p
+#Apply
+sysctl-p
 ```
 
-**Best Practice: Use Long Connections**
+**Best Practice:Use Long Connections**
 
 ```
-Short connections:
-for request in requests:
-    conn = connect()      # 1 RTT
-    conn.send(request)
-    conn.close()          # Enter TIME_WAIT
+Shortconnections:
+forrequestinrequests:
+conn=connect()#1RTT
+conn.send(request)
+conn.close()#Enter TIME_WAIT
 
-Long connections:
-conn = connect()          # Establish once
-for request in requests:
-    conn.send(request)    # Reuse connection
+Longconnections:
+conn=connect()#Establishonce
+forrequestinrequests:
+conn.send(request)#Reuseconnection
 ```
 
 ---
 
-### UDP: User Datagram Protocol
+###UDP:User Datagram Protocol
 
 **Features:**
-- Connectionless: No handshake required
-- Unreliable: No guarantee of delivery, order, or completeness
-- Fast: No handshake, no acknowledgment, no congestion control
-- Lightweight: Header only 8 bytes (TCP 20 bytes)
+- Connectionless:Nohandshakerequired
+- Unreliable:Noguaranteeofdelivery,order,orcompleteness
+- Fast:Nohandshake,noacknowledgment,nocongestioncontrol
+- Lightweight:Headeronly8bytes(TCP20bytes)
 
 **UDP Header:**
 
 ```
- 0      7 8     15 16    23 24    31
+0781516232431
 +--------+--------+--------+--------+
-|     Source Port    |   Dest Port   |
+|Source Port|Dest Port|
 +--------+--------+--------+--------+
-|      Length        |    Checksum   |
+|Length|Checksum|
 +--------+--------+--------+--------+
-|                                  |
-|              Data                |
-|                                  |
+||
+|Data|
+||
 +----------------------------------+
 ```
 
 **Use Cases:**
 
-1. **DNS**: Simple queries, tolerate packet loss
-2. **Video Streaming**: Real-time priority, packet loss acceptable
-3. **Online Gaming**: Low latency priority
-4. **HTTP/3 (QUIC)**: Reliable transmission over UDP
-5. **Log Collection**: Tolerates loss (StatsD, Fluentd)
+1.**DNS**:Simplequeries,toleratepacketloss
+2.**Video Streaming**:Real-timepriority,packetlossacceptable
+3.**Online Gaming**:Lowlatencypriority
+4.**HTTP/3(QUIC)**:Reliabletransmissionover UDP
+5.**Log Collection**:Toleratesloss(Stats D,Fluentd)
 
 **Backend Engineers Should Note:**
 
-- UDP has no flow control; sending too fast can cause network congestion
-- UDP has no congestion control; can starve TCP (unfair)
-- UDP packet size limited by MTU; exceeding 1500 bytes causes fragmentation
+- UD Phasnoflowcontrol;sendingtoofastcancausenetworkcongestion
+- UD Phasnocongestioncontrol;canstarve TCP(unfair)
+- UD Ppacketsizelimitedby MTU;exceeding1500bytescausesfragmentation
 
 ---
 
-## Ports: Process Addressing
+##Ports:Process Addressing
 
-### Port Number Ranges
+###Port Number Ranges
 
-| Range | Type | Example | Requires bind() |
+|Range|Type|Example|Requiresbind()|
 |------|------|------|-------------|
-| **0-1023** | System ports | HTTP(80), SSH(22) | Requires root privilege |
-| **1024-49151** | Registered ports | MySQL(3306), Redis(6379) | No root needed |
-| **49152-65535** | Dynamic ports | Client temporary ports | Auto-assigned |
+|**0-1023**|Systemports|HTTP(80),SSH(22)|Requiresrootprivilege|
+|**1024-49151**|Registeredports|My SQL(3306),Redis(6379)|Norootneeded|
+|**49152-65535**|Dynamicports|Clienttemporaryports|Auto-assigned|
 
 **View Port Usage:**
 
 ```bash
-# View all listening ports
-ss -tuln
+#Viewalllisteningports
+ss-tuln
 
-# View specific port
-ss -tuln | grep :3306
+#Viewspecificport
+ss-tuln|grep:3306
 
-# View port owning process
-sudo lsof -i :3306
+#Viewportowningprocess
+sudolsof-i:3306
 ```
 
-### Common Ports
+###Common Ports
 
-| Service | Port | Protocol |
+|Service|Port|Protocol|
 |------|------|------|
-| HTTP | 80 | TCP |
-| HTTPS | 443 | TCP |
-| SSH | 22 | TCP |
-| MySQL | 3306 | TCP |
-| PostgreSQL | 5432 | TCP |
-| Redis | 6379 | TCP |
-| MongoDB | 27017 | TCP |
-| Kafka | 9092 | TCP |
-| DNS | 53 | TCP/UDP |
+|HTTP|80|TCP|
+|HTTPS|443|TCP|
+|SSH|22|TCP|
+|My SQL|3306|TCP|
+|Postgre SQL|5432|TCP|
+|Redis|6379|TCP|
+|Mongo DB|27017|TCP|
+|Kafka|9092|TCP|
+|DNS|53|TCP/UDP|
 
-### Port Reuse (SO_REUSEADDR/SO_REUSEPORT)
+###Port Reuse(SO_REUSEADDR/SO_REUSEPORT)
 
-**Scenario:** When restarting server, port still occupied by old process
+**Scenario:**Whenrestartingserver,portstilloccupiedbyoldprocess
 
 **Solution:**
 
 ```python
-import socket
+importsocket
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-sock.bind(('0.0.0.0', 8080))
+sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+sock.bind(('0.0.0.0',8080))
 ```
 
-**SO_REUSEADDR vs SO_REUSEPORT:**
+**SO_REUSEADD Rvs SO_REUSEPORT:**
 
-| Option | Function | Use Case |
+|Option|Function|Use Case|
 |------|------|------|
-| **SO_REUSEADDR** | Allow binding to TIME_WAIT ports | Server restart |
-| **SO_REUSEPORT** | Allow multiple processes to listen on same port | Load balancing to multiple processes |
+|**SO_REUSEADDR**|Allowbindingto TIME_WAI Tports|Serverrestart|
+|**SO_REUSEPORT**|Allowmultipleprocessestolistenonsameport|Loadbalancingtomultipleprocesses|
 
-**SO_REUSEPORT Example (multi-process load balancing):**
+**SO_REUSEPORT Example(multi-processloadbalancing):**
 
 ```python
-# Process 1
-sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-sock1.bind(('0.0.0.0', 8080))
+#Process1
+sock1=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+sock1.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEPORT,1)
+sock1.bind(('0.0.0.0',8080))
 sock1.listen()
 
-# Process 2
-sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-sock2.bind(('0.0.0.0', 8080))
+#Process2
+sock2=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+sock2.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEPORT,1)
+sock2.bind(('0.0.0.0',8080))
 sock2.listen()
 
-# Kernel distributes connections to sock1 and sock2
+#Kerneldistributesconnectionstosock1andsock2
 ```
 
 ---
 
-## Connection Pools
+##Connection Pools
 
-### Why Need Connection Pools?
+###Why Need Connection Pools?
 
-**Problem:** Each request establishes a new connection, high performance overhead
-
-```
-Request 1: TCP handshake (1 RTT) + TLS handshake (1-2 RTT) + Request (1 RTT)
-Request 2: TCP handshake (1 RTT) + TLS handshake (1-2 RTT) + Request (1 RTT)
-Request 3: TCP handshake (1 RTT) + TLS handshake (1-2 RTT) + Request (1 RTT)
-```
-
-**Solution:** Reuse connections
+**Problem:**Eachrequestestablishesanewconnection,highperformanceoverhead
 
 ```
-Connection: TCP handshake (1 RTT) + TLS handshake (1-2 RTT)
-Request 1: Request (1 RTT)
-Request 2: Request (1 RTT)
-Request 3: Request (1 RTT)
+Request1:TC Phandshake(1RTT)+TL Shandshake(1-2RTT)+Request(1RTT)
+Request2:TC Phandshake(1RTT)+TL Shandshake(1-2RTT)+Request(1RTT)
+Request3:TC Phandshake(1RTT)+TL Shandshake(1-2RTT)+Request(1RTT)
 ```
 
-### Connection Pool Configuration
+**Solution:**Reuseconnections
 
-#### Pool Size Calculation
+```
+Connection:TC Phandshake(1RTT)+TL Shandshake(1-2RTT)
+Request1:Request(1RTT)
+Request2:Request(1RTT)
+Request3:Request(1RTT)
+```
+
+###Connection Pool Configuration
+
+####Pool Size Calculation
 
 **Formula:**
 
 ```
-Connection pool size = Core count × (1 + Request wait time / Request processing time)
+Connectionpoolsize=Corecount×(1+Requestwaittime/Requestprocessingtime)
 ```
 
 **Example:**
 
-- 8 core CPU
-- Request processing time: 50ms (CPU intensive)
-- Request wait time: 200ms (database query)
+-8core CPU
+- Requestprocessingtime:50ms(CP Uintensive)
+- Requestwaittime:200ms(databasequery)
 
 ```
-Connection pool size = 8 × (1 + 200 / 50) = 8 × 5 = 40
+Connectionpoolsize=8×(1+200/50)=8×5=40
 ```
 
-**Rule of Thumb:**
+**Ruleof Thumb:**
 
-| Type | Recommended Pool Size |
+|Type|Recommended Pool Size|
 |------|-----------|
-| **CPU Intensive** | CPU core count |
-| **IO Intensive** | CPU core count × 2-3 |
-| **Long-latency External Service** | CPU core count × 5-10 |
+|**CPU Intensive**|CP Ucorecount|
+|**IO Intensive**|CP Ucorecount×2-3|
+|**Long-latency External Service**|CP Ucorecount×5-10|
 
-**Configuration Example (Go):**
+**Configuration Example(Go):**
 
 ```go
-// Database connection pool
-db.SetMaxOpenConns(25)        // Max connections
-db.SetMaxIdleConns(10)        // Idle connections
-db.SetConnMaxLifetime(5 * time.Minute)  // Max connection lifetime
-db.SetConnMaxIdleTime(1 * time.Minute)  // Max idle time for idle connections
+//Databaseconnectionpool
+db.Set Max Open Conns(25)//Maxconnections
+db.Set Max Idle Conns(10)//Idleconnections
+db.Set Conn Max Lifetime(5*time.Minute)//Maxconnectionlifetime
+db.Set Conn Max Idle Time(1*time.Minute)//Maxidletimeforidleconnections
 ```
 
-#### Idle Connection Eviction
+####Idle Connection Eviction
 
-**Problem:** Long-idle connections may be dropped by intermediate devices
+**Problem:**Long-idleconnectionsmaybedroppedbyintermediatedevices
 
 **Solution:**
 
-1. **Periodically validate connections**
-   - Send simple query (`SELECT 1`)
-   - Check if connection is available
+1.**Periodicallyvalidateconnections**
+- Sendsimplequery(`SELECT1`)
+- Checkifconnectionisavailable
 
-2. **Set maximum idle time**
-   - Close connections unused beyond time
-   - Prevent "zombie" connections
+2.**Setmaximumidletime**
+- Closeconnectionsunusedbeyondtime
+- Prevent"zombie"connections
 
-3. **Set maximum lifetime**
-   - Close connections after certain usage time
-   - Handle load balancer connection tracking table timeout
+3.**Setmaximumlifetime**
+- Closeconnectionsaftercertainusagetime
+- Handleloadbalancerconnectiontrackingtabletimeout
 
 ```go
-// HikariCP (Java) configuration
-HikariConfig config = new HikariConfig();
-config.setMaximumPoolSize(20);
-config.setMinimumIdle(5);
-config.setIdleTimeout(60000);              // Idle connection timeout: 60 seconds
-config.setMaxLifetime(1800000);            // Max connection lifetime: 30 minutes
-config.setConnectionTestQuery("SELECT 1"); // Validation query
-config.setConnectionTimeout(30000);        // Get connection timeout: 30 seconds
+//Hikari CP(Java)configuration
+Hikari Configconfig=new Hikari Config();
+config.set Maximum Pool Size(20);
+config.set Minimum Idle(5);
+config.set Idle Timeout(60000);//Idleconnectiontimeout:60seconds
+config.set Max Lifetime(1800000);//Maxconnectionlifetime:30minutes
+config.set Connection Test Query("SELECT1");//Validationquery
+config.set Connection Timeout(30000);//Getconnectiontimeout:30seconds
 ```
 
-### HTTP Keep-Alive
+###HTTP Keep-Alive
 
-**Purpose:** Reuse TCP connection, send multiple HTTP requests
+**Purpose:**Reuse TC Pconnection,sendmultiple HTT Prequests
 
-**HTTP/1.0:** Connection closed by default
-
-```
-Request 1: Connection: close  Connection closed
-Request 2: Re-establish connection
-```
-
-**HTTP/1.1:** Connection kept alive by default
+**HTTP/1.0:**Connectionclosedbydefault
 
 ```
-Request 1: Connection: keep-alive
-Request 2: Reuse same connection
-Request 3: Reuse same connection
+Request1:Connection:close Connectionclosed
+Request2:Re-establishconnection
+```
+
+**HTTP/1.1:**Connectionkeptalivebydefault
+
+```
+Request1:Connection:keep-alive
+Request2:Reusesameconnection
+Request3:Reusesameconnection
 ```
 
 **Configuration:**
 
 ```nginx
-# Nginx configuration
-keepalive_requests 100;      # Max 100 requests per connection
-keepalive_timeout 65s;       # Idle connection timeout: 65 seconds
+#Nginxconfiguration
+keepalive_requests100;#Max100requestsperconnection
+keepalive_timeout65s;#Idleconnectiontimeout:65seconds
 ```
 
 ```go
-// Go HTTP client configuration
-client := &http.Client{
-    Transport: &http.Transport{
-        MaxIdleConns:        100,              // Max idle connections
-        MaxIdleConnsPerHost: 10,               // Max idle connections per host
-        IdleConnTimeout:     90 * time.Second, // Idle connection timeout
-        DisableKeepAlives:   false,            // Enable keep-alive
-    },
-    Timeout: 30 * time.Second,
+//Go HTT Pclientconfiguration
+client:=&http.Client{
+Transport:&http.Transport{
+Max Idle Conns:100,//Maxidleconnections
+Max Idle Conns Per Host:10,//Maxidleconnectionsperhost
+Idle Conn Timeout:90*time.Second,//Idleconnectiontimeout
+Disable Keep Alives:false,//Enablekeep-alive
+},
+Timeout:30*time.Second,
 }
 ```
 
 ---
 
-## Debugging TCP Issues
+##Debugging TCP Issues
 
-### Common Tools
+###Common Tools
 
-#### ss: Socket Statistics
+####ss:Socket Statistics
 
 ```bash
-# View all TCP connections
-ss -t
+#Viewall TC Pconnections
+ss-t
 
-# View listening ports
-ss -tln
+#Viewlisteningports
+ss-tln
 
-# View TCP details (window size, RTT, congestion window)
-ss -ti
+#View TC Pdetails(windowsize,RTT,congestionwindow)
+ss-ti
 
-# Filter by state
-ss -t state established '( sport = :3306 or dport = :3306 )'
-ss -t state time-wait
+#Filterbystate
+ss-tstateestablished'(sport=:3306ordport=:3306)'
+ss-tstatetime-wait
 
-# Statistics by state
-ss -s
+#Statisticsbystate
+ss-s
 ```
 
 **Output Example:**
 
 ```
-$ ss -ti
-State      Recv-Q Send-Q                       Local Address:Port                          Peer Address:Port
-ESTAB      0      0                              192.168.1.100:54321                        10.0.0.1:443
-  cubic wscale:7,7 rto:204 rtt:0.512/0.344 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 segs_in:87 segs_out:74 send:95.8K bytes_sent:95178 bytes_retrans:0 data_segs_out:70 data_segs_in:65
+$ss-ti
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+ESTAB00192.168.1.100:5432110.0.0.1:443
+cubicwscale:7,7rto:204rtt:0.512/0.344ato:40mss:1460pmtu:1500rcvmss:1460advmss:1460cwnd:10segs_in:87segs_out:74send:95.8Kbytes_sent:95178bytes_retrans:0data_segs_out:70data_segs_in:65
 ```
 
 **Key Fields:**
-- `cwnd`: Congestion window (in MSS)
-- `rtt`: Round trip time (`RTT/RTT variance`)
-- `mss`: Maximum segment size (usually 1460 bytes)
-- `wscale`: Window scaling factor
+-`cwnd`:Congestionwindow(in MSS)
+-`rtt`:Roundtriptime(`RTT/RT Tvariance`)
+-`mss`:Maximumsegmentsize(usually1460bytes)
+-`wscale`:Windowscalingfactor
 
-#### tcpdump: Packet Capture Analysis
+####tcpdump:Packet Capture Analysis
 
 ```bash
-# Capture TCP handshake
-tcpdump -i eth0 -n 'tcp[tcpflags] & (tcp-syn|tcp-fin) != 0'
+#Capture TC Phandshake
+tcpdump-ieth0-n'tcp[tcpflags]&(tcp-syn|tcp-fin)!=0'
 
-# Capture specific port
-tcpdump -i eth0 -n 'port 3306'
+#Capturespecificport
+tcpdump-ieth0-n'port3306'
 
-# Capture and display detailed content
-tcpdump -i eth0 -n -v 'port 3306'
+#Captureanddisplaydetailedcontent
+tcpdump-ieth0-n-v'port3306'
 
-# Capture and save to file
-tcpdump -i eth0 -n -w /tmp/capture.pcap 'port 3306'
+#Captureandsavetofile
+tcpdump-ieth0-n-w/tmp/capture.pcap'port3306'
 
-# Analyze capture file
-tcpdump -r /tmp/capture.pcap -n -v
+#Analyzecapturefile
+tcpdump-r/tmp/capture.pcap-n-v
 ```
 
 **Wireshark Analysis:**
 
-1. Capture: `tcpdump -i eth0 -w capture.pcap`
-2. Download to local
-3. Open with Wireshark
+1.Capture:`tcpdump-ieth0-wcapture.pcap`
+2.Downloadtolocal
+3.Openwith Wireshark
 
 ---
 
-## Common Issues
+##Common Issues
 
-### 1. Connection Timeout
+###1.Connection Timeout
 
-**Symptom:** `connect() timeout` or `dial tcp 10.0.0.1:3306: i/o timeout`
+**Symptom:**`connect()timeout`or`dialtcp10.0.0.1:3306:i/otimeout`
 
 **Possible Causes:**
-- Firewall drops SYN packets
-- Route unreachable
-- Server not listening on port
+- Firewalldrops SY Npackets
+- Routeunreachable
+- Servernotlisteningonport
 
 **Debugging Steps:**
 
 ```bash
-# 1. Check route
-ping 10.0.0.1
+#1.Checkroute
+ping10.0.0.1
 
-# 2. Check if port is open
-telnet 10.0.0.1 3306
-nc -zv 10.0.0.1 3306
+#2.Checkifportisopen
+telnet10.0.0.13306
+nc-zv10.0.0.13306
 
-# 3. Check firewall
-sudo iptables -L -n
+#3.Checkfirewall
+sudoiptables-L-n
 
-# 4. Packet capture
-tcpdump -i eth0 -n 'host 10.0.0.1 and port 3306'
+#4.Packetcapture
+tcpdump-ieth0-n'host10.0.0.1andport3306'
 
-# 5. Check if server is listening
-ss -tln | grep :3306
+#5.Checkifserverislistening
+ss-tln|grep:3306
 ```
 
 **Solutions:**
 
-- Check security group/firewall rules
-- Check if server is running and listening on port
-- Adjust connection timeout
+- Checksecuritygroup/firewallrules
+- Checkifserverisrunningandlisteningonport
+- Adjustconnectiontimeout
 
 ```go
-// Go adjust connection timeout
-dialer := &net.Dialer{
-    Timeout:   30 * time.Second,  // Connection timeout
-    KeepAlive: 30 * time.Second,
+//Goadjustconnectiontimeout
+dialer:=&net.Dialer{
+Timeout:30*time.Second,//Connectiontimeout
+Keep Alive:30*time.Second,
 }
 ```
 
 ---
 
-### 2. Connection Reset
+###2.Connection Reset
 
-**Symptom:** `read: connection reset by peer` or `write: connection reset by peer`
+**Symptom:**`read:connectionresetbypeer`or`write:connectionresetbypeer`
 
 **Possible Causes:**
-- Peer called `close()` with data still unread
-- Peer crashed
-- Firewall forcibly closed connection
-- Sent packet doesn't comply with protocol
+- Peercalled`close()`withdatastillunread
+- Peercrashed
+- Firewallforciblyclosedconnection
+- Sentpacketdoesn'tcomplywithprotocol
 
 **Debugging Steps:**
 
 ```bash
-# Capture RST packets
-tcpdump -i eth0 -n 'tcp[tcpflags] & tcp-rst != 0'
+#Capture RS Tpackets
+tcpdump-ieth0-n'tcp[tcpflags]&tcp-rst!=0'
 
-# View connection state
-ss -ti | grep :3306
+#Viewconnectionstate
+ss-ti|grep:3306
 ```
 
 **Solutions:**
 
-- Ensure peer properly handles all data before closing connection
-- Use shutdown() for graceful close
-- Check application layer protocol
+- Ensurepeerproperlyhandlesalldatabeforeclosingconnection
+- Useshutdown()forgracefulclose
+- Checkapplicationlayerprotocol
 
 ```go
-// Graceful close
-func gracefulClose(conn net.Conn) {
-    // 1. Close write side, send FIN
-    conn.(*net.TCPConn).CloseWrite()
+//Gracefulclose
+funcgraceful Close(connnet.Conn){
+//1.Closewriteside,send FIN
+conn.(*net.TCP Conn).Close Write()
 
-    // 2. Read remaining data
-    io.Copy(ioutil.Discard, conn)
+//2.Readremainingdata
+io.Copy(ioutil.Discard,conn)
 
-    // 3. Close connection
-    conn.Close()
+//3.Closeconnection
+conn.Close()
 }
 ```
 
 ---
 
-### 3. TIME_WAIT Exhaustion
+###3.TIME_WAIT Exhaustion
 
-**Symptom:** `Cannot assign requested address` or many TIME_WAIT connections
+**Symptom:**`Cannotassignrequestedaddress`ormany TIME_WAI Tconnections
 
 **Debugging Steps:**
 
 ```bash
-# View TIME_WAIT connection count
-ss -s | grep timewait
+#View TIME_WAI Tconnectioncount
+ss-s|greptimewait
 
-# View TIME_WAIT connections
-ss -tan state time-wait
+#View TIME_WAI Tconnections
+ss-tanstatetime-wait
 
-# View available port range
-sysctl net.ipv4.ip_local_port_range
+#Viewavailableportrange
+sysctlnet.ipv4.ip_local_port_range
 ```
 
 **Solutions:**
 
 ```bash
-# Enable TIME_WAIT reuse
-echo "net.ipv4.tcp_tw_reuse = 1" >> /etc/sysctl.conf
-sysctl -p
+#Enable TIME_WAI Treuse
+echo"net.ipv4.tcp_tw_reuse=1">>/etc/sysctl.conf
+sysctl-p
 
-# Expand port range
-echo "net.ipv4.ip_local_port_range = 10000 65535" >> /etc/sysctl.conf
-sysctl -p
+#Expandportrange
+echo"net.ipv4.ip_local_port_range=1000065535">>/etc/sysctl.conf
+sysctl-p
 
-# Application: Use long connections instead of short connections
+#Application:Uselongconnectionsinsteadofshortconnections
 ```
 
 ---
 
-### 4. Zero Window (Receive Buffer Full)
+###4.Zero Window(Receive Buffer Full)
 
-**Symptom:** Very slow transfer, `ss -ti` shows `wnd=0`
+**Symptom:**Veryslowtransfer,`ss-ti`shows`wnd=0`
 
 **Possible Causes:**
-- Application reading slowly
-- Receive buffer too small
+- Applicationreadingslowly
+- Receivebuffertoosmall
 
 **Debugging Steps:**
 
 ```bash
-# View receive window
-ss -ti
+#Viewreceivewindow
+ss-ti
 
-# View buffer configuration
-sysctl net.ipv4.tcp_rmem
-sysctl net.core.rmem_max
+#Viewbufferconfiguration
+sysctlnet.ipv4.tcp_rmem
+sysctlnet.core.rmem_max
 ```
 
 **Solutions:**
 
 ```bash
-# Increase receive buffer
-echo "net.ipv4.tcp_rmem = 4096 87380 16777216" >> /etc/sysctl.conf
-echo "net.core.rmem_max = 16777216" >> /etc/sysctl.conf
-sysctl -p
+#Increasereceivebuffer
+echo"net.ipv4.tcp_rmem=40968738016777216">>/etc/sysctl.conf
+echo"net.core.rmem_max=16777216">>/etc/sysctl.conf
+sysctl-p
 
-# Application: Speed up reading
+#Application:Speedupreading
 ```
 
 ---
 
-## Business Scenarios
+##Business Scenarios
 
-### Scenario 1: Database Connection Pool Configuration
+###Scenario1:Database Connection Pool Configuration
 
-**Background:** Web server accessing database, slow API response
+**Background:**Webserveraccessingdatabase,slow AP Iresponse
 
-**Problem:** Each request establishes new connection, database CPU 99% processing handshakes
+**Problem:**Eachrequestestablishesnewconnection,database CPU99%processinghandshakes
 
 **Analysis:**
 
 ```
-Request: Establish TCP connection (1 RTT) + MySQL handshake (1 RTT) + Authentication (1 RTT) + Query (1 RTT)
-Total: 4 RTT = 200ms (cross-region)
+Request:Establish TC Pconnection(1RTT)+My SQ Lhandshake(1RTT)+Authentication(1RTT)+Query(1RTT)
+Total:4RTT=200ms(cross-region)
 
-Optimization: Connection pool
-Connection: Establish TCP + MySQL handshake + Authentication (once only)
-Request: Query (1 RTT)
-Total: 1 RTT = 50ms
+Optimization:Connectionpool
+Connection:Establish TCP+My SQ Lhandshake+Authentication(onceonly)
+Request:Query(1RTT)
+Total:1RTT=50ms
 
-Performance improvement: 75%
+Performanceimprovement:75%
 ```
 
 **Solution:**
 
 ```go
-// Configure connection pool
-db.SetMaxOpenConns(25)        // Based on database CPU core count
-db.SetMaxIdleConns(5)
-db.SetConnMaxLifetime(30 * time.Minute)
-db.SetConnMaxIdleTime(5 * time.Minute)
+//Configureconnectionpool
+db.Set Max Open Conns(25)//Basedondatabase CP Ucorecount
+db.Set Max Idle Conns(5)
+db.Set Conn Max Lifetime(30*time.Minute)
+db.Set Conn Max Idle Time(5*time.Minute)
 ```
 
 ---
 
-### Scenario 2: Throughput Optimization for High-Latency Networks
+###Scenario2:Throughput Optimizationfor High-Latency Networks
 
-**Background:** Transoceanic file transfer (RTT = 200ms), only 1% bandwidth utilization
+**Background:**Transoceanicfiletransfer(RTT=200ms),only1%bandwidthutilization
 
-**Problem:** TCP window too small, cannot fill the pipe
+**Problem:**TC Pwindowtoosmall,cannotfillthepipe
 
 **Analysis:**
 
 ```
-Bandwidth-Delay Product (BDP) = Bandwidth × RTT
-                = 1 Gbps × 0.2s
-                = 125 MB/s × 0.2s
-                = 25 MB
+Bandwidth-Delay Product(BDP)=Bandwidth×RTT
+=1Gbps×0.2s
+=125MB/s×0.2s
+=25MB
 
-Default window size = 64 KB
-Bandwidth utilization = 64 KB / 25 MB 0.25%
+Defaultwindowsize=64KB
+Bandwidthutilization=64KB/25MB0.25%
 ```
 
 **Solution:**
 
 ```bash
-# Enable window scaling, expand window
-echo "net.ipv4.tcp_window_scaling = 1" >> /etc/sysctl.conf
+#Enablewindowscaling,expandwindow
+echo"net.ipv4.tcp_window_scaling=1">>/etc/sysctl.conf
 
-# Increase buffer
-echo "net.core.rmem_max = 16777216" >> /etc/sysctl.conf
-echo "net.core.wmem_max = 16777216" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_rmem = 4096 87380 16777216" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_wmem = 4096 65536 16777216" >> /etc/sysctl.conf
+#Increasebuffer
+echo"net.core.rmem_max=16777216">>/etc/sysctl.conf
+echo"net.core.wmem_max=16777216">>/etc/sysctl.conf
+echo"net.ipv4.tcp_rmem=40968738016777216">>/etc/sysctl.conf
+echo"net.ipv4.tcp_wmem=40966553616777216">>/etc/sysctl.conf
 
-sysctl -p
+sysctl-p
 ```
 
 ---
 
-### Scenario 3: Kubernetes Service Connection Persistence
+###Scenario3:Kubernetes Service Connection Persistence
 
-**Background:** Kubernetes cluster, Pod accessing Service, connections occasionally drop
+**Background:**Kubernetescluster,Podaccessing Service,connectionsoccasionallydrop
 
-**Problem:** kube-proxy connection tracking table timeout (default 5 minutes)
+**Problem:**kube-proxyconnectiontrackingtabletimeout(default5minutes)
 
 **Analysis:**
 
 ```
-Pod Service (ClusterIP) DNAT Pod
-                              conntrack timeout: Delete after 5 minutes idle
-                              Long connection > 5 minutes conntrack deleted Connection dropped
+Pod Service(Cluster IP)DNAT Pod
+conntracktimeout:Deleteafter5minutesidle
+Longconnection>5minutesconntrackdeleted Connectiondropped
 ```
 
 **Solution:**
 
 ```yaml
-# Adjust conntrack timeout
-apiVersion: v1
-kind: Node
+#Adjustconntracktimeout
+api Version:v1
+kind:Node
 metadata:
-  name: node-1
+name:node-1
 spec:
-  unschedulable: false
+unschedulable:false
 ---
-# sysctl configuration
-apiVersion: v1
-kind: ConfigMap
+#sysctlconfiguration
+api Version:v1
+kind:Config Map
 metadata:
-  name: sysctl
+name:sysctl
 data:
-  net.netfilter.nf_conntrack_tcp_timeout_established: "7200"  # 2 hours
+net.netfilter.nf_conntrack_tcp_timeout_established:"7200"#2hours
 ```
 
 ---
 
-## Operations Checklist
+##Operations Checklist
 
-### Configuration Check
+###Configuration Check
 
-- [ ] Enable `tcp_tw_reuse`, reuse TIME_WAIT connections
-- [ ] Configure reasonable `ip_local_port_range`
-- [ ] Enable `tcp_window_scaling`, support large windows
-- [ ] Choose congestion control algorithm based on network characteristics (BBR for high latency)
-- [ ] Adjust `tcp_rmem` and `tcp_wmem`, optimize high-latency networks
+-[]Enable`tcp_tw_reuse`,reuse TIME_WAI Tconnections
+-[]Configurereasonable`ip_local_port_range`
+-[]Enable`tcp_window_scaling`,supportlargewindows
+-[]Choosecongestioncontrolalgorithmbasedonnetworkcharacteristics(BB Rforhighlatency)
+-[]Adjust`tcp_rmem`and`tcp_wmem`,optimizehigh-latencynetworks
 
-### Monitoring Metrics
+###Monitoring Metrics
 
-- [ ] TCP connection count (by state): `ss -s`
-- [ ] TCP retransmission rate: `nstat -tz | grep TcpExtTCPLostRetransmit`
-- [ ] RTT: `ss -ti`
-- [ ] Congestion window: `ss -ti`
-- [ ] Receive/Send queues: `ss -l` (Recv-Q/Send-Q)
+-[]TC Pconnectioncount(bystate):`ss-s`
+-[]TC Pretransmissionrate:`nstat-tz|grep Tcp Ext TCP Lost Retransmit`
+-[]RTT:`ss-ti`
+-[]Congestionwindow:`ss-ti`
+-[]Receive/Sendqueues:`ss-l`(Recv-Q/Send-Q)
 
-### Troubleshooting
+###Troubleshooting
 
-- [ ] Connection timeout: Check routing, firewall, port listening
-- [ ] Connection reset: Check application layer protocol, peer crash
-- [ ] TIME_WAIT exhaustion: Enable `tcp_tw_reuse`, use long connections
-- [ ] Low throughput: Check window size, RTT, congestion window
-- [ ] High latency: Check routing, network congestion, application processing time
+-[]Connectiontimeout:Checkrouting,firewall,portlistening
+-[]Connectionreset:Checkapplicationlayerprotocol,peercrash
+-[]TIME_WAI Texhaustion:Enable`tcp_tw_reuse`,uselongconnections
+-[]Lowthroughput:Checkwindowsize,RTT,congestionwindow
+-[]Highlatency:Checkrouting,networkcongestion,applicationprocessingtime
 
 ---
 
-## Further Reading
+##Further Reading
 
-### Related Documentation
+###Related Documentation
 
-- [Application Layer - HTTP](../application-layer.mdx#http): HTTP Keep-Alive and TCP Connection Pools
-- [Application Layer - TLS](../application-layer.mdx#tls-ssl): TLS Handshake and TCP Connections
-- [Network Performance Optimization - TCP Tuning](../network-performance.mdx): Bandwidth-delay product, window scaling
-- [Troubleshooting - TCP Issues](../troubleshooting/tcp-issues.mdx): Common TCP problem diagnosis
+-[Application Layer-HTTP](../application-layer#http):HTTP Keep-Aliveand TCP Connection Pools
+-[Application Layer-TLS](../application-layer#tls-ssl):TLS Handshakeand TCP Connections
+-[Network Performance Optimization-TCP Tuning](../network-performance):Bandwidth-delayproduct,windowscaling
+-[Troubleshooting-TCP Issues](../troubleshooting/tcp-issues):Common TC Pproblemdiagnosis
 
-### External Resources
+###External Resources
 
-- **RFC 793**: TCP Protocol Specification
-- **RFC 2581**: TCP Congestion Control
-- **RFC 6298**: TCP Retransmission Timer
-- **Linux TCP Metrics**: `/proc/net/netstat`, `/proc/net/snmp`
-- **TCP Illustrated, Volume 1**: W. Richard Stevens (Classic book)
+-**RFC793**:TCP Protocol Specification
+-**RFC2581**:TCP Congestion Control
+-**RFC6298**:TCP Retransmission Timer
+-**Linux TCP Metrics**:`/proc/net/netstat`,`/proc/net/snmp`
+-**TCP Illustrated,Volume1**:W.Richard Stevens(Classicbook)

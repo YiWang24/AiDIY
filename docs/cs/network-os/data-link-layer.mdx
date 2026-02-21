@@ -1,687 +1,687 @@
-# Data Link Layer
+#Data Link Layer
 
-## Why is it Important?
+##Whyisit Important?
 
-The data link layer is responsible for **LAN communication and MAC addressing**. Although backend engineers don't often directly operate this layer, understanding it is essential in these scenarios:
+Thedatalinklayerisresponsiblefor**LA Ncommunicationand MA Caddressing**.Althoughbackendengineersdon'toftendirectlyoperatethislayer,understandingitisessentialinthesescenarios:
 
-- **Container Networking**: Understanding Docker bridge networks, Kubernetes pod communication
-- **MTU Issues**: Debugging VPN, cloud migration, large packet drops
-- **VLAN Design**: Understanding the underlying principles of cloud VPC
-- **ARP Debugging**: Diagnosing "connection refused" vs "host unreachable"
+-**Container Networking**:Understanding Dockerbridgenetworks,Kubernetespodcommunication
+-**MTU Issues**:Debugging VPN,cloudmigration,largepacketdrops
+-**VLAN Design**:Understandingtheunderlyingprinciplesofcloud VPC
+-**ARP Debugging**:Diagnosing"connectionrefused"vs"hostunreachable"
 
-### After learning this section, you will be able to:
+###Afterlearningthissection,youwillbeableto:
 
-- Understand the difference between MAC addresses and IP addresses
-- Understand Ethernet frames and MTU
-- Debug ARP-related issues
-- Understand the underlying principles of container networking
-- Diagnose MTU and fragmentation issues
+- Understandthedifferencebetween MA Caddressesand I Paddresses
+- Understand Ethernetframesand MTU
+- Debug ARP-relatedissues
+- Understandtheunderlyingprinciplesofcontainernetworking
+- Diagnose MT Uandfragmentationissues
 
 ---
 
-## Core Concepts
+##Core Concepts
 
-### MAC Address vs IP Address
+###MAC Addressvs IP Address
 
-| Feature | MAC Address | IP Address |
+|Feature|MAC Address|IP Address|
 |------|---------|---------|
-| **Layer** | Data Link Layer | Network Layer |
-| **Length** | 48-bit (6 bytes) | 32-bit (IPv4) / 128-bit (IPv6) |
-| **Notation** | `00:1A:2B:3C:4D:5E` | `192.168.1.1` |
-| **Scope** | LAN (hop-to-hop) | End-to-end |
-| **Assignment** | Vendor-fixed (OUI) | Network administrator assigned |
-| **Changes** | Usually unchanged | Can change (DHCP) |
+|**Layer**|Data Link Layer|Network Layer|
+|**Length**|48-bit(6bytes)|32-bit(I Pv4)/128-bit(I Pv6)|
+|**Notation**|`00:1A:2B:3C:4D:5E`|`192.168.1.1`|
+|**Scope**|LAN(hop-to-hop)|End-to-end|
+|**Assignment**|Vendor-fixed(OUI)|Networkadministratorassigned|
+|**Changes**|Usuallyunchanged|Canchange(DHCP)|
 
 **MAC Address Structure:**
 
 ```
 00:1A:2B:3C:4D:5E
-│  │   │
-│  │   └─ Network card serial number (vendor assigned)
-│  └─ OUI (Organizationally Unique Identifier)
-└─ Unicast/Multicast bit (0=unicast, 1=multicast)
+│││
+││└─Networkcardserialnumber(vendorassigned)
+│└─OUI(Organizationally Unique Identifier)
+└─Unicast/Multicastbit(0=unicast,1=multicast)
 ```
 
 **OUI Examples:**
 
-| Vendor | OUI |
+|Vendor|OUI|
 |------|-----|
-| **Cisco** | `00:00:0C` |
-| **Intel** | `00:1B:21` |
-| **Apple** | `00:03:93` |
+|**Cisco**|`00:00:0C`|
+|**Intel**|`00:1B:21`|
+|**Apple**|`00:03:93`|
 
-### Addressing: Physical vs Logical
+###Addressing:Physicalvs Logical
 
 ```
-End-to-end communication (IP):
-  Source IP: 192.168.1.10  Destination IP: 93.184.216.34
+End-to-endcommunication(IP):
+Source IP:192.168.1.10Destination IP:93.184.216.34
 
-Hop-to-hop communication (MAC):
-  hop 1: MAC_A  MAC_B
-  hop 2: MAC_B  MAC_C
-  hop 3: MAC_C  MAC_D
-  ...
-  hop N: MAC_Y  MAC_Z
+Hop-to-hopcommunication(MAC):
+hop1:MAC_AMAC_B
+hop2:MAC_BMAC_C
+hop3:MAC_CMAC_D
+...
+hop N:MAC_YMAC_Z
 ```
 
 **Key Points:**
-- IP addresses remain unchanged during transmission (end-to-end)
-- MAC addresses change at each hop (hop-to-hop)
+- I Paddressesremainunchangedduringtransmission(end-to-end)
+- MA Caddresseschangeateachhop(hop-to-hop)
 
 ---
 
-## MAC Addressing
+##MAC Addressing
 
-### ARP (Address Resolution Protocol)
+###ARP(Address Resolution Protocol)
 
-**Purpose:** Resolve IP addresses to MAC addresses
+**Purpose:**Resolve I Paddressesto MA Caddresses
 
 **How It Works:**
 
 ```mermaid
-sequenceDiagram
-    participant Host1 as Host A<br/>192.168.1.10
-    participant Switch as Switch
-    participant Host2 as Host B<br/>192.168.1.20
+sequence Diagram
+participant Host1as Host A<br/>192.168.1.10
+participant Switchas Switch
+participant Host2as Host B<br/>192.168.1.20
 
-    Host1->>Switch: ARP Request<br/>"Who has 192.168.1.20?"
-    Note over Host1: Broadcast to all hosts
-    Switch->>Host2: ARP Request
-    Host2->>Switch: ARP Response<br/>"192.168.1.20 is at 00:11:22:33:44:55"
-    Switch->>Host1: ARP Response
-    Note over Host1: Cache: 192.168.1.20  00:11:22:33:44:55
-    Host1->>Host2: Ethernet frame<br/>Destination MAC: 00:11:22:33:44:55
+Host1->>Switch:ARP Request<br/>"Whohas192.168.1.20?"
+Noteover Host1:Broadcasttoallhosts
+Switch->>Host2:ARP Request
+Host2->>Switch:ARP Response<br/>"192.168.1.20isat00:11:22:33:44:55"
+Switch->>Host1:ARP Response
+Noteover Host1:Cache:192.168.1.2000:11:22:33:44:55
+Host1->>Host2:Ethernetframe<br/>Destination MAC:00:11:22:33:44:55
 ```
 
 **ARP Packet Structure:**
 
 ```
-ARP Request (broadcast):
-  Hardware type: Ethernet (1)
-  Protocol type: IPv4 (0x0800)
-  Operation: Request (1)
-  Sender MAC: 00:1A:2B:3C:4D:5E
-  Sender IP: 192.168.1.10
-  Target MAC: 00:00:00:00:00:00 (unknown)
-  Target IP: 192.168.1.20
+ARP Request(broadcast):
+Hardwaretype:Ethernet(1)
+Protocoltype:I Pv4(0x0800)
+Operation:Request(1)
+Sender MAC:00:1A:2B:3C:4D:5E
+Sender IP:192.168.1.10
+Target MAC:00:00:00:00:00:00(unknown)
+Target IP:192.168.1.20
 
-ARP Response (unicast):
-  Operation: Response (2)
-  Sender MAC: 00:11:22:33:44:55
-  Sender IP: 192.168.1.20
-  Target MAC: 00:1A:2B:3C:4D:5E
-  Target IP: 192.168.1.10
+ARP Response(unicast):
+Operation:Response(2)
+Sender MAC:00:11:22:33:44:55
+Sender IP:192.168.1.20
+Target MAC:00:1A:2B:3C:4D:5E
+Target IP:192.168.1.10
 ```
 
 **ARP Cache:**
 
 ```bash
-# View ARP cache
-ip neigh show
+#View AR Pcache
+ipneighshow
 
-# Output:
-# 192.168.1.1 dev eth0 lladdr 00:11:22:33:44:55 REACHABLE
-# 192.168.1.20 dev eth0 lladdr 00:aa:bb:cc:dd:ee STALE
-# 192.168.1.30 dev eth0 FAILED
+#Output:
+#192.168.1.1deveth0lladdr00:11:22:33:44:55REACHABLE
+#192.168.1.20deveth0lladdr00:aa:bb:cc:dd:ee STALE
+#192.168.1.30deveth0FAILED
 
-# States:
-# - REACHABLE: Reachable
-# - STALE: Stale (needs verification)
-# - FAILED: Resolution failed
-# - DELAY: Waiting for confirmation
+#States:
+#-REACHABLE:Reachable
+#-STALE:Stale(needsverification)
+#-FAILED:Resolutionfailed
+#-DELAY:Waitingforconfirmation
 ```
 
 **ARP Cache Timeout:**
-- Default: 60 seconds
-- Can manually clear: `ip neigh flush all`
+- Default:60seconds
+- Canmanuallyclear:`ipneighflushall`
 
-### ARP Debugging
+###ARP Debugging
 
-**Scenario: Network not working but IP is correct**
+**Scenario:Networknotworkingbut I Piscorrect**
 
 ```bash
-# 1. ping test
-ping 192.168.1.20
+#1.pingtest
+ping192.168.1.20
 
-# 2. View ARP cache
-ip neigh show
-# If shows FAILED, ARP resolution failed
+#2.View AR Pcache
+ipneighshow
+#Ifshows FAILED,AR Presolutionfailed
 
-# 3. Send ARP request
-arping -c 3 192.168.1.20
+#3.Send AR Prequest
+arping-c3192.168.1.20
 
-# 4. View ARP traffic
-tcpdump -i eth0 -n arp
+#4.View AR Ptraffic
+tcpdump-ieth0-narp
 ```
 
 **Common ARP Issues:**
 
-| Issue | Symptom | Cause | Solution |
+|Issue|Symptom|Cause|Solution|
 |------|------|------|---------|
-| **ARP Conflict** | Intermittent disconnection | Two devices same IP | Check IP assignment |
-| **ARP Aging** | Intermittent disconnection | ARP cache expired | Increase ARP timeout |
-| **ARP Spoofing** | Man-in-the-middle attack | Malicious ARP response | Static ARP, DAI |
+|**ARP Conflict**|Intermittentdisconnection|Twodevicessame IP|Check I Passignment|
+|**ARP Aging**|Intermittentdisconnection|AR Pcacheexpired|Increase AR Ptimeout|
+|**ARP Spoofing**|Man-in-the-middleattack|Malicious AR Presponse|Static ARP,DAI|
 
 ---
 
-## Ethernet and MTU
+##Ethernetand MTU
 
-### Ethernet Frame Structure
+###Ethernet Frame Structure
 
 ```
 +--------+--------+---------+------+----------+-----+
-| Dest MAC| Src MAC | Eth Type | Data | FCS      |     |
-| 6 bytes| 6 bytes | 2 bytes  |      | 4 bytes  |     |
+|Dest MAC|Src MAC|Eth Type|Data|FCS||
+|6bytes|6bytes|2bytes||4bytes||
 +--------+--------+---------+------+----------+-----+
-         |                 |
-         |                 └─ Max 1500 bytes (MTU)
-         └─ 14 bytes (Ethernet header)
+||
+|└─Max1500bytes(MTU)
+└─14bytes(Ethernetheader)
 ```
 
 **Ethernet Types:**
 
-| Type | Protocol |
+|Type|Protocol|
 |------|------|
-| `0x0800` | IPv4 |
-| `0x86DD` | IPv6 |
-| `0x0806` | ARP |
-| `0x8100` | 802.1Q VLAN |
+|`0x0800`|I Pv4|
+|`0x86DD`|I Pv6|
+|`0x0806`|ARP|
+|`0x8100`|802.1QVLAN|
 
-### MTU (Maximum Transmission Unit)
+###MTU(Maximum Transmission Unit)
 
-**Definition:** Maximum packet size that data link layer can transmit
+**Definition:**Maximumpacketsizethatdatalinklayercantransmit
 
-**Standard MTUs:**
-- Ethernet: **1500 bytes**
-- PPPoE: 1492 bytes
-- VPN: 1400 bytes (due to extra encapsulation)
+**Standard MT Us:**
+- Ethernet:**1500bytes**
+- PP Po E:1492bytes
+- VPN:1400bytes(duetoextraencapsulation)
 
 **MTU Layers:**
 
 ```
-Application data: 1400 bytes
-    TCP header: 20 bytes
-    IP header: 20 bytes
-Ethernet frame: 1500 bytes (MTU)
-    Ethernet header + FCS: 14 + 4 = 18 bytes
-Physical layer: 1518 bytes (max Ethernet frame)
+Applicationdata:1400bytes
+TC Pheader:20bytes
+I Pheader:20bytes
+Ethernetframe:1500bytes(MTU)
+Ethernetheader+FCS:14+4=18bytes
+Physicallayer:1518bytes(max Ethernetframe)
 ```
 
 **End-to-End MTU:**
 
 ```
-Client (MTU 1500)  ISP (MTU 1500)  VPN (MTU 1400)  Server (MTU 1500)
+Client(MTU1500)ISP(MTU1500)VPN(MTU1400)Server(MTU1500)
 
 Problem:
-Client sends 1500 byte packet
-VPN adds 40 bytes encapsulation  1540 bytes
-Exceeds VPN MTU (1400)  Dropped
+Clientsends1500bytepacket
+VP Nadds40bytesencapsulation1540bytes
+Exceeds VPNMTU(1400)Dropped
 ```
 
-### MTU Path Discovery
+###MTU Path Discovery
 
-**Purpose:** Automatically discover minimum end-to-end MTU
+**Purpose:**Automaticallydiscoverminimumend-to-end MTU
 
 **How It Works:**
 
 ```mermaid
-sequenceDiagram
-    participant Client as Client
-    participant Network as Network
-    participant Server as Server
+sequence Diagram
+participant Clientas Client
+participant Networkas Network
+participant Serveras Server
 
-    Client->>Network: Send 1500 byte packet<br/>DF=1 (no fragmentation)
-    Network->>Network: MTU 1400<br/>Cannot forward
-    Network->>Client: ICMP "Fragmentation Needed"<br/>MTU=1400
+Client->>Network:Send1500bytepacket<br/>DF=1(nofragmentation)
+Network->>Network:MTU1400<br/>Cannotforward
+Network->>Client:ICMP"Fragmentation Needed"<br/>MTU=1400
 
-    Client->>Network: Send 1400 byte packet<br/>DF=1
-    Network->>Server: Forward successfully
-    Server->>Client: ACK
+Client->>Network:Send1400bytepacket<br/>DF=1
+Network->>Server:Forwardsuccessfully
+Server->>Client:ACK
 ```
 
 **ICMP Message:**
 
 ```
-Type 3: Destination Unreachable
-Code  4: Fragmentation Needed and DF Set
+Type3:Destination Unreachable
+Code4:Fragmentation Neededand DF Set
 
-Contains: Next hop MTU
+Contains:Nexthop MTU
 ```
 
 **Debugging MTU:**
 
 ```bash
-# 1. Use ping to discover MTU
-# -M do: Set DF (Don't Fragment)
-# -s: Packet size (excluding headers)
-ping -M do -s 1472 -c 4 8.8.8.8
+#1.Usepingtodiscover MTU
+#-Mdo:Set DF(Don't Fragment)
+#-s:Packetsize(excludingheaders)
+ping-Mdo-s1472-c48.8.8.8
 
-# 2. Gradually reduce packet size until successful
-ping -M do -s 1472 8.8.8.8  # Fails
-ping -M do -s 1400 8.8.8.8  # Fails
-ping -M do -s 1300 8.8.8.8  # Success  MTU  1300 + 28 (IP+ICMP) = 1328
+#2.Graduallyreducepacketsizeuntilsuccessful
+ping-Mdo-s14728.8.8.8#Fails
+ping-Mdo-s14008.8.8.8#Fails
+ping-Mdo-s13008.8.8.8#Success MTU1300+28(IP+ICMP)=1328
 
-# 3. View current MTU
-ip link show eth0
+#3.Viewcurrent MTU
+iplinkshoweth0
 
-# 4. Modify MTU
-sudo ip link set dev eth0 mtu 1400
+#4.Modify MTU
+sudoiplinksetdeveth0mtu1400
 
-# 5. Permanent modification (/etc/netplan/*.yaml)
-# ethernets:
-#   eth0:
-#     mtu: 1400
+#5.Permanentmodification(/etc/netplan/*.yaml)
+#ethernets:
+#eth0:
+#mtu:1400
 ```
 
-### Fragmentation
+###Fragmentation
 
-**Problem:** Packets exceeding MTU get fragmented
+**Problem:**Packetsexceeding MT Ugetfragmented
 
 **Fragmentation Process:**
 
 ```
-Original IP packet: 4000 bytes
-    Fragment 1: 1500 bytes (data 1480 + IP header 20)
-    Fragment 2: 1500 bytes (data 1480 + IP header 20)
-    Fragment 3: 1040 bytes (data 1020 + IP header 20)
-    Receiver reassembles: 4000 bytes
+Original I Ppacket:4000bytes
+Fragment1:1500bytes(data1480+I Pheader20)
+Fragment2:1500bytes(data1480+I Pheader20)
+Fragment3:1040bytes(data1020+I Pheader20)
+Receiverreassembles:4000bytes
 ```
 
 **Fragmentation Fields:**
 
-| Field | Description |
+|Field|Description|
 |------|------|
-| **Identification** | Identifier for same fragment |
-| **Flags** | DF (Don't Fragment), MF (More Fragments) |
-| **Fragment Offset** | Offset of fragment in original packet |
+|**Identification**|Identifierforsamefragment|
+|**Flags**|DF(Don't Fragment),MF(More Fragments)|
+|**Fragment Offset**|Offsetoffragmentinoriginalpacket|
 
 **Fragmentation Issues:**
-- **Performance degradation**: Increased CPU and network overhead
-- **Packet loss risk**: Any fragment lost, entire packet lost
-- **Firewall issues**: Some firewalls cannot handle fragments correctly
+-**Performancedegradation**:Increased CP Uandnetworkoverhead
+-**Packetlossrisk**:Anyfragmentlost,entirepacketlost
+-**Firewallissues**:Somefirewallscannothandlefragmentscorrectly
 
-**Best Practice:** Avoid fragmentation
+**Best Practice:**Avoidfragmentation
 
 ```bash
-# Set DF (Don't Fragment)
-ping -M do -s 1472 8.8.8.8
+#Set DF(Don't Fragment)
+ping-Mdo-s14728.8.8.8
 
-# Application layer limit MSS (Maximum Segment Size)
-iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1400:1536 -j TCPMSS --clamp-mss-to-pmtu
+#Applicationlayerlimit MSS(Maximum Segment Size)
+iptables-AFORWARD-ptcp--tcp-flags SYN,RSTSYN-mtcpmss--mss1400:1536-j TCPMSS--clamp-mss-to-pmtu
 ```
 
 ---
 
-## Switching Behavior
+##Switching Behavior
 
-### Switch vs Hub
+###Switchvs Hub
 
-| Feature | Hub | Switch |
+|Feature|Hub|Switch|
 |------|--------------|-----------------|
-| **Layer** | Physical Layer | Data Link Layer |
-| **Forwarding** | Broadcast to all ports | Forward based on MAC table |
-| **Bandwidth** | Shared | Dedicated |
-| **Collision Domain** | One | One per port |
-| **Security** | Low (all traffic visible) | High (isolated traffic) |
+|**Layer**|Physical Layer|Data Link Layer|
+|**Forwarding**|Broadcasttoallports|Forwardbasedon MA Ctable|
+|**Bandwidth**|Shared|Dedicated|
+|**Collision Domain**|One|Oneperport|
+|**Security**|Low(alltrafficvisible)|High(isolatedtraffic)|
 
-### Switch Learning Process
+###Switch Learning Process
 
 ```mermaid
 graph LR
-    A[Host A<br/>MAC_A] --> S[Switch]
-    B[Host B<br/>MAC_B] --> S
-    C[Host C<br/>MAC_C] --> S
+A[Host A<br/>MAC_A]-->S[Switch]
+B[Host B<br/>MAC_B]-->S
+C[Host C<br/>MAC_C]-->S
 
-    S -->|Learn| MAC_A[Port 1: MAC_A]
-    S -->|Learn| MAC_B[Port 2: MAC_B]
-    S -->|Learn| MAC_C[Port 3: MAC_C]
+S-->|Learn|MAC_A[Port1:MAC_A]
+S-->|Learn|MAC_B[Port2:MAC_B]
+S-->|Learn|MAC_C[Port3:MAC_C]
 ```
 
 **Learning Process:**
 
-1. Host A sends frame to switch
-2. Switch records: MAC_A is on port 1
-3. Switch broadcasts to all other ports (flood)
-4. Host B responds
-5. Switch records: MAC_B is on port 2
-6. Subsequent communication: Unicast (no broadcast)
+1.Host Asendsframetoswitch
+2.Switchrecords:MAC_Aisonport1
+3.Switchbroadcaststoallotherports(flood)
+4.Host Bresponds
+5.Switchrecords:MAC_Bisonport2
+6.Subsequentcommunication:Unicast(nobroadcast)
 
 **MAC Table:**
 
 ```
-Port  MAC Address          Type
-1     00:1A:2B:3C:4D:5E  Dynamic
-2     00:11:22:33:44:55  Dynamic
-3     00:AA:BB:CC:DD:EE  Static
+Port MAC Address Type
+100:1A:2B:3C:4D:5E Dynamic
+200:11:22:33:44:55Dynamic
+300:AA:BB:CC:DD:EE Static
 ```
 
-### Broadcast Domain and VLAN
+###Broadcast Domainand VLAN
 
-**Broadcast Domain:** Set of devices that can receive broadcast messages
+**Broadcast Domain:**Setofdevicesthatcanreceivebroadcastmessages
 
-**VLAN (Virtual LAN):** Logically isolate broadcast domains
+**VLAN(Virtual LAN):**Logicallyisolatebroadcastdomains
 
 **VLAN Configuration Example:**
 
 ```
-Switch port configuration:
-  Ports 1-10: VLAN 10 (Development)
-  Ports 11-20: VLAN 20 (Operations)
-  Ports 21-24: Trunk (connect to router)
+Switchportconfiguration:
+Ports1-10:VLAN10(Development)
+Ports11-20:VLAN20(Operations)
+Ports21-24:Trunk(connecttorouter)
 
 Result:
-  - Development and Operations cannot communicate directly
-  - Communicate through router at layer 3
+- Developmentand Operationscannotcommunicatedirectly
+- Communicatethroughrouteratlayer3
 ```
 
-**802.1Q VLAN Tag:**
+**802.1QVLAN Tag:**
 
 ```
-Standard Ethernet frame:
+Standard Ethernetframe:
 +--------+--------+---------+------+
-| Dest MAC| Src MAC | Type    | Data |
+|Dest MAC|Src MAC|Type|Data|
 +--------+--------+---------+------+
 
-VLAN tagged frame:
+VLA Ntaggedframe:
 +--------+--------+------+-----+---------+------+
-| Dest MAC| Src MAC |0x8100| VLAN| Type    | Data |
+|Dest MAC|Src MAC|0x8100|VLAN|Type|Data|
 +--------+--------+------+-----+---------+------+
-                   |      |
-                   |      └─ VLAN ID (12 bits)
-                   └─ 802.1Q tag
+||
+|└─VLANID(12bits)
+└─802.1Qtag
 ```
 
 ---
 
-## Cloud Data Link Layer
+##Cloud Data Link Layer
 
-### AWS VPC
+###AWSVPC
 
-**Underlying Implementation:** **VPC is a logical abstraction of VLAN**
+**Underlying Implementation:****VP Cisalogicalabstractionof VLAN**
 
 ```
-Physical network:
-  Data center: tens of thousands of servers
-  └─ Virtualization layer: Hypervisor (Xen)
+Physicalnetwork:
+Datacenter:tensofthousandsofservers
+└─Virtualizationlayer:Hypervisor(Xen)
 
-Virtual network:
-  VPC: 10.0.0.0/16
-  ├─ Subnet A: 10.0.1.0/24 (AZ A)
-  └─ Subnet B: 10.0.2.0/24 (AZ B)
+Virtualnetwork:
+VPC:10.0.0.0/16
+├─Subnet A:10.0.1.0/24(AZA)
+└─Subnet B:10.0.2.0/24(AZB)
 
 Implementation:
-  - Each EC2 instance has a virtual network card
-  - Virtual network card connects to virtual switch
-  - Virtual switch implements VLAN isolation
+- Each EC2instancehasavirtualnetworkcard
+- Virtualnetworkcardconnectstovirtualswitch
+- Virtualswitchimplements VLA Nisolation
 ```
 
-### Kubernetes Pod Networking
+###Kubernetes Pod Networking
 
-**CNI (Container Network Interface)** Plugin Implementation:
+**CNI(Container Network Interface)**Plugin Implementation:
 
-#### 1. Bridge Model (Docker Default)
+####1.Bridge Model(Docker Default)
 
 ```
 Node:
-  ├─ eth0: 10.0.1.10 (physical NIC)
-  └─ docker0: 172.17.0.1/16 (bridge)
+├─eth0:10.0.1.10(physical NIC)
+└─docker0:172.17.0.1/16(bridge)
 
-Pod 1:
-  └─ veth: 172.17.0.2 (connected to docker0)
+Pod1:
+└─veth:172.17.0.2(connectedtodocker0)
 
-Pod 2:
-  └─ veth: 172.17.0.3 (connected to docker0)
+Pod2:
+└─veth:172.17.0.3(connectedtodocker0)
 
 Communication:
-  Pod 1  docker0  Pod 2 (same node)
-  Pod 1  docker0  eth0  route  other nodes
+Pod1docker0Pod2(samenode)
+Pod1docker0eth0routeothernodes
 ```
 
-#### 2. Overlay Network (Flannel VXLAN)
+####2.Overlay Network(Flannel VXLAN)
 
 ```
-Inter-node communication:
-  Pod 1 (10.244.1.10)
-    veth
-  Node 1 eth0 (10.0.1.10)
-    VXLAN encapsulation (UDP 4789)
-  Node 2 eth0 (10.0.2.10)
-    VXLAN decapsulation
-  Pod 2 (10.244.2.10)
+Inter-nodecommunication:
+Pod1(10.244.1.10)
+veth
+Node1eth0(10.0.1.10)
+VXLA Nencapsulation(UDP4789)
+Node2eth0(10.0.2.10)
+VXLA Ndecapsulation
+Pod2(10.244.2.10)
 
 Encapsulation:
-  Original packet: IP(10.244.1.10  10.244.2.10)
-    VXLAN
-  Outer packet: IP(10.0.1.10  10.0.2.10) UDP(VXLAN)
+Originalpacket:IP(10.244.1.1010.244.2.10)
+VXLAN
+Outerpacket:IP(10.0.1.1010.0.2.10)UDP(VXLAN)
 ```
 
 **MTU Calculation:**
 
 ```
-Original MTU: 1500 bytes
-  VXLAN encapsulation (50 bytes)
-Effective MTU: 1450 bytes
-  Ethernet header (14 bytes)
-Max frame: 1464 bytes
+Original MTU:1500bytes
+VXLA Nencapsulation(50bytes)
+Effective MTU:1450bytes
+Ethernetheader(14bytes)
+Maxframe:1464bytes
 ```
 
 ---
 
-## Debugging Tools
+##Debugging Tools
 
-### arping
+###arping
 
-**Purpose:** Send ARP requests
+**Purpose:**Send AR Prequests
 
 ```bash
-# Basic arping
-arping -c 3 192.168.1.1
+#Basicarping
+arping-c3192.168.1.1
 
-# Specify interface
-arping -I eth0 -c 3 192.168.1.1
+#Specifyinterface
+arping-Ieth0-c3192.168.1.1
 
-# Broadcast ARP
-arping -U -c 3 192.168.1.1
+#Broadcast ARP
+arping-U-c3192.168.1.1
 ```
 
-### tcpdump
+###tcpdump
 
 **Capture Ethernet Frames:**
 
 ```bash
-# Capture ARP
-tcpdump -i eth0 -n arp
+#Capture ARP
+tcpdump-ieth0-narp
 
-# Capture specific MAC
-tcpdump -i eth0 -n ether host 00:11:22:33:44:55
+#Capturespecific MAC
+tcpdump-ieth0-netherhost00:11:22:33:44:55
 
-# Capture VLAN
-tcpdump -i eth0 -n vlan
+#Capture VLAN
+tcpdump-ieth0-nvlan
 
-# Capture Ethernet frames (detailed)
-tcpdump -i eth0 -n -v ether
+#Capture Ethernetframes(detailed)
+tcpdump-ieth0-n-vether
 ```
 
-### ethtool
+###ethtool
 
 **View Network Card Information:**
 
 ```bash
-# View network card settings
-ethtool eth0
+#Viewnetworkcardsettings
+ethtooleth0
 
-# View MTU
-ip link show eth0
+#View MTU
+iplinkshoweth0
 
-# Modify MTU
-sudo ip link set dev eth0 mtu 9000  # Enable Jumbo Frame
+#Modify MTU
+sudoiplinksetdeveth0mtu9000#Enable Jumbo Frame
 ```
 
 ---
 
-## Common Issues
+##Common Issues
 
-### 1. "connection refused" vs "host unreachable"
+###1."connectionrefused"vs"hostunreachable"
 
-**Symptom:** Cannot connect to server
+**Symptom:**Cannotconnecttoserver
 
 **Distinguish:**
 
-| Error | Layer | Cause |
+|Error|Layer|Cause|
 |------|------|------|
-| **Connection refused** | Application layer | Port not listening |
-| **Host unreachable** | Network layer | Route unreachable |
-| **No route to host** | Network layer | No matching route in routing table |
+|**Connectionrefused**|Applicationlayer|Portnotlistening|
+|**Hostunreachable**|Networklayer|Routeunreachable|
+|**Noroutetohost**|Networklayer|Nomatchingrouteinroutingtable|
 
 **Debugging:**
 
 ```bash
-# 1. ping test network reachability
-ping 192.168.1.10
+#1.pingtestnetworkreachability
+ping192.168.1.10
 
-# 2. telnet test port
-telnet 192.168.1.10 3306
+#2.telnettestport
+telnet192.168.1.103306
 
-# 3. Check ARP resolution
-ip neigh show 192.168.1.10
+#3.Check AR Presolution
+ipneighshow192.168.1.10
 
-# 4. Check port listening
-ss -tln | grep :3306
+#4.Checkportlistening
+ss-tln|grep:3306
 ```
 
 ---
 
-### 2. MTU Issues Cause Intermittent Disconnection
+###2.MTU Issues Cause Intermittent Disconnection
 
 **Symptoms:**
-- Small packets work (ping)
-- Large packets fail (ssh, large file transfer)
+- Smallpacketswork(ping)
+- Largepacketsfail(ssh,largefiletransfer)
 
 **Debugging:**
 
 ```bash
-# 1. Discover MTU with ping
-ping -M do -s 1472 8.8.8.8
+#1.Discover MT Uwithping
+ping-Mdo-s14728.8.8.8
 
-# 2. Check path MTU
-tracepath google.com
+#2.Checkpath MTU
+tracepathgoogle.com
 
-# 3. Capture ICMP "Fragmentation Needed"
-tcpdump -i eth0 -n icmp
+#3.Capture ICMP"Fragmentation Needed"
+tcpdump-ieth0-nicmp
 
-# 4. Adjust MTU
-sudo ip link set dev eth0 mtu 1400
+#4.Adjust MTU
+sudoiplinksetdeveth0mtu1400
 ```
 
 ---
 
-### 3. ARP Conflict
+###3.ARP Conflict
 
-**Symptom:** Intermittent disconnection, ARP cache changes frequently
+**Symptom:**Intermittentdisconnection,AR Pcachechangesfrequently
 
 **Debugging:**
 
 ```bash
-# 1. View ARP cache
-watch -n 1 'ip neigh show'
+#1.View AR Pcache
+watch-n1'ipneighshow'
 
-# 2. Capture ARP
-tcpdump -i eth0 -n arp
+#2.Capture ARP
+tcpdump-ieth0-narp
 
-# 3. Static ARP
-ip neigh add 192.168.1.1 lladdr 00:11:22:33:44:55 dev eth0 nud permanent
+#3.Static ARP
+ipneighadd192.168.1.1lladdr00:11:22:33:44:55deveth0nudpermanent
 ```
 
 ---
 
-## Business Scenarios
+##Business Scenarios
 
-### Scenario 1: Kubernetes Pod Communication
+###Scenario1:Kubernetes Pod Communication
 
-**Background:** Kubernetes cluster, pods communicate across nodes
+**Background:**Kubernetescluster,podscommunicateacrossnodes
 
-**Implementation:** Flannel VXLAN
+**Implementation:**Flannel VXLAN
 
 ```
-Node 1: 10.0.1.0/24
-  Pod 1: 10.244.1.10
-    veth
-  cni0: 10.244.1.1
-    Route
-  flannel.1: VXLAN (VNI: 1)
-    Encapsulation
-  eth0: 10.0.1.10
-    Physical network
-  Router
-    Physical network
-  eth0: 10.0.2.10
-    Decapsulation
-  flannel.1: VXLAN
-    Route
-  cni0: 10.244.2.1
-    veth
-  Pod 2: 10.244.2.10
+Node1:10.0.1.0/24
+Pod1:10.244.1.10
+veth
+cni0:10.244.1.1
+Route
+flannel.1:VXLAN(VNI:1)
+Encapsulation
+eth0:10.0.1.10
+Physicalnetwork
+Router
+Physicalnetwork
+eth0:10.0.2.10
+Decapsulation
+flannel.1:VXLAN
+Route
+cni0:10.244.2.1
+veth
+Pod2:10.244.2.10
 ```
 
 ---
 
-### Scenario 2: VPN MTU Issues
+###Scenario2:VPNMTU Issues
 
-**Background:** Connect to remote database via VPN, poor performance
+**Background:**Connecttoremotedatabasevia VPN,poorperformance
 
 **Problem:**
-- MTU 1500  VPN encapsulation  MTU 1540
-- Intermediate network MTU 1500  Dropped
+- MTU1500VP Nencapsulation MTU1540
+- Intermediatenetwork MTU1500Dropped
 
 **Solution:**
 
 ```bash
-# 1. Discover path MTU
-ping -M do -s 1472 remote-db.example.com
+#1.Discoverpath MTU
+ping-Mdo-s1472remote-db.example.com
 
-# 2. Adjust VPN MTU
-sudo ip link set dev tun0 mtu 1400
+#2.Adjust VPNMTU
+sudoiplinksetdevtun0mtu1400
 
-# 3. Adjust TCP MSS
-iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN \
-  -j TCPMSS --clamp-mss-to-pmtu
+#3.Adjust TCPMSS
+iptables-AFORWARD-ptcp--tcp-flags SYN,RSTSYN\
+- j TCPMSS--clamp-mss-to-pmtu
 ```
 
 ---
 
-## Operations Checklist
+##Operations Checklist
 
-### Configuration Check
+###Configuration Check
 
-- [ ] Consistent MTU configuration (avoid fragmentation)
-- [ ] Normal ARP cache
-- [ ] Correct VLAN configuration
-- [ ] Switch port configuration
+-[]Consistent MT Uconfiguration(avoidfragmentation)
+-[]Normal AR Pcache
+-[]Correct VLA Nconfiguration
+-[]Switchportconfiguration
 
-### Monitoring Metrics
+###Monitoring Metrics
 
-- [ ] ARP table changes
-- [ ] MTU issues (fragmentation statistics)
-- [ ] Switch errors (CRC, frame errors)
+-[]AR Ptablechanges
+-[]MT Uissues(fragmentationstatistics)
+-[]Switcherrors(CRC,frameerrors)
 
-### Troubleshooting
+###Troubleshooting
 
-- [ ] ARP conflict: Check IP assignment
-- [ ] MTU issues: `ping -M do`, adjust MTU
-- [ ] Broadcast storm: Check loops, protocols
+-[]AR Pconflict:Check I Passignment
+-[]MT Uissues:`ping-Mdo`,adjust MTU
+-[]Broadcaststorm:Checkloops,protocols
 
 ---
 
-## Further Reading
+##Further Reading
 
-### Related Documentation
+###Related Documentation
 
-- [Network Layer - IP Addressing](../network-layer.mdx)
-- [Physical Layer - Bandwidth and Latency](../physical-layer.mdx)
-- [Network Performance Optimization - Throughput Optimization](../network-performance.mdx)
+-[Network Layer-IP Addressing](../network-layer)
+-[Physical Layer-Bandwidthand Latency](../physical-layer)
+-[Network Performance Optimization-Throughput Optimization](../network-performance)
 
-### External Resources
+###External Resources
 
-- **IEEE 802.3**: Ethernet Standard
-- **RFC 826**: An Ethernet Address Resolution Protocol
-- **RFC 894**: A Standard for the Transmission of IP Datagrams over Ethernet Networks
+-**IEEE802.3**:Ethernet Standard
+-**RFC826**:An Ethernet Address Resolution Protocol
+-**RFC894**:A Standardforthe Transmissionof IP Datagramsover Ethernet Networks
