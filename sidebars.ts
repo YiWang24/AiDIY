@@ -621,6 +621,18 @@ const sidebars: SidebarsConfig = {
         },
       ],
     },
+    {
+      type: "category",
+      label: "Open SWE",
+      collapsed: false,
+      items: [
+        {
+          type: "doc",
+          id: "projects/open-swe",
+          label: "Open SWE Agent",
+        },
+      ],
+    },
   ],
 };
 
