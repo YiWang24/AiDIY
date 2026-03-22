@@ -1,12 +1,12 @@
 ---
 id: open-swe
 title: "Case Study: Open SWE"
-sidebar_label: 🤖 Open SWE
+sidebar_label: Open SWE
 description: "Deep dive into LangChain's open-source asynchronous coding agent - architecture, design philosophy, and multi-agent orchestration"
 slug: /projects/open-swe
 ---
 
-# 🤖 Case Study: Open SWE
+# Case Study: Open SWE
 
 > **"The best internal tools are built by teams who use them daily."** — LangChain Team
 
@@ -20,7 +20,7 @@ slug: /projects/open-swe
 
 ## 1. Project Overview & Significance
 
-### 📌 What is Open SWE?
+### What is Open SWE?
 
 Open SWE is an **asynchronous, cloud-native coding agent framework** that:
 
@@ -31,7 +31,7 @@ Open SWE is an **asynchronous, cloud-native coding agent framework** that:
 
 It represents the **democratization of internal engineering tools** — making the same architectural patterns used by trillion-dollar companies available to any development team.
 
-### 🌟 Why This Matters
+### Why This Matters
 
 **The Problem**: Elite engineering orgs (Stripe, Ramp, Coinbase) have built powerful internal coding agents, but their implementations are proprietary. The industry lacked an open-source reference architecture.
 
@@ -41,7 +41,7 @@ It represents the **democratization of internal engineering tools** — making t
 - **Pluggable Design**: Swap sandboxes, models, tools, and triggers
 - **Community Innovation**: Open foundation for org-specific extensions
 
-### 🏢 Relationship to Proprietary Systems
+### Relationship to Proprietary Systems
 
 | Company | Internal Tool | Open SWE Equivalent |
 |---------|---------------|---------------------|
@@ -55,7 +55,7 @@ It represents the **democratization of internal engineering tools** — making t
 
 This is the heart of Open SWE — a sophisticated multi-agent system built on **LangGraph's state machine architecture**.
 
-### 🏗️ High-Level Architecture
+### High-Level Architecture
 
 ```mermaid
 flowchart TB
@@ -97,7 +97,7 @@ flowchart TB
     Tools --> Sandbox
 ```
 
-### 🎭 The Four-Agent System
+### The Four-Agent System
 
 Open SWE implements a **specialized multi-agent architecture**, where each agent has a distinct responsibility:
 
@@ -202,7 +202,7 @@ reviewer_agent = Agent(
 - **Ensures** linters and formatters pass
 - **Reduces** broken builds
 
-### 🔄 LangGraph State Machine
+### LangGraph State Machine
 
 The agents are orchestrated using **LangGraph**, which provides:
 
@@ -232,7 +232,7 @@ stateDiagram-v2
 - **Human Oversight**: Can inject checkpoints for human review
 - **Expressive Power**: Not limited to single cognitive architecture
 
-### 🛠️ Tools System
+### Tools System
 
 Open SWE follows Stripe's insight: **tool curation matters more than quantity**.
 
@@ -280,7 +280,7 @@ flowchart LR
     C --> Quality
 ```
 
-### 🧠 Memory & Context Management
+### Memory & Context Management
 
 #### AGENTS.md
 
@@ -340,7 +340,7 @@ flowchart TB
 - **Persistent**: Survives agent restarts and crashes
 - **Queryable**: Agent can search past interactions
 
-### 🔌 Middleware System
+### Middleware System
 
 Middleware provides **deterministic hooks** around the agent loop:
 
@@ -400,7 +400,7 @@ if agent_finished and no_pr_created:
 
 **Design Philosophy**: Lightweight version of Stripe's deterministic nodes — ensuring critical steps happen regardless of LLM behavior.
 
-### 👥 Subagent Spawning
+### Subagent Spawning
 
 The **`task` tool** enables parallel subagent delegation:
 
@@ -432,7 +432,7 @@ flowchart TB
 
 ## 3. End-to-End Design Flow
 
-### 🎬 From Trigger to PR
+### From Trigger to PR
 
 ```mermaid
 sequenceDiagram
@@ -465,10 +465,10 @@ sequenceDiagram
     M->>G: commit_and_open_pr
     G-->>M: PR #42 created
     M->>S: Done! PR: github.com/.../pull/42
-    S->>U: 🔀 PR opened
+    S->>U: PR opened
 ```
 
-### 🏝️ Sandbox Lifecycle
+### Sandbox Lifecycle
 
 ```mermaid
 stateDiagram-v2
@@ -493,7 +493,7 @@ stateDiagram-v2
 - **LangSmith**: Built-in cloud sandbox
 - **Custom**: Plug in your own
 
-### 🔗 Thread-to-Sandbox Mapping
+### Thread-to-Sandbox Mapping
 
 Each invocation creates a **deterministic thread ID**:
 
@@ -611,7 +611,7 @@ stateDiagram-v2
 
 ## 5. Comparison & Innovation
 
-### 🆚 Feature Comparison
+### Feature Comparison
 
 | Feature | Open SWE | Devin | SWE-agent | AutoCodeRover |
 |---------|----------|-------|-----------|---------------|
@@ -625,7 +625,7 @@ stateDiagram-v2
 | **Mid-Task Messaging** | ✅ | ❓ | ❌ | ❌ |
 | **AGENTS.md Support** | ✅ | ❌ | ❌ | ❌ |
 
-### 💡 Key Innovations
+### Key Innovations
 
 1. **Pluggable Sandboxes**: Not locked into one provider
 2. **Mid-Task Messaging**: Humans can steer agents in real-time
@@ -633,7 +633,7 @@ stateDiagram-v2
 4. **Composable Architecture**: Builds on reusable frameworks
 5. **Multi-Platform Triggers**: Slack + Linear + GitHub
 
-### 📊 Trade-offs
+### Trade-offs
 
 | Decision | Benefit | Trade-off |
 |----------|---------|-----------|
@@ -646,7 +646,7 @@ stateDiagram-v2
 
 ## 6. Future Extensions & Use Cases
 
-### 🚀 Potential Enhancements
+### Potential Enhancements
 
 ```mermaid
 mindmap
@@ -660,7 +660,7 @@ mindmap
             Security_scanning
 ```
 
-### 👥 User Personas
+### User Personas
 
 | Persona | Goal | Open SWE Value |
 |---------|------|----------------|
@@ -670,7 +670,7 @@ mindmap
 | **Engineering Manager** | Increase team velocity | Automate routine tasks |
 | **Researcher** | Study agent architectures | Transparent implementation |
 
-### 🗺️ User Journey Map
+### User Journey Map
 
 ```mermaid
 journey
@@ -696,7 +696,7 @@ journey
       Iterate on prompts: 4: User
 ```
 
-### 📋 Use Cases
+### Use Cases
 
 1. **Bug Fixes**: "Fix the null pointer in user service"
 2. **Feature Implementation**: "Add dark mode to dashboard"
@@ -709,7 +709,7 @@ journey
 
 ## 7. Technical Implementation Highlights
 
-### 🔧 Agent Creation (High-Level)
+### Agent Creation (High-Level)
 
 ```python
 # Concept: How Open SWE creates an agent
@@ -733,7 +733,7 @@ agent = create_deep_agent(
 )
 ```
 
-### 🔗 Sandbox Backend (Concept)
+### Sandbox Backend (Concept)
 
 ```python
 # Concept: Pluggable sandbox backends
@@ -748,7 +748,7 @@ sandbox_backends = {
 backend = sandbox_backends[os.getenv("SANDBOX_PROVIDER", "langsmith")]
 ```
 
-### 📝 AGENTS.md Example
+### AGENTS.md Example
 
 ```markdown
 # Repository Conventions for AI Agents
@@ -773,7 +773,7 @@ backend = sandbox_backends[os.getenv("SANDBOX_PROVIDER", "langsmith")]
 - Types: feat, fix, docs, refactor, test
 ```
 
-### 🎯 Middleware Chain (Concept)
+### Middleware Chain (Concept)
 
 ```python
 # Concept: Middleware execution
@@ -793,7 +793,7 @@ async def run_agent_with_middleware(agent, input_data):
 
 ## 8. Lessons Learned
 
-### ✅ What Works Well
+### What Works Well
 
 1. **LangGraph for Orchestration**: State machine approach prevents infinite loops and provides clear hand-offs
 2. **Sandbox Isolation**: Parallel execution works flawlessly with isolated environments
@@ -801,14 +801,14 @@ async def run_agent_with_middleware(agent, input_data):
 4. **Tool Curation**: 15 focused tools > 100 accumulated tools
 5. **Mid-Task Messaging**: Enables real-time human steering
 
-### ⚠️ Challenges
+### Challenges
 
 1. **Framework Dependency**: Locked into LangGraph and Deep Agents
 2. **Sandbox Startup Time**: Cold starts add latency
 3. **Cost**: Running sandboxes for every task adds up
 4. **Context Limits**: Large codebases still require careful memory management
 
-### 🎯 Recommendations
+### Recommendations
 
 1. **Start Simple**: Use default configuration, customize gradually
 2. **Write AGENTS.md**: Invest time in convention encoding
@@ -832,7 +832,7 @@ Open SWE demonstrates that **internal coding agents** don't need to be proprieta
 Multi-agent systems add latency. For simple tasks, a single agent might be faster. Use multi-agent architecture for complex tasks that benefit from specialization.
 :::
 
-### 📚 Further Learning
+### Further Learning
 
 - [LangGraph Documentation](https://www.langchain.com/langgraph)
 - [Deep Agents Overview](https://docs.langchain.com/oss/python/deepagents/overview)
