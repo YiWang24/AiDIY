@@ -475,6 +475,53 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Harness Engineering",
+      collapsed: false,
+      items: [
+        {
+          type: "doc",
+          id: "ai/harness-engineering/index",
+          label: "Overview",
+        },
+        {
+          type: "doc",
+          id: "ai/harness-engineering/core-concepts",
+          label: "1. Core Concepts",
+        },
+        {
+          type: "doc",
+          id: "ai/harness-engineering/orchestration",
+          label: "2. Tool Orchestration",
+        },
+        {
+          type: "doc",
+          id: "ai/harness-engineering/state-management",
+          label: "3. State Management",
+        },
+        {
+          type: "doc",
+          id: "ai/harness-engineering/error-handling",
+          label: "4. Error Handling & Recovery",
+        },
+        {
+          type: "doc",
+          id: "ai/harness-engineering/observability",
+          label: "5. Observability",
+        },
+        {
+          type: "doc",
+          id: "ai/harness-engineering/safety-guards",
+          label: "6. Safety & Guardrails",
+        },
+        {
+          type: "doc",
+          id: "ai/harness-engineering/patterns",
+          label: "7. Production Patterns",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "MCP",
       collapsed: false,
       items: [

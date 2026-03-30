@@ -1,0 +1,985 @@
+---
+id: patterns
+title: 7. Production Patterns
+sidebar_label: 7. Production Patterns
+description: Long-Running Agents, Multi-Agent Coordination, Scaling Patterns, and Real-World Case Studies
+---
+
+# 7. Production Patterns
+
+> **"Production agents require patterns that scale, recover, and coordinate. These patterns emerge from real-world deployments."**
+
+This section covers production-tested patterns for building reliable agent systems. These patterns have been battle-tested in real deployments and represent best practices for harness engineering.
+
+---
+
+## 7.1 Long-Running Agent Patterns
+
+### Checkpoint/Resume Pattern
+
+Save state periodically and resume from checkpoints after failures.
+
+```mermaid
+flowchart TB
+    Start[Start Task] --> Execute[Execute Step]
+    Execute --> Checkpoint{Checkpoint<br/>Due?}
+
+    Checkpoint -->|Yes| Save[Save State]
+    Checkpoint -->|No| Complete{Complete?}
+
+    Save --> Complete
+
+    Complete -->|No| Execute
+    Complete -->|Yes| FinalCheckpoint[Final Checkpoint]
+    FinalCheckpoint --> End[End]
+
+    Error[Error Occurs] --> Load[Load Last Checkpoint]
+    Load --> Execute
+
+    style Save fill:#e1f5fe
+    style Load fill:#fff3e0
+    style Error fill:#ffebee
+```
+
+```java
+@Service
+public class CheckpointResumePattern {
+
+    @Autowired
+    private CheckpointService checkpointService;
+
+    public <T> T executeWithCheckpointing(
+        String taskId,
+        Function<CheckpointContext, T> task
+    ) {
+        // Try to resume from checkpoint
+        Optional<Checkpoint> lastCheckpoint =
+            checkpointService.loadLastCheckpoint(taskId);
+
+        CheckpointContext context = lastCheckpoint
+            .map(CheckpointContext::restore)
+            .orElseGet(() -> new CheckpointContext(taskId));
+
+        Instant lastCheckpointTime = Instant.now();
+
+        try {
+            T result = task.apply(context);
+
+            // Final checkpoint
+            checkpointService.saveCheckpoint(
+                context.createCheckpoint()
+            );
+
+            return result;
+
+        } catch (Exception e) {
+            // Checkpoint before failing
+            checkpointService.saveCheckpoint(
+                context.createCheckpointWithError(e)
+            );
+            throw e;
+
+        } finally {
+            // Periodic checkpointing
+            Duration elapsed = Duration.between(
+                lastCheckpointTime,
+                Instant.now()
+            );
+
+            if (elapsed.compareTo(Duration.ofMinutes(5)) > 0) {
+                checkpointService.saveCheckpoint(
+                    context.createCheckpoint()
+                );
+            }
+        }
+    }
+}
+```
+
+### Periodic Persistence Pattern
+
+Persist state at regular intervals, not just on checkpoints.
+
+```java
+@Service
+public class PeriodicPersistencePattern {
+
+    @Autowired
+    private StatePersistenceService persistenceService;
+
+    @Scheduled(fixedRate = 60000) // Every minute
+    public void persistAllActiveStates() {
+        List<AgentTask> activeTasks =
+            taskRepository.findActiveTasks();
+
+        for (AgentTask task : activeTasks) {
+            try {
+                AgentState state = stateManager.getState(task.getId());
+
+                if (state != null) {
+                    persistenceService.persist(state);
+                    log.debug("Persisted state for task: {}", task.getId());
+                }
+
+            } catch (Exception e) {
+                log.error("Failed to persist state for task: {}",
+                    task.getId(), e);
+            }
+        }
+    }
+}
+```
+
+### Event-Driven Agent Pattern
+
+Agents that respond to events rather than polling.
+
+```java
+@Service
+public class EventDrivenAgentPattern {
+
+    @Autowired
+    private EventPublisher eventPublisher;
+
+    @Autowired
+    private AgentEventHandler eventHandler;
+
+    public void executeEventDriven(
+        String agentId,
+        AgentTask task
+    ) {
+        // Subscribe to relevant events
+        eventPublisher.subscribe(
+            "agent." + agentId,
+            event -> {
+                try {
+                    eventHandler.handleEvent(agentId, event);
+                } catch (Exception e) {
+                    log.error("Event handler failed", e);
+
+                    // Publish error event
+                    eventPublisher.publish(
+                        "agent." + agentId + ".error",
+                        AgentErrorEvent.builder()
+                            .agentId(agentId)
+                            .error(e)
+                            .timestamp(Instant.now())
+                            .build()
+                    );
+                }
+            }
+        );
+
+        // Start task
+        taskService.startTask(agentId, task);
+
+        // Publish start event
+        eventPublisher.publish(
+            "agent." + agentId + ".started",
+            AgentStartedEvent.builder()
+                .agentId(agentId)
+                .taskId(task.getId())
+                .timestamp(Instant.now())
+                .build()
+        );
+    }
+
+    @Component
+    public static class AgentEventHandler {
+
+        @Autowired
+        private TaskExecutor taskExecutor;
+
+        public void handleEvent(
+            String agentId,
+            Event event
+        ) {
+            switch (event.getType()) {
+                case "data_available":
+                    taskExecutor.processData(agentId, event.getData());
+                    break;
+
+                case "tool_completed":
+                    taskExecutor.continueFromTool(agentId, event.getResult());
+                    break;
+
+                case "human_feedback":
+                    taskExecutor.incorporateFeedback(agentId, event.getFeedback());
+                    break;
+
+                case "shutdown":
+                    taskExecutor.gracefulShutdown(agentId);
+                    break;
+            }
+        }
+    }
+}
+```
+
+---
+
+## 7.2 Multi-Agent Coordination
+
+### Communication Protocol
+
+Standardized message format for agent communication.
+
+```java
+@Document(collection = "agent_messages")
+public class AgentMessage {
+    @Id
+    private String id;
+
+    private String fromAgentId;
+    private String toAgentId;
+    private String messageType;
+
+    private Map<String, Object> payload;
+    private Map<String, Object> metadata;
+
+    private Instant timestamp;
+    private String correlationId;
+    private String replyTo;
+
+    @Getter
+    @Setter
+    @Builder
+    public static class Builder {
+        // Builder implementation
+    }
+}
+
+@Service
+public class AgentCommunicationService {
+
+    @Autowired
+    private MessageBroker messageBroker;
+
+    public void send(
+        String fromAgentId,
+        String toAgentId,
+        String messageType,
+        Map<String, Object> payload
+    ) {
+        AgentMessage message = AgentMessage.builder()
+            .id(UUID.randomUUID().toString())
+            .fromAgentId(fromAgentId)
+            .toAgentId(toAgentId)
+            .messageType(messageType)
+            .payload(payload)
+            .timestamp(Instant.now())
+            .correlationId(UUID.randomUUID().toString())
+            .build();
+
+        messageBroker.publish("agent." + toAgentId, message);
+    }
+
+    public void sendAndAwaitResponse(
+        String fromAgentId,
+        String toAgentId,
+        String messageType,
+        Map<String, Object> payload,
+        Duration timeout
+    ) {
+        String replyTo = "agent." + fromAgentId + ".responses";
+
+        AgentMessage message = AgentMessage.builder()
+            .id(UUID.randomUUID().toString())
+            .fromAgentId(fromAgentId)
+            .toAgentId(toAgentId)
+            .messageType(messageType)
+            .payload(payload)
+            .replyTo(replyTo)
+            .timestamp(Instant.now())
+            .correlationId(UUID.randomUUID().toString())
+            .build();
+
+        // Send message
+        messageBroker.publish("agent." + toAgentId, message);
+
+        // Wait for response
+        return messageBroker.waitForResponse(
+            replyTo,
+            message.getCorrelationId(),
+            timeout
+        );
+    }
+
+    public void subscribe(
+        String agentId,
+        Consumer<AgentMessage> handler
+    ) {
+        messageBroker.subscribe(
+            "agent." + agentId,
+            handler
+        );
+    }
+}
+```
+
+### Shared Context Management
+
+Coordinate state across multiple agents.
+
+```java
+@Service
+public class SharedContextService {
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    public void put(
+        String contextId,
+        String key,
+        Object value
+    ) {
+        String contextKey = "context:" + contextId;
+        redisTemplate.opsForHash().put(contextKey, key, value);
+    }
+
+    public <T> T get(
+        String contextId,
+        String key,
+        Class<T> type
+    ) {
+        String contextKey = "context:" + contextId;
+        Object value = redisTemplate.opsForHash().get(contextKey, key);
+
+        if (value != null) {
+            return type.cast(value);
+        }
+
+        return null;
+    }
+
+    public Map<String, Object> getAll(String contextId) {
+        String contextKey = "context:" + contextId;
+        return redisTemplate.opsForHash().entries(contextKey);
+    }
+
+    public void watch(
+        String contextId,
+        String key,
+        Consumer<Object> onChange
+    ) {
+        // Implement Redis pub/sub for change notifications
+        String channel = "context:" + contextId + ":" + key;
+
+        redisTemplate.getConnectionFactory()
+            .getConnection()
+            .subscribe(new MessageListener() {
+                @Override
+                public void onMessage(Message message, byte[] pattern) {
+                    String newValue = new String(message.getBody());
+                    onChange.accept(newValue);
+                }
+            }, channel);
+    }
+}
+```
+
+### Conflict Resolution
+
+Handle conflicts when multiple agents want to modify shared state.
+
+```java
+@Service
+public class ConflictResolutionService {
+
+    public enum ConflictStrategy {
+        FIRST_WRITE_WINS,
+        LAST_WRITE_WINS,
+        MERGE,
+        VOTE,
+        ESCALATE_TO_HUMAN
+    }
+
+    public <T> T resolveConflict(
+        String contextId,
+        String key,
+        List<T> conflictingValues,
+        ConflictStrategy strategy
+    ) {
+        switch (strategy) {
+            case FIRST_WRITE_WINS:
+                return conflictingValues.get(0);
+
+            case LAST_WRITE_WINS:
+                return conflictingValues.get(conflictingValues.size() - 1);
+
+            case MERGE:
+                return mergeValues(conflictingValues);
+
+            case VOTE:
+                return voteOnValue(conflictingValues);
+
+            case ESCALATE_TO_HUMAN:
+                return escalateToHuman(contextId, key, conflictingValues);
+
+            default:
+                throw new IllegalArgumentException(
+                    "Unknown conflict strategy: " + strategy
+                );
+        }
+    }
+
+    private <T> T mergeValues(List<T> values) {
+        // Implement merging logic based on value type
+        // This is a simplified example
+        if (values.get(0) instanceof Map) {
+            Map<String, Object> merged = new HashMap<>();
+
+            for (T value : values) {
+                merged.putAll((Map<String, Object>) value);
+            }
+
+            return (T) merged;
+        }
+
+        // Default: return first value
+        return values.get(0);
+    }
+
+    private <T> T voteOnValue(List<T> values) {
+        // Find most common value
+        Map<T, Integer> counts = new HashMap<>();
+
+        for (T value : values) {
+            counts.merge(value, 1, Integer::sum);
+        }
+
+        return counts.entrySet().stream()
+            .max(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey)
+            .orElse(values.get(0));
+    }
+
+    private <T> T escalateToHuman(
+        String contextId,
+        String key,
+        List<T> conflictingValues
+    ) {
+        // Request human intervention
+        HumanInterventionRequest request =
+            HumanInterventionRequest.builder()
+                .type("CONFLICT_RESOLUTION")
+                .context(Map.of(
+                    "contextId", contextId,
+                    "key", key,
+                    "conflictingValues", conflictingValues
+                ))
+                .build();
+
+        return humanInterventionService.requestResolution(request);
+    }
+}
+```
+
+---
+
+## 7.3 Scaling Patterns
+
+### Horizontal Scaling
+
+Run multiple agent instances behind a load balancer.
+
+```java
+@Service
+public class HorizontalScalingPattern {
+
+    @Autowired
+    private AgentInstanceManager instanceManager;
+
+    @Autowired
+    private LoadBalancer loadBalancer;
+
+    public void scaleHorizontally(
+        String agentType,
+        int targetInstances
+    ) {
+        List<AgentInstance> currentInstances =
+            instanceManager.getInstances(agentType);
+
+        int currentCount = currentInstances.size();
+
+        if (currentCount < targetInstances) {
+            // Scale up
+            int toAdd = targetInstances - currentCount;
+
+            for (int i = 0; i < toAdd; i++) {
+                AgentInstance instance =
+                    instanceManager.spawnInstance(agentType);
+
+                loadBalancer.register(instance);
+            }
+
+        } else if (currentCount > targetInstances) {
+            // Scale down
+            int toRemove = currentCount - targetInstances;
+
+            for (int i = 0; i < toRemove; i++) {
+                AgentInstance instance =
+                    selectInstanceToRemove(currentInstances);
+
+                loadBalancer.deregister(instance);
+                instanceManager.shutdown(instance);
+            }
+        }
+    }
+
+    private AgentInstance selectInstanceToRemove(
+        List<AgentInstance> instances
+    ) {
+        // Select instance with least load
+        return instances.stream()
+            .min(Comparator.comparing(AgentInstance::getLoad))
+            .orElse(instances.get(0));
+    }
+}
+```
+
+### Load Balancing Strategies
+
+```java
+@Service
+public class AgentLoadBalancer {
+
+    private enum LoadBalancingStrategy {
+        ROUND_ROBIN,
+        LEAST_CONNECTIONS,
+        LEAST_RESPONSE_TIME,
+        CONSISTENT_HASHING
+    }
+
+    public AgentInstance selectInstance(
+        List<AgentInstance> instances,
+        LoadBalancingStrategy strategy,
+        String taskId
+    ) {
+        return switch (strategy) {
+            case ROUND_ROBIN -> roundRobinSelect(instances);
+
+            case LEAST_CONNECTIONS ->
+                leastConnectionsSelect(instances);
+
+            case LEAST_RESPONSE_TIME ->
+                leastResponseTimeSelect(instances);
+
+            case CONSISTENT_HASHING ->
+                consistentHashingSelect(instances, taskId);
+        };
+    }
+
+    private AgentInstance roundRobinSelect(List<AgentInstance> instances) {
+        AtomicInteger counter = new AtomicInteger(0);
+        int index = counter.getAndIncrement() % instances.size();
+        return instances.get(index);
+    }
+
+    private AgentInstance leastConnectionsSelect(
+        List<AgentInstance> instances
+    ) {
+        return instances.stream()
+            .min(Comparator.comparing(AgentInstance::getConnections))
+            .orElse(instances.get(0));
+    }
+
+    private AgentInstance leastResponseTimeSelect(
+        List<AgentInstance> instances
+    ) {
+        return instances.stream()
+            .min(Comparator.comparing(AgentInstance::getAverageResponseTime))
+            .orElse(instances.get(0));
+    }
+
+    private AgentInstance consistentHashingSelect(
+        List<AgentInstance> instances,
+        String taskId
+    ) {
+        // Hash task ID to select instance
+        int hash = taskId.hashCode();
+        int index = Math.abs(hash) % instances.size();
+        return instances.get(index);
+    }
+}
+```
+
+### Resource Optimization
+
+Optimize resource usage across agent instances.
+
+```java
+@Service
+public class ResourceOptimizationService {
+
+    @Autowired
+    private MetricsCollector metricsCollector;
+
+    @Scheduled(fixedRate = 60000) // Every minute
+    public void optimizeResources() {
+        // Collect metrics from all instances
+        List<InstanceMetrics> metrics =
+            metricsCollector.collectMetrics();
+
+        // Identify underutilized instances
+        List<AgentInstance> underutilized =
+            findUnderutilizedInstances(metrics);
+
+        // Identify overloaded instances
+        List<AgentInstance> overloaded =
+            findOverloadedInstances(metrics);
+
+        // Make scaling decisions
+        if (!overloaded.isEmpty()) {
+            log.info("Scaling up due to overloaded instances");
+            scaleUp(overloaded.size());
+        }
+
+        if (!underutilized.isEmpty() &&
+            canScaleDown(underutilized.size())) {
+            log.info("Scaling down due to underutilized instances");
+            scaleDown(underutilized.size());
+        }
+    }
+
+    private List<AgentInstance> findUnderutilizedInstances(
+        List<InstanceMetrics> metrics
+    ) {
+        return metrics.stream()
+            .filter(m -> m.getCpuUsage() < 0.2)
+            .filter(m -> m.getMemoryUsage() < 0.3)
+            .filter(m -> m.getTaskQueueSize() < 5)
+            .map(InstanceMetrics::getInstance)
+            .toList();
+    }
+
+    private List<AgentInstance> findOverloadedInstances(
+        List<InstanceMetrics> metrics
+    ) {
+        return metrics.stream()
+            .filter(m -> m.getCpuUsage() > 0.8)
+            .filter(m -> m.getTaskQueueSize() > 50)
+            .map(InstanceMetrics::getInstance)
+            .toList();
+    }
+}
+```
+
+---
+
+## 7.4 Case Studies
+
+### Case Study 1: Research Agent
+
+**Challenge**: Build an agent that can research topics across multiple sources and synthesize findings.
+
+**Solution**: Implemented a pipeline-style orchestration with parallel web searches.
+
+```java
+@Service
+public class ResearchAgent {
+
+    public ResearchResult research(String topic) {
+        // Phase 1: Parallel searches across multiple sources
+        List<ToolCall> searchCalls = List.of(
+            ToolCall.builder()
+                .toolName("web_search")
+                .arg("query", topic)
+                .arg("source", "google")
+                .build(),
+            ToolCall.builder()
+                .toolName("web_search")
+                .arg("query", topic)
+                .arg("source", "arxiv")
+                .build(),
+            ToolCall.builder()
+                .toolName("web_search")
+                .arg("query", topic)
+                .arg("source", "wikipedia")
+                .build()
+        );
+
+        Map<String, ToolResult> searchResults =
+            parallelOrchestrator.executeParallel(
+                searchCalls,
+                Duration.ofSeconds(30)
+            );
+
+        // Phase 2: Extract content from each source
+        List<ToolCall> extractCalls = searchResults.values().stream()
+            .map(result -> ToolCall.builder()
+                .toolName("extract_content")
+                .arg("url", result.getData())
+                .build())
+            .toList();
+
+        List<ToolResult> extractedContent =
+            sequentialOrchestrator.execute(
+                extractCalls,
+                context
+            );
+
+        // Phase 3: Synthesize findings
+        String synthesis = llmClient.generate("""
+            Synthesize the following research findings:
+            {content}
+
+            Provide a comprehensive summary with:
+            1. Key themes
+            2. Important findings
+            3. Conflicting information
+            4. Sources cited
+            """.formatted(
+                "content",
+                extractedContent.stream()
+                    .map(ToolResult::getData)
+                    .collect(Collectors.joining("\n\n"))
+            )
+        );
+
+        return ResearchResult.builder()
+            .topic(topic)
+            .synthesis(synthesis)
+            .sources(searchResults)
+            .build();
+    }
+}
+```
+
+**Results**:
+- Reduced research time from 30 minutes to 2 minutes
+- Improved synthesis quality with multiple sources
+- Successfully handled 10,000+ research queries
+
+### Case Study 2: Code Review Agent
+
+**Challenge**: Build an agent that can review pull requests and provide feedback.
+
+**Solution**: Implemented a checkpoint-based approach for long-running analysis.
+
+```java
+@Service
+public class CodeReviewAgent {
+
+    public ReviewResult review(String prUrl) {
+        return checkpointService.executeWithCheckpointing(
+            prUrl,
+            context -> {
+                // Step 1: Fetch PR diff
+                String diff = fetchDiff(prUrl, context);
+
+                // Step 2: Analyze each file
+                List<FileAnalysis> analyses = new ArrayList<>();
+                List<String> files = parseFiles(diff);
+
+                for (String file : files) {
+                    FileAnalysis analysis = analyzeFile(file, context);
+                    analyses.add(analysis);
+
+                    // Checkpoint after each file
+                    if (context.shouldCheckpoint()) {
+                        context.checkpoint();
+                    }
+                }
+
+                // Step 3: Generate overall review
+                Review review = generateReview(analyses);
+
+                return ReviewResult.builder()
+                    .prUrl(prUrl)
+                    .review(review)
+                    .fileAnalyses(analyses)
+                    .build();
+            }
+        );
+    }
+
+    private FileAnalysis analyzeFile(
+        String file,
+        CheckpointContext context
+    ) {
+        // Check if already analyzed
+        if (context.hasCompleted(file)) {
+            return context.getResult(file);
+        }
+
+        // Analyze file
+        FileAnalysis analysis = performAnalysis(file);
+
+        context.markCompleted(file, analysis);
+        return analysis;
+    }
+}
+```
+
+**Results**:
+- Handled PRs with 100+ files
+- Resumed from failures without losing progress
+- Reduced review time by 60%
+
+### Case Study 3: Customer Service Agent
+
+**Challenge**: Build an agent that can handle customer queries across multiple systems.
+
+**Solution**: Implemented a multi-agent system with specialized sub-agents.
+
+```java
+@Service
+public class CustomerServiceAgent {
+
+    @Autowired
+    private AgentCommunicationService commService;
+
+    public CustomerResponse handleQuery(CustomerQuery query) {
+        // Route to appropriate specialist
+        String specialistType = routeQuery(query);
+
+        AgentMessage response = commService.sendAndAwaitResponse(
+            "coordinator",
+            specialistType,
+            "handle_customer_query",
+            Map.of(
+                "query", query,
+                "customerId", query.getCustomerId()
+            ),
+            Duration.ofMinutes(5)
+        );
+
+        return parseResponse(response);
+    }
+
+    private String routeQuery(CustomerQuery query) {
+        // Simple routing logic
+        if (query.getText().toLowerCase().contains("refund")) {
+            return "refund_specialist";
+        } else if (query.getText().toLowerCase().contains("order")) {
+            return "order_specialist";
+        } else if (query.getText().toLowerCase().contains("account")) {
+            return "account_specialist";
+        } else {
+            return "general_specialist";
+        }
+    }
+}
+
+@Service
+public class RefundSpecialistAgent {
+
+    @Autowired
+    private AgentCommunicationService commService;
+
+    @PostConstruct
+    public void init() {
+        // Subscribe to messages
+        commService.subscribe("refund_specialist", this::handleMessage);
+    }
+
+    private void handleMessage(AgentMessage message) {
+        if ("handle_customer_query".equals(message.getMessageType())) {
+            CustomerQuery query = (CustomerQuery) message.getPayload().get("query");
+
+            // Process refund request
+            RefundResult result = processRefund(query);
+
+            // Send response
+            commService.send(
+                "refund_specialist",
+                message.getFromAgentId(),
+                "refund_response",
+                Map.of(
+                    "result", result,
+                    "correlationId", message.getCorrelationId()
+                )
+            );
+        }
+    }
+
+    private RefundResult processRefund(CustomerQuery query) {
+        // Check refund eligibility
+        if (!checkEligibility(query)) {
+            return RefundResult.denied("Not eligible for refund");
+        }
+
+        // Calculate refund amount
+        BigDecimal amount = calculateRefund(query);
+
+        // Process refund (requires approval if over threshold)
+        if (amount.compareTo(new BigDecimal("100")) > 0) {
+            return requestApproval(query, amount);
+        }
+
+        return executeRefund(query, amount);
+    }
+}
+```
+
+**Results**:
+- Handled 50,000+ queries per day
+- 95% first-contact resolution
+- Reduced human agent workload by 70%
+
+---
+
+## 7.5 Key Takeaways
+
+### Long-Running Agents
+
+| Pattern | Use Case | Benefit |
+|---------|----------|---------|
+| **Checkpoint/Resume** | Complex tasks | Recover from failures |
+| **Periodic Persistence** | Stateful agents | Prevent data loss |
+| **Event-Driven** | Reactive agents | Reduce latency |
+
+### Multi-Agent Coordination
+
+- **Standardized Protocol**: Clear message format
+- **Shared Context**: Coordinated state
+- **Conflict Resolution**: Handle competing actions
+
+### Scaling
+
+- **Horizontal Scaling**: Add more instances
+- **Load Balancing**: Distribute work
+- **Resource Optimization**: Right-size deployment
+
+### Production Checklist
+
+- [ ] Checkpoint/resume for long tasks
+- [ ] Event-driven architecture
+- [ ] Multi-agent communication
+- [ ] Conflict resolution
+- [ ] Horizontal scaling
+- [ ] Load balancing
+- [ ] Resource optimization
+
+---
+
+## 7.6 Resources
+
+### Learning More
+
+- [Anthropic's Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)
+- [OpenAI's Harness Engineering](https://openai.com/index/harness-engineering/)
+- [LangGraph Documentation](https://langchain-ai.github.io/langgraph/)
+- [Agent Protocol Specification](https://agentprotocol.ai/)
+
+### Tools & Frameworks
+
+- **LangGraph**: Multi-agent orchestration
+- **LangSmith**: Agent observability
+- **Spring AI**: Java framework for agents
+- **MCP**: Standardized tool protocol
+
+---
+
+:::tip Start Simple
+Don't implement all patterns at once. Start with checkpoint/resume, then add complexity as needed.
+:::
+
+:::warning Test at Scale
+Patterns that work with 10 agents may fail with 100. Always test at projected scale.
+:::
+
+:::info Monitor Everything
+You can't optimize what you don't measure. Comprehensive monitoring is essential for production agents.
+:::
