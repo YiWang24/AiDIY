@@ -1,75 +1,141 @@
-# Threads & Concurrency
+# Threads & Concurrency: From Hardware Primitives to Lock-Free Design
 
-Concurrency is the ability to execute multiple tasks simultaneously. While processes provide high isolation, **threads** allow for lightweight parallelism within a single address space.
+Concurrency is the heart of modern high-performance computing. As Moore's Law shifts from increasing clock speeds to increasing core counts, software must leverage **threads** and **synchronization** to utilize modern hardware effectively.
 
-## Thread vs. Process
+This chapter dives into the mechanics of threading, the reality of hardware-level atomicity, and the complex world of memory consistency models.
 
-A process is a container for resources, while a thread is the unit of execution.
+---
 
-| Feature | Process | Thread |
-| :--- | :--- | :--- |
-| **Memory** | Own address space | Shares address space with peer threads |
-| **Communication** | IPC (kernel-mediated) | Direct access to shared variables |
-| **Creation Cost** | High (memory, file descriptors) | Low (stack, registers only) |
-| **Switching Cost** | High (flushes TLB, replaces MMU state) | Low (context remains in same process) |
-| **Isolation** | High (one crash won't affect others) | Low (one crash can kill the whole process) |
+## 1. The Essence of a Thread
 
-## Threading Models
+While a process is a unit of resource ownership, a **thread** is the unit of execution.
 
-Modern operating systems support two types of threads:
+### 1.1 Thread Anatomy
+All threads within a single process share:
+- **Address Space**: Code, Global Data, and Heap.
+- **Resources**: Open file descriptors, signals, and working directory.
 
-- **User Threads**: Managed by a library (e.g., Pthreads) without kernel awareness.
-- **Kernel Threads**: Directly managed and scheduled by the OS.
+Each thread has its own private:
+- **Program Counter (PC)**: Where the thread is in the code.
+- **Stack**: Local variables and function call history.
+- **Registers**: Current computational state.
+- **Thread Local Storage (TLS)**: Small variables private to the thread.
 
-### Multi-threading Models
-- **Many-to-One**: All user threads map to a single kernel thread. (Blocks all if one thread waits for I/O).
-- **One-to-One**: Each user thread maps to its own kernel thread. (Used in Linux and Windows).
-- **Many-to-Many**: A pool of user threads maps to a pool of kernel threads.
+### 1.2 Linux Threading: The NPTL Model
+In Linux, there is no fundamental difference between a process and a thread at the kernel level. Both are represented by `task_struct`.
+- **NPTL (Native POSIX Thread Library)**: The modern implementation where each `pthread_create()` call creates a "Lightweight Process" (LWP) via the `clone()` system call.
+- **Sharing**: Threads are simply LWPs that share the same `mm_struct` (memory descriptor) and `files_struct`.
 
-## Concurrency Issues
+---
 
-### Critical Section
-A block of code where a shared resource (e.g., global variable) is accessed. Only one thread should execute in the critical section at a time.
+## 2. Synchronization Internals: How Locks Actually Work
 
-### Race Condition
-An outcome that depends on the relative timing or interleaving of multiple threads. This occurs when two or more threads access shared data without proper synchronization.
+At the high level, we use `mutex.lock()`. But what happens inside?
 
-### Deadlock
-A situation where two or more threads are permanently blocked, each waiting for a resource held by the other.
+### 2.1 The Spinlock (Kernel-Space Primitive)
+A spinlock is a "busy-wait" lock. A thread continuously checks a memory location in a loop until it becomes available.
+- **Pro**: No context switch overhead. Extremely fast if the lock is held for a short time.
+- **Con**: Wastes CPU cycles. Can cause "Priority Inversion" if not managed carefully.
+- **Implementation**: Uses a `test-and-set` or `exchange` atomic instruction.
 
-## Synchronization Primitives
+### 2.2 The Futex (Fast Userspace Mutex)
+Modern Linux mutexes are built on **Futexes**.
+- **The Optimization**: If there is no contention (only one thread wants the lock), the lock is acquired entirely in **user space** via a single atomic instruction. No system call is made.
+- **Contention**: If the lock is already held, the thread makes a `futex()` system call to ask the kernel to put it to sleep and wake it up when the lock is free.
+- **Benefit**: Combines the speed of user-space atomics with the efficiency of kernel-space sleeping.
 
-The OS and hardware provide tools to coordinate access to shared resources.
+---
 
-- **Mutex (Mutual Exclusion)**: A simple binary lock. Only one thread can hold it at a time.
-- **Semaphore**: A counter-based lock. If the count > 0, access is granted. Can be used for resource counting.
-- **Condition Variable**: Allows threads to wait until a specific logical condition is met.
-- **Spinlock**: A lock where the thread "busy waits" (spins in a loop) until the lock is available. Useful for short wait times in kernel code.
+## 3. Hardware Support: Atomicity and Barriers
 
-## The Deadlock Problem
+Software synchronization is only possible because hardware provides specific guarantees.
 
-### Necessary Conditions (Coffman Conditions)
-For a deadlock to occur, all four conditions must hold:
-1.  **Mutual Exclusion**: Resources cannot be shared.
-2.  **Hold and Wait**: A thread holds one resource and waits for another.
-3.  **No Preemption**: Resources cannot be taken away forcibly.
-4.  **Circular Wait**: A set of threads waiting for each other in a cycle.
+### 3.1 Atomic Instructions
+- **Compare-and-Swap (CAS)**: `atomic_compare_exchange(ptr, expected, new)`.
+  1. Read the value at `ptr`.
+  2. If it equals `expected`, write `new`.
+  3. Return whether it succeeded.
+- **Fetch-and-Add**: Atomically increments a value and returns the old one.
 
-### Deadlock Management
-- **Prevention**: Structuring the system so at least one Coffman condition is impossible (e.g., forcing a resource ordering).
-- **Avoidance**: Dynamically deciding whether a resource request might lead to an unsafe state (e.g., **Banker's Algorithm**).
-- **Detection & Recovery**: Letting deadlocks happen, detecting them (using a wait-for graph), and breaking the cycle (e.g., killing a process or preempting resources).
+### 3.2 Memory Barriers (Fences)
+Modern CPUs are "Out-of-Order." They might execute a Write to memory *after* a subsequent Read if there is no data dependency.
+- **Memory Barrier**: A special instruction (e.g., `mfence` on x86) that forces the CPU to complete all pending memory operations before proceeding.
+- **Why it matters**: Without barriers, Thread A might set `ready = true` before the data it prepared is actually visible to Thread B.
 
-```mermaid
-graph LR
-    P1((Process 1)) -- Waiting for --> R1[Resource A]
-    R1 -- Held by --> P2((Process 2))
-    P2 -- Waiting for --> R2[Resource B]
-    R2 -- Held by --> P1
-    subgraph Deadlock Cycle
-        P1
-        R1
-        P2
-        R2
-    end
-```
+### 3.3 Memory Consistency Models
+- **TSO (Total Store Ordering)**: Used by x86. Most operations are naturally ordered, making multi-threading easier but hardware slightly slower.
+- **Weak Ordering**: Used by ARM and RISC-V. The CPU can reorder almost anything. Software must use explicit barriers everywhere.
+
+---
+
+## 4. Classic Concurrency Problems and Patterns
+
+### 4.1 The Producer-Consumer Problem
+Using Semaphores to coordinate access to a bounded buffer.
+- **Semaphore `full`**: Tracks occupied slots (Init: 0).
+- **Semaphore `empty`**: Tracks free slots (Init: Buffer Size).
+- **Mutex**: Protects the buffer's internal pointers.
+
+### 4.2 Reader-Writer Locks
+Optimizing for scenarios where data is read often but modified rarely.
+- **Reader Preference**: Allows infinite readers, but can starve writers.
+- **Writer Preference**: New readers must wait if a writer is in queue.
+
+---
+
+## 5. The Deadlock Menace
+
+### 5.1 The Four Necessary Conditions (Coffman)
+1. **Mutual Exclusion**: Only one thread can use a resource at a time.
+2. **Hold and Wait**: A thread holds a resource while waiting for another.
+3. **No Preemption**: Resources cannot be forcibly taken away.
+4. **Circular Wait**: Thread A waits for B, who waits for A.
+
+### 5.2 Deadlock Avoidance: The Banker's Algorithm
+The OS simulates the allocation of resources to see if it leads to a "Safe State" (a sequence where everyone can eventually finish). If a request leads to an unsafe state, the request is denied or delayed.
+
+---
+
+## 6. Advanced Topic: Lock-Free Programming
+
+Lock-free algorithms use CAS instead of mutexes to ensure that at least one thread in the system always makes progress.
+
+### 6.1 The ABA Problem
+1. Thread A reads value `A`.
+2. Thread B changes it to `B`, then back to `A`.
+3. Thread A performs a CAS, thinks nothing changed, and potentially corrupts data.
+- **Solution**: Tagged pointers (adding a version number to the pointer).
+
+### 6.2 Data Structures
+- **Lock-free Stack**: Use CAS to update the `Head` pointer.
+- **RCU (Read-Copy-Update)**: Used extensively in the Linux kernel. Readers never lock; writers create a copy, update it, and swap the pointer. The old copy is deleted only after all current readers are done.
+
+---
+
+## 7. Performance Pitfalls in Multi-threading
+
+### 7.1 False Sharing
+When two threads on different cores update different variables that happen to reside on the same **Cache Line** (usually 64 bytes).
+- **Result**: The hardware must constantly bounce the cache line between cores, destroying performance.
+- **Fix**: Pad variables so they reside on different cache lines.
+
+### 7.2 Context Switch Overhead
+Switching between threads requires:
+1. Saving registers.
+2. Switching stacks.
+3. Flushing parts of the CPU pipeline.
+- **Rule of thumb**: Context switches are expensive (~1-5 microseconds). Use **Thread Pools** to avoid frequent creation/destruction.
+
+---
+
+## 8. Summary Checklist
+
+- [ ] Can you explain why `futex` is faster than a traditional kernel mutex?
+- [ ] What is the difference between a `spinlock` and a `mutex`?
+- [ ] How does `Compare-and-Swap` enable lock-free programming?
+- [ ] What is "Priority Inversion" and how does "Priority Inheritance" solve it?
+- [ ] Explain the ABA problem in the context of lock-free stacks.
+
+---
+
+*End of Chapter 03. Continue to [Chapter 04: Memory Management](./04-memory-management).*

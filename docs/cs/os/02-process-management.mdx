@@ -1,91 +1,171 @@
-# Process Management
+# Process Management: From Task Structs to Advanced Scheduling
 
-A **process** is an active execution of a program. While a program is a static set of instructions on disk, a process is dynamic and has its own state, memory space, and system resources.
+A **process** is the fundamental unit of work in an operating system. While a "program" is a passive collection of instructions stored on disk, a "process" is the active execution of those instructions, encompassing memory state, CPU register values, open files, and security context.
 
-## Program vs. Process
+This chapter explores how modern kernels manage thousands of concurrent processes, ensures fair CPU distribution, and provides isolation between tasks.
 
-| Program | Process |
-| :--- | :--- |
-| A static file on disk (executable) | An active, running instance of a program |
-| Passive entity | Active entity |
-| Exists in storage | Exists in memory (RAM) |
-| Can spawn multiple processes | One instance of execution |
+---
 
-## Process States
+## 1. The Anatomy of a Process
 
-Processes transition through various states during their lifetime.
+In the Linux kernel, a process (or thread) is represented by a massive data structure called the **Process Control Block (PCB)**. In Linux specifically, this is the `struct task_struct`.
 
+### 1.1 The `task_struct` (Linux Kernel)
+Located in `<linux/sched.h>`, this structure contains everything the kernel needs to know about a process:
+- **State**: Current execution state (Running, Sleeping, Zombie).
+- **PID & TGID**: Process ID and Thread Group ID.
+- **Task List**: Pointers to the previous and next tasks (Circular Doubly Linked List).
+- **Memory Descriptor (`struct mm_struct`)**: Pointers to page tables and memory segments.
+- **File Descriptor Table (`struct files_struct`)**: List of all open files and sockets.
+- **Signal Handlers**: How the process responds to signals like `SIGINT`.
+- **CPU Affinity**: Which CPU cores the process is allowed to run on.
+- **Namespaces**: Container-specific isolation (PID, Network, Mount).
+
+### 1.2 Process Memory Layout
+When a process is loaded into memory, the OS organizes its virtual address space into several segments:
+
+| Segment | Content | Permissions |
+| :--- | :--- | :--- |
+| **Text** | Compiled machine code instructions | Read-Only, Executable |
+| **Data** | Initialized global and static variables | Read/Write |
+| **BSS** | Uninitialized global variables (zeroed out) | Read/Write |
+| **Heap** | Dynamically allocated memory (`malloc`, `new`) | Read/Write (Grows upward) |
+| **Stack** | Local variables, function parameters, return addresses | Read/Write (Grows downward) |
+
+---
+
+## 2. Process Life Cycle and Transitions
+
+Processes are dynamic. They move between states based on their needs and the kernel's decisions.
+
+### 2.1 Linux Process States
+- **TASK_RUNNING (R)**: The process is either currently using the CPU or is in the "Ready" queue waiting for its turn.
+- **TASK_INTERRUPTIBLE (S)**: Sleeping. Waiting for an event (e.g., I/O completion or a signal).
+- **TASK_UNINTERRUPTIBLE (D)**: Deep sleep. Usually waiting for disk I/O. It cannot be woken up by signals (even `kill -9`).
+- **TASK_STOPPED (T)**: Suspended by a debugger or a signal like `SIGSTOP`.
+- **EXIT_ZOMBIE (Z)**: The process has finished, but its parent hasn't read its exit status yet.
+- **EXIT_DEAD (X)**: Final state before the entry is removed from the task list.
+
+### 2.2 Transition Diagram
 ```mermaid
 stateDiagram-v2
-    [*] --> New: Create
-    New --> Ready: Admit
-    Ready --> Running: Schedule
-    Running --> Ready: Interrupt / Yield
-    Running --> Waiting: I/O or Event Wait
-    Waiting --> Ready: I/O or Event Completion
-    Running --> Terminated: Exit
-    Terminated --> [*]
+    [*] --> TASK_RUNNING: fork() / wake_up()
+    TASK_RUNNING --> TASK_INTERRUPTIBLE: block for I/O
+    TASK_INTERRUPTIBLE --> TASK_RUNNING: event occurred
+    TASK_RUNNING --> TASK_STOPPED: SIGSTOP
+    TASK_STOPPED --> TASK_RUNNING: SIGCONT
+    TASK_RUNNING --> EXIT_ZOMBIE: do_exit()
+    EXIT_ZOMBIE --> [*]: parent calls wait()
 ```
 
-- **New**: The process is being created.
-- **Ready**: Waiting to be assigned to a processor.
-- **Running**: Instructions are being executed.
-- **Waiting (Blocked)**: Waiting for an event to occur (e.g., I/O completion).
-- **Terminated**: Finished execution.
+---
 
-## Process Control Block (PCB)
+## 3. Creating and Managing Processes
 
-The OS maintains a data structure for each process called a PCB. It stores all information needed to manage and resume the process.
+In Unix-like systems, process creation follows the unique `fork-exec` model.
 
-- **Process ID (PID)**: Unique identifier.
-- **Process State**: Current state (Ready, Running, etc.).
-- **Program Counter (PC)**: Address of the next instruction to execute.
-- **CPU Registers**: Values of CPU registers (to be restored during context switch).
-- **Memory Information**: Page tables, segmentation limits.
-- **Open Files**: List of open file descriptors.
-- **Priority**: Used for CPU scheduling.
+### 3.1 The `fork()` System Call
+`fork()` creates a nearly identical copy of the parent process.
+- **Copy-on-Write (COW)**: To optimize performance, the kernel doesn't copy the parent's memory immediately. It shares the physical pages and only copies them if one process tries to write to them.
+- **Return Value**: 
+  - `0` in the child process.
+  - The child's PID in the parent process.
 
-## Context Switch
+### 3.2 The `execve()` System Call
+`execve()` replaces the current process's memory (Text, Data, Heap, Stack) with a new program. The PID remains the same.
 
-A **context switch** is the procedure of saving the state of the currently running process and restoring the state of the next process to be executed.
+### 3.3 The `clone()` System Call (Linux Special)
+`clone()` is the underlying system call for both `fork()` and `pthread_create()`. It allows fine-grained control over what is shared (memory, file descriptors, signals) between parent and child. This is how Linux implements threads—as "Lightweight Processes."
 
-1.  Save CPU registers and PC into the current process's PCB.
-2.  Update the state of the current process (e.g., from Running to Ready).
-3.  Select a new process from the Ready Queue.
-4.  Load registers and PC from the new process's PCB.
-5.  Hardware begins executing instructions from the new PC.
+---
 
-> **Note**: Context switching is overhead; no useful work is done by user applications during this time.
+## 4. CPU Scheduling: The Completely Fair Scheduler (CFS)
 
-## CPU Scheduling Algorithms
+The scheduler's job is to decide which `TASK_RUNNING` process gets the next CPU slice. Modern Linux uses the **Completely Fair Scheduler (CFS)**.
 
-The CPU scheduler determines which process in the ready queue should run next.
+### 4.1 The Core Philosophy
+CFS aims to provide each process with an equal share of the CPU over time. It models a "perfect, multi-tasking CPU" where $N$ processes each get $1/N$ of the CPU's power.
 
-### First-Come, First-Served (FCFS)
-Processes are executed in the order they arrive.
-- **Pros**: Simple to implement.
-- **Cons**: "Convoy Effect" — long processes can delay short ones.
+### 4.2 Key Mechanism: Virtual Runtime (`vruntime`)
+Each process has a `vruntime` variable.
+- When a process runs, its `vruntime` increases.
+- The scheduler always picks the process with the **lowest** `vruntime` to run next.
+- **Weighting**: Processes with higher priority (lower "nice" value) have their `vruntime` increase more slowly, allowing them more actual CPU time.
 
-### Shortest Job First (SJF)
-The process with the shortest next CPU burst time is scheduled first.
-- **Pros**: Minimizes average waiting time.
-- **Cons**: Difficult to predict future burst times; can cause starvation for long processes.
+### 4.3 Data Structure: Red-Black Tree
+Instead of a simple queue, CFS stores ready processes in a **Red-Black Tree** (a self-balancing binary search tree), ordered by `vruntime`.
+- **Search Complexity**: $O(\log N)$ to find the lowest `vruntime`.
+- **Insert Complexity**: $O(\log N)$ to re-insert the process after its slice ends.
 
-### Round Robin (RR)
-Each process is assigned a small time unit (Time Quantum). If the process doesn't finish, it's moved to the back of the queue.
-- **Pros**: Fair; good for time-sharing systems.
-- **Cons**: Choosing the quantum size is critical (too small = excessive context switching, too large = FCFS).
+### 4.4 Real-Time Scheduling
+For tasks that require strict timing (e.g., audio processing, industrial control), Linux provides:
+- **SCHED_FIFO**: Run until finished or blocked.
+- **SCHED_RR**: Round-robin within the same priority.
+- **SCHED_DEADLINE**: Uses the Earliest Deadline First (EDF) algorithm.
 
-### Multi-Level Feedback Queue (MLFQ)
-Processes move between multiple queues based on their behavior (CPU-bound vs. I/O-bound).
-- **Pros**: Dynamically adjusts to process needs; prioritizes interactive tasks.
+---
 
-## Inter-Process Communication (IPC)
+## 5. Inter-Process Communication (IPC) Deep Dive
 
-Processes often need to communicate with each other. Since processes are isolated, they use kernel-mediated IPC mechanisms.
+Since processes are isolated, they need explicit mechanisms to exchange data.
 
-- **Pipe**: Unidirectional data stream (Parent to child).
-- **Message Queue**: Discrete messages stored in the kernel.
-- **Shared Memory**: A region of memory mapped into multiple processes' address spaces. (Fastest, but requires synchronization).
-- **Signal**: Asynchronous notifications (e.g., `SIGKILL`, `SIGINT`).
-- **Socket**: Communication between processes on the same machine or across a network.
+### 5.1 Pipes and FIFOs
+- **Anonymous Pipes**: Created via `pipe()`. Used for parent-child communication. Limited by a kernel buffer (usually 64KB).
+- **Named Pipes (FIFOs)**: Appear as files in the file system (`mkfifo`). Allow unrelated processes to communicate.
+
+### 5.2 Shared Memory (`shmget`, `mmap`)
+The fastest form of IPC. Two processes map the same physical memory pages into their own virtual address spaces.
+- **Challenge**: Requires synchronization (e.g., semaphores) to prevent race conditions.
+
+### 5.3 Unix Domain Sockets
+Similar to network sockets but optimized for local communication. They support passing **File Descriptors** between processes.
+
+### 5.4 Signals: Asynchronous Notifications
+Signals are small, integer-based alerts.
+- **Reliable vs Unreliable**: Modern Linux signals are queued (Real-time signals), whereas traditional signals can be lost if sent too rapidly.
+
+---
+
+## 6. Modern Isolation: Namespaces and Cgroups
+
+This is the foundation of **Containerization** (Docker, Kubernetes).
+
+### 6.1 Namespaces (The "What you can see")
+Namespaces wrap global system resources in an abstraction that makes it appear to the process that it has its own isolated instance.
+- **PID Namespace**: Process sees itself as PID 1.
+- **Net Namespace**: Isolated network interfaces and routing tables.
+- **Mount Namespace**: Private mount points.
+- **User Namespace**: Root inside the container is a non-privileged user outside.
+
+### 6.2 Control Groups (Cgroups) (The "How much you can use")
+Cgroups limit, account for, and isolate the resource usage (CPU, memory, disk I/O, network) of a collection of processes.
+- **Cgroups v2**: The modern implementation featuring a unified hierarchy and better resource control logic.
+
+---
+
+## 7. Troubleshooting and Observability
+
+As a developer or SRE, you must know how to peek into process behavior.
+
+| Tool | Purpose | Key Metric |
+| :--- | :--- | :--- |
+| `top` / `htop` | Real-time overview | CPU/Mem per process |
+| `ps aux` | Static snapshot | Process state and owner |
+| `strace` | Trace system calls | Where is the process blocking? |
+| `lsof` | List open files | Which file/socket is held? |
+| `pstack` | Print stack trace | What is the thread currently doing? |
+| `kill` | Send signals | Terminates or pauses tasks |
+
+---
+
+## 8. Summary Checklist
+
+- [ ] Difference between `fork()`, `vfork()`, and `clone()`.
+- [ ] How `vruntime` determines the next process in CFS.
+- [ ] The "Wait-for-Exit" flow: preventing zombie buildup.
+- [ ] How namespaces enable container isolation.
+- [ ] IPC selection: when to use Shared Memory vs Sockets.
+
+---
+
+*End of Chapter 02. Continue to [Chapter 03: Threads & Concurrency](./03-threads-concurrency).*

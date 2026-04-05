@@ -1,252 +1,252 @@
 ---
 id: concurrency
-title: Java Concurrency Programming
-sidebar_label: Concurrency
-description: Master Java concurrency from fundamentals to modern async programming and AI Agent applications
+title: Java 并发编程
+sidebar_label: 并发
+description: 从基础到现代异步编程和 AI Agent 应用的 Java 并发编程全面指南
 ---
 
-# ⚡ Java Concurrency Programming
+# ⚡ Java 并发编程
 
-> **"Concurrency is about dealing with lots of things at once. Parallelism is about doing lots of things at once."**
+> **"并发（Concurrency）是同时处理很多事情，并行（Parallelism）是同时做很多事情。"**
 > — Rob Pike
 
-In the era of AI Agents, concurrent programming is not just a performance optimization technique—it's the foundation of building responsive, scalable systems. This guide covers everything from basic concepts to Java 21+ virtual threads and their applications in Agentic development.
+在 AI Agent 时代，并发编程不仅仅是性能优化技术——它是构建响应式、可扩展系统的基础。本指南涵盖从基本概念到 Java 21+ 虚拟线程以及在智能体开发中的应用的所有内容。
 
 ---
 
-## Part 1: Core Concepts & The "Why"
+## 第1部分：核心概念与"为什么"
 
-### 1.1 What is Concurrency?
+### 1.1 什么是并发？
 
-Understanding the fundamental distinction between concurrency and parallelism is crucial for designing efficient systems. While often used interchangeably, these concepts represent different approaches to handling multiple tasks and have distinct implications for system architecture and performance.
+理解并发与并行之间的基本区别对于设计高效系统至关重要。虽然这两个词经常互换使用，但它们代表了处理多个任务的不同方法，并对系统架构和性能有不同影响。
 
-**Concurrency vs Parallelism**
+**并发 vs 并行**
 
 ```mermaid
 flowchart LR
-    subgraph Concurrency["Concurrency (Logical Simultaneity)"]
-        A[Task 1] --> B[Task 2] --> C[Task 3]
-        D["Core 1: <br/>Rapid Context Switching"]
+    subgraph Concurrency["并发（逻辑并发性）"]
+        A[任务1] --> B[任务2] --> C[任务3]
+        D["核心1: <br/>快速上下文切换"]
     end
 
-    subgraph Parallelism["Parallelism (Physical Simultaneity)"]
-        E["Core 1: Task 1"]
-        F["Core 2: Task 2"]
-        G["Core 3: Task 3"]
+    subgraph Parallelism["并行（物理并发性）"]
+        E["核心1: 任务1"]
+        F["核心2: 任务2"]
+        G["核心3: 任务3"]
     end
 ```
 
-**Concurrency** is about structuring your program to handle multiple tasks simultaneously by rapidly switching between them on a single core. It's about dealing with lots of things at once.
+**并发（Concurrency）**是通过在单个核心上快速切换来处理多个任务，使程序能够同时处理很多事情。
 
-**Parallelism** is about actually executing multiple tasks at the same time on multiple cores. It's about doing lots of things at once.
+**并行（Parallelism）**是在多个核心上真正同时执行多个任务，是同时做很多事情。
 
 ```java
-// Concurrency: One thread handling multiple tasks
-// Time Slicing: The OS switches between tasks so quickly
-// that they appear to run simultaneously
+// 并发：一个线程处理多个任务
+// 时间切片：操作系统在任务间切换如此之快
+// 使它们看起来像是同时运行的
 
-// Parallelism: Multiple threads executing tasks
-// on multiple CPU cores at the exact same time
+// 并行：多个线程在多个 CPU 核心上
+// 真正同时执行任务
 ```
 
-### 1.2 Why Do We Need Concurrency?
+### 1.2 为什么需要并发？
 
-Modern software systems face a fundamental challenge: CPU performance gains have shifted from faster single cores to increased core counts. Combined with the reality that most operations (especially in AI systems) are IO-bound rather than CPU-bound, concurrency becomes not just an optimization technique, but a necessity for building responsive, scalable applications.
+现代软件系统面临一个基本挑战：CPU 性能增益已从更快的单核转向了更多的核心数量。结合大多数操作（尤其是在 AI 系统中）是 IO 密集型而非 CPU 密集型的现实，并发不仅仅是优化技术，更是构建响应式、可扩展应用的必要条件。
 
-#### Moore's Law is Dead
+#### 摩尔定律已死
 
-CPU single-core frequency has hit a physical limit. The industry shifted from:
-- **Old era**: Faster single cores (3GHz → 4GHz → 5GHz)
-- **New era**: More cores (2 cores → 8 cores → 128 cores)
+单核 CPU 频率已达到物理极限。行业已从：
+- **旧时代**：更快的单核（3GHz → 4GHz → 5GHz）
+- **新时代**：更多核心（2 核心 → 8 核心 → 128 核心）
 
-To leverage modern hardware, we must write concurrent code.
+为了利用现代硬件，我们必须编写并发代码。
 
-#### IO-Bound vs CPU-Bound Work
+#### IO 密集型 vs CPU 密集型工作
 
-| Characteristic | IO-Bound | CPU-Bound |
-|---------------|----------|-----------|
-| Bottleneck | Waiting for external resources | CPU computation |
-| Examples | Database queries, API calls, file operations | Image processing, encryption, calculations |
-| AI Agent Context | **LLM API calls (500ms-2s)** | Tokenization, embedding generation |
-| Solution | Concurrency (hide latency) | Parallelism (distribute work) |
+| 特性 | IO 密集型 | CPU 密集型 |
+|------|-----------|-----------|
+| 瓶颈 | 等待外部资源 | CPU 计算 |
+| 示例 | 数据库查询、API 调用、文件操作 | 图像处理、加密、计算 |
+| AI Agent 上下文 | **LLM API 调用（500ms-2s）** | 分词、嵌入生成 |
+| 解决方案 | 并发（隐藏延迟） | 并行（分布式工作） |
 
-**The AI Agent Reality**
+**AI Agent 现实**
 
-When your Agent calls an LLM API:
-- Network latency: ~100-500ms
-- LLM inference time: ~500ms-2s
-- Your CPU's actual work: ~1-5ms
+当你的 Agent 调用 LLM API 时：
+- 网络延迟：~100-500ms
+- LLM 推理时间：~500ms-2s
+- 你的 CPU 实际工作时间：~1-5ms
 
-Without concurrency, your CPU spends 99% of time **waiting** (idle).
+没有并发性，你的 CPU 99% 的时间都在**等待**（空闲）。
 
-#### Performance Impact
+#### 性能影响
 
-| Scenario | Serial Time | Concurrent Time | Speedup |
-|----------|-------------|-----------------|---------|
-| 3 LLM calls (1.5s each) | 4.5s | 1.5s | **3x** |
-| Doc + Image generation | 3s | 1.5s | **2x** |
-| Batch 100 requests | 100s | 10s | **10x** |
+| 场景 | 串行时间 | 并发时间 | 加速比 |
+|------|----------|----------|--------|
+| 3 个 LLM 调用（每个 1.5s） | 4.5s | 1.5s | **3x** |
+| 文档 + 图像生成 | 3s | 1.5s | **2x** |
+| 批量 100 个请求 | 100s | 10s | **10x** |
 
 ```java
-// ❌ Serial: 4.5 seconds total
+// ❌ 串行：总共 4.5 秒
 String weather = llmClient.call("weather API");    // 1.5s
 String news = llmClient.call("news API");          // 1.5s
 String calendar = llmClient.call("calendar API");  // 1.5s
 
-// ✅ Concurrent: 1.5 seconds total
+// ✅ 并发：总共 1.5 秒
 CompletableFuture<String> weather = asyncCall("weather API");
 CompletableFuture<String> news = asyncCall("news API");
 CompletableFuture<String> calendar = asyncCall("calendar API");
 CompletableFuture.allOf(weather, news, calendar).join();
 ```
 
-### 1.3 Trade-offs
+### 1.3 权衡
 
-Concurrency is a powerful tool, but it comes with significant costs. Understanding these trade-offs helps you make informed decisions about when—and how—to apply concurrent programming techniques. The key is recognizing that concurrency introduces complexity that can outweigh its benefits if not applied judiciously.
+并发是一个强大的工具，但它伴随着显著的成本。理解这些权衡有助于你做出明智的决定，关于何时以及如何应用并发编程技术。关键是要认识到并发引入的复杂性可能会使其弊大于利，如果应用不谨慎的话。
 
-#### Benefits
-- **Higher Throughput**: Process more requests per second
-- **Better Responsiveness**: Don't block while waiting
-- **Resource Utilization**: Keep CPU busy during IO waits
+#### 优势
+- **更高的吞吐量**：每秒处理更多请求
+- **更好的响应性**：在等待时不会阻塞
+- **资源利用率**：在 IO 等待时保持 CPU 忙碌
 
-#### Costs
-- **Complexity Explosion**: Deadlocks, race conditions, subtle bugs
-- **Debugging Difficulty**: Issues are non-deterministic and hard to reproduce
-- **Context Switch Overhead**: ~1-10 microseconds per switch
+#### 成本
+- **复杂性爆炸**：死锁、竞态条件、微妙的错误
+- **调试困难**：问题是不可确定的，难以重现
+- **上下文切换开销**：每次切换约 1-10 微秒
 
-#### Decision Tree
+#### 决策树
 
 ```mermaid
 flowchart TD
-    A[Need Concurrency?] --> B{IO-Bound?}
-    B -->|Yes| C[Use Concurrency]
-    B -->|No| D{Computation Parallelizable?}
-    D -->|Yes| E[Fork/Join Pool]
-    D -->|No| F[Single Thread is Fine]
-    C --> G{Java 21+?}
-    G -->|Yes| H[Virtual Threads]
-    G -->|No| I[CompletableFuture]
+    A[需要并发？] --> B{IO 密集型？}
+    B -->|是| C[使用并发]
+    B -->|否| D{计算可并行？}
+    D -->|是| E[ Fork/Join 池]
+    D -->|否| F[单线程即可]
+    C --> G{Java 21+？}
+    G -->|是| H[虚拟线程]
+    G -->|否| I[CompletableFuture]
 ```
 
 ---
 
-## Part 2: Java Concurrency Foundations
+## 第2部分：Java 并发基础
 
-### 2.1 Thread Basics
+### 2.1 线程基础
 
-Threads are the fundamental unit of concurrency in Java. Understanding how threads work, their lifecycle states, and the difference between implementing `Runnable` versus extending `Thread` is essential knowledge for any Java developer working with concurrent systems.
+线程是 Java 并发的基本单位。了解线程如何工作、它们的生命周期状态以及实现 `Runnable` 与扩展 `Thread` 之间的区别，对于任何使用并发系统的 Java 开发者来说都是必备知识。
 
 #### Thread vs Runnable
 
-**Why implement Runnable instead of extending Thread?**
+**为什么实现 Runnable 而不是扩展 Thread？**
 
 ```java
-// ❌ Bad: Extending Thread
+// ❌ 坏方法：扩展 Thread
 public class MyWorker extends Thread {
     @Override
     public void run() {
-        // Work logic
+        // 工作逻辑
     }
 }
 
-// Problem:
-// 1. Java doesn't support multiple inheritance
-// 2. Tight coupling with Thread implementation
-// 3. Hard to reuse with ExecutorService
+// 问题：
+// 1. Java 不支持多重继承
+// 2. 与 Thread 实现紧密耦合
+// 3. 难以与 ExecutorService 重用
 ```
 
 ```java
-// ✅ Good: Implementing Runnable
+// ✅ 好方法：实现 Runnable
 public class MyWorker implements Runnable {
     @Override
     public void run() {
-        // Work logic
+        // 工作逻辑
     }
 }
 
-// Benefits:
-// 1. Can extend another class
-// 2. Decoupled from Thread implementation
-// 3. Works seamlessly with ExecutorService
+// 优势：
+// 1. 可以扩展另一个类
+// 2. 与 Thread 实现解耦
+// 3. 与 ExecutorService 无缝工作
 
 ExecutorService executor = Executors.newFixedThreadPool(10);
 executor.submit(new MyWorker());
 ```
 
-#### Thread Lifecycle
+#### 线程生命周期
 
 ```mermaid
 stateDiagram-v2
     [*] --> New: new Thread()
     New --> Runnable: start()
-    Runnable --> Running: CPU scheduled
+    Runnable --> Running: CPU 调度
 
-    Running --> Runnable: Time slice expired
-    Running --> Blocked: Waiting for lock
+    Running --> Runnable: 时间片用完
+    Running --> Blocked: 等待锁
     Running --> Waiting: wait(), sleep(), join()
-    Running --> Terminated: run() completes
+    Running --> Terminated: run() 完成
 
-    Blocked --> Runnable: Lock acquired
-    Waiting --> Runnable: notify(), time expires
+    Blocked --> Runnable: 锁获取
+    Waiting --> Runnable: notify(), 时间到期
 
     Terminated --> [*]
 ```
 
-**Key States**:
-- **NEW**: Thread created but not started
-- **RUNNABLE**: Ready to run (running or waiting for CPU)
-- **BLOCKED**: Waiting for a monitor lock
-- **WAITING**: Waiting indefinitely (wait(), join(), park())
-- **TIMED_WAITING**: Waiting with timeout (sleep(), wait(timeout))
-- **TERMINATED**: Execution completed
+**关键状态**：
+- **NEW**：线程已创建但未启动
+- **RUNNABLE**：准备运行（正在运行或等待 CPU）
+- **BLOCKED**：等待监视器锁
+- **WAITING**：无限等待（wait(), join(), park()）
+- **TIMED_WAITING**：带超时的等待（sleep(), wait(timeout)）
+- **TERMINATED**：执行完成
 
-### 2.2 Thread Safety & Locks
+### 2.2 线程安全与锁
 
-When multiple threads access shared mutable state, race conditions and data corruption become serious risks. Thread safety ensures that your code behaves correctly when executed by multiple threads simultaneously. This section covers the three primary synchronization mechanisms in Java, each with different trade-offs and use cases.
+当多个线程访问共享可变状态时，竞态条件和数据损坏成为严重风险。线程安全确保你的代码在多个线程同时执行时行为正确。本节介绍 Java 的三种主要同步机制，每种都有不同的权衡和用例。
 
-#### Race Condition: The Bank Transfer Problem
+#### 竞态条件：银行转账问题
 
 ```java
-// ❌ DANGER: Race Condition
+// ❌ 危险：竞态条件
 public class BankAccount {
     private int balance = 1000;
 
     public void transfer(int amount) {
-        // CHECK: Thread A reads balance = 1000
+        // 检查：线程 A 读取余额 = 1000
         if (balance >= amount) {
-            // Context switch happens here!
-            // Thread B also reads balance = 1000
-            // Both threads think they can transfer
+            // 在这里发生上下文切换！
+            // 线程 B 也读取余额 = 1000
+            // 两个线程都认为可以转账
 
-            // ACT: Thread A deducts 600 → balance = 400
+            // 执行：线程 A 扣除 600 → 余额 = 400
             balance = balance - amount;
 
-            // Thread B also deducts 600 → balance = -200!
-            // Account is overdrawn!
+            // 线程 B 也扣除 600 → 余额 = -200！
+            // 账户透支！
         }
     }
 }
 ```
 
-**Three Synchronization Mechanisms**
+**三种同步机制**
 
-##### 1. `synchronized` (Implicit Lock)
+##### 1. `synchronized`（隐式锁）
 
 ```java
-// ✅ Fixed 1: Synchronized method
+// ✅ 修复 1：同步方法
 public class BankAccount {
     private int balance = 1000;
 
-    // Intrinsic lock (monitor)
+    // 内部锁（监视器）
     public synchronized void transferSafe(int amount) {
         if (balance >= amount) {
             balance = balance - amount;
         }
     }
 
-    // Equivalent to:
+    // 等价于：
     public void transferSafeEquivalent(int amount) {
-        synchronized(this) {  // Lock on "this" instance
+        synchronized(this) {  // 在 "this" 实例上锁定
             if (balance >= amount) {
                 balance = balance - amount;
             }
@@ -255,13 +255,13 @@ public class BankAccount {
 }
 ```
 
-**Pros**: Simple, JVM handles locking/unlocking automatically
-**Cons**: No fairness guarantee, no timeout support
+**优势**：简单，JVM 自动处理锁定/解锁
+**劣势**：无公平性保证，无超时支持
 
-##### 2. `ReentrantLock` (Explicit Lock)
+##### 2. `ReentrantLock`（显式锁）
 
 ```java
-// ✅ Fixed 2: ReentrantLock
+// ✅ 修复 2：ReentrantLock
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Condition;
 
@@ -270,17 +270,17 @@ public class BankAccount {
     private final ReentrantLock lock = new ReentrantLock();
 
     public void transferWithLock(int amount) {
-        lock.lock();  // Must explicitly acquire
+        lock.lock();  // 必须显式获取
         try {
             if (balance >= amount) {
                 balance = balance - amount;
             }
         } finally {
-            lock.unlock();  // MUST release in finally
+            lock.unlock();  // 必须在 finally 中释放
         }
     }
 
-    // Advanced: Try with timeout
+    // 高级：带超时的尝试
     public boolean transferWithTimeout(int amount, long timeoutMs)
             throws InterruptedException {
         if (lock.tryLock(timeoutMs, TimeUnit.MILLISECONDS)) {
@@ -294,18 +294,18 @@ public class BankAccount {
                 lock.unlock();
             }
         }
-        return false;  // Could not acquire lock
+        return false;  // 无法获取锁
     }
 }
 ```
 
-**Pros**: Try-lock, timeout support, fair lock option, interruptible
-**Cons**: Must manually unlock (forget = deadlock risk)
+**优势**：尝试锁、超时支持、公平锁选项、可中断
+**劣势**：必须手动解锁（忘记 = 死锁风险）
 
-##### 3. CAS - Lock-Free Programming
+##### 3. CAS - 无锁编程
 
 ```java
-// ✅ Fixed 3: AtomicInteger (Compare-And-Swap)
+// ✅ 修复 3：AtomicInteger（比较并交换）
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class BankAccount {
@@ -313,22 +313,22 @@ public class BankAccount {
 
     public void transferAtomic(int amount) {
         balance.updateAndGet(current -> {
-            // Atomic operation: read-modify-write
+            // 原子操作：读-改-写
             return current >= amount ? current - amount : current;
         });
     }
 
-    // Or use compareAndSet for more control
+    // 或使用 compareAndSet 进行更精细的控制
     public boolean transferCAS(int amount) {
         int current, newValue;
         do {
             current = balance.get();
             if (current < amount) {
-                return false;  // Insufficient funds
+                return false;  // 余额不足
             }
             newValue = current - amount;
-            // CAS: If balance is still 'current', set to 'newValue'
-            // If another thread changed it, retry
+            // CAS：如果内存仍然是 'current'，则设置为 'newValue'
+            // 如果其他线程更改了它，则重试
         } while (!balance.compareAndSet(current, newValue));
 
         return true;
@@ -336,112 +336,112 @@ public class BankAccount {
 }
 ```
 
-**How CAS Works**:
-1. Read current value
-2. Calculate new value
-3. Atomic check: if memory still has current value, update to new value
-4. If check fails, retry (loop)
+**CAS 工作原理**：
+1. 读取当前值
+2. 计算新值
+3. 原子检查：如果内存中仍然是当前值，则更新为新值
+4. 如果检查失败，重试（循环）
 
-**Pros**: No lock contention, no deadlock risk
-**Cons**: CPU busy-waiting, only works for simple operations
+**优势**：无锁争用，无死锁风险
+**劣势**：CPU 忙等待，仅适用于简单操作
 
-#### Lock Mechanism Comparison
+#### 锁机制比较
 
-| Lock Type | Performance | Fairness | Interruptible | Timeout | Best Use Case |
-|-----------|-------------|----------|---------------|---------|---------------|
-| `synchronized` | High (JVM optimized) | Non-fair | No | No | Simple synchronization |
-| `ReentrantLock` | Medium | Configurable | Yes | Yes | Complex control logic |
-| `StampedLock` | Very High | Non-fair | No | No | Read-heavy workloads |
-| `Semaphore` | Medium | Configurable | Yes | Yes | Rate limiting |
+| 锁类型 | 性能 | 公平性 | 可中断 | 超时 | 最佳使用场景 |
+|--------|------|--------|--------|------|--------------|
+| `synchronized` | 高（JVM 优化） | 非公平 | 否 | 否 | 简单同步 |
+| `ReentrantLock` | 中等 | 可配置 | 是 | 是 | 复杂控制逻辑 |
+| `StampedLock` | 非常高 | 非公平 | 否 | 否 | 读密集型工作负载 |
+| `Semaphore` | 中等 | 可配置 | 是 | 是 | 速率限制 |
 
-### 2.3 Thread Pools - Engineering Critical
+### 2.3 线程池 - 工程关键
 
-Creating threads manually is inefficient and unscalable. Thread pools reuse threads, control concurrency, and provide better resource management. Mastering `ThreadPoolExecutor` configuration is critical for building production-ready systems, especially when dealing with high-volume AI Agent operations.
+手动创建线程效率低下且不可扩展。线程池重用线程、控制并发性并提供更好的资源管理。掌握 `ThreadPoolExecutor` 配置对于构建生产就绪系统至关重要，尤其是在处理高容量 AI Agent 操作时。
 
-#### Why NOT `new Thread()`?
+#### 为什么不用 `new Thread()`？
 
 ```java
-// ❌ Bad: Creating threads manually
+// ❌ 坏方法：手动创建线程
 for (int i = 0; i < 10000; i++) {
     new Thread(() -> {
         callLLM();
     }).start();
 }
 
-// Problems:
-// 1. Each thread = ~1MB memory
-// 2. 10,000 threads = ~10GB memory!
-// 3. Thread creation/destruction is expensive
-// 4. No control over concurrency
+// 问题：
+// 1. 每个线程 = ~1MB 内存
+// 2. 10,000 个线程 = ~10GB 内存！
+// 3. 线程创建/销毁很昂贵
+// 4. 无法控制并发性
 ```
 
-#### ExecutorService Architecture
+#### ExecutorService 架构
 
 ```mermaid
 flowchart TB
-    A[Main Thread] --> B[Submit Tasks]
-    B --> C[Thread Pool]
+    A[主线程] --> B[提交任务]
+    B --> C[线程池]
 
-    subgraph ThreadPool["Thread Pool Components"]
-        D[Core Pool<br/>5 threads]
-        E[Task Queue<br/>Capacity: 100]
-        F[Max Pool<br/>20 threads]
+    subgraph ThreadPool["线程池组件"]
+        D[核心池<br/>5 个线程]
+        E[任务队列<br/>容量：100]
+        F[最大池<br/>20 个线程]
     end
 
     C --> E
     E --> D
     E --> F
 
-    D --> G[Execute Tasks]
+    D --> G[执行任务]
     F --> G
 
-    H[Rejection Policy] --> I[Caller Runs]
+    H[拒绝策略] --> I[调用者运行]
 ```
 
-#### ThreadPoolExecutor - 7 Core Parameters
+#### ThreadPoolExecutor - 7 个核心参数
 
 ```java
 public ThreadPoolExecutor(
-    int corePoolSize,              // 1. Always alive threads
-    int maximumPoolSize,            // 2. Max threads including core
-    long keepAliveTime,             // 3. Idle thread lifetime
-    TimeUnit unit,                  // 4. Time unit
-    BlockingQueue<Runnable> workQueue,  // 5. Task waiting queue
-    ThreadFactory threadFactory,    // 6. Custom thread creator
-    RejectedExecutionHandler handler    // 7. What to do when full
+    int corePoolSize,              // 1. 始终存活的线程
+    int maximumPoolSize,            // 2. 包括核心在内的最大线程数
+    long keepAliveTime,             // 3. 空闲线程生存时间
+    TimeUnit unit,                  // 4. 时间单位
+    BlockingQueue<Runnable> workQueue,  // 5. 任务等待队列
+    ThreadFactory threadFactory,    // 6. 自定义线程创建器
+    RejectedExecutionHandler handler    // 7. 满时做什么
 )
 ```
 
-**Parameter Behavior**:
+**参数行为**：
 
-| Task Count | Active Threads | Queue Behavior |
-|------------|----------------|----------------|
-| < corePoolSize | Create to corePoolSize | Queue empty |
-| = corePoolSize | corePoolSize threads | Fill queue |
-| Queue full | Create to maxPoolSize | Queue full |
-| = maxPoolSize + Queue full | **REJECT** | Trigger handler |
+| 任务数量 | 活动线程 | 队列行为 |
+|----------|----------|----------|
+| < corePoolSize | 创建到 corePoolSize | 队列为空 |
+| = corePoolSize | corePoolSize 个线程 | 填充队列 |
+| 队列满 | 创建到 maxPoolSize | 队列已满 |
+| = maxPoolSize + 队列满 | **拒绝** | 触发处理器 |
 
-#### Best Practices - Three Levels
+#### 最佳实践 - 三个级别
 
-##### Level 1: ✅ Custom ThreadPoolExecutor
+##### 级别 1：✅ 自定义 ThreadPoolExecutor
 
 ```java
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 ThreadPoolExecutor executor = new ThreadPoolExecutor(
-    5,                                  // corePoolSize: Always running
-    20,                                 // maxPoolSize: Burst capacity
-    60L, TimeUnit.SECONDS,              // keepAliveTime: Recycle idle
-    new LinkedBlockingQueue<>(100),     // workQueue: Bounded queue
-    new ThreadFactoryBuilder()          // threadFactory: Named threads
+    5,                                  // corePoolSize: 始终运行
+    20,                                 // maxPoolSize: 突发容量
+    60L, TimeUnit.SECONDS,              // keepAliveTime: 回收空闲
+    new LinkedBlockingQueue<>(100),     // workQueue: 有界队列
+    new ThreadFactoryBuilder()          // threadFactory: 命名线程
         .setNameFormat("agent-pool-%d")
         .setDaemon(false)
         .build(),
-    new ThreadPoolExecutor.CallerRunsPolicy()  // handler: Backpressure
+    new ThreadPoolExecutor.CallerRunsPolicy()  // handler: 反压
 );
 
-// Monitoring
-executor.prestartAllCoreThreads();  // Warm up
+// 监控
+executor.prestartAllCoreThreads();  // 预热
 log.info("Pool: active={}, core={}, max={}, queue={}",
     executor.getActiveCount(),
     executor.getCorePoolSize(),
@@ -450,7 +450,7 @@ log.info("Pool: active={}, core={}, max={}, queue={}",
 );
 ```
 
-##### Level 2: ✅✅ Spring Configuration
+##### 级别 2：✅✅ Spring 配置
 
 ```java
 @Configuration
@@ -480,13 +480,13 @@ public class AgentService {
     public CompletableFuture<String> executeAgent(String query) {
         return CompletableFuture.supplyAsync(
             () -> llmClient.call(query),
-            executor  // Use configured pool
+            executor  // 使用配置的池
         );
     }
 }
 ```
 
-##### Level 3: ✅✅✅ Spring @Async with Virtual Threads
+##### 级别 3：✅✅✅ Spring @Async 与虚拟线程
 
 ```java
 @Configuration
@@ -497,7 +497,7 @@ public class AsyncConfig {
     public Executor agentExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-        // Traditional settings
+        // 传统设置
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(20);
         executor.setQueueCapacity(100);
@@ -506,7 +506,7 @@ public class AsyncConfig {
             new ThreadPoolExecutor.CallerRunsPolicy()
         );
 
-        // Java 21+: Use virtual threads!
+        // Java 21+：使用虚拟线程！
         executor.setVirtualThreads(true);  // Spring Boot 3.2+
 
         executor.initialize();
@@ -519,79 +519,79 @@ public class AgentService {
 
     @Async("agentExecutor")
     public CompletableFuture<String> executeAsync(String query) {
-        // Runs in virtual thread pool
+        // 在虚拟线程池中运行
         String result = llmClient.call(query);
         return CompletableFuture.completedFuture(result);
     }
 }
 ```
 
-#### Rejection Policies
+#### 拒绝策略
 
-| Policy | Behavior | Use Case |
-|--------|----------|----------|
-| **AbortPolicy** (default) | Throws exception | Strict business, no data loss |
-| **CallerRunsPolicy** | Caller executes | Backpressure, degrade gracefully |
-| **DiscardPolicy** | Silent drop | Acceptable data loss |
-| **DiscardOldestPolicy** | Drop oldest task | Stale data has low value |
+| 策略 | 行为 | 用途 |
+|------|------|------|
+| **AbortPolicy**（默认） | 抛出异常 | 严格的业务，无数据丢失 |
+| **CallerRunsPolicy** | 调用者执行 | 反压，优雅降级 |
+| **DiscardPolicy** | 静默丢弃 | 可接受的数据丢失 |
+| **DiscardOldestPolicy** | 丢弃最旧任务 | 过时数据价值低 |
 
 ```java
-// CallerRunsPolicy example:
-// When pool is full, the @Controller thread executes the task
-// This slows down request acceptance (backpressure)
-// Prevents system overload
+// CallerRunsPolicy 示例：
+// 当池满时，@Controller 线程执行任务
+// 这减慢了请求接受速度（反压）
+// 防止系统过载
 ```
 
 ---
 
-## Part 3: Modern Asynchronous Programming
+## 第3部分：现代异步编程
 
-### 3.1 Future and Its Limitations
+### 3.1 Future 及其局限性
 
-Java's original `Future` interface was introduced to represent asynchronous computation results, but it has significant limitations that make it inadequate for complex async workflows. Understanding these limitations is key to appreciating why `CompletableFuture` and other modern async constructs were necessary.
+Java 原始的 `Future` 接口用于表示异步计算结果，但它有显著的局限性，使其不足以处理复杂的异步工作流程。理解这些局限性是理解为什么需要 `CompletableFuture` 和其他现代异步构造的关键。
 
-#### The Original `Future` Interface
+#### 原始的 `Future` 接口
 
 ```java
 Future<String> future = executor.submit(() -> callLLM("prompt"));
 
 try {
-    // Blocking get() - defeats async purpose
-    String result = future.get();  // Waits indefinitely
-    String result = future.get(2, TimeUnit.SECONDS);  // Wait with timeout
+    // 阻塞的 get() - 违背异步目的
+    String result = future.get();  // 无限等待
+    String result = future.get(2, TimeUnit.SECONDS);  // 带超时等待
 
-    // Check status
+    // 检查状态
     if (future.isDone()) {
-        // Task completed
+        // 任务完成
     }
     if (future.isCancelled()) {
-        // Task was cancelled
+        // 任务被取消
     }
 
-    // Cancel task
-    future.cancel(true);  // true = interrupt if running
+    // 取消任务
+    future.cancel(true);  // true = 如果正在运行则中断
 } catch (InterruptedException e) {
     Thread.currentThread().interrupt();
 } catch (ExecutionException e) {
-    // Task threw exception
+    // 任务抛出异常
 } catch (TimeoutException e) {
-    // Task took too long
+    // 任务耗时太长
 }
 ```
 
-#### Limitations
+#### 局限性
 
 ```java
-// ❌ Problem 1: Blocking
+// ❌ 问题 1：阻塞
 CompletableFuture<String> future = asyncCall();
-String result = future.get();  // Blocks! Can't do anything else
+String result = future.get();  // 阻塞！无法做其他事情
 
-// ❌ Problem 2: No chaining
+// ❌ 问题 2：无法链接
 Future<String> f1 = executor.submit(task1);
 Future<String> f2 = executor.submit(task2);
-// How to combine results? No easy way!
+// 如何组合结果？没有简单的方法！
 
-// ❌ Problem 3: Callback hell
+// ❌ 问题 3：回调地狱
 void asyncWithCallback() {
     executor.submit(() -> {
         String r1 = callLLM("step 1");
@@ -599,33 +599,33 @@ void asyncWithCallback() {
             String r2 = callLLM("step 2: " + r1);
             executor.submit(() -> {
                 String r3 = callLLM("step 3: " + r2);
-                // Nested callbacks...
+                // 嵌套回调...
             });
         });
     });
 }
 ```
 
-### 3.2 CompletableFuture - Async Composition
+### 3.2 CompletableFuture - 异步组合
 
-`CompletableFuture`, introduced in Java 8, revolutionized asynchronous programming by enabling composable, chainable async operations. It provides a rich API for transforming, combining, and handling errors in asynchronous workflows, making it particularly powerful for orchestrating multiple AI Agent tool calls and LLM interactions.
+`CompletableFuture` 在 Java 8 中引入，通过支持可组合、可链接的异步操作彻底改变了异步编程。它提供了丰富的 API 来转换、组合和处理异步工作流中的错误，对于编排多个 AI Agent 工具调用和 LLM 交互尤其强大。
 
-#### Core API Overview
+#### 核心 API 概览
 
-| API | Input | Output | Purpose |
-|-----|-------|--------|---------|
-| `supplyAsync()` | `Supplier<T>` | `CompletableFuture<T>` | Async with return value |
-| `runAsync()` | `Runnable` | `CompletableFuture<Void>` | Async without return |
-| `thenApply()` | `Function<T,R>` | `CompletableFuture<R>` | Transform result (sync) |
-| `thenApplyAsync()` | `Function<T,R>` | `CompletableFuture<R>` | Transform result (async) |
-| `thenCompose()` | `Function<T, CompletableFuture<R>>` | `CompletableFuture<R>` | Flatten nested CF |
-| `thenCombine()` | `BiFunction<T,U,R>` | `CompletableFuture<R>` | Merge two futures |
-| `allOf()` | `CompletableFuture<?>...` | `CompletableFuture<Void>` | Wait for all |
-| `anyOf()` | `CompletableFuture<?>...` | `CompletableFuture<Object>` | Wait for any |
-| `exceptionally()` | `Function<Throwable,T>` | `CompletableFuture<T>` | Recovery from error |
-| `handle()` | `BiFunction<T,Throwable,R>` | `CompletableFuture<R>` | Handle both success/fail |
+| API | 输入 | 输出 | 用途 |
+|-----|------|------|------|
+| `supplyAsync()` | `Supplier<T>` | `CompletableFuture<T>` | 异步返回值 |
+| `runAsync()` | `Runnable` | `CompletableFuture<Void>` | 异步无返回 |
+| `thenApply()` | `Function<T,R>` | `CompletableFuture<R>` | 转换结果（同步） |
+| `thenApplyAsync()` | `Function<T,R>` | `CompletableFuture<R>` | 转换结果（异步） |
+| `thenCompose()` | `Function<T, CompletableFuture<R>>` | `CompletableFuture<R>` | 展开嵌套 CF |
+| `thenCombine()` | `BiFunction<T,U,R>` | `CompletableFuture<R>` | 合并两个 future |
+| `allOf()` | `CompletableFuture<?>...` | `CompletableFuture<Void>` | 等待所有 |
+| `anyOf()` | `CompletableFuture<?>...` | `CompletableFuture<Object>` | 等待任意一个 |
+| `exceptionally()` | `Function<Throwable,T>` | `CompletableFuture<T>` | 从错误中恢复 |
+| `handle()` | `BiFunction<T,Throwable,R>` | `CompletableFuture<R>` | 处理成功/失败 |
 
-#### AI Agent Tool Orchestration
+#### AI Agent 工具编排
 
 ```java
 @Service
@@ -637,9 +637,9 @@ public class AgentOrchestrator {
     private final CalendarService calendarService;
     private final NewsService newsService;
 
-    // Scenario: Agent needs to call 3 tools in parallel
+    // 场景：Agent 需要并行调用 3 个工具
     public AgentResponse executeAgent(String userQuery) {
-        // ✅ Fan-out: Parallel tool calls
+        // ✅ 扇出：并行工具调用
         CompletableFuture<WeatherData> weatherFuture =
             CompletableFuture.supplyAsync(() ->
                 weatherService.getCurrentWeather(), executor);
@@ -652,24 +652,24 @@ public class AgentOrchestrator {
             CompletableFuture.supplyAsync(() ->
                 newsService.getLatestNews(), executor);
 
-        // ✅ Fan-in: Wait for all tools
+        // ✅ 扇入：等待所有工具
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(
             weatherFuture,
             calendarFuture,
             newsFuture
         );
 
-        // ✅ Compose final response
+        // ✅ 组合最终响应
         return allFutures.thenApply(v -> {
             WeatherData weather = weatherFuture.join();
             CalendarData calendar = calendarFuture.join();
             NewsData news = newsFuture.join();
 
             return llmClient.generateResponse(userQuery, weather, calendar, news);
-        }).join();  // Top-level join is OK
+        }).join();  // 顶层 join 可以
     }
 
-    // ✅ Advanced: Chain of Thought (Sequential Chaining)
+    // ✅ 高级：思维链（顺序链接）
     public String chainOfThought(String problem) {
         return CompletableFuture
             .supplyAsync(
@@ -692,7 +692,7 @@ public class AgentOrchestrator {
             .join();
     }
 
-    // ✅ Advanced: Merge results from two LLM calls
+    // ✅ 高级：合并两个 LLM 调用的结果
     public String mergeInsights(String topic) {
         CompletableFuture<String> perspectiveA =
             CompletableFuture.supplyAsync(
@@ -706,7 +706,7 @@ public class AgentOrchestrator {
                 executor
             );
 
-        // thenCombine: Merge when both complete
+        // thenCombine：两者都完成时合并
         return perspectiveA
             .thenCombine(perspectiveB, (a, b) ->
                 llmClient.generate("""
@@ -722,23 +722,23 @@ public class AgentOrchestrator {
             .join();
     }
 
-    // ✅ Exception Handling
+    // ✅ 异常处理
     public String safeExecute(String prompt) {
         return CompletableFuture
             .supplyAsync(() -> llmClient.generate(prompt), executor)
             .thenApply(result -> {
-                // Process success
+                // 处理成功
                 return result;
             })
             .exceptionally(ex -> {
-                // Handle failure gracefully
+                // 优雅地处理失败
                 log.error("LLM call failed", ex);
                 return "I apologize, but I encountered an error. Please try again.";
             })
             .join();
     }
 
-    // ✅ Advanced: Handle both success and failure
+    // ✅ 高级：同时处理成功和失败
     public <T> T robustExecute(Supplier<T> operation, T fallback) {
         return CompletableFuture
             .supplyAsync(operation)
@@ -754,7 +754,7 @@ public class AgentOrchestrator {
 }
 ```
 
-#### Execution Flow Diagram
+#### 执行流程图
 
 ```mermaid
 sequenceDiagram
@@ -773,98 +773,98 @@ sequenceDiagram
     CF-->>Main: Final result
 ```
 
-### 3.3 Virtual Threads - Java 21+ Revolution
+### 3.3 虚拟线程 - Java 21+ 革命
 
-Project Loom's virtual threads (finalized in Java 21) represent the most significant change to Java concurrency since the introduction of `java.util.concurrent`. Virtual threads are lightweight enough that you can create millions of them, enabling a simple synchronous programming style while achieving the performance benefits of asynchronous IO—perfect for IO-bound AI Agent workloads.
+Project Loom 的虚拟线程（在 Java 21 中最终确定）代表了自从 `java.util.concurrent` 引入以来 Java 并发的最重大变化。虚拟线程足够轻量，可以创建数百万个， enabling a simple synchronous programming style while achieving the performance benefits of asynchronous IO——完美适用于 IO 密集型的 AI Agent 工作负载。
 
-#### What Changed?
+#### 发生了什么变化？
 
-| Characteristic | Platform Threads | Virtual Threads |
-|----------------|------------------|-----------------|
-| Creation Cost | ~1MB memory | ~1KB memory |
-| Startup Speed | Slow (OS level) | Fast (JVM level) |
-| Max Quantity | Thousands | **Millions** |
-| Best For | CPU-intensive | **IO-intensive** |
-| Blocking | Expensive | **Cheap** |
+| 特性 | 平台线程 | 虚拟线程 |
+|------|----------|----------|
+| 创建成本 | ~1MB 内存 | ~1KB 内存 |
+| 启动速度 | 慢（操作系统级别） | 快（JVM 级别） |
+| 最大数量 | 数千 | **数百万** |
+| 最佳用途 | CPU 密集型 | **IO 密集型** |
+| 阻塞 | 昂贵 | **便宜** |
 
-#### Before Virtual Threads
+#### 虚拟线程之前
 
 ```java
-// ❌ Old Way: Platform thread pool
+// ❌ 旧方式：平台线程池
 ExecutorService executor = Executors.newFixedThreadPool(100);
 
 for (int i = 0; i < 10_000; i++) {
     executor.submit(() -> {
-        // Each blocking call occupies a thread
+        // 每个阻塞调用占用一个线程
         String result = callLLM("task-" + i);
-        // 100 threads can only handle 100 concurrent calls
-        // 10,000 tasks must queue and wait
+        // 100 个线程只能处理 100 个并发调用
+        // 10,000 个任务必须排队等待
     });
 }
-// Problem: Limited by thread count
+// 问题：受线程数限制
 ```
 
-#### After Virtual Threads
+#### 虚拟线程之后
 
 ```java
-// ✅ New Way: Virtual threads
+// ✅ 新方式：虚拟线程
 import java.util.concurrent.Executors;
 
 try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
     for (int i = 0; i < 100_000; i++) {
         executor.submit(() -> {
-            // Each blocking call uses a virtual thread
+            // 每个阻塞调用使用虚拟线程
             String result = callLLM("task-" + i);
-            // 100,000 concurrent blocking calls!
-            // Virtual threads are cheap: ~1KB each
+            // 100,000 个并发阻塞调用！
+            // 虚拟线程很便宜：每个约 1KB
         });
     }
 }
-// Total memory: ~100MB (vs ~100GB with platform threads)
+// 总内存：约 100MB（vs ~100GB 使用平台线程）
 ```
 
-#### The Magic: Blocking Looks Synchronous
+#### 魔法：阻塞看起来是同步的
 
 ```java
 @Service
 public class VirtualThreadAgent {
 
-    // ✅ Looks synchronous, actually async!
+    // ✅ 看起来是同步的，实际上是异步的！
     public String blockingStyleWithVirtualThreads() {
-        // Virtual thread blocks here, but platform thread doesn't
-        String weather = callLLM("weather");    // Virtual thread waits
-        String news = callLLM("news");          // Virtual thread waits
-        String calendar = callLLM("calendar");  // Virtual thread waits
+        // 虚拟线程在这里阻塞，但平台线程不阻塞
+        String weather = callLLM("weather");    // 虚拟线程等待
+        String news = callLLM("news");          // 虚拟线程等待
+        String calendar = callLLM("calendar");  // 虚拟线程等待
 
-        // Total: ~1.5s (parallel), not 4.5s (serial)
-        // Because each virtual thread runs on platform thread when ready
+        // 总共：约 1.5s（并行），不是 4.5s（串行）
+        // 因为每个虚拟线程在准备时都在平台线程上运行
         return combineResults(weather, news, calendar);
     }
 
-    // How it works:
-    // 1. Virtual thread calls weather → blocks
-    // 2. Platform thread unmounts VT, picks up another VT
-    // 3. When weather responds, VT mounts back on platform thread
-    // 4. Continues execution
-    // Result: Platform thread never sits idle!
+    // 工作原理：
+    // 1. 虚拟线程调用天气 → 阻塞
+    // 2. 平台线程卸载 VT，选择另一个 VT
+    // 3. 当天气响应时，VT 重新挂载到平台线程
+    // 4. 继续执行
+    // 结果：平台线程从不空闲！
 }
 ```
 
-#### Spring Boot Integration
+#### Spring Boot 集成
 
 ```java
 // application.yml (Spring Boot 3.2+)
 spring:
   threads:
     virtual:
-      enabled: true  # Enable virtual threads
+      enabled: true  # 启用虚拟线程
 
 @Configuration
 public class VirtualThreadConfig {
 
     @Bean
     public Executor taskExecutor() {
-        // Auto-configured to use virtual threads
+        // 自动配置为使用虚拟线程
         return Executors.newVirtualThreadPerTaskExecutor();
     }
 }
@@ -874,50 +874,50 @@ public class AgentService {
 
     @Async
     public String processAgent(String query) {
-        // Runs in virtual thread
-        // Write blocking code, get async performance
+        // 在虚拟线程中运行
+        // 编写阻塞代码，获得异步性能
         return callLLM(query);
     }
 }
 ```
 
-#### Virtual Threads vs CompletableFuture Decision Tree
+#### 虚拟线程 vs CompletableFuture 决策树
 
 ```mermaid
 flowchart TD
-    A[Need Async?] --> B{Java 21+?}
-    B -->|No| C[Use CompletableFuture]
-    B -->|Yes| D{IO-Bound?}
-    D -->|Yes| E[Use Virtual Threads<br/>Write blocking code]
-    D -->|No| F[Use CompletableFuture]
-    C --> G{Need complex chaining?}
+    A[需要异步？] --> B{Java 21+？}
+    B -->|否| C[使用 CompletableFuture]
+    B -->|是| D{IO 密集型？}
+    D -->|是| E[使用虚拟线程<br/>编写阻塞代码]
+    D -->|否| F[使用 CompletableFuture]
+    C --> G{需要复杂链接？}
     F --> G
-    G -->|Yes| H[CompletableFuture<br/>thenCompose/thenCombine]
-    G -->|No| I[Virtual Threads<br/>Simple blocking style]
+    G -->|是| H[CompletableFuture<br/>thenCompose/thenCombine]
+    G -->|否| I[虚拟线程<br/>简单阻塞样式]
 ```
 
-### 3.4 Reactive Programming - Spring WebFlux
+### 3.4 响应式编程 - Spring WebFlux
 
-While `CompletableFuture` and virtual threads handle asynchronous computation elegantly, reactive programming takes a different approach by treating everything as a stream of data. Spring WebFlux, built on Project Reactor, enables true non-blocking backpressure-enabled streaming—ideal for implementing ChatGPT-style typewriter effects in AI applications.
+虽然 `CompletableFuture` 和虚拟线程优雅地处理异步计算，但响应式编程通过将所有内容视为数据流来采用不同的方法。Spring WebFlux 基于 Project Reactor，启用真正的非阻塞背压流式传输——非常适合在 AI 应用中实现 ChatGPT 式的打字机效果。
 
-#### Reactor Core: Mono vs Flux
+#### Reactor 核心：Mono vs Flux
 
 ```java
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 
-// Mono: 0 or 1 element
+// Mono：0 或 1 个元素
 Mono<String> single = Mono.just("one value");
 Mono<String> empty = Mono.empty();
 Mono<String> lazy = Mono.fromSupplier(() -> "computed value");
 
-// Flux: 0 to N elements
+// Flux：0 到 N 个元素
 Flux<String> multiple = Flux.just("a", "b", "c");
 Flux<Integer> range = Flux.range(1, 10);
 Flux<Long> interval = Flux.interval(Duration.ofMillis(100));
 ```
 
-#### SSE Streaming - ChatGPT Typewriter Effect
+#### SSE 流式传输 - ChatGPT 打字机效果
 
 ```java
 @RestController
@@ -925,31 +925,37 @@ public class StreamingChatController {
 
     private final ChatClient chatClient;
 
-    // ✅ SSE streaming endpoint
+    // ✅ SSE 流式传输端点
     @GetMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> streamChat(@RequestParam String message) {
         return chatClient.prompt()
             .user(message)
-            .stream()  // Enable streaming
-            .content();  // Returns Flux<String>
+            .stream()  // 启用流式传输
+            .content();  // 返回 Flux<String>
     }
 
-    // ✅ Enhanced: With metadata
-    @GetMapping(value = "/chat/tokens", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    // ✅ 增强：带元数据
+    @GetMapping(value = "/chat/stream/metadata", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> streamWithMetadata(
             @RequestParam String message) {
         return chatClient.prompt()
             .user(message)
             .stream()
-            .content()
-            .map(content -> ServerSentEvent.<String>builder()
-                .data(content)
-                .id(UUID.randomUUID().toString())
-                .event("token")
-                .build());
+            .chatResponse()
+            .map(response -> {
+                StreamChunk chunk = new StreamChunk(
+                    response.getResult().getOutput().getContent(),
+                    response.getMetadata()
+                );
+                return ServerSentEvent.<String>builder()
+                    .data(chunk)
+                    .id(UUID.randomUUID().toString())
+                    .event("token")
+                    .build();
+            });
     }
 
-    // ✅ Advanced: Batch streaming with parallelism
+    // ✅ 高级：批量流式传输与并行性
     @PostMapping("/batch-stream")
     public Flux<String> batchStream(@RequestBody List<String> prompts) {
         return Flux.fromIterable(prompts)
@@ -958,41 +964,41 @@ public class StreamingChatController {
                     .user(prompt)
                     .stream()
                     .content()
-                    .take(100),  // Limit per response
-                10  // Concurrency: 10 parallel streams
+                    .take(100),  // 每个响应的限制
+                10  // 并发性：10 个并行流
             );
     }
 }
 ```
 
-#### Backpressure - Flow Control
+#### 背压 - 流量控制
 
 ```java
-// Problem: Producer generates 10,000 tokens/second
-// Consumer can only process 1,000 tokens/second
-// Solution: Backpressure
+// 问题：生产者每秒生成 10,000 个 token
+// 消费者每秒只能处理 1,000 个 token
+// 解决方案：背压
 
 Flux<Integer> fastProducer = Flux.range(1, 10000);
 fastProducer
-    .log()  // See backpressure in action
+    .log()  // 实际查看背压
     .subscribe(
-        value -> processSlowly(value),  // Consumer
+        value -> processSlowly(value),  // 消费者
         error -> log.error("Error", error),
         () -> log.info("Complete")
     );
 
-// ✅ Control backpressure
+// ✅ 控制背压
 Flux.range(1, 10000)
-    .onBackpressureBuffer(100)      // Buffer up to 100 items
-    .onBackpressureDrop()           // Or drop excess items
-    .onBackpressureLatest()         // Or keep only latest
+    .onBackpressureBuffer(100)      // 最多缓冲 100 个项目
+    .onBackpressureDrop()           // 或者丢弃超额项目
+    .onBackpressureLatest()         // 或者只保留最新的
     .subscribe(value -> process(value));
 ```
 
-#### Frontend Integration
+#### 前端集成
 
 ```typescript
-// ✅ Browser: Handling SSE stream
+// ✅ 浏览器：处理 SSE 流
 async function streamChat(message: string) {
   const response = await fetch(`/api/v1/chat/stream?message=${encodeURIComponent(message)}`);
 
@@ -1004,12 +1010,21 @@ async function streamChat(message: string) {
     if (done) break;
 
     const chunk = decoder.decode(value);
-    // Append each token to chat window
-    appendTokenToChat(chunk);
+    // 解析 SSE 格式："data: {token}\n\n"
+    const lines = chunk.split('\n');
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const token = line.slice(6);
+        if (token.trim()) {
+          yield token;
+        }
+      }
+    }
   }
 }
 
-// ✅ Alternative: Using EventSource
+// ✅ 替代方案：使用 EventSource
 const eventSource = new EventSource('/api/v1/chat/stream?message=Hello');
 
 eventSource.onmessage = (event) => {
@@ -1025,13 +1040,13 @@ eventSource.onerror = (error) => {
 
 ---
 
-## Part 4: Concurrency in Agentic Development
+## 第4部分：智能体开发中的并发性
 
-### 4.1 Parallel Tool Execution
+### 4.1 并行工具执行
 
-AI Agents frequently need to call multiple external tools simultaneously—fetching weather, checking calendars, searching databases—to respond to user queries effectively. The Fan-out/Fan-in pattern maximizes performance by executing independent tool calls in parallel, then aggregating results before generating the final response. This section demonstrates complete implementations with both static and dynamic tool selection.
+AI Agent 经常需要同时调用多个外部工具——获取天气、检查日历、搜索数据库——以有效地响应用户查询。扇出/扇入模式通过并行执行独立的工具调用，然后在生成最终响应之前聚合结果，从而最大化性能。本节介绍包含静态和动态工具选择的完整实现。
 
-#### The Fan-out/Fan-in Pattern
+#### 扇出/扇入模式
 
 ```mermaid
 sequenceDiagram
@@ -1042,26 +1057,26 @@ sequenceDiagram
     participant T3 as News API
     participant LLM
 
-    User->>Agent: "What's today's plan?"
+    User->>Agent: "今天有什么安排？"
 
     par Fan-out: Parallel Tools
-        Agent->>T1: Get weather
-        Agent->>T2: Get events
-        Agent->>T3: Get news
+        Agent->>T1: 获取天气
+        Agent->>T2: 获取事件
+        Agent->>T3: 获取新闻
     end
 
-    T1-->>Agent: Sunny 25°C
-    T2-->>Agent: 3pm meeting
-    T3-->>Agent: Tech news
+    T1-->>Agent: 晴朗 25°C
+    T2-->>Agent: 下午 3 点会议
+    T3-->>Agent: 科技新闻
 
     Note over Agent: Fan-in: Aggregate
 
-    Agent->>LLM: Synthesize response
-    LLM-->>Agent: "Today is sunny..."
-    Agent-->>User: Final response
+    Agent->>LLM: 合成响应
+    LLM-->>Agent: "今天是晴天..."
+    Agent-->>User: 最终响应
 ```
 
-#### Complete Implementation
+#### 完整实现
 
 ```java
 @Service
@@ -1072,10 +1087,10 @@ public class ParallelAgentService {
     private final Map<String, Tool> tools;
 
     public AgentResponse executeParallelAgent(String userQuery) {
-        // Step 1: Plan tools (can also use LLM for dynamic planning)
+        // 步骤 1：规划工具（也可以使用 LLM 进行动态规划）
         List<String> requiredTools = List.of("weather", "calendar", "news");
 
-        // Step 2: Fan-out - Parallel execution
+        // 步骤 2：扇出 - 并行执行
         Map<String, CompletableFuture<Object>> futures = new HashMap<>();
 
         for (String toolName : requiredTools) {
@@ -1087,12 +1102,12 @@ public class ParallelAgentService {
             );
         }
 
-        // Step 3: Fan-in - Wait for all
+        // 步骤 3：扇入 - 等待所有
         CompletableFuture<Void> allOf = CompletableFuture.allOf(
             futures.values().toArray(new CompletableFuture[0])
         );
 
-        // Step 4: Aggregate results
+        // 步骤 4：聚合结果
         Map<String, Object> toolResults = allOf.thenApply(v -> {
             Map<String, Object> results = new HashMap<>();
             futures.forEach((name, future) -> {
@@ -1101,7 +1116,7 @@ public class ParallelAgentService {
             return results;
         }).join();
 
-        // Step 5: Generate final response
+        // 步骤 5：生成最终响应
         String response = chatClient.prompt()
             .user(u -> u.text("""
                 User Query: {query}
@@ -1119,9 +1134,9 @@ public class ParallelAgentService {
         return new AgentResponse(response, toolResults);
     }
 
-    // ✅ Advanced: Dynamic tool selection
+    // ✅ 高级：动态工具选择
     public AgentResponse dynamicParallelExecution(String userQuery) {
-        // Use LLM to decide which tools to call
+        // 使用 LLM 决定调用哪些工具
         String planResponse = chatClient.prompt()
             .user(u -> u.text("""
                 Analyze this query and determine which tools are needed:
@@ -1141,7 +1156,7 @@ public class ParallelAgentService {
 
         List<String> toolsToCall = parseToolPlan(planResponse);
 
-        // Execute only needed tools in parallel
+        // 仅并行执行所需的工具
         List<CompletableFuture<Map.Entry<String, Object>>> futures =
             toolsToCall.stream()
                 .map(toolName -> CompletableFuture.supplyAsync(
@@ -1150,7 +1165,7 @@ public class ParallelAgentService {
                 ))
                 .toList();
 
-        // Wait and aggregate
+        // 等待并聚合
         Map<String, Object> toolResults = CompletableFuture.allOf(
                 futures.toArray(new CompletableFuture[0])
             )
@@ -1161,17 +1176,17 @@ public class ParallelAgentService {
                 )))
             .join();
 
-        // Generate response...
+        // 生成响应...
         return generateResponse(userQuery, toolResults);
     }
 }
 ```
 
-### 4.2 Streaming Response Handling
+### 4.2 流式响应处理
 
-Modern AI applications demand real-time streaming responses where tokens appear progressively rather than waiting for complete generation. This "typewriter effect" improves perceived responsiveness and user engagement. This section covers end-to-end streaming implementation, from Spring WebFlux SSE endpoints to React frontend integration.
+现代 AI 应用需要实时流式响应，其中 token 逐步出现，而不是等待完整生成。这种"打字机效果"改善了感知响应性和用户参与度。本节涵盖从 Spring WebFlux SSE 端点到 React 前端集成的端到端流式实现。
 
-#### Server-Side: Spring AI Streaming
+#### 服务器端：Spring AI 流式传输
 
 ```java
 @Service
@@ -1179,7 +1194,7 @@ public class StreamingAgentService {
 
     private final ChatClient chatClient;
 
-    // ✅ Basic streaming
+    // ✅ 基本流式传输
     @GetMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> streamChat(@RequestParam String message) {
         return chatClient.prompt()
@@ -1188,7 +1203,7 @@ public class StreamingAgentService {
             .content();
     }
 
-    // ✅ Streaming with metadata
+    // ✅ 流式传输带元数据
     @GetMapping(value = "/chat/stream/metadata", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<StreamChunk>> streamWithMetadata(
             @RequestParam String message) {
@@ -1209,16 +1224,16 @@ public class StreamingAgentService {
             });
     }
 
-    // ✅ Streaming + Parallel Tools
+    // ✅ 流式传输 + 并行工具
     public Flux<String> streamWithParallelTools(String userQuery) {
-        // First, execute tools in parallel
+        // 首先，并行执行工具
         CompletableFuture<ToolResults> toolsFuture =
             CompletableFuture.supplyAsync(
                 () -> executeToolsParallel(userQuery),
                 executor
             );
 
-        // When tools complete, start streaming
+        // 当工具完成时，开始流式传输
         return Flux.fromFuture(toolsFuture)
             .flatMapMany(tools ->
                 chatClient.prompt()
@@ -1237,16 +1252,16 @@ public class StreamingAgentService {
             );
     }
 
-    // ✅ Streaming with intermediate thoughts
+    // ✅ 高级：带中间思考过程的流式传输
     public Flux<String> streamWithReasoning(String userQuery) {
         return Flux.concat(
-            // Step 1: Stream tool calls
+            // 步骤 1：流式传输工具调用
             executeToolsAndStream(userQuery),
 
-            // Step 2: Stream thinking process
+            // 步骤 2：流式传输思考过程
             streamThinkingProcess(userQuery),
 
-            // Step 3: Stream final response
+            // 步骤 3：流式传输最终响应
             chatClient.prompt()
                 .user(userQuery)
                 .stream()
@@ -1256,7 +1271,7 @@ public class StreamingAgentService {
 }
 ```
 
-#### Frontend: Complete Integration
+#### 前端：完整集成
 
 ```typescript
 // agent-stream.ts
@@ -1353,63 +1368,63 @@ function ChatComponent() {
 }
 ```
 
-### 4.3 State Management & Concurrency
+### 4.3 状态管理与并发性
 
-Managing conversational state in a concurrent environment presents unique challenges: multiple users interacting simultaneously with the same Agent service require strict isolation to prevent data cross-contamination. This section explores three distinct approaches to state management, from Spring's scoped beans to explicit conversation ID management and thread-local storage.
+在并发环境中管理会话状态带来了独特的挑战：多个用户同时与同一个 Agent 服务交互需要严格的隔离，以防止数据交叉污染。本节探讨三种不同的状态管理方法，从 Spring 的 scoped bean 到显式的会话 ID 管理和线程局部存储。
 
-#### Problem: Session Isolation
+#### 问题：会话隔离
 
 ```java
-// ❌ DANGER: Shared state across users
+// ❌ 危险：跨用户共享状态
 @Service
 public class BadAgentService {
     private List<Message> conversationHistory = new ArrayList<>();
 
     public void addMessage(Message msg) {
-        // Race condition! Multiple users sharing same list
+        // 竞态条件！多个用户共享同一个列表
         conversationHistory.add(msg);
     }
 }
 
-// Result: User A sees User B's conversation!
+// 结果：用户 A 看到用户 B 的对话！
 ```
 
-#### Solution 1: Scoped Beans
+#### 解决方案 1：Scoped Bean
 
 ```java
-// ✅ Option 1: Prototype scope (new instance per request)
+// ✅ 选项 1：Prototype 作用域（每个请求一个新实例）
 @Scope("prototype")
 @Service
 public class PrototypeAgentService {
     private final List<Message> history = new ArrayList<>();
 
-    // Each request gets a new instance with isolated history
+    // 每个请求获得一个带有隔离历史记录的新实例
 }
 
-// ✅ Option 2: Session scope (per HTTP session)
+// ✅ 选项 2：Session 作用域（每个 HTTP 会话）
 @SessionScope
 @Service
 public class SessionScopedAgentService {
     private final List<Message> history = new ArrayList<>();
 
-    // Same user's requests share history
-    // Different users have separate histories
+    // 同一用户的请求共享历史记录
+    // 不同用户有独立的历史记录
 }
 
-// ✅ Option 3: Request scope (per HTTP request)
+// ✅ 选项 3：Request 作用域（每个 HTTP 请求）
 @RequestScope
 @Service
 public class RequestScopedAgentService {
     private final List<Message> history = new ArrayList<>();
 
-    // Each request gets a fresh instance
+    // 每个请求获得一个新实例
 }
 ```
 
-#### Solution 2: Conversation ID Management
+#### 解决方案 2：会话 ID 管理
 
 ```java
-// ✅ Best: Explicit conversation ID
+// ✅ 最佳方案：显式会话 ID
 @Service
 public class ConversationManager {
 
@@ -1452,19 +1467,19 @@ public class ChatController {
         @RequestParam String conversationId,
         @RequestBody UserMessage userMessage
     ) {
-        // Add user message to history
+        // 添加用户消息到历史记录
         conversationManager.addMessage(
             conversationId,
             new Message(Role.USER, userMessage.content())
         );
 
-        // Get full conversation history
+        // 获取完整的会话历史记录
         List<Message> history = conversationManager.getHistory(conversationId);
 
-        // Generate response with full context
+        // 生成带完整上下文的响应
         String assistantResponse = agentService.generateResponse(history);
 
-        // Save assistant response
+        // 保存助手机器人响应
         conversationManager.addMessage(
             conversationId,
             new Message(Role.ASSISTANT, assistantResponse)
@@ -1484,10 +1499,10 @@ public class ChatController {
 }
 ```
 
-#### Solution 3: ThreadLocal for Thread-Specific Data
+#### 解决方案 3：ThreadLocal 用于线程特定数据
 
 ```java
-// ✅ ThreadLocal: Each thread has its own copy
+// ✅ ThreadLocal：每个线程都有自己的副本
 @Service
 public class ThreadLocalAgentContext {
 
@@ -1499,15 +1514,15 @@ public class ThreadLocalAgentContext {
     }
 
     public List<Message> getHistory() {
-        return new ArrayList<>(CONTEXT.get());  // Return copy
+        return new ArrayList<>(CONTEXT.get());  // 返回副本
     }
 
     public void clear() {
-        CONTEXT.remove();  // Prevent memory leak!
+        CONTEXT.remove();  // 防止内存泄漏！
     }
 }
 
-// Use in filter/interceptor
+// 在过滤器/拦截器中使用
 @Component
 public class ConversationCleanupFilter extends OncePerRequestFilter {
 
@@ -1521,18 +1536,18 @@ public class ConversationCleanupFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
-            // Clean up ThreadLocal after request
+            // 请求后清理 ThreadLocal
             ThreadLocalAgentContext.clear();
         }
     }
 }
 ```
 
-### 4.4 Production-Ready High-Concurrency Agent System
+### 4.4 生产就绪的高并发 Agent 系统
 
-Building a production-grade Agent system requires more than just concurrent code—it needs comprehensive observability, fault tolerance, and performance monitoring. This final section presents a complete architecture integrating virtual threads, CompletableFuture orchestration, retry logic, circuit breakers, and metrics collection into a cohesive, deployable system.
+构建生产级的 Agent 系统不仅仅是并发代码——它需要全面的可观测性、容错性和性能监控。最后一节介绍一个完整的架构，将虚拟线程、FutureOrchestration、重试逻辑、断路器和指标收集集成到一个可部署的系统中。
 
-#### Complete Architecture
+#### 完整架构
 
 ```mermaid
 flowchart TB
@@ -1596,7 +1611,7 @@ flowchart TB
     E --> Q
 ```
 
-#### Production Code with Observability
+#### 带可观测性的生产代码
 
 ```java
 @Service
@@ -1616,7 +1631,7 @@ public class ProductionAgentService {
 
         Timer.Sample sample = Timer.start(meterRegistry);
 
-        // Step 1: Plan tools using LLM
+        // 步骤 1：使用 LLM 规划工具
         CompletableFuture<List<String>> planFuture =
             CompletableFuture.supplyAsync(
                 () -> planTools(userQuery),
@@ -1624,12 +1639,12 @@ public class ProductionAgentService {
             ).handle((plan, ex) -> {
                 if (ex != null) {
                     meterRegistry.counter("agent.planning.errors").increment();
-                    return List.of();  // Fallback: no tools
+                    return List.of();  // 回退：无工具
                 }
                 return plan;
             });
 
-        // Step 2: Execute tools in parallel
+        // 步骤 2：并行执行工具
         CompletableFuture<Map<String, Object>> toolsFuture =
             planFuture.thenComposeAsync(toolNames -> {
                 List<CompletableFuture<Map.Entry<String, Object>>> futures =
@@ -1648,26 +1663,26 @@ public class ProductionAgentService {
                         )));
             }, virtualThreadExecutor);
 
-        // Step 3: Generate final response
+        // 步骤 3：生成最终响应
         return toolsFuture.thenApply(toolResults -> {
             try {
-                // Add to conversation history
+                // 添加到会话历史记录
                 conversationManager.addMessage(
                     conversationId,
                     new Message(Role.USER, userQuery)
                 );
 
-                // Generate response with full context
+                // 生成带完整上下文的响应
                 List<Message> history = conversationManager.getHistory(conversationId);
                 String response = generateResponse(userQuery, toolResults, history);
 
-                // Save assistant response
+                // 保存助手机器人响应
                 conversationManager.addMessage(
                     conversationId,
                     new Message(Role.ASSISTANT, response)
                 );
 
-                // Record metrics
+                // 记录指标
                 sample.stop(Timer.builder("agent.execution.time")
                     .tag("conversation", conversationId)
                     .tag("success", "true")
@@ -1729,7 +1744,7 @@ public class ProductionAgentService {
 }
 ```
 
-#### Configuration
+#### 配置
 
 ```java
 @Configuration
@@ -1738,7 +1753,7 @@ public class AgentConfig {
 
     @Bean
     public ExecutorService virtualThreadExecutor() {
-        // Java 21+: Virtual thread executor
+        // Java 21+：虚拟线程执行器
         return Executors.newVirtualThreadPerTaskExecutor();
     }
 
@@ -1764,7 +1779,7 @@ public class AgentConfig {
 }
 ```
 
-#### Monitoring Metrics
+#### 监控指标
 
 ```java
 @Component
@@ -1776,16 +1791,16 @@ public class AgentMetrics {
     public AgentMetrics(MeterRegistry registry) {
         this.registry = registry;
 
-        // Gauge: Current active requests
+        // Gauge：当前活跃请求
         Gauge.builder("agent.requests.active", activeRequests, AtomicLong::get)
             .register(registry);
 
-        // Counter: Total requests
+        // Counter：总请求数
         Counter.builder("agent.requests.total")
             .description("Total number of agent requests")
             .register(registry);
 
-        // Timer: Execution time percentiles
+        // Timer：执行时间百分位数
         Timer.builder("agent.execution.duration")
             .description("Agent execution time")
             .publishPercentiles(0.5, 0.95, 0.99)
@@ -1804,74 +1819,74 @@ public class AgentMetrics {
 }
 ```
 
-#### Key Performance Indicators
+#### 关键性能指标
 
-| Metric | Description | Target |
-|--------|-------------|--------|
-| QPS | Queries per second | > 1000 |
-| P50 Latency | Median response time | < 500ms |
-| P99 Latency | 99th percentile | < 2s |
-| Error Rate | Failed requests | < 1% |
-| Active Virtual Threads | Concurrent threads | < 100,000 |
-| Tool Execution Time | Average tool call | < 1s |
+| 指标 | 描述 | 目标 |
+|------|------|------|
+| QPS | 每秒查询数 | > 1000 |
+| P50 延迟 | 中位数响应时间 | < 500ms |
+| P99 延迟 | 99 百分位 | < 2s |
+| 错误率 | 失败请求 | < 1% |
+| 活跃虚拟线程 | 并发线程数 | < 100,000 |
+| 工具执行时间 | 平均工具调用 | < 1s |
 
 ---
 
-## Summary
+## 总结
 
-### Key Takeaways
+### 关键要点
 
-1. **Concurrency is Essential for AI Agents**
-   - LLM API calls are IO-bound (500ms-2s)
-   - Parallel tool calls provide 3-10x speedup
-   - Streaming responses improve UX (typewriter effect)
+1. **并发对 AI Agent 至关重要**
+   - LLM API 调用是 IO 密集型的（500ms-2s）
+   - 并行工具调用提供 3-10x 加速
+   - 流式响应改善用户体验（打字机效果）
 
-2. **Java Concurrency Evolution**
-   - **Thread/Runnable**: Foundation, low-level
-   - **ExecutorService**: Thread pool management
-   - **CompletableFuture**: Async composition
-   - **Virtual Threads (Java 21+)**: Write blocking code, get async performance
-   - **WebFlux/Reactor**: Reactive streaming
+2. **Java 并发演变**
+   - **Thread/Runnable**：基础，低级
+   - **ExecutorService**：线程池管理
+   - **CompletableFuture**：异步组合
+   - **虚拟线程（Java 21+）**：编写阻塞代码，获得异步性能
+   - **WebFlux/Reactor**：响应式流式传输
 
-3. **Best Practices**
-   - Use virtual threads for IO-bound work (Java 21+)
-   - Use CompletableFuture for complex async composition
-   - Never use `synchronized` on high-contention paths
-   - Always use bounded queues in thread pools
-   - Implement proper error handling and retries
-   - Monitor metrics: QPS, latency, error rates
+3. **最佳实践**
+   - 对 IO 密集型工作使用虚拟线程（Java 21+）
+   - 对复杂异步组合使用 CompletableFuture
+   - 永远不要在高争用路径上使用 `synchronized`
+   - 在线程池中始终使用有界队列
+   - 实现适当的错误处理和重试
+   - 监控指标：QPS、延迟、错误率
 
-4. **Production Checklist**
-   - [ ] Thread pool configuration with bounded queues
-   - [ ] Circuit breakers for external API calls
-   - [ ] Retry logic with exponential backoff
-   - [ ] Request timeout limits
-   - [ ] Conversation state isolation
-   - [ ] Observability (metrics, tracing, logging)
-   - [ ] Rate limiting per user
-   - [ ] Graceful degradation
+4. **生产检查清单**
+   - [ ] 有界队列的线程池配置
+   - [ ] 外部 API 调用的断路器
+   - [ ] 指数退避的重试逻辑
+   - [ ] 请求超时限制
+   - [ ] 会话状态隔离
+   - [ ] 可观测性（指标、追踪、日志）
+   - [ ] 每用户的速率限制
+   - [ ] 优雅降级
 
-### Further Reading
+### 延伸阅读
 
-**Books**:
-1. *Java Concurrency in Practice* - Brian Goetz (Chapters 1-5 essential)
-2. *Effective Java* - Joshua Bloch (Items 78-84 on concurrency)
+**书籍**：
+1. *Java Concurrency in Practice* - Brian Goetz（第 1-5 章必不可少）
+2. *Effective Java* - Joshua Bloch（第 78-84 章关于并发）
 
-**Official Docs**:
-1. [Oracle JUC Package](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/package-summary.html)
-2. [Project Loom: Virtual Threads](https://openjdk.org/jeps/444)
-3. [Spring AI Reference](https://docs.spring.io/spring-ai/reference/)
-4. [Reactor Core Documentation](https://projectreactor.io/docs/core/release/reference/)
+**官方文档**：
+1. [Oracle JUC 包](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/package-summary.html)
+2. [Project Loom：虚拟线程](https://openjdk.org/jeps/444)
+3. [Spring AI 参考](https://docs.spring.io/spring-ai/reference/)
+4. [Reactor 核心文档](https://projectreactor.io/docs/core/release/reference/)
 
-**Online Resources**:
+**在线资源**：
 1. [Baeldung - Java CompletableFuture](https://www.baeldung.com/java-completable-future)
-2. [Baeldung - Java Thread Pools](https://www.baeldung.com/java-thread-pool)
-3. [Spring Boot Async Configuration](https://docs.spring.io/spring-framework/reference/integration.html)
-4. [WebFlux SSE Guide](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-async.html)
+2. [Baeldung - Java 线程池](https://www.baeldung.com/java-thread-pool)
+3. [Spring Boot 异步配置](https://docs.spring.io/spring-framework/reference/integration.html)
+4. [WebFlux SSE 指南](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-async.html)
 
 ---
 
-**Next Topics**:
-- [Database Access (JPA/JDBC)](/docs/engineering/backend/database)
-- [Caching Strategies](/docs/engineering/backend/caching)
-- [Microservices Patterns](/docs/engineering/backend/microservices)
+**下一个主题**：
+- [数据库访问（JPA/JDBC）](/docs/engineering/backend/database)
+- [缓存策略](/docs/engineering/backend/caching)
+- [微服务模式](/docs/engineering/backend/microservices)

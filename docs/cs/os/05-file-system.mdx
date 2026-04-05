@@ -1,62 +1,124 @@
-# File System
+# File Systems: From Inodes to Distributed Storage
 
-The file system provides a logical way for users and applications to store, organize, and access data on persistent storage.
+The **File System** provides the primary abstraction for long-term, persistent storage. It organizes chaotic arrays of disk blocks into logical structures (Files and Directories) that humans and applications can understand.
 
-## Files and Directories
+This chapter explores the internal data structures of modern file systems, the mechanism of the Virtual File System (VFS), and the trade-offs between different storage strategies.
 
-- **File**: A logical unit of storage, representing a sequence of bytes.
-- **Directory**: A special file containing a list of filenames and their corresponding metadata (or pointers).
-- **File Descriptor (FD)**: An integer index into an OS-managed table of open files. When a process opens a file, the kernel returns an FD to it.
+---
 
-## File System Implementation (Linux/ext4 style)
+## 1. The Virtual File System (VFS) Layer
 
-Most modern file systems are built on three primary data structures:
+To support multiple file systems (Ext4, NTFS, NFS) simultaneously, modern kernels use a **Virtual File System (VFS)** abstraction. Applications interact with VFS, which then dispatches calls to specific file system drivers.
 
-### Inode (Index Node)
-The core metadata structure for a file. It contains:
-- **File type** (regular, directory, etc.)
-- **Permissions** (Owner, Group, Others)
-- **File size**
-- **Creation, Access, and Modification timestamps**
-- **Data block pointers** (Direct, Indirect, Double Indirect)
+### 1.1 The Four Core Objects of VFS
+1. **Superblock**: Contains metadata about the entire file system (block size, free counts, mount status).
+2. **Inode (Index Node)**: Represents a single file or directory. It stores everything *except* the filename (permissions, size, timestamps, data block pointers).
+3. **Dentry (Directory Entry)**: Represents a single component of a path (e.g., in `/home/user`, `home` and `user` are dentries). It links filenames to inodes.
+4. **File Object**: Represents an open file in a specific process. It stores the current "offset" (cursor) and access mode (Read/Write).
 
-> **Note**: The inode does **not** store the filename; filenames are stored in directories.
+### 1.2 The Open File Flow
+When you call `open("/var/log/syslog", O_RDONLY)`:
+1. VFS starts at the root `/` dentry.
+2. It looks up `var`, then `log`, then `syslog` in the **Dentry Cache**.
+3. If not found, it asks the specific file system driver (e.g., Ext4) to read the directory data from disk and populate the cache.
+4. It finally finds the inode for `syslog`, creates a **File Object**, and returns a **File Descriptor** (an integer index) to the process.
 
-### Superblock
-Contains metadata about the entire file system, such as:
-- **Total number of blocks and inodes**
-- **Number of free blocks and inodes**
-- **Block size** (e.g., 4 KB)
-- **Mount status**
+---
 
-### Data Block
-The actual storage area where the file's content is kept.
+## 2. On-Disk Layout: The Ext4 Example
 
-## Reliability and Journaling
+Most Linux systems use **Ext4** (Fourth Extended Filesystem). Its layout is designed for speed and reliability.
 
-A major challenge for file systems is maintaining consistency after a system crash (e.g., during a write operation).
+### 2.1 Block Groups
+A large disk is split into multiple **Block Groups** to keep related data (inodes and their data blocks) physically close to each other, minimizing disk head movement (seek time).
 
-- **Journaling**: A technique where the FS records every metadata or data change in a dedicated area (the journal) before actually writing it to the main FS area. If a crash occurs, the FS can simply replay the journal to restore consistency.
+### 2.2 Extents (Efficient Mapping)
+Instead of a simple list of blocks, Ext4 uses **Extents**.
+- An extent is a range of contiguous physical blocks (e.g., "Blocks 1000 to 1500").
+- **Benefit**: A huge file can be described by just a few extents, drastically reducing the size of the inode and improving performance.
 
-## Common File Systems
+### 2.3 The Journal
+To prevent corruption after a crash, Ext4 uses a **Journal**.
+1. **Write Intent**: The FS writes the metadata change to a dedicated journal area first.
+2. **Commit**: Only after the journal write is safe does it update the actual file system structure.
+3. **Recovery**: If the system crashes, the kernel simply "replays" the journal to ensure a consistent state.
 
-- **ext4 (Linux)**: A stable, high-performance journaling file system.
-- **XFS (Linux)**: Scalable, high-performance FS used by default in many enterprise distributions (e.g., RHEL).
-- **NTFS (Windows)**: Proprietary journaling FS with advanced security (ACLs) and compression.
-- **APFS (macOS)**: Optimized for SSDs, supporting snapshots and space sharing.
-- **ZFS**: Advanced FS with features like copy-on-write, snapshots, and data integrity verification (checksums).
+---
 
-## Performance Optimization
+## 3. Directory Implementation
 
-- **Page Cache**: The OS uses free RAM to cache frequently accessed disk blocks.
-- **Read-ahead**: The kernel predicts future reads by reading ahead a few blocks into memory.
-- **Write-back Caching**: Writes are cached in memory and flushed to disk periodically to improve responsiveness.
+How does the OS map a string like "photo.jpg" to inode #12345?
 
-```mermaid
-graph TD
-    UserApp[User Application] -- Open/Read --> VFS[Virtual File System]
-    VFS -- ext4 --> InodeTable[Inode Table]
-    VFS -- NTFS --> NTFSModule[NTFS Module]
-    InodeTable -- Direct Pointers --> Block1[Data Block 1]
-    InodeTable -- Indirect Pointers --> Block2[Data Block 2]
-```
+### 3.1 Simple Linear Lists
+Each directory is a file containing a list of `(Filename, Inode Number)` pairs.
+- **Problem**: Searching a directory with 100,000 files becomes extremely slow ($O(N)$).
+
+### 3.2 B-Trees and Hashing
+Modern file systems (like XFS and Ext4 with `dir_index` enabled) use **Htree** or **B+ Trees** to store directory entries.
+- **Benefit**: Lookups are $O(\log N)$, enabling directories with millions of files.
+
+---
+
+## 4. Hard Links vs. Symbolic Links
+
+### 4.1 Hard Links
+A hard link is just a second filename pointing to the **exact same inode number**.
+- **Rule**: Deleting the original file doesn't delete the data as long as one hard link exists. The inode has a `link_count` field.
+- **Limitation**: Cannot cross file system boundaries (because inode numbers are only unique within a single FS).
+
+### 4.2 Symbolic (Soft) Links
+A special file whose content is simply a **path string** (e.g., `../data/file.txt`).
+- **Rule**: If the target is moved or deleted, the link becomes "broken" or "dangling."
+- **Benefit**: Can point to any file on any storage device or even a remote network path.
+
+---
+
+## 5. Caching and I/O Performance
+
+Reading from disk is $100,000 \times$ slower than reading from RAM. The OS uses several tricks to hide this latency.
+
+### 5.1 The Page Cache
+The kernel uses all "unused" RAM to cache data blocks from the file system.
+- **Unified Cache**: In modern Linux, the Page Cache and the Buffer Cache are merged.
+- **Write-back**: When an app writes data, it is only written to the Page Cache (marking the page as **Dirty**). The kernel's `pdflush` or `kworker` threads flush it to disk asynchronously every few seconds.
+
+### 5.2 Read-ahead
+If an app reads blocks 1, 2, and 3, the kernel assumes it will soon need blocks 4 to 10 and pre-fetches them into the Page Cache.
+
+---
+
+## 6. Pseudo-File Systems: Kernel Interfaces
+
+In Linux, "Everything is a file" means the kernel exposes its internals via file system interfaces.
+
+### 6.1 `procfs` (`/proc`)
+Provides information about processes and kernel state.
+- `/proc/cpuinfo`: CPU capabilities.
+- `/proc/[pid]/maps`: Memory layout of a specific process.
+
+### 6.2 `sysfs` (`/sys`)
+Provides a structured view of the hardware and drivers.
+- Used to tune kernel parameters at runtime (e.g., CPU frequency scaling).
+
+---
+
+## 7. Advanced Storage: Copy-on-Write (CoW)
+
+File systems like **ZFS** and **Btrfs** take a different approach.
+- **No Overwriting**: When a block is modified, it is never overwritten. Instead, the modified data is written to a **new** block.
+- **Atomicity**: The top-level pointer is updated last. This makes the file system inherently crash-consistent without a traditional journal.
+- **Snapshots**: Creating a snapshot is "instant" and cost-free because it's just a pointer to the current root of the tree.
+
+---
+
+## 8. Summary Checklist
+
+- [ ] Describe the relationship between Superblocks, Inodes, and Dentries.
+- [ ] Why are Extents better than a simple Block List for large files?
+- [ ] Hard Link vs. Symbolic Link: which one increases the inode's link count?
+- [ ] How does the Page Cache improve both read and write performance?
+- [ ] What happens to a "Dirty" page in memory?
+
+---
+
+*End of Chapter 05. Continue to [Chapter 06: I/O System](./06-io-system).*

@@ -1,123 +1,123 @@
 ---
-title: "8 Multi-modal Prompting"
-description: "Vision-text prompting, document understanding, video analysis, and cross-modal reasoning with GPT-4V, Claude, and Gemini"
+title: "8 多模态提示工程"
+description: "GPT-4V、Claude 和 Gemini 的视觉-文本提示、文档理解、视频分析和跨模态推理"
 published: 2025-01-21
 tags: ["prompt-engineering", "multimodal", "vision", "ai", "document-understanding"]
 category: "prompt-engineering"
-series: "Prompt Engineering Guide"
+series: "提示工程指南"
 seriesOrder: 7
 draft: false
 ---
 
-## Introduction
+## 简介
 
-**Multimodal AI** represents the convergence of different input modalities—text, images, audio, video, and documents—into unified reasoning systems. Modern Vision-Language Models (VLMs) like GPT-4V, Claude 4, and Gemini 2.0 can understand complex visual scenes, extract information from documents, analyze charts, and reason across multiple images simultaneously.
+**多模态 AI** 代表了不同输入模态（文本、图像、音频、视频和文档）的融合，形成了统一的推理系统。现代视觉语言模型（VLM），如 GPT-4V、Claude 4 和 Gemini 2.0，能够理解复杂的视觉场景、从文档中提取信息、分析图表，并同时推理多个图像。
 
-This chapter covers practical prompting techniques for multimodal systems, with production-ready Spring AI implementations.
+本章介绍多模态系统的实用提示工程技术，包含生产就绪的 Spring AI 实现。
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    MULTIMODAL AI LANDSCAPE (2025)                       │
+│                    多模态 AI 景观 (2025)                                │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                         INPUT MODALITIES                         │  │
+│  │                         输入模态                                 │  │
 │  ├──────────┬──────────┬──────────┬──────────┬──────────────────────┤  │
-│  │  Text    │  Image   │  Audio   │  Video   │  Documents           │  │
+│  │  文本    │  图像    │  音频    │  视频    │  文档                │  │
 │  │  ▼       │  ▼       │  ▼       │  ▼       │  ▼                   │  │
-│  │  NLP     │  Vision  │  Speech  │  Temporal│  OCR + Layout        │  │
+│  │  NLP     │  视觉    │  语音    │  时序    │  OCR + 布局          │  │
 │  └──────────┴──────────┴──────────┴──────────┴──────────────────────┘  │
 │                              │                                          │
 │                              ▼                                          │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                    UNIFIED REASONING ENGINE                      │  │
-│  │                                                                  │  │
-│  │   Cross-modal attention • Semantic alignment • Grounding         │  │
+│  │                    统一推理引擎                                   │  │
+│  │                                                                  │
+│  │   跨模态注意力 • 语义对齐 • 锚定                                │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
 │                              │                                          │
 │                              ▼                                          │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                      OUTPUT CAPABILITIES                         │  │
+│  │                      输出能力                                     │  │
 │  ├──────────┬──────────┬──────────┬──────────┬──────────────────────┤  │
-│  │ Analysis │Extraction│ Q&A      │Generation│ Actions              │  │
-│  │ reports  │ JSON/CSV │ responses│ content  │ tool calls           │  │
+│  │ 分析    │ 提取     │ 问答     │ 生成     │  操作                │  │
+│  │ 报告    │ JSON/CSV │  响应    │  内容    │  工具调用            │  │
 │  └──────────┴──────────┴──────────┴──────────┴──────────────────────┘  │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
 :::info
-**Performance Note**: Multimodal models achieve 90%+ accuracy on document extraction tasks when prompts include explicit schema definitions and validation constraints (Google Research, 2024).
+**性能提示**: 当提示包含明确的架构定义和验证约束时，多模态模型在文档提取任务中可实现 90%+ 的准确率（Google Research, 2024）。
 :::
 
 ---
 
-## 1. Model Capabilities Comparison (2025)
+## 1. 模型能力对比 (2025)
 
-Understanding model strengths helps select the right tool for each task:
+了解模型优势有助于为每个任务选择合适的工具：
 
-### Capability Matrix
+### 能力矩阵
 
-| Feature | **GPT-4o** | **Claude 4** | **Gemini 2.0** |
+| 特性 | **GPT-4o** | **Claude 4** | **Gemini 2.0** |
 |---------|------------|--------------|----------------|
-| **Image Input** | ✅ Native | ✅ Native | ✅ Native |
-| **Multiple Images** | ✅ Up to 20 | ✅ Up to 20 | ✅ Up to 3600 |
-| **PDF Processing** | ⚠️ Via image | ✅ Native | ✅ Native |
-| **Video Input** | ⚠️ Frame extraction | ❌ | ✅ Native (1hr) |
-| **Audio Input** | ✅ Via Whisper | ⚠️ Separate | ✅ Native |
-| **Image Generation** | ✅ DALL-E 3 | ❌ | ✅ Imagen 3 |
-| **Spatial Understanding** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **OCR Accuracy** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Chart Analysis** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Medical Imaging** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **图像输入** | ✅ 原生支持 | ✅ 原生支持 | ✅ 原生支持 |
+| **多图像** | ✅ 最多 20 张 | ✅ 最多 20 张 | ✅ 最多 3600 张 |
+| **PDF 处理** | ⚠️ 通过图像 | ✅ 原生支持 | ✅ 原生支持 |
+| **视频输入** | ⚠️ 帧提取 | ❌ | ✅ 原生支持（1小时） |
+| **音频输入** | ✅ 通过 Whisper | ⚠️ 单独服务 | ✅ 原生支持 |
+| **图像生成** | ✅ DALL-E 3 | ❌ | ✅ Imagen 3 |
+| **空间理解** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **OCR 准确率** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **图表分析** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **医学影像** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 
-### Model Selection Guide
+### 模型选择指南
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    MULTIMODAL MODEL SELECTION                           │
+│                    多模态模型选择                                      │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │   ┌─────────────────────┐                                              │
-│   │ What's your primary │                                              │
-│   │    input type?      │                                              │
+│   │ 您的主要输入类型是  │                                              │
+│   │      什么？        │                                              │
 │   └──────────┬──────────┘                                              │
 │              │                                                          │
 │   ┌──────────┼──────────┬──────────────┬───────────────┐               │
 │   ▼          ▼          ▼              ▼               ▼               │
-│ Images    Documents   Video        Audio         Mixed Media           │
+│  图像      文档        视频        音频         混合媒体              │
 │   │          │          │              │               │               │
 │   │          │          │              │               │               │
 │   ▼          ▼          ▼              ▼               ▼               │
-│ Any       Claude 4   Gemini 2.0   GPT-4o/      Gemini 2.0             │
-│ Model     (PDF native) (native)   Gemini       (best cross-           │
-│           GPT-4o                              modal)                   │
-│           Gemini                                                       │
+│  任何     Claude 4   Gemini 2.0   GPT-4o/      Gemini 2.0           │
+│  模型     (PDF 原生) (原生)     Gemini     (最佳跨模态)              │
+│           GPT-4o                                (支持多模态)         │
+│           Gemini                                                     │
 │                                                                         │
-│   For OCR/extraction: Claude 4 > Gemini > GPT-4o                       │
-│   For creative tasks: GPT-4o (with DALL-E) > Gemini > Claude           │
-│   For long context: Gemini (2M tokens) > Claude (200K) > GPT (128K)    │
+│   对于 OCR/提取：Claude 4 > Gemini > GPT-4o                          │
+│   对于创意任务：GPT-4o（带 DALL-E）> Gemini > Claude                │
+│   对于长上下文：Gemini（200 万 token）> Claude（20 万）> GPT（128K） │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Vision-Text Prompting Fundamentals
+## 2. 视觉-文本提示基础
 
-### 2.1 Basic Vision Prompt Structure
+### 2.1 基础视觉提示结构
 
-The key to effective vision prompting is providing clear context about what the image contains and what analysis is expected:
+有效视觉提示的关键是提供关于图像内容的清晰上下文以及预期的分析类型：
 
 ```java
 public class VisionPromptBuilder {
 
     /**
-     * Standard vision prompt template
+     * 标准视觉提示模板
      */
     private static final String VISION_TEMPLATE = """
         <context>
-        This image is: {imageContext}
+        这个图像是：{imageContext}
         </context>
 
         <task>
@@ -125,7 +125,7 @@ public class VisionPromptBuilder {
         </task>
 
         <focus_areas>
-        Pay attention to:
+        注意以下方面：
         {focusAreas}
         </focus_areas>
 
@@ -157,151 +157,151 @@ public class VisionPromptBuilder {
 }
 ```
 
-### 2.2 Image Analysis Patterns
+### 2.2 图像分析模式
 
-#### Pattern 1: Descriptive Analysis
+#### 模式 1：描述性分析
 
 ```java
 String descriptivePrompt = """
     <task>
-    Describe this image comprehensively.
+    全面描述此图像。
     </task>
 
     <structure>
-    1. **Overview**: What is the main subject/scene?
-    2. **Details**: Describe specific elements, colors, textures
-    3. **Context**: What setting or environment is depicted?
-    4. **Mood/Atmosphere**: What feeling does the image convey?
-    5. **Technical Aspects**: Composition, lighting, style
+    1. **概述**：主要主题/场景是什么？
+    2. **细节**：描述具体元素、颜色、纹理
+    3. **上下文**：描绘了什么环境或场景？
+    4. **氛围**：图像传达了什么感觉？
+    5. **技术方面**：构图、照明、风格
     </structure>
 
     <output_format>
-    Provide a structured description following the sections above.
-    Use specific, concrete language rather than vague terms.
+    提供遵循上述结构的描述性内容。
+    使用具体、明确的语言，而非模糊术语。
     </output_format>
     """;
 ```
 
-#### Pattern 2: Analytical Assessment
+#### 模式 2：分析性评估
 
 ```java
 String analyticalPrompt = """
     <role>
-    You are an expert analyst reviewing visual content.
+    您是审查视觉内容的专家分析师。
     </role>
 
     <task>
-    Analyze this image for {analysisType}.
+    分析此图像的 {analysisType}。
     </task>
 
     <criteria>
-    Evaluate against these criteria:
-    1. {criterion1}: [definition]
-    2. {criterion2}: [definition]
-    3. {criterion3}: [definition]
+    根据以下标准进行评估：
+    1. {criterion1}: [定义]
+    2. {criterion2}: [定义]
+    3. {criterion3}: [定义]
     </criteria>
 
     <output_format>
-    ## Analysis Summary
-    [Brief overview]
+    ## 分析总结
+    [简短概述]
 
-    ## Detailed Evaluation
-    | Criterion | Score (1-10) | Evidence | Recommendations |
+    ## 详细评估
+    | 标准 | 评分（1-10） | 证据 | 建议 |
     |-----------|--------------|----------|-----------------|
     | ... | ... | ... | ... |
 
-    ## Priority Actions
-    1. [Most important recommendation]
-    2. [Second priority]
-    3. [Third priority]
+    ## 优先行动
+    1. [最重要的建议]
+    2. [第二优先级]
+    3. [第三优先级]
     </output_format>
     """;
 ```
 
-#### Pattern 3: Comparative Analysis
+#### 模式 3：对比分析
 
 ```java
 String comparativePrompt = """
     <task>
-    Compare these {count} images and identify:
-    1. Similarities across all images
-    2. Key differences between them
-    3. Ranking by {criteria}
+    比较 {count} 张图像并识别：
+    1. 所有图像的相似之处
+    2. 它们之间的关键差异
+    3. 按 {criteria} 排序
     </task>
 
     <analysis_dimensions>
-    - Visual elements
-    - Quality metrics
-    - Content accuracy
-    - Style consistency
+    - 视觉元素
+    - 质量指标
+    - 内容准确性
+    - 风格一致性
     </analysis_dimensions>
 
     <output_format>
-    ## Similarities
-    [Common elements]
+    ## 相似之处
+    [共同元素]
 
-    ## Differences
-    | Aspect | Image 1 | Image 2 | Image 3 |
+    ## 差异
+    | 方面 | 图像 1 | 图像 2 | 图像 3 |
     |--------|---------|---------|---------|
     | ... | ... | ... | ... |
 
-    ## Ranking
-    1. [Best] - Reason: ...
-    2. [Second] - Reason: ...
-    3. [Third] - Reason: ...
+    ## 排序
+    1. [最佳] - 原因：...
+    2. [第二] - 原因：...
+    3. [第三] - 原因：...
 
-    ## Recommendation
-    [Which to choose and why]
+    ## 建议
+    [选择哪个以及原因]
     </output_format>
     """;
 ```
 
-### 2.3 Spatial Understanding
+### 2.3 空间理解
 
-Modern VLMs can understand spatial relationships. Use explicit spatial language:
+现代 VLM 可以理解空间关系。使用明确的空间语言：
 
 ```java
 String spatialPrompt = """
     <task>
-    Analyze the spatial layout of this image.
+    分析此图像的空间布局。
     </task>
 
     <focus>
-    Identify and describe:
-    1. **Position**: Where is each element? (top-left, center, bottom-right, etc.)
-    2. **Relationships**: How do elements relate spatially?
-       - Above/below
-       - Left/right of
-       - In front of/behind
-       - Inside/outside
-       - Adjacent to/far from
-    3. **Size**: Relative sizes of elements
-    4. **Alignment**: Are elements aligned? Along what axis?
+    识别并描述：
+    1. **位置**：每个元素在哪里？（左上、中心、右下等）
+    2. **关系**：元素如何空间关联？
+       - 上/下
+       - 左/右
+       - 前/后
+       - 内/外
+       - 相邻/远离
+    3. **大小**：元素的相对大小
+    4. **对齐**：元素是否对齐？沿什么轴？
     </focus>
 
     <output_format>
-    ## Element Inventory
-    | Element | Position | Size (relative) |
+    ## 元素清单
+    | 元素 | 位置 | 大小（相对） |
     |---------|----------|-----------------|
     | ... | ... | ... |
 
-    ## Spatial Relationships
-    - [Element A] is positioned [relationship] [Element B]
+    ## 空间关系
+    - [元素 A] 位于 [关系] [元素 B]
     - ...
 
-    ## Layout Assessment
-    [Overall spatial organization]
+    ## 布局评估
+    [整体空间组织]
     </output_format>
     """;
 ```
 
 ---
 
-## 3. Document Understanding
+## 3. 文档理解
 
-Document understanding is one of the most valuable multimodal applications. It combines OCR, layout analysis, and semantic extraction.
+文档理解是最有价值的多模态应用之一。它结合了 OCR、布局分析和语义提取。
 
-### 3.1 Document Type Classification
+### 3.1 文档类型分类
 
 ```java
 @Service
@@ -318,27 +318,27 @@ public class DocumentClassificationService {
 
     private static final String CLASSIFICATION_PROMPT = """
         <task>
-        Classify this document image into one of these categories:
+        将此文档图像分类为以下类别之一：
         </task>
 
         <categories>
-        - invoice: Bills, invoices, payment requests
-        - receipt: Purchase receipts, transaction records
-        - form: Application forms, surveys, questionnaires
-        - contract: Legal agreements, terms of service
-        - id_document: IDs, passports, licenses
-        - letter: Correspondence, official letters
-        - report: Business reports, financial statements
-        - other: Any other document type
+        - invoice: 账单、发票、付款请求
+        - receipt: 购收据、交易记录
+        - form: 申请表、调查问卷
+        - contract: 法律协议、服务条款
+        - id_document: 身份证、护照、许可证
+        - letter: 信函、官方信件
+        - report: 业务报告、财务报表
+        - other: 其他任何文档类型
         </categories>
 
         <output_format>
-        Return JSON only:
+        仅返回 JSON：
         {
           "documentType": "invoice",
           "confidence": 0.95,
           "extractableFields": ["invoice_number", "date", "total", ...],
-          "processingRecommendation": "Use invoice extraction template"
+          "processingRecommendation": "使用发票提取模板"
         }
         </output_format>
         """;
@@ -357,7 +357,7 @@ public class DocumentClassificationService {
 }
 ```
 
-### 3.2 Invoice/Receipt Extraction
+### 3.2 发票/收据提取
 
 ```java
 @Service
@@ -405,32 +405,32 @@ public class InvoiceExtractionService {
 
     private static final String INVOICE_EXTRACTION_PROMPT = """
         <role>
-        You are a specialized invoice data extraction system.
-        Extract structured data with high precision.
+        您是专业的发票数据提取系统。
+        高精度提取结构化数据。
         </role>
 
         <task>
-        Extract all invoice information from this document image.
+        从此文档图像中提取所有发票信息。
         </task>
 
         <extraction_rules>
-        1. Extract exact text as it appears (don't interpret or convert)
-        2. For dates, use ISO format: YYYY-MM-DD
-        3. For amounts, use numeric values without currency symbols
-        4. If a field is not visible or unclear, use null
-        5. For line items, extract ALL items visible
-        6. Preserve original formatting for addresses
+        1. 按原样提取精确文本（不要解释或转换）
+        2. 对于日期，使用 ISO 格式：YYYY-MM-DD
+        3. 对于金额，使用不包含货币符号的数值
+        4. 如果字段不可见或不清楚，使用 null
+        5. 对于行项目，提取所有可见项目
+        6. 为地址保留原始格式
         </extraction_rules>
 
         <validation>
-        - Line item totals should match: quantity × unit_price
-        - Subtotal should match sum of line items
-        - Total should match: subtotal + tax
-        - Flag any discrepancies in validation_notes
+        - 行项目总计应匹配：数量 × 单价
+        - 小计应匹配行项目总和
+        - 总计应匹配：小计 + 税费
+        - 在 validation_notes 中标记任何差异
         </validation>
 
         <output_format>
-        Return valid JSON matching this schema:
+        返回与此架构匹配的有效 JSON：
         {
           "invoiceNumber": "string",
           "invoiceDate": "YYYY-MM-DD",
@@ -459,14 +459,14 @@ public class InvoiceExtractionService {
           ],
           "taxInfo": {
             "subtotal": number,
-            "taxRate": number (as decimal, e.g., 0.10 for 10%),
+            "taxRate": number (作为小数，例如 0.10 表示 10%),
             "taxAmount": number,
             "taxType": "VAT/GST/Sales Tax/etc"
           },
           "total": number,
           "currency": "USD/EUR/etc",
           "paymentTerms": "string or null",
-          "validationNotes": ["any discrepancies found"]
+          "validationNotes": ["发现的任何差异"]
         }
         </output_format>
         """;
@@ -485,7 +485,7 @@ public class InvoiceExtractionService {
 }
 ```
 
-### 3.3 Form Extraction with Field Mapping
+### 3.3 表单提取与字段映射
 
 ```java
 @Service
@@ -494,7 +494,7 @@ public class FormExtractionService {
     private final ChatClient chatClient;
 
     /**
-     * Dynamic form extraction with configurable fields
+     * 动态表单提取，支持可配置字段
      */
     public Map<String, Object> extractForm(
             byte[] formImage,
@@ -518,11 +518,11 @@ public class FormExtractionService {
 
         sb.append("""
             <role>
-            You are a form data extraction specialist.
+            您是表单数据提取专家。
             </role>
 
             <task>
-            Extract the following fields from this form image:
+            从此表单图像中提取以下字段：
             </task>
 
             <fields>
@@ -530,11 +530,11 @@ public class FormExtractionService {
 
         for (FieldDefinition field : schema.fields()) {
             sb.append(String.format("""
-                - **%s** (%s):
-                  - Description: %s
-                  - Expected format: %s
-                  - Required: %s
-                  - Validation: %s
+                - **%s** (%s)：
+                  - 描述：%s
+                  - 预期格式：%s
+                  - 必需：%s
+                  - 验证：%s
 
                 """,
                 field.name(),
@@ -550,21 +550,21 @@ public class FormExtractionService {
             </fields>
 
             <instructions>
-            1. Look for labels matching or similar to field names
-            2. Extract the value associated with each label
-            3. Handle checkboxes as boolean (true if checked)
-            4. Handle multi-select as arrays
-            5. For handwritten text, transcribe as accurately as possible
-            6. If uncertain about a value, include confidence score
+            1. 寻找与字段名称匹配或相似的标签
+            2. 提取与每个标签关联的值
+            3. 将复选框处理为布尔值（如果选中则为 true）
+            4. 将多选处理为数组
+            5. 对于手写文本，尽可能准确转录
+            6. 如果对值不确定，包含置信度分数
             </instructions>
 
             <output_format>
-            Return JSON with extracted values:
+            返回包含提取值的 JSON：
             {
               "fieldName": {
-                "value": "extracted value",
+                "value": "提取的值",
                 "confidence": 0.95,
-                "rawText": "original text if different"
+                "rawText": "如果不同，则为原始文本"
               },
               ...
             }
@@ -590,7 +590,7 @@ public class FormExtractionService {
 }
 ```
 
-### 3.4 Table Extraction
+### 3.4 表格提取
 
 ```java
 @Service
@@ -600,39 +600,39 @@ public class TableExtractionService {
 
     private static final String TABLE_EXTRACTION_PROMPT = """
         <task>
-        Extract the table(s) from this image into structured format.
+        将此图像中的表格提取为结构化格式。
         </task>
 
         <instructions>
-        1. Identify all tables in the image
-        2. For each table:
-           - Extract headers (first row typically)
-           - Extract all data rows
-           - Preserve cell alignment (left/center/right)
-           - Handle merged cells by repeating values
-           - Handle empty cells as null
-        3. Maintain original data types:
-           - Numbers as numbers
-           - Dates in ISO format
-           - Text as strings
+        1. 识别图像中的所有表格
+        2. 对于每个表格：
+           - 提取标题（通常是第一行）
+           - 提取所有数据行
+           - 保留单元格对齐（左/中/右）
+           - 通过重复值处理合并单元格
+           - 将空单元格处理为 null
+        3. 保持原始数据类型：
+           - 数字作为数字
+           - 日期使用 ISO 格式
+           - 文本作为字符串
         </instructions>
 
         <output_format>
-        Return JSON:
+        返回 JSON：
         {
           "tables": [
             {
               "tableIndex": 1,
-              "title": "Table title if visible",
-              "headers": ["Column1", "Column2", ...],
+              "title": "如果可见的表格标题",
+              "headers": ["列1", "列2", ...],
               "rows": [
-                ["value1", "value2", ...],
-                ["value1", "value2", ...]
+                ["值1", "值2", ...],
+                ["值1", "值2", ...]
               ],
               "metadata": {
-                "rowCount": number,
-                "columnCount": number,
-                "hasHeaderRow": boolean
+                "rowCount": 数字,
+                "columnCount": 数字,
+                "hasHeaderRow": 布尔值
               }
             }
           ]
@@ -665,15 +665,15 @@ public class TableExtractionService {
     }
 
     /**
-     * Convert to CSV format
+     * 转换为 CSV 格式
      */
     public String tableToCsv(ExtractedTable table) {
         StringBuilder csv = new StringBuilder();
 
-        // Headers
+        // 标题
         csv.append(String.join(",", table.headers())).append("\n");
 
-        // Rows
+        // 行
         for (List<Object> row : table.rows()) {
             String rowStr = row.stream()
                 .map(v -> v == null ? "" : escapeCSV(v.toString()))
@@ -688,9 +688,9 @@ public class TableExtractionService {
 
 ---
 
-## 4. Chart and Data Visualization Analysis
+## 4. 图表和数据可视化分析
 
-### 4.1 Chart Understanding
+### 4.1 图表理解
 
 ```java
 @Service
@@ -725,7 +725,7 @@ public class ChartAnalysisService {
     ) {}
 
     public record Insight(
-        String type,  // trend, anomaly, comparison, pattern
+        String type,  // 趋势、异常、比较、模式
         String description,
         String evidence,
         String significance
@@ -733,72 +733,72 @@ public class ChartAnalysisService {
 
     private static final String CHART_ANALYSIS_PROMPT = """
         <role>
-        You are a data visualization analyst expert at extracting insights from charts.
+        您是数据可视化分析专家，擅长从图表中提取洞察。
         </role>
 
         <task>
-        Analyze this chart/graph image comprehensively.
+        全面分析此图表/图像。
         </task>
 
         <analysis_steps>
-        1. **Chart Identification**
-           - What type of chart is this? (bar, line, pie, scatter, etc.)
-           - What does it visualize?
+        1. **图表识别**
+           - 这是什么类型的图表？（柱状图、折线图、饼图、散点图等）
+           - 它可视化什么内容？
 
-        2. **Data Extraction**
-           - Read axis labels and scales
-           - Extract data points as accurately as possible
-           - Note any legends or categories
+        2. **数据提取**
+           - 读取轴标签和刻度
+           - 尽可能准确提取数据点
+           - 记录任何图例或类别
 
-        3. **Trend Analysis**
-           - Identify overall trends (increasing, decreasing, stable)
-           - Note any inflection points or changes in direction
+        3. **趋势分析**
+           - 识别整体趋势（上升、下降、稳定）
+           - 记录任何拐点或方向变化
 
-        4. **Pattern Recognition**
-           - Identify seasonal patterns
-           - Note cyclical behavior
-           - Identify correlations between series
+        4. **模式识别**
+           - 识别季节性模式
+           - 注意循环行为
+           - 识别系列之间的相关性
 
-        5. **Anomaly Detection**
-           - Identify outliers or unusual values
-           - Note any data gaps
+        5. **异常检测**
+           - 识别异常值或不寻常值
+           - 记录任何数据缺口
 
-        6. **Key Insights**
-           - What are the main takeaways?
-           - What story does the data tell?
+        6. **关键洞察**
+           - 主要要点是什么？
+           - 数据讲述了什么故事？
         </analysis_steps>
 
         <output_format>
-        Return structured JSON:
+        返回结构化 JSON：
         {
           "chartType": "line/bar/pie/scatter/etc",
-          "title": "chart title if visible",
+          "title": "图表标题（如果可见）",
           "data": {
             "xAxisLabel": "string",
             "yAxisLabel": "string",
             "series": [
               {
-                "name": "series name",
+                "name": "系列名称",
                 "points": [
                   {"label": "Jan", "value": 100, "confidence": 0.9}
                 ]
               }
             ],
             "extractedValues": {
-              "max": number,
-              "min": number,
-              "average": number
+              "max": 数字,
+              "min": 数字,
+              "average": 数字
             }
           },
           "insights": [
             {
               "type": "trend",
-              "description": "Sales increased by 25% YoY",
-              "evidence": "Line shows consistent upward trajectory",
-              "significance": "Indicates market expansion"
+              "description": "销售额同比增长 25%",
+              "evidence": "线图显示持续上升趋势",
+              "significance": "表明市场扩张"
             }
           ],
-          "limitations": ["Y-axis scale makes small changes look dramatic"]
+          "limitations": ["Y 轴刻度使小变化看起来很戏剧化"]
         }
         </output_format>
         """;
@@ -816,12 +816,12 @@ public class ChartAnalysisService {
     }
 
     /**
-     * Generate narrative summary from chart
+     * 从图表生成叙述性摘要
      */
     public String generateChartNarrative(ChartAnalysis analysis) {
         String prompt = """
             <task>
-            Generate a professional narrative summary of this chart analysis.
+            为此图表分析生成专业的叙述性摘要。
             </task>
 
             <analysis>
@@ -829,11 +829,11 @@ public class ChartAnalysisService {
             </analysis>
 
             <style>
-            - Write in clear, professional business language
-            - Lead with the most important insight
-            - Use specific numbers where available
-            - Acknowledge any limitations or uncertainties
-            - Keep to 2-3 paragraphs
+            - 使用清晰、专业的商业语言写作
+            - 以最重要的洞察开头
+            - 在可能的情况下使用具体数字
+            - 承认任何限制或不确定性
+            - 保持 2-3 段落长度
             </style>
             """;
 
@@ -846,63 +846,63 @@ public class ChartAnalysisService {
 }
 ```
 
-### 4.2 Dashboard Analysis
+### 4.2 仪表板分析
 
 ```java
 String dashboardPrompt = """
     <role>
-    You are a business intelligence analyst reviewing a dashboard.
+    您是商业智能分析师，正在审查仪表板。
     </role>
 
     <task>
-    Analyze this dashboard screenshot and provide executive insights.
+    分析此仪表板截图并提供高管洞察。
     </task>
 
     <analysis_framework>
-    1. **KPI Overview**
-       - Identify all key performance indicators visible
-       - Note current values and trends (up/down arrows)
+    1. **KPI 概览**
+       - 识别所有可见的关键绩效指标
+       - 记录当前值和趋势（上升/下降箭头）
 
-    2. **Health Assessment**
-       - Which metrics are performing well (green)?
-       - Which need attention (yellow/red)?
-       - Are there any critical alerts?
+    2. **健康评估**
+       - 哪些指标表现良好（绿色）？
+       - 哪些需要关注（黄色/红色）？
+       - 是否有任何关键警报？
 
-    3. **Relationships**
-       - How do different metrics relate?
-       - Are there correlations visible?
+    3. **关系**
+       - 不同的指标如何关联？
+       - 是否可见相关性？
 
-    4. **Recommended Actions**
-       - What should leadership focus on?
-       - What follow-up analysis is needed?
+    4. **建议行动**
+       - 领导层应该关注什么？
+       - 需要什么后续分析？
     </analysis_framework>
 
     <output_format>
-    ## Executive Summary
-    [One paragraph overview]
+    ## 执行摘要
+    [一段概述]
 
-    ## Key Metrics Status
-    | Metric | Value | Trend | Status |
+    ## 关键指标状态
+    | 指标 | 值 | 趋势 | 状态 |
     |--------|-------|-------|--------|
     | ... | ... | ↑/↓/→ | 🟢/🟡/🔴 |
 
-    ## Areas of Concern
-    1. [Issue + recommended action]
+    ## 关注领域
+    1. [问题 + 建议行动]
 
-    ## Positive Indicators
-    1. [Success + what's working]
+    ## 积极指标
+    1. [成功 + 有效的方法]
 
-    ## Recommended Actions
-    1. [Priority action item]
+    ## 建议行动
+    1. [优先行动项目]
     </output_format>
     """;
 ```
 
 ---
 
-## 5. Spring AI Vision Integration
+## 5. Spring AI 视觉集成
 
-### 5.1 Complete Vision Service
+### 5.1 完整视觉服务
 
 ```java
 @Service
@@ -917,10 +917,10 @@ public class VisionService {
     }
 
     /**
-     * Analyze single image with custom prompt
+     * 使用自定义提示分析单个图像
      */
     public String analyzeImage(byte[] imageData, String mimeType, String prompt) {
-        // Pre-process image if needed
+        // 如需要，预处理图像
         byte[] processedImage = imageProcessor.optimize(imageData, mimeType);
 
         UserMessage message = new UserMessage(
@@ -935,13 +935,13 @@ public class VisionService {
     }
 
     /**
-     * Analyze multiple images
+     * 分析多个图像
      */
     public String analyzeMultipleImages(
             List<ImageInput> images,
             String prompt) {
 
-        // Build message with multiple media
+        // 构建包含多个媒体的消息
         UserMessage.Builder messageBuilder = UserMessage.builder()
             .text(prompt);
 
@@ -956,7 +956,7 @@ public class VisionService {
     }
 
     /**
-     * Extract structured data from image
+     * 从图像提取结构化数据
      */
     public <T> T extractStructured(
             byte[] imageData,
@@ -976,7 +976,7 @@ public class VisionService {
     }
 
     /**
-     * Vision with conversation context
+     * 带对话上下文的视觉分析
      */
     public String analyzeWithContext(
             byte[] imageData,
@@ -997,7 +997,7 @@ public class VisionService {
 }
 ```
 
-### 5.2 Image Preprocessing Service
+### 5.2 图像预处理服务
 
 ```java
 @Service
@@ -1010,18 +1010,18 @@ public class ImageProcessingService {
     );
 
     /**
-     * Optimize image for API transmission
+     * 优化图像以进行 API 传输
      */
     public byte[] optimize(byte[] imageData, String mimeType) {
         try {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageData));
 
-            // Resize if too large
+            // 如果太大则调整大小
             if (image.getWidth() > MAX_DIMENSION || image.getHeight() > MAX_DIMENSION) {
                 image = resize(image);
             }
 
-            // Convert to JPEG for smaller size
+            // 转换为 JPEG 以获得更小的文件大小
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(image, "jpg", baos);
 
@@ -1032,38 +1032,38 @@ public class ImageProcessingService {
     }
 
     /**
-     * Validate image before processing
+     * 处理前验证图像
      */
     public ValidationResult validate(byte[] imageData, String mimeType) {
         List<String> errors = new ArrayList<>();
 
-        // Check MIME type
+        // 检查 MIME 类型
         if (!SUPPORTED_TYPES.contains(mimeType)) {
-            errors.add("Unsupported image type: " + mimeType);
+            errors.add("不支持的图像类型: " + mimeType);
         }
 
-        // Check size
+        // 检查大小
         if (imageData.length > 20 * 1024 * 1024) { // 20MB
-            errors.add("Image exceeds maximum size of 20MB");
+            errors.add("图像超过最大大小 20MB");
         }
 
-        // Try to read image
+        // 尝试读取图像
         try {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageData));
             if (image == null) {
-                errors.add("Unable to read image data");
+                errors.add("无法读取图像数据");
             } else if (image.getWidth() < 10 || image.getHeight() < 10) {
-                errors.add("Image too small to analyze");
+                errors.add("图像太小无法分析");
             }
         } catch (IOException e) {
-            errors.add("Invalid image data: " + e.getMessage());
+            errors.add("无效的图像数据: " + e.getMessage());
         }
 
         return new ValidationResult(errors.isEmpty(), errors);
     }
 
     /**
-     * Extract image metadata
+     * 提取图像元数据
      */
     public ImageMetadata extractMetadata(byte[] imageData) {
         try {
@@ -1103,7 +1103,7 @@ public class ImageProcessingService {
 }
 ```
 
-### 5.3 REST Controller for Vision API
+### 5.3 视觉 API 的 REST 控制器
 
 ```java
 @RestController
@@ -1116,14 +1116,14 @@ public class VisionController {
     private final InvoiceExtractionService invoiceExtractor;
 
     /**
-     * General image analysis
+     * 通用图像分析
      */
     @PostMapping("/analyze")
     public ResponseEntity<AnalysisResponse> analyzeImage(
             @RequestParam("image") MultipartFile image,
             @RequestParam("prompt") String prompt) throws IOException {
 
-        // Validate
+        // 验证
         var validation = imageProcessor.validate(image.getBytes(), image.getContentType());
         if (!validation.valid()) {
             return ResponseEntity.badRequest()
@@ -1140,7 +1140,7 @@ public class VisionController {
     }
 
     /**
-     * Document extraction endpoint
+     * 文档提取端点
      */
     @PostMapping("/extract-document")
     public ResponseEntity<?> extractDocument(
@@ -1150,25 +1150,25 @@ public class VisionController {
         byte[] docBytes = document.getBytes();
         String mimeType = document.getContentType();
 
-        // Auto-classify if type not provided
+        // 如果未提供类型，自动分类
         if (documentType == null) {
             var classification = docClassifier.classify(docBytes, mimeType);
             documentType = classification.documentType();
         }
 
-        // Route to appropriate extractor
+        // 路由到适当的提取器
         return switch (documentType) {
             case "invoice" -> ResponseEntity.ok(
                 invoiceExtractor.extractInvoice(docBytes, mimeType)
             );
-            // Add other document types...
+            // 添加其他文档类型...
             default -> ResponseEntity.badRequest()
-                .body("Unsupported document type: " + documentType);
+                .body("不支持的文档类型: " + documentType);
         };
     }
 
     /**
-     * Compare multiple images
+     * 比较多个图像
      */
     @PostMapping("/compare")
     public ResponseEntity<String> compareImages(
@@ -1185,9 +1185,9 @@ public class VisionController {
         }
 
         String prompt = String.format("""
-            Compare these %d images based on: %s
+            比较 %d 张基于以下标准的图像：%s
 
-            Provide detailed comparison and ranking.
+            提供详细的比较和排序。
             """, images.size(), criteria);
 
         String result = visionService.analyzeMultipleImages(inputs, prompt);
@@ -1200,69 +1200,69 @@ public class VisionController {
 
 ---
 
-## 6. Model-Specific Optimization
+## 6. 模型特定优化
 
-### 6.1 GPT-4V/GPT-4o Optimization
+### 6.1 GPT-4V/GPT-4o 优化
 
 ```java
 public class GPT4VPromptOptimizer {
 
     /**
-     * GPT-4V works best with:
-     * - Markdown structure
-     * - Clear section headers
-     * - Numbered steps
-     * - Explicit output format specification
+     * GPT-4V 在以下方面表现最佳：
+     * - Markdown 结构
+     * - 清晰的节标题
+     * - 编号的步骤
+     * - 明确的输出格式规范
      */
     public String optimizeForGPT4V(String basePrompt) {
         return """
-            ### Context
-            You are analyzing an image with the following task.
+            ### 上下文
+            您正在使用以下任务分析图像。
 
-            ### Task
+            ### 任务
             %s
 
-            ### Instructions
-            1. First, describe what you observe in the image
-            2. Then, provide your analysis based on the task
-            3. Finally, give actionable recommendations
+            ### 说明
+            1. 首先，描述您在图像中观察到的内容
+            2. 然后，根据任务提供您的分析
+            3. 最后，给出可行的建议
 
-            ### Output Format
-            Structure your response with clear headers:
-            - **Observations**: What you see
-            - **Analysis**: Your assessment
-            - **Recommendations**: Suggested actions
+            ### 输出格式
+            使用清晰的标题构建您的响应：
+            - **观察**：您看到的内容
+            - **分析**：您的评估
+            - **建议**：建议的行动
             """.formatted(basePrompt);
     }
 
     /**
-     * For best image understanding, GPT-4V benefits from:
+     * 为了最佳图像理解，GPT-4V 受益于：
      */
     public static final String GPT4V_BEST_PRACTICES = """
-        1. Use "high" detail mode for complex images
-        2. Specify exact regions to focus on
-        3. Request step-by-step visual analysis
-        4. Ask for confidence levels on uncertain observations
+        1. 对复杂图像使用"高"细节模式
+        2. 指定要关注的精确区域
+        3. 请求逐步视觉分析
+        4. 对不确定的观察询问置信度
         """;
 }
 ```
 
-### 6.2 Claude Vision Optimization
+### 6.2 Claude 视觉优化
 
 ```java
 public class ClaudeVisionOptimizer {
 
     /**
-     * Claude excels with:
-     * - XML tag structure
-     * - Detailed role definitions
-     * - Explicit output schemas
-     * - Thinking process articulation
+     * Claude 擅长：
+     * - XML 标签结构
+     * - 详细的角色定义
+     * - 明确的输出架构
+     * - 思考过程阐述
      */
     public String optimizeForClaude(String basePrompt) {
         return """
             <role>
-            You are an expert visual analyst with deep attention to detail.
+            您是具有细致关注力的专家视觉分析师。
             </role>
 
             <task>
@@ -1270,98 +1270,98 @@ public class ClaudeVisionOptimizer {
             </task>
 
             <thinking_process>
-            Before providing your analysis:
-            1. Carefully observe all elements in the image
-            2. Consider multiple interpretations
-            3. Validate your observations
-            4. Formulate your response
+            在提供您的分析之前：
+            1. 仔细观察图像中的所有元素
+            2. 考虑多种解释
+            3. 验证您的观察
+            4. 构建您的响应
             </thinking_process>
 
             <output_format>
             <observations>
-            [What you see in the image]
+            [您在图像中看到的内容]
             </observations>
 
             <analysis>
-            [Your detailed analysis]
+            [您的详细分析]
             </analysis>
 
             <recommendations>
-            [Actionable suggestions]
+            [可行的建议]
             </recommendations>
             </output_format>
             """.formatted(basePrompt);
     }
 
     /**
-     * Claude-specific best practices for vision
+     * Claude 视觉特定最佳实践
      */
     public static final String CLAUDE_BEST_PRACTICES = """
-        1. Claude excels at document OCR - use for text-heavy images
-        2. Provide explicit coordinates when asking about regions
-        3. Claude can process PDFs natively - prefer PDF over images
-        4. Use XML tags for structured extraction
-        5. Claude is conservative - explicitly ask for uncertain answers
+        1. Claude 擅长文档 OCR - 对文本丰富的图像使用
+        2. 询问区域时提供明确坐标
+        3. Claude 可以原生处理 PDF - 优先使用 PDF 而非图像
+        4. 使用 XML 标签进行结构化提取
+        5. Claude 保守 - 明确询问不确定的答案
         """;
 }
 ```
 
-### 6.3 Gemini 2.0 Optimization
+### 6.3 Gemini 2.0 优化
 
 ```java
 public class GeminiVisionOptimizer {
 
     /**
-     * Gemini excels at:
-     * - Cross-modal reasoning
-     * - Long-form video analysis
-     * - Scientific/technical images
-     * - Multi-step visual reasoning
+     * Gemini 擅长：
+     * - 跨模态推理
+     * - 长视频分析
+     * - 科学/技术图像
+     * - 多步视觉推理
      */
     public String optimizeForGemini(String basePrompt) {
         return """
-            You are analyzing visual content. Follow this process:
+            您正在分析视觉内容。请遵循此过程：
 
-            ## Step 1: Visual Inventory
-            List all distinct elements you can identify in the image.
+            ## 步骤 1: 视觉清单
+            列出您可以在图像中识别的所有不同元素。
 
-            ## Step 2: Context Analysis
-            Based on the elements, determine:
-            - What is the setting/context?
-            - What is the purpose of this visual?
+            ## 步骤 2: 上下文分析
+            基于这些元素，确定：
+            - 这是什么场景/上下文？
+            - 此视觉的目的是什么？
 
-            ## Step 3: Task Execution
+            ## 步骤 3: 任务执行
             %s
 
-            ## Step 4: Validation
-            Review your analysis for:
-            - Accuracy of observations
-            - Logical consistency
-            - Completeness
+            ## 步骤 4: 验证
+            检查您的分析：
+            - 观察的准确性
+            - 逻辑一致性
+            - 完整性
 
-            Provide your final response after completing all steps.
+            完成所有步骤后提供您的最终响应。
             """.formatted(basePrompt);
     }
 
     /**
-     * Gemini-specific capabilities
+     * Gemini 特定功能
      */
     public static final String GEMINI_CAPABILITIES = """
-        1. Native video understanding (up to 1 hour)
-        2. Native audio processing
-        3. Best for technical/scientific diagrams
-        4. Superior chart data extraction
-        5. Cross-reference between multiple images
-        6. 2M token context for extensive multimodal input
+        1. 原生视频理解（最多 1 小时）
+        2. 原生音频处理
+        3. 最适合技术/科学图表
+        4. 卓越的图表数据提取
+        5. 多个图像之间的交叉引用
+        6. 200 万 token 上下文用于大量多模态输入
         """;
 }
 ```
 
 ---
 
-## 7. Video Understanding
+## 7. 视频理解
 
-### 7.1 Frame-Based Video Analysis (GPT-4V/Claude)
+### 7.1 基于帧的视频分析（GPT-4V/Claude）
 
 ```java
 @Service
@@ -1371,42 +1371,42 @@ public class VideoAnalysisService {
     private final VideoFrameExtractor frameExtractor;
 
     /**
-     * Analyze video by extracting key frames
+     * 通过提取关键帧分析视频
      */
     public VideoAnalysis analyzeVideo(
             byte[] videoData,
             String mimeType,
             VideoAnalysisConfig config) {
 
-        // Extract frames at specified intervals
+        // 按指定间隔提取帧
         List<Frame> frames = frameExtractor.extractFrames(
             videoData,
             config.frameInterval(),
             config.maxFrames()
         );
 
-        // Analyze frames in batches
+        // 批量分析帧
         List<FrameAnalysis> frameAnalyses = new ArrayList<>();
         for (int i = 0; i < frames.size(); i += config.batchSize()) {
             List<Frame> batch = frames.subList(i, Math.min(i + config.batchSize(), frames.size()));
             frameAnalyses.addAll(analyzeBatch(batch));
         }
 
-        // Synthesize overall analysis
+        // 综合整体分析
         String synthesis = synthesizeVideoAnalysis(frameAnalyses, config.analysisGoal());
 
         return new VideoAnalysis(frameAnalyses, synthesis);
     }
 
     private List<FrameAnalysis> analyzeBatch(List<Frame> frames) {
-        // Build multi-image prompt
+        // 构建多图像提示
         StringBuilder prompt = new StringBuilder("""
             <task>
-            Analyze these video frames in sequence.
-            For each frame, describe:
-            1. What is happening
-            2. Key objects/people
-            3. Any changes from previous frame
+            按顺序分析这些视频帧。
+            对于每帧，描述：
+            1. 正在发生什么
+            2. 关键对象/人员
+            3. 与前一帧的任何变化
             </task>
 
             <frames>
@@ -1415,7 +1415,7 @@ public class VideoAnalysisService {
         List<Media> mediaList = new ArrayList<>();
         for (int i = 0; i < frames.size(); i++) {
             Frame frame = frames.get(i);
-            prompt.append(String.format("Frame %d (timestamp: %s):\n", i + 1, frame.timestamp()));
+            prompt.append(String.format("帧 %d（时间戳：%s）：\n", i + 1, frame.timestamp()));
             mediaList.add(new Media("image/jpeg", frame.data()));
         }
 
@@ -1438,7 +1438,7 @@ public class VideoAnalysisService {
         return chatClient.prompt()
             .user(u -> u.text("""
                 <task>
-                Synthesize these frame-by-frame analyses into a coherent video summary.
+                将这些逐帧分析综合为连贯的视频摘要。
                 </task>
 
                 <analysis_goal>
@@ -1450,22 +1450,22 @@ public class VideoAnalysisService {
                 </frame_analyses>
 
                 <output_format>
-                ## Video Summary
-                [Overall description of what happens]
+                ## 视频摘要
+                [发生内容的整体描述]
 
-                ## Timeline
-                - 0:00-0:30: [Description]
-                - 0:30-1:00: [Description]
+                ## 时间线
+                - 0:00-0:30: [描述]
+                - 0:30-1:00: [描述]
                 ...
 
-                ## Key Moments
-                1. [Significant event + timestamp]
+                ## 关键时刻
+                1. [重要事件 + 时间戳]
 
-                ## Analysis
-                [Answer the analysis goal]
+                ## 分析
+                [回答分析目标]
 
-                ## Recommendations
-                [If applicable]
+                ## 建议
+                [如果适用]
                 </output_format>
                 """)
                 .param("goal", goal)
@@ -1487,7 +1487,7 @@ public class VideoAnalysisService {
 }
 ```
 
-### 7.2 Native Video Analysis (Gemini)
+### 7.2 原生视频分析（Gemini）
 
 ```java
 @Service
@@ -1496,7 +1496,7 @@ public class GeminiVideoService {
     private final VertexAiGeminiChatModel geminiModel;
 
     /**
-     * Gemini can process video natively (up to 1 hour)
+     * Gemini 可以原生处理视频（最多 1 小时）
      */
     public String analyzeVideoNative(byte[] videoData, String prompt) {
         UserMessage message = new UserMessage(
@@ -1512,20 +1512,20 @@ public class GeminiVideoService {
     }
 
     /**
-     * Video analysis prompts for Gemini
+     * Gemini 视频分析提示
      */
     public String getVideoAnalysisPrompt(VideoAnalysisType type) {
         return switch (type) {
             case CONTENT_MODERATION -> """
                 <task>
-                Review this video for content policy violations.
+                审查此视频是否存在内容政策违规。
                 </task>
 
                 <check_for>
-                - Violence or harmful content
-                - Inappropriate language
-                - Copyright violations (music, logos)
-                - Personal information exposure
+                - 暴力或有害内容
+                - 不当语言
+                - 版权侵犯（音乐、标志）
+                - 个人信息暴露
                 </check_for>
 
                 <output_format>
@@ -1546,62 +1546,62 @@ public class GeminiVideoService {
 
             case SUMMARIZATION -> """
                 <task>
-                Provide a comprehensive summary of this video.
+                提供此视频的全面摘要。
                 </task>
 
                 <include>
-                - Main topics covered
-                - Key points made
-                - Important visuals/demonstrations
-                - Speaker information (if applicable)
-                - Action items or takeaways
+                - 涵盖的主要主题
+                - 关键要点
+                - 重要视觉/演示
+                - 演讲者信息（如适用）
+                - 行动项目或要点
                 </include>
 
                 <output_format>
-                ## Video Summary
-                **Duration**: [length]
-                **Type**: [tutorial/presentation/interview/etc]
+                ## 视频摘要
+                **时长**：[长度]
+                **类型**：[教程/演示/采访等]
 
-                ## Main Topics
-                1. [Topic] - [Brief description]
+                ## 主要主题
+                1. [主题] - [简短描述]
 
-                ## Key Takeaways
-                - [Point 1]
-                - [Point 2]
+                ## 关键要点
+                - [要点 1]
+                - [要点 2]
 
-                ## Timeline
-                [mm:ss] - [What happens]
+                ## 时间线
+                [mm:ss] - [发生什么]
 
-                ## Recommended For
-                [Who would benefit from this video]
+                ## 推荐对象
+                [谁会从此视频中受益]
                 </output_format>
                 """;
 
             case TUTORIAL_EXTRACTION -> """
                 <task>
-                Extract step-by-step instructions from this tutorial video.
+                从此教程视频中提取逐步说明。
                 </task>
 
                 <output_format>
-                ## Tutorial: [Title]
+                ## 教程：[标题]
 
-                ### Prerequisites
-                - [Requirement 1]
+                ### 先决条件
+                - [要求 1]
 
-                ### Steps
-                1. **[Step Title]** (timestamp: mm:ss)
-                   - Description: [what to do]
-                   - Tools/Materials: [if any]
-                   - Tips: [helpful hints]
+                ### 步骤
+                1. **[步骤标题]**（时间戳：mm:ss）
+                   - 描述：[做什么]
+                   - 工具/材料：[如有]
+                   - 提示：[有用的提示]
 
-                2. **[Step Title]** (timestamp: mm:ss)
+                2. **[步骤标题]**（时间戳：mm:ss）
                    ...
 
-                ### Common Mistakes
-                - [Mistake + how to avoid]
+                ### 常见错误
+                - [错误 + 如何避免]
 
-                ### Final Result
-                [Description of expected outcome]
+                ### 最终结果
+                [预期成果的描述]
                 </output_format>
                 """;
         };
@@ -1617,9 +1617,9 @@ public class GeminiVideoService {
 
 ---
 
-## 8. Multimodal RAG
+## 8. 多模态 RAG
 
-### 8.1 Image-Text RAG Architecture
+### 8.1 图像-文本 RAG 架构
 
 ```java
 @Service
@@ -1631,28 +1631,28 @@ public class MultimodalRAGService {
     private final VisionService visionService;
 
     /**
-     * Index images with generated descriptions
+     * 使用生成的描述索引图像
      */
     public void indexImage(String imageId, byte[] imageData, String mimeType, Map<String, String> metadata) {
-        // Generate detailed description
+        // 生成详细描述
         String description = visionService.analyzeImage(
             imageData,
             mimeType,
             """
-            Provide a detailed, searchable description of this image including:
-            - Main subjects and objects
-            - Colors, textures, and visual style
-            - Setting and context
-            - Any text visible
-            - Mood and atmosphere
-            Use specific, concrete terms that someone might search for.
+            提供此图像的详细、可搜索描述，包括：
+            - 主要主题和对象
+            - 颜色、纹理和视觉风格
+            - 场景和上下文
+            - 任何可见的文本
+            - 氛围和情绪
+            使用具体、具体的术语，以便人们可能搜索。
             """
         );
 
-        // Create embedding from description
+        // 从描述创建嵌入
         float[] embedding = embeddingModel.embed(description);
 
-        // Store with metadata
+        // 存储元数据
         Document doc = Document.builder()
             .id(imageId)
             .content(description)
@@ -1668,10 +1668,10 @@ public class MultimodalRAGService {
     }
 
     /**
-     * Query with text, retrieve relevant images
+     * 文本查询，检索相关图像
      */
     public List<ImageSearchResult> searchImages(String query, int topK) {
-        // Search by text
+        // 通过文本搜索
         List<Document> results = vectorStore.similaritySearch(
             SearchRequest.query(query).withTopK(topK)
         );
@@ -1688,36 +1688,36 @@ public class MultimodalRAGService {
     }
 
     /**
-     * Query with image, retrieve similar images
+     * 图像查询，检索相似图像
      */
     public List<ImageSearchResult> searchSimilarImages(byte[] queryImage, String mimeType, int topK) {
-        // Generate description of query image
+        // 生成查询图像的描述
         String queryDescription = visionService.analyzeImage(
             queryImage,
             mimeType,
-            "Describe this image in detail for similarity search."
+            "描述此图像以进行相似性搜索。"
         );
 
         return searchImages(queryDescription, topK);
     }
 
     /**
-     * Multimodal QA: answer questions using retrieved images
+     * 多模态问答：使用检索的图像回答问题
      */
     public String answerWithImages(String question, int retrievalCount) {
-        // Retrieve relevant images
+        // 检索相关图像
         List<ImageSearchResult> images = searchImages(question, retrievalCount);
 
-        // Build context from retrieved images
+        // 从检索的图像构建上下文
         String context = images.stream()
-            .map(img -> String.format("Image %s: %s", img.id(), img.description()))
+            .map(img -> String.format("图像 %s：%s", img.id(), img.description()))
             .collect(Collectors.joining("\n\n"));
 
-        // Answer using context
+        // 使用上下文回答
         return chatClient.prompt()
             .user(u -> u.text("""
                 <task>
-                Answer the question using information from the retrieved images.
+                使用检索到的图像信息回答问题。
                 </task>
 
                 <question>
@@ -1729,9 +1729,9 @@ public class MultimodalRAGService {
                 </retrieved_image_descriptions>
 
                 <instructions>
-                - Base your answer on the image descriptions
-                - Cite which image(s) support your answer
-                - If images don't contain relevant information, say so
+                - 基于图像描述回答
+                - 引用支持您答案的图像
+                - 如果图像不包含相关信息，请说明
                 </instructions>
                 """)
                 .param("question", question)
@@ -1749,7 +1749,7 @@ public class MultimodalRAGService {
 }
 ```
 
-### 8.2 Document Multimodal RAG
+### 8.2 文档多模态 RAG
 
 ```java
 @Service
@@ -1760,38 +1760,38 @@ public class DocumentMultimodalRAG {
     private final VisionService visionService;
 
     /**
-     * Index PDF with both text and visual understanding
+     * 索引 PDF，同时考虑文本和视觉理解
      */
     public void indexPDF(String documentId, byte[] pdfData) {
-        // Extract text chunks
+        // 提取文本块
         List<String> textChunks = extractTextChunks(pdfData);
 
-        // Extract and describe images/charts/tables
+        // 提取并描述图像/图表/表格
         List<VisualElement> visualElements = extractVisualElements(pdfData);
 
-        // Index text chunks
+        // 索引文本块
         for (int i = 0; i < textChunks.size(); i++) {
             indexTextChunk(documentId, i, textChunks.get(i));
         }
 
-        // Index visual elements
+        // 索引视觉元素
         for (VisualElement visual : visualElements) {
             indexVisualElement(documentId, visual);
         }
     }
 
     private void indexVisualElement(String documentId, VisualElement visual) {
-        // Generate rich description
+        // 生成丰富描述
         String description = visionService.analyzeImage(
             visual.imageData(),
             "image/png",
             String.format("""
-                This is a %s from a document. Describe it in detail:
-                - What information does it convey?
-                - What are the key data points or elements?
-                - How does it relate to typical document content?
+                这是来自文档的 %s。详细描述它：
+                - 它传达什么信息？
+                - 关键数据点或元素是什么？
+                - 它如何与典型文档内容相关？
 
-                Context: This appears on page %d of the document.
+                上下文：这出现在文档的第 %d 页。
                 """, visual.type(), visual.pageNumber())
         );
 
@@ -1810,22 +1810,22 @@ public class DocumentMultimodalRAG {
     }
 
     /**
-     * Query that considers both text and visual content
+     * 考虑文本和视觉内容的查询
      */
     public RAGResponse queryDocument(String documentId, String question) {
-        // Search all content types
+        // 搜索所有内容类型
         List<Document> textResults = searchByType(documentId, question, "text");
         List<Document> visualResults = searchByType(documentId, question, "visual");
 
-        // Build comprehensive context
+        // 构建全面上下文
         String textContext = formatTextContext(textResults);
         String visualContext = formatVisualContext(visualResults);
 
-        // Generate answer
+        // 生成答案
         String answer = chatClient.prompt()
             .user(u -> u.text("""
                 <task>
-                Answer the question using information from this document.
+                使用此文档中的信息回答问题。
                 </task>
 
                 <question>
@@ -1841,10 +1841,10 @@ public class DocumentMultimodalRAG {
                 </visual_descriptions>
 
                 <instructions>
-                1. Consider both text and visual information
-                2. Reference specific sections or figures
-                3. If the answer involves data from charts/tables, quote the values
-                4. Indicate confidence level if information is incomplete
+                1. 考虑文本和视觉信息
+                2. 引用特定部分或图表
+                3. 如果答案涉及图表/表格中的数据，请引用数值
+                4. 如果信息不完整，表示置信度
                 </instructions>
                 """)
                 .param("question", question)
@@ -1873,32 +1873,32 @@ public class DocumentMultimodalRAG {
 
 ---
 
-## 9. Security and Privacy Considerations
+## 9. 安全和隐私考虑
 
-### 9.1 Image Sanitization
+### 9.1 图像净化
 
 ```java
 @Service
 public class ImageSecurityService {
 
     /**
-     * Check image for sensitive content before processing
+     * 处理前检查图像中的敏感内容
      */
     public SecurityCheck checkImage(byte[] imageData, String mimeType) {
         List<String> concerns = new ArrayList<>();
 
-        // Check for steganography or hidden data
+        // 检查隐写术或隐藏数据
         if (containsHiddenData(imageData)) {
-            concerns.add("Image may contain hidden data");
+            concerns.add("图像可能包含隐藏数据");
         }
 
-        // Check EXIF for sensitive metadata
+        // 检查 EXIF 中的敏感元数据
         ExifData exif = extractExif(imageData);
         if (exif.hasGpsCoordinates()) {
-            concerns.add("Image contains GPS coordinates");
+            concerns.add("图像包含 GPS 坐标");
         }
         if (exif.hasCameraSerialNumber()) {
-            concerns.add("Image contains device identifiers");
+            concerns.add("图像包含设备标识符");
         }
 
         return new SecurityCheck(
@@ -1909,25 +1909,25 @@ public class ImageSecurityService {
     }
 
     /**
-     * Sanitize image before sending to API
+     * 发送到 API 前净化图像
      */
     public byte[] sanitizeImage(byte[] imageData, SanitizationConfig config) {
         BufferedImage image = readImage(imageData);
 
-        // Remove EXIF metadata
+        // 移除 EXIF 元数据
         image = stripExifData(image);
 
-        // Optionally blur faces
+        // 可选：模糊人脸
         if (config.blurFaces()) {
             image = detectAndBlurFaces(image);
         }
 
-        // Optionally redact text
+        // 可选：涂抹文本
         if (config.redactText()) {
             image = detectAndRedactText(image);
         }
 
-        // Optionally redact specific regions
+        // 可选：涂抹特定区域
         for (Region region : config.redactRegions()) {
             image = redactRegion(image, region);
         }
@@ -1936,7 +1936,7 @@ public class ImageSecurityService {
     }
 
     /**
-     * Check API response for data leakage
+     * 检查 API 响应中的数据泄露
      */
     public boolean checkResponseForLeakage(String response, List<String> sensitivePatterns) {
         for (String pattern : sensitivePatterns) {
@@ -1963,7 +1963,7 @@ public class ImageSecurityService {
 }
 ```
 
-### 9.2 Content Moderation
+### 9.2 内容审核
 
 ```java
 @Service
@@ -1973,22 +1973,22 @@ public class VisionContentModerationService {
 
     private static final String MODERATION_PROMPT = """
         <role>
-        You are a content moderation system. Analyze this image for policy violations.
+        您是内容审核系统。分析此图像是否存在政策违规。
         </role>
 
         <policies>
-        The following content is NOT allowed:
-        1. Violence or graphic content
-        2. Adult/sexual content
-        3. Hate symbols or discriminatory imagery
-        4. Personal information (IDs, credit cards, etc.)
-        5. Dangerous activities or self-harm
-        6. Deceptive or misleading content
-        7. Copyrighted material (logos, characters)
+        以下内容不被允许：
+        1. 暴力或图形内容
+        2. 成人/性内容
+        3. 仇恨符号或歧视性图像
+        4. 个人信息（身份证、信用卡等）
+        5. 危险活动或自残
+        6. 欺骗性或误导性内容
+        7. 受版权保护的材料（标志、角色）
         </policies>
 
         <output_format>
-        Return JSON:
+        返回 JSON：
         {
           "approved": boolean,
           "violations": [
@@ -1996,7 +1996,7 @@ public class VisionContentModerationService {
               "policy": "string",
               "severity": "low/medium/high/critical",
               "description": "string",
-              "region": "description of where in image"
+              "region": "图像中位置的描述"
             }
           ],
           "confidence": 0.0-1.0,
@@ -2035,9 +2035,9 @@ public class VisionContentModerationService {
 
 ---
 
-## 10. Performance Optimization
+## 10. 性能优化
 
-### 10.1 Caching Strategies
+### 10.1 缓存策略
 
 ```java
 @Service
@@ -2053,7 +2053,7 @@ public class VisionCacheService {
     }
 
     /**
-     * Cache key based on image hash + prompt hash
+     * 基于图像哈希 + 提示哈希的缓存键
      */
     public String generateCacheKey(byte[] imageData, String prompt) {
         String imageHash = DigestUtils.sha256Hex(imageData);
@@ -2062,7 +2062,7 @@ public class VisionCacheService {
     }
 
     /**
-     * Get or compute analysis
+     * 获取或计算分析
      */
     public String getOrAnalyze(
             byte[] imageData,
@@ -2086,7 +2086,7 @@ public class VisionCacheService {
 }
 ```
 
-### 10.2 Batch Processing
+### 10.2 批量处理
 
 ```java
 @Service
@@ -2101,7 +2101,7 @@ public class BatchVisionService {
     }
 
     /**
-     * Process multiple images in parallel
+     * 并行处理多个图像
      */
     public List<BatchResult> processBatch(
             List<ImageTask> tasks,
@@ -2160,85 +2160,85 @@ public class BatchVisionService {
 
 ---
 
-## 11. Common Mistakes and Solutions
+## 11. 常见错误和解决方案
 
-| Mistake | Problem | Solution |
+| 错误 | 问题 | 解决方案 |
 |---------|---------|----------|
-| **Vague prompts** | "Describe this image" | Specify exactly what to focus on and output format |
-| **No output schema** | Unparseable responses | Always specify JSON/structured output |
-| **Ignoring image quality** | Poor extraction results | Pre-process: resize, enhance contrast, fix orientation |
-| **Overloading images** | Token limits, slow processing | Batch process, use appropriate resolution |
-| **No validation** | "I cannot see" responses unhandled | Check for error patterns, implement fallbacks |
-| **Sensitive data exposure** | PII in images sent to API | Sanitize images, redact sensitive regions |
-| **Single model approach** | Suboptimal results | Use model-specific prompts, select best model per task |
-| **No caching** | Redundant API calls | Cache by image+prompt hash |
+| **模糊的提示** | "描述此图像" | 精确指定要关注的方面和输出格式 |
+| **没有输出架构** | 无法解析的响应 | 始终指定 JSON/结构化输出 |
+| **忽略图像质量** | 差的提取结果 | 预处理：调整大小、增强对比度、修复方向 |
+| **图像过载** | 令牌限制、处理慢 | 批量处理、使用适当分辨率 |
+| **没有验证** | "我看不到"响应未处理 | 检查错误模式、实施回退 |
+| **敏感数据暴露** | PII 在图像中发送到 API | 净化图像、涂抹敏感区域 |
+| **单一模型方法** | 次优结果 | 使用模型特定提示、为每个任务选择最佳模型 |
+| **没有缓存** | 重复的 API 调用 | 按图像+提示哈希缓存 |
 
 ---
 
-## 12. Quick Reference
+## 12. 快速参考
 
-### Prompt Templates by Use Case
+### 按用例的提示模板
 
 ```java
 public class VisionPromptTemplates {
 
     public static final String OCR = """
-        Extract ALL text from this image verbatim.
-        Preserve formatting, line breaks, and structure.
-        Return as plain text, no JSON.
+        提取此图像中的所有文本逐字不差。
+        保留格式、换行和结构。
+        作为纯文本返回，不返回 JSON。
         """;
 
     public static final String CLASSIFICATION = """
-        Classify this image into exactly ONE of these categories:
+        将此图像精确分类为以下类别之一：
         {categories}
 
-        Return JSON: {"category": "...", "confidence": 0.0-1.0, "reasoning": "..."}
+        返回 JSON：{"category": "...", "confidence": 0.0-1.0, "reasoning": "..."}
         """;
 
     public static final String DATA_EXTRACTION = """
-        Extract the following fields from this document:
+        从此文档中提取以下字段：
         {fields}
 
-        Return JSON with field names as keys. Use null for missing fields.
+        返回包含字段名称作为键的 JSON。缺失字段使用 null。
         """;
 
     public static final String COMPARISON = """
-        Compare these images and identify:
-        1. Similarities
-        2. Differences
-        3. Which is better for: {criteria}
+        比较这些图像并识别：
+        1. 相似之处
+        2. 差异
+        3. 对于以下标准的最佳选择：{criteria}
 
-        Provide structured analysis.
+        提供结构化分析。
         """;
 
     public static final String ACCESSIBILITY = """
-        Generate an accessibility description for this image suitable for screen readers.
-        Include: main subject, important details, text content, colors if meaningful.
-        Keep under 200 words.
+        为此图像生成适合屏幕阅读器的可访问性描述。
+        包括：主要主题、重要细节、文本内容、有意义的颜色。
+        保持 200 字以内。
         """;
 }
 ```
 
 ---
 
-## References
+## 参考资料
 
-### Documentation
+### 文档
 
-- [OpenAI GPT-4V Vision Documentation](https://platform.openai.com/docs/guides/vision)
-- [Anthropic Claude Vision Guide](https://docs.anthropic.com/claude/docs/vision)
-- [Google Gemini Multimodal](https://ai.google.dev/docs/multimodal_concepts)
-- [Spring AI Vision Support](https://docs.spring.io/spring-ai/reference/)
+- [OpenAI GPT-4V 视觉文档](https://platform.openai.com/docs/guides/vision)
+- [Anthropic Claude 视觉指南](https://docs.anthropic.com/claude/docs/vision)
+- [Google Gemini 多模态](https://ai.google.dev/docs/multimodal_concepts)
+- [Spring AI 视觉支持](https://docs.spring.io/spring-ai/reference/)
 
-### Research Papers
+### 研究论文
 
-1. Alayrac et al. (2022): "Flamingo: a Visual Language Model for Few-Shot Learning"
-2. Liu et al. (2024): "Visual Instruction Tuning" (LLaVA)
-3. OpenAI (2024): "GPT-4V(ision) System Card"
-4. Google (2024): "Gemini: A Family of Highly Capable Multimodal Models"
-5. Anthropic (2024): "Claude 3 Model Card"
+1. Alayrac 等 (2022)："Flamingo: a Visual Language Model for Few-Shot Learning"
+2. Liu 等 (2024)："Visual Instruction Tuning" (LLaVA)
+3. OpenAI (2024)："GPT-4V(ision) System Card"
+4. Google (2024)："Gemini: A Family of Highly Capable Multimodal Models"
+5. Anthropic (2024)："Claude 3 Model Card"
 
 ---
 
-**Previous**: [3.1 Advanced Techniques](./07-advanced-techniques.mdx) ←
-**Next**: [3.3 Agent Orchestration](./09-agent-orchestration.mdx) →
+**上一页**：[3.1 高级技术](./07-advanced-techniques.mdx) ←
+**下一页**：[3.3 代理编排](./09-agent-orchestration.mdx) →

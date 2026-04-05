@@ -1,66 +1,66 @@
 ---
 id: training-pipeline
-title: Training Pipeline - From Random Weights to Intelligence
-sidebar_label: 7 Training Pipeline
-description: Pre-training, supervised fine-tuning, and alignment through RLHF/DPO
+title: 训练流水线 - 从随机权重到智能
+sidebar_label: 7 训练流水线
+description: 预训练、监督微调和通过RLHF/DPO对齐
 ---
 
-# Training Pipeline - From Random Weights to Intelligence
+# 训练流水线 - 从随机权重到智能
 
-> **"Training transforms random weights into intelligent systems through three stages: pre-training, fine-tuning, and alignment."**
+> **"训练通过三个阶段将随机权重转化为智能系统：预训练、微调和对齐。"**
 
-Modern LLMs are not trained end-to-end in a single pass. They undergo a multi-stage pipeline where each stage builds upon the previous one: pre-training creates the base model, SFT (Supervised Fine-Tuning) teaches instruction-following, and RLHF/DPO aligns the model with human preferences. This document covers each stage in detail, including the algorithms, data requirements, and implementation considerations for production-scale LLM training.
+现代LLM不是单次端到端训练的。它们 undergo 多阶段流水线，每个阶段都建立在之前的基础上：预训练创建基础模型，SFT（监督微调）教授指令遵循，RLHF/DPO将模型与人类偏好对齐。本文档详细介绍每个阶段，包括算法、数据要求和生产级LLM训练的实现考虑。
 
 ---
 
-## Training Stages Overview
+## 训练阶段概览
 
 ```mermaid
 flowchart LR
-    A[Random Weights] --> B[Pre-training]
-    B --> C[Base Model]
+    A[随机权重] --> B[预训练]
+    B --> C[基础模型]
     C --> D[SFT]
-    D --> E[Instruct Model]
+    D --> E[指令模型]
     E --> F[RLHF / DPO]
-    F --> G[Aligned Model]
+    F --> G[对齐模型]
 
     style B fill:#e3f2fd
     style D fill:#fff3e0
     style F fill:#f3e5f5
 ```
 
-### Stage Comparison
+### 阶段比较
 
-| Stage | Data | Objective | Tokens | Cost | Result |
+| 阶段 | 数据 | 目标 | Token数 | 成本 | 结果 |
 |-------|------|-----------|--------|------|--------|
-| **Pre-training** | Web text | Next-token prediction | 1T-3T | ~$2M | Base model |
-| **SFT** | Instructions | Instruction-following | 10M-100M | ~$10K | Chat-capable |
-| **RLHF/DPO** | Comparisons | Preference alignment | 1M-10M | ~$5K | Aligned behavior |
+| **预训练** | 网络文本 | 下一个token预测 | 1T-3T | ~$2M | 基础模型 |
+| **SFT** | 指令 | 指令遵循 | 10M-100M | ~$10K | 可聊天 |
+| **RLHF/DPO** | 比较对 | 偏好对齐 | 1M-10M | ~$5K | 对齐行为 |
 
 ---
 
-## Pre-Training
+## 预训练
 
-### Next-Token Prediction Objective
+### 下一个Token预测目标
 
-The fundamental training objective for all modern LLMs:
+所有现代LLM的基本训练目标：
 
 ```
 L = -sum_{t=1}^{T} log P(x_t | x_1, x_2, ..., x_{t-1})
 ```
 
-For a sequence of tokens, the model learns to maximize the probability of each token given all previous tokens. This simple objective, applied at scale, enables the emergence of complex reasoning, world knowledge, and linguistic capabilities.
+对于token序列，模型学习在给定所有先前token的情况下最大化每个token的概率。这个简单的目标，在大规模应用时， enables 复杂推理、世界知识和语言能力的 emergence。
 
-### Why Next-Token Prediction Works
+### 为什么下一个Token预测有效
 
-The power of next-token prediction comes from:
+下一个token预测的力量来自：
 
-1. **Scale:** Training on trillions of tokens exposes the model to diverse patterns
-2. **Context:** Predicting the next token requires understanding the full context
-3. **Compression:** The model learns efficient representations of language structure
-4. **Generalization:** Patterns learned generalize to unseen combinations
+1. **规模**: 在万亿token上训练使模型接触到多样化模式
+2. **上下文**: 预测下一个token需要理解完整上下文
+3. **压缩**: 模型学习语言结构的高效表示
+4. **泛化**: 学习的模式泛化到未见过的组合
 
-### Data Processing Pipeline
+### 数据处理流水线
 
 ```python
 import re
@@ -69,21 +69,21 @@ from collections import defaultdict
 
 class TextPreprocessor:
     """
-    Preprocess text data for LLM training.
-    Handles deduplication, quality filtering, and privacy removal.
+    为LLM训练预处理文本数据。
+    处理去重、质量过滤和隐私移除。
     """
 
     def __init__(self, min_length: int = 128, max_length: int = 4096):
         self.min_length = min_length
         self.max_length = max_length
-        # Patterns for privacy removal
+        # 隐私移除模式
         self.email_pattern = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
         self.phone_pattern = re.compile(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b')
         self.ssn_pattern = re.compile(r'\b\d{3}-\d{2}-\d{4}\b')
         self.ip_pattern = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
 
     def remove_pii(self, text: str) -> str:
-        """Remove personally identifiable information."""
+        """移除个人身份信息。"""
         text = self.email_pattern.sub('[EMAIL]', text)
         text = self.phone_pattern.sub('[PHONE]', text)
         text = self.ssn_pattern.sub('[SSN]', text)
@@ -92,25 +92,25 @@ class TextPreprocessor:
 
     def check_quality(self, text: str) -> bool:
         """
-        Check text quality based on heuristics.
-        Returns True if text passes quality checks.
+        基于启发式检查文本质量。
+        如果文本通过质量检查则返回True。
         """
-        # Length check
+        # 长度检查
         words = text.split()
         if len(words) < self.min_length or len(words) > self.max_length:
             return False
 
-        # Mean word length (reject very short/long words)
+        # 平均词长度（拒绝过短/过长词）
         mean_word_len = sum(len(w) for w in words) / len(words)
         if mean_word_len < 3 or mean_word_len > 10:
             return False
 
-        # Special character ratio (too many = garbage)
+        # 特殊字符比例（太多=垃圾）
         special_ratio = sum(1 for c in text if not c.isalnum() and not c.isspace()) / len(text)
         if special_ratio > 0.3:
             return False
 
-        # Repetition check (detect "aaaaaaa..." patterns)
+        # 重复检查（检测"aaaaaaa..."模式）
         if len(set(words)) / len(words) < 0.2:
             return False
 
@@ -118,8 +118,8 @@ class TextPreprocessor:
 
     def deduplicate_by_ngram(self, texts: List[str], n: int = 13) -> List[str]:
         """
-        Remove near-duplicates using n-gram overlap.
-        Uses MinHash-like approach for efficiency.
+        使用n-gram重叠移除近似重复。
+        使用MinHash类似方法提高效率。
         """
         seen_ngrams = set()
         unique_texts = []
@@ -129,23 +129,23 @@ class TextPreprocessor:
             if len(words) < n:
                 continue
 
-            # Sample n-grams
+            # 采样n-gram
             ngrams = [' '.join(words[i:i+n]) for i in range(0, len(words) - n, n)]
 
-            # Check if any n-gram seen before
+            # 检查是否见过任何n-gram
             if not any(ngram in seen_ngrams for ngram in ngrams[:5]):
                 seen_ngrams.update(ngrams)
                 unique_texts.append(text)
 
         return unique_texts
 
-# Usage
+# 用法
 preprocessor = TextPreprocessor(min_length=128, max_length=4096)
 
-# Process a batch of texts
+# 处理一批文本
 raw_texts = [
-    "This is a sample document with some contact@example.com content...",
-    "Another document with quality issues" * 10,  # Too repetitive
+    "这是一个示例文档，包含一些contact@example.com内容...",
+    "另一个文档质量问题" * 10,  # 过于重复
 ]
 
 clean_texts = []
@@ -154,29 +154,29 @@ for text in raw_texts:
     if preprocessor.check_quality(text):
         clean_texts.append(text)
 
-print(f"Processed {len(clean_texts)}/{len(raw_texts)} texts")
+print(f"处理了 {len(clean_texts)}/{len(raw_texts)} 个文本")
 ```
 
-### Curriculum Learning Strategy
+### 课程学习策略
 
-Training proceeds through carefully designed curriculum stages:
+训练通过精心设计的课程阶段进行：
 
 ```python
 from enum import Enum
 from dataclasses import dataclass
 
 class TrainingStage(Enum):
-    """Curriculum learning stages for pre-training."""
-    FOUNDATION = "foundation"      # High-quality, diverse text
-    KNOWLEDGE = "knowledge"        # Focused on factual content
-    REASONING = "reasoning"        # Logical reasoning patterns
-    SYNTHESIS = "synthesis"        # Multi-step problem solving
+    """预训练的课程学习阶段。"""
+    FOUNDATION = "foundation"      # 高质量、多样化文本
+    KNOWLEDGE = "knowledge"        # 专注于事实内容
+    REASONING = "reasoning"        # 逻辑推理模式
+    SYNTHESIS = "synthesis"        # 多步问题解决
 
 @dataclass
 class StageConfig:
-    """Configuration for a training stage."""
+    """训练阶段的配置。"""
     stage: TrainingStage
-    data_proportion: float        # Proportion of total data
+    data_proportion: float        # 总数据的比例
     learning_rate: float
     batch_size: int
     duration_steps: int
@@ -189,7 +189,7 @@ CURRICULUM = [
         learning_rate=3e-4,
         batch_size=512,
         duration_steps=400000,
-        description="Build foundational language understanding"
+        description="构建基础语言理解"
     ),
     StageConfig(
         stage=TrainingStage.KNOWLEDGE,
@@ -197,7 +197,7 @@ CURRICULUM = [
         learning_rate=2e-4,
         batch_size=512,
         duration_steps=300000,
-        description="Acquire world knowledge and facts"
+        description="获取世界知识和事实"
     ),
     StageConfig(
         stage=TrainingStage.REASONING,
@@ -205,7 +205,7 @@ CURRICULUM = [
         learning_rate=1.5e-4,
         batch_size=512,
         duration_steps=200000,
-        description="Develop reasoning capabilities"
+        description="开发推理能力"
     ),
     StageConfig(
         stage=TrainingStage.SYNTHESIS,
@@ -213,12 +213,12 @@ CURRICULUM = [
         learning_rate=1e-4,
         batch_size=512,
         duration_steps=100000,
-        description="Integrate skills for complex tasks"
+        description="集成技能以完成复杂任务"
     ),
 ]
 
 def get_curriculum_lr(step: int, curriculum: list[StageConfig]) -> float:
-    """Get learning rate based on curriculum stage."""
+    """基于课程阶段获取学习率。"""
     total_steps = sum(c.duration_steps for c in curriculum)
     current_step = step % total_steps
 
@@ -231,7 +231,7 @@ def get_curriculum_lr(step: int, curriculum: list[StageConfig]) -> float:
     return curriculum[-1].learning_rate
 ```
 
-### Python Implementation
+### Python实现
 
 ```python
 import torch
@@ -240,36 +240,36 @@ import torch.nn.functional as F
 
 def compute_language_model_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     """
-    Compute cross-entropy loss for language modeling.
+    计算语言建模的交叉熵损失。
 
     Args:
-        logits: Model output of shape (batch, seq_len, vocab_size)
-        targets: Target token IDs of shape (batch, seq_len)
+        logits: 模型输出，形状为 (batch, seq_len, vocab_size)
+        targets: 目标token ID，形状为 (batch, seq_len)
     """
-    # Flatten for cross-entropy
+    # 展平用于交叉熵
     batch_size, seq_len, vocab_size = logits.shape
     logits_flat = logits.view(-1, vocab_size)
     targets_flat = targets.view(-1)
 
-    # Compute cross-entropy loss
+    # 计算交叉熵损失
     loss = F.cross_entropy(logits_flat, targets_flat, ignore_index=-100)
 
     return loss
 
-# Example
+# 示例
 batch_size, seq_len, vocab_size = 2, 128, 50000
 logits = torch.randn(batch_size, seq_len, vocab_size)
 targets = torch.randint(0, vocab_size, (batch_size, seq_len))
 
 loss = compute_language_model_loss(logits, targets)
-print(f"Loss: {loss.item():.4f}")
-# Typical pre-training loss: 2.0-4.0 (before training)
-# Converges to ~1.8-2.5 for good models
+print(f"损失: {loss.item():.4f}")
+# 典型预训练损失: 2.0-4.0（训练前）
+# 好模型收敛到 ~1.8-2.5
 ```
 
-### Mixed Precision Training
+### 混合精度训练
 
-Mixed precision training uses FP16/BF16 for computations while maintaining FP32 master weights:
+混合精度训练使用FP16/BF16进行计算，同时保持FP32主权重：
 
 ```python
 import torch
@@ -277,8 +277,8 @@ from torch.cuda.amp import autocast, GradScaler
 
 class MixedPrecisionTrainer:
     """
-    Trainer with mixed precision support.
-    Uses BF16 when available for better numerical stability.
+    支持混合精度的训练器。
+    在可能的情况下使用BF16以获得更好的数值稳定性。
     """
 
     def __init__(self, model, optimizer, device='cuda'):
@@ -286,17 +286,17 @@ class MixedPrecisionTrainer:
         self.optimizer = optimizer
         self.device = device
 
-        # Check BF16 support
+        # 检查BF16支持
         if torch.cuda.is_bf16_supported():
             self.dtype = torch.bfloat16
-            print("Using BF16 for training")
+            print("使用BF16进行训练")
         else:
             self.dtype = torch.float16
             self.scaler = GradScaler()
-            print("Using FP16 with GradScaler for training")
+            print("使用FP16和GradScaler进行训练")
 
     def training_step(self, batch):
-        """Single training step with mixed precision."""
+        """带混合精度的单步训练。"""
         input_ids = batch['input_ids'].to(self.device)
         attention_mask = batch['attention_mask'].to(self.device)
         targets = input_ids[:, 1:].contiguous()
@@ -304,7 +304,7 @@ class MixedPrecisionTrainer:
         self.optimizer.zero_grad()
 
         if self.dtype == torch.bfloat16:
-            # BF16 doesn't need gradient scaling
+            # BF16不需要梯度缩放
             with autocast(dtype=torch.bfloat16):
                 logits = self.model(input_ids[:, :-1], attention_mask[:, :-1])
                 loss = compute_language_model_loss(logits, targets)
@@ -313,7 +313,7 @@ class MixedPrecisionTrainer:
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
             self.optimizer.step()
         else:
-            # FP16 with gradient scaling
+            # FP16带梯度缩放
             with autocast(dtype=torch.float16):
                 logits = self.model(input_ids[:, :-1], attention_mask[:, :-1])
                 loss = compute_language_model_loss(logits, targets)
@@ -327,9 +327,9 @@ class MixedPrecisionTrainer:
         return loss.item()
 ```
 
-### FlashAttention Integration
+### FlashAttention集成
 
-FlashAttention is a memory-efficient attention mechanism that's essential for large-scale training:
+FlashAttention是一种内存高效的注意力机制，对大规模训练至关重要：
 
 ```python
 try:
@@ -337,12 +337,12 @@ try:
     FLASH_ATTENTION_AVAILABLE = True
 except ImportError:
     FLASH_ATTENTION_AVAILABLE = False
-    print("FlashAttention not available, using standard attention")
+    print("FlashAttention不可用，使用标准注意力")
 
 class FlashAttentionBlock(nn.Module):
     """
-    Transformer block with FlashAttention.
-    Memory efficient: O(N) instead of O(N^2) for attention.
+    带FlashAttention的Transformer块。
+    内存高效：注意力复杂度从O(N^2)降到O(N)。
     """
 
     def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout: float = 0.1):
@@ -368,23 +368,23 @@ class FlashAttentionBlock(nn.Module):
         """
         Args:
             x: (batch, seq_len, d_model)
-            attention_mask: (batch, seq_len) or None
+            attention_mask: (batch, seq_len) 或 None
         """
-        # Self-attention with FlashAttention
+        # 带FlashAttention的自注意力
         residual = x
         x = self.norm1(x)
 
         if FLASH_ATTENTION_AVAILABLE:
-            # FlashAttention expects (batch, seq_len, 3, heads, head_dim)
+            # FlashAttention期望 (batch, seq_len, 3, heads, head_dim)
             batch_size, seq_len, _ = x.shape
             qkv = self.qkv_proj(x).reshape(batch_size, seq_len, 3, self.num_heads, self.head_dim)
             q, k, v = qkv.unbind(dim=2)
 
-            # FlashAttention requires causal mask to be handled separately
+            # FlashAttention需要单独处理因果掩码
             x = flash_attn_func(q, k, v, causal=True)
             x = self.out_proj(x.reshape(batch_size, seq_len, -1))
         else:
-            # Fallback to standard attention
+            # 回退到标准注意力
             qkv = self.qkv_proj(x)
             q, k, v = qkv.chunk(3, dim=-1)
             q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -393,7 +393,7 @@ class FlashAttentionBlock(nn.Module):
 
             attn = (q @ k.transpose(-2, -1)) / (self.head_dim ** 0.5)
 
-            # Causal mask
+            # 因果掩码
             causal_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
             attn = attn.masked_fill(causal_mask.to(x.device), float('-inf'))
 
@@ -411,7 +411,7 @@ class FlashAttentionBlock(nn.Module):
         return x
 ```
 
-### Advanced Optimizer Configuration
+### 高级优化器配置
 
 ```python
 from torch.optim import AdamW
@@ -419,12 +419,12 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 
 def create_optimizer_and_scheduler(model, config):
     """
-    Create optimizer and learning rate scheduler with warmup.
+    创建带warmup的优化器和学习率调度器。
 
-    Uses AdamW with cosine decay and linear warmup.
+    使用带cosine衰减和linear warmup的AdamW。
     """
-    # Separate parameters for weight decay
-    # Don't apply weight decay to bias, layer norm, and embedding parameters
+    # 为权重衰减分离参数
+    # 不要对bias、layer norm和embedding参数应用权重衰减
     no_decay = ['bias', 'layer_norm.weight', 'lm_head.weight']
     optimizer_grouped_parameters = [
         {
@@ -446,7 +446,7 @@ def create_optimizer_and_scheduler(model, config):
         eps=1e-8,
     )
 
-    # Warmup scheduler
+    # Warmup调度器
     warmup_scheduler = LinearLR(
         optimizer,
         start_factor=0.0,
@@ -454,14 +454,14 @@ def create_optimizer_and_scheduler(model, config):
         total_iters=config.warmup_steps
     )
 
-    # Cosine decay scheduler
+    # Cosine衰减调度器
     cosine_scheduler = CosineAnnealingLR(
         optimizer,
         T_max=config.max_steps - config.warmup_steps,
         eta_min=config.learning_rate * config.min_lr_ratio
     )
 
-    # Sequential scheduler: warmup then cosine decay
+    # 顺序调度器：先warmup然后cosine衰减
     scheduler = SequentialLR(
         optimizer,
         schedulers=[warmup_scheduler, cosine_scheduler],
@@ -470,7 +470,7 @@ def create_optimizer_and_scheduler(model, config):
 
     return optimizer, scheduler
 
-# Usage
+# 用法
 optimizer, scheduler = create_optimizer_and_scheduler(model, config)
 
 for step, batch in enumerate(dataloader):
@@ -479,44 +479,44 @@ for step, batch in enumerate(dataloader):
 
     if step % 100 == 0:
         current_lr = scheduler.get_last_lr()[0]
-        print(f"Step {step}: loss={loss:.4f}, lr={current_lr:.2e}")
+        print(f"步骤 {step}: 损失={loss:.4f}, lr={current_lr:.2e}")
 ```
 
-### Scaling Laws
+### 缩放定律
 
-The **Chinchilla scaling laws** (Hoffmann et al., 2022) established optimal compute allocation:
+**Chinchilla缩放定律**（Hoffmann等人，2022）建立了最优计算分配：
 
-| Parameter Count | Optimal Training Tokens | Compute (FLOPs) |
+| 参数数量 | 最优训练Token数 | 计算（FLOPs） |
 |-----------------|------------------------|-----------------|
 | 1B | 20B | 1.6e19 |
 | 7B | 1.4T | 8.2e20 |
 | 70B | 1.4T | 8.2e21 |
 | 400B | 3T+ | 3e23 |
 
-**Key insight:** Models should be trained on ~20 tokens per parameter for optimal performance.
+**关键见解**: 模型应该为每个参数训练约20个token以获得最佳性能。
 
-### Scaling Law Formula
+### 缩放定律公式
 
 ```
 L(N, D) = E + A/N^alpha + B/D^beta
 ```
 
-Where:
-- `L` is the loss
-- `N` is the parameter count
-- `D` is the data size (tokens)
-- `E`, `A`, `B`, `alpha`, `beta` are fitted constants
+其中：
+- `L` 是损失
+- `N` 是参数数量
+- `D` 是数据量（token数）
+- `E`, `A`, `B`, `alpha`, `beta` 是拟合常数
 
 ```python
 def chinchilla_loss(params: float, tokens: float) -> float:
     """
-    Approximate Chinchilla scaling law.
+    近似Chinchilla缩放定律。
 
     Args:
-        params: Number of parameters (billions)
-        tokens: Training tokens (trillions)
+        params: 参数数量（十亿）
+        tokens: 训练token数（万亿）
     """
-    E = 1.69  # Irreducible loss
+    E = 1.69  # 不可减少的损失
     A = 406.4
     B = 998.1
     alpha = 0.34
@@ -525,14 +525,14 @@ def chinchilla_loss(params: float, tokens: float) -> float:
     loss = E + A / (params ** alpha) + B / (tokens ** beta)
     return loss
 
-# Find optimal data for 7B model
+# 为7B模型找最优数据
 params_7b = 7
-optimal_tokens_7b = 20 * params_7b  # Chinchilla: ~20 tokens per parameter
+optimal_tokens_7b = 20 * params_7b  # Chinchilla: 每个参数约20个token
 loss_7b = chinchilla_loss(params_7b, optimal_tokens_7b / 1000)
-print(f"Optimal tokens for 7B: {optimal_tokens_7b}B, Loss: {loss_7b:.3f}")
+print(f"7B最优token数: {optimal_tokens_7b}B, 损失: {loss_7b:.3f}")
 ```
 
-### Training Configuration Example
+### 训练配置示例
 
 ```python
 from dataclasses import dataclass
@@ -540,33 +540,33 @@ from typing import Optional
 
 @dataclass
 class PreTrainingConfig:
-    """Configuration for LLM pre-training."""
+    """LLM预训练配置。"""
 
-    # Model architecture
+    # 模型架构
     d_model: int = 4096
     num_heads: int = 32
     num_layers: int = 32
-    d_ff: int = 10952  # 8/3 * d_model for SwiGLU
+    d_ff: int = 10952  # SwiGLU的8/3 * d_model
 
-    # Training hyperparameters
-    batch_size: int = 512  # Global batch size
-    micro_batch_size: int = 4  # Per-GPU batch size
+    # 训练超参数
+    batch_size: int = 512  # 全局批量大小
+    micro_batch_size: int = 4  # 每GPU批量大小
     learning_rate: float = 3e-4
     weight_decay: float = 0.1
     beta1: float = 0.9
     beta2: float = 0.95
 
-    # Learning rate schedule
+    # 学习率调度
     warmup_steps: int = 2000
     max_steps: int = 1000000
     min_lr_ratio: float = 0.1
 
-    # Data
+    # 数据
     vocab_size: int = 128000
     max_seq_len: int = 4096
 
     def get_lr(self, step: int) -> float:
-        """Cosine learning rate schedule with warmup."""
+        """带warmup的cosine学习率调度。"""
         if step < self.warmup_steps:
             return self.learning_rate * step / self.warmup_steps
 
@@ -574,94 +574,94 @@ class PreTrainingConfig:
         cosine_decay = 0.5 * (1 + math.cos(math.pi * progress))
         return self.min_lr_ratio * self.learning_rate + (1 - self.min_lr_ratio) * self.learning_rate * cosine_decay
 
-# Training loop skeleton
+# 训练循环骨架
 def pretrain_step(model, optimizer, config, batch):
-    """Single pre-training step."""
+    """单步预训练。"""
     input_ids = batch['input_ids']  # (batch, seq_len)
     attention_mask = batch['attention_mask']
 
-    # Forward pass
+    # 前向传播
     logits = model(input_ids, attention_mask)
 
-    # Compute loss (shift for next-token prediction)
+    # 计算损失（用于下一个token预测的偏移）
     shift_logits = logits[..., :-1, :].contiguous()
     shift_labels = input_ids[..., 1:].contiguous()
     loss = compute_language_model_loss(shift_logits, shift_labels)
 
-    # Backward pass
+    # 反向传播
     loss.backward()
 
-    # Gradient clipping
+    # 梯度裁剪
     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
-    # Optimizer step
+    # 优化器步骤
     optimizer.step()
     optimizer.zero_grad()
 
     return loss.item()
 ```
 
-### Emergent Abilities
+### Emergent能力
 
-Capabilities that emerge at scale without explicit training:
+在规模下出现但未明确训练的能力：
 
-| Ability | Emerges At | Description |
+| 能力 | 出现位置 | 描述 |
 |---------|------------|-------------|
-| **In-context learning** | ~10B+ | Learn from examples in prompt |
-| **Chain-of-thought** | ~30B+ | Multi-step reasoning |
-| **Instruction-following** | ~7B+ (with SFT) | Understand and follow directions |
-| **Code generation** | ~7B+ | Write and debug code |
-| **Multi-lingual** | ~7B+ | Cross-lingual transfer |
+| **上下文学习** | ~10B+ | 从prompt中的例子学习 |
+| **思维链** | ~30B+ | 多步推理 |
+| **指令遵循** | ~7B+（带SFT） | 理解并遵循指示 |
+| **代码生成** | ~7B+ | 编写和调试代码 |
+| **多语言** | ~7B+ | 跨语言迁移 |
 
-**Important:** Emergent abilities are not guaranteed - they depend on training data and architecture choices.
+**重要**: Emergent能力不是保证的 - 它们取决于训练数据和架构选择。
 
 ---
 
-## Supervised Fine-Tuning (SFT)
+## 监督微调 (SFT)
 
-### Instruction Tuning
+### 指令微调
 
-SFT teaches the base model to follow instructions and format responses appropriately.
+SFT教会基础模型遵循指令并适当格式化响应。
 
 ```mermaid
 flowchart LR
-    A[Base Model] --> B[Instruction Dataset]
-    B --> C[Fine-tune]
-    C --> D[Chat Model]
+    A[基础模型] --> B[指令数据集]
+    B --> C[微调]
+    C --> D[聊天模型]
 
     style B fill:#fff3e0
 ```
 
-### Data Format
+### 数据格式
 
-SFT uses prompt-response pairs:
+SFT使用prompt-response对：
 
 ```python
 sft_data = [
     {
-        "instruction": "Explain quantum computing in simple terms.",
+        "instruction": "用简单术语解释量子计算。",
         "input": "",
-        "output": "Quantum computing is like..."
+        "output": "量子计算就像..."
     },
     {
-        "instruction": "Write a Python function to reverse a string.",
+        "instruction": "写一个Python函数来反转字符串。",
         "input": "",
         "output": "def reverse_string(s):\n    return s[::-1]"
     },
 ]
 
-# Format for training
+# 为训练格式化SFT示例
 def format_sft_prompt(example, tokenizer):
     """
-    Format SFT example for training.
-    Uses chat template format.
+    为训练格式化SFT示例。
+    使用chat模板格式。
     """
     messages = [
         {"role": "user", "content": example["instruction"] + " " + example["input"]},
         {"role": "assistant", "content": example["output"]}
     ]
 
-    # Apply chat template
+    # 应用chat模板
     prompt = tokenizer.apply_chat_template(
         messages,
         tokenize=False,
@@ -670,83 +670,83 @@ def format_sft_prompt(example, tokenizer):
 
     return prompt
 
-# Example prompt for Llama 3:
-# <|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nExplain quantum computing...<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nQuantum computing is like...<|eot_id|>
+# Llama 3的示例prompt：
+# <|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n解释量子计算...<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n量子计算就像...<|eot_id|>
 ```
 
-### Training Configuration
+### 训练配置
 
 ```python
 @dataclass
 class SFTConfig:
-    """Configuration for supervised fine-tuning."""
+    """监督微调配置。"""
 
-    # Use base model config
+    # 使用基础模型配置
     base_model_config: PreTrainingConfig = field(default_factory=PreTrainingConfig)
 
-    # SFT-specific
-    learning_rate: float = 2e-5  # Lower than pre-training
-    batch_size: int = 64  # Smaller batches
-    epochs: int = 3  # Multiple passes over SFT data
+    # SFT特定
+    learning_rate: float = 2e-5  # 低于预训练
+    batch_size: int = 64  # 更小批量
+    epochs: int = 3  # 对SFT数据多次遍历
 
-    # Data
-    max_length: int = 2048  # Shorter than pre-training
+    # 数据
+    max_length: int = 2048  # 比预训练短
 
-    # Regularization
+    # 正则化
     weight_decay: float = 0.01
     warmup_ratio: float = 0.03
 
 def sft_loss(logits, labels, attention_mask):
     """
-    Compute SFT loss with masked positions.
+    计算带掩码位置的SFT损失。
 
-    Only compute loss on assistant responses, not instructions.
+    只在assistant响应上计算损失，不在指令上。
     """
     shift_logits = logits[..., :-1, :].contiguous()
     shift_labels = labels[..., 1:].contiguous()
     shift_mask = attention_mask[..., 1:].contiguous()
 
-    # Only compute loss where mask is active (assistant tokens)
+    # 只在掩码激活处计算损失（assistant tokens）
     loss = F.cross_entropy(
         shift_logits.view(-1, shift_logits.size(-1)),
         shift_labels.view(-1),
         reduction='none'
     )
 
-    # Apply mask
+    # 应用掩码
     loss = loss.view(shift_labels.size()) * shift_mask
     return loss.sum() / shift_mask.sum()
 ```
 
-### Quality Over Quantity
+### 质量而非数量
 
-| Aspect | Pre-Training | SFT |
+| 方面 | 预训练 | SFT |
 |--------|--------------|-----|
-| **Data size** | Trillions of tokens | Millions of examples |
-| **Data quality** | Filtered but diverse | Hand-curated |
-| **Cost** | Extremely high | Moderate |
-| **Critical factor** | Quantity and diversity | Quality and diversity |
+| **数据量** | 万亿token | 百万示例 |
+| **数据质量** | 过滤但多样化 | 手工策划 |
+| **成本** | 极高 | 中等 |
+| **关键因素** | 数量和多样性 | 质量和多样性 |
 
-**SFT data curation principles:**
-1. **Correctness:** Verify responses are accurate
-2. **Diversity:** Cover varied tasks and domains
-3. **Format consistency:** Standardize instruction format
-4. **Length variety:** Include short and long responses
-5. **Complexity grading:** Easy to hard examples
+**SFT数据策划原则**:
+1. **正确性**: 验证响应准确性
+2. **多样性**: 覆盖不同任务和领域
+3. **格式一致性**: 标准化指令格式
+4. **长度变化**: 包含短和长响应
+5. **复杂度分级**: 从易到难的例子
 
-### Parameter-Efficient Fine-Tuning (PEFT)
+### 参数高效微调 (PEFT)
 
-PEFT methods enable fine-tuning large models with significantly reduced computational requirements:
+PEFT方法使微调大模型的计算要求显著降低：
 
-#### LoRA (Low-Rank Adaptation)
+#### LoRA (低秩适应)
 
-LoRA adds trainable low-rank matrices to existing weights:
+LoRA向现有权重添加可训练的低秩矩阵：
 
 ```python
 class LoRALinear(nn.Module):
     """
-    LoRA-enhanced linear layer.
-    Freezes original weights and trains low-rank adapters.
+    LoRA增强的线性层。
+    冻结原始权重并训练低秩适配器。
     """
 
     def __init__(
@@ -758,29 +758,29 @@ class LoRALinear(nn.Module):
         dropout: float = 0.1
     ):
         super().__init__()
-        # Freeze original weights
+        # 冻结原始权重
         self.linear = nn.Linear(in_features, out_features, bias=False)
         self.linear.weight.requires_grad = False
 
-        # Trainable low-rank adapters
+        # 可训练的低秩适配器
         self.lora_A = nn.Parameter(torch.randn(in_features, rank) * 0.01)
         self.lora_B = nn.Parameter(torch.zeros(rank, out_features))
         self.scaling = alpha / rank
 
         self.dropout = nn.Dropout(dropout)
 
-        # Reset lora_B with zeros (no initial impact)
+        # 用零重置lora_B（无初始影响）
         nn.init.zeros_(self.lora_B)
 
     def forward(self, x):
         """
-        Original weight + low-rank adaptation:
+        原始权重 + 低秩适应：
         y = Wx + BAx * scaling
         """
-        # Original path (frozen)
+        # 原始路径（冻结）
         result = self.linear(x)
 
-        # LoRA path (trainable)
+        # LoRA路径（可训练）
         lora_result = self.dropout(x)
         lora_result = lora_result @ self.lora_A  # (batch, rank)
         lora_result = lora_result @ self.lora_B   # (batch, out_features)
@@ -790,19 +790,19 @@ class LoRALinear(nn.Module):
 
 def apply_lora_to_model(model, rank: int = 8, alpha: float = 16.0):
     """
-    Apply LoRA to all linear layers in a model.
+    对模型中的所有线性层应用LoRA。
     """
     for name, module in model.named_modules():
         if isinstance(module, nn.Linear) and 'lm_head' not in name:
-            # Get original layer configuration
+            # 获取原始层配置
             in_features = module.in_features
             out_features = module.out_features
 
-            # Create LoRA-enhanced layer
+            # 创建LoRA增强层
             lora_layer = LoRALinear(in_features, out_features, rank, alpha)
             lora_layer.linear.weight.data = module.weight.data.clone()
 
-            # Replace in model
+            # 在模型中替换
             parent_name = '.'.join(name.split('.')[:-1])
             child_name = name.split('.')[-1]
             parent = model.get_submodule(parent_name) if parent_name else model
@@ -811,17 +811,17 @@ def apply_lora_to_model(model, rank: int = 8, alpha: float = 16.0):
     return model
 ```
 
-#### QLoRA (Quantized LoRA)
+#### QLoRA (量化LoRA)
 
-QLoRA combines 4-bit quantization with LoRA for maximum efficiency:
+QLoRA将4位量化与LoRA结合以获得最大效率：
 
 ```python
 import bitsandbytes as bnb
 
 class QLoRALinear(nn.Module):
     """
-    QLoRA: 4-bit quantized base weights + LoRA adapters.
-    Uses NormalFloat4 (NF4) quantization for optimal quantile distribution.
+    QLoRA: 4位量化基础权重 + LoRA适配器。
+    使用NormalFloat4 (NF4) 量化以获得最佳分位数分布。
     """
 
     def __init__(
@@ -834,7 +834,7 @@ class QLoRALinear(nn.Module):
     ):
         super().__init__()
 
-        # 4-bit quantized base weights (frozen)
+        # 4位量化基础权重（冻结）
         self.linear = bnb.nn.Linear4bit(
             in_features,
             out_features,
@@ -843,7 +843,7 @@ class QLoRALinear(nn.Module):
         )
         self.linear.weight.requires_grad = False
 
-        # FP16 LoRA adapters (trainable)
+        # FP16 LoRA适配器（可训练）
         self.lora_A = nn.Parameter(torch.randn(in_features, rank) * 0.01)
         self.lora_B = nn.Parameter(torch.zeros(rank, out_features))
         self.scaling = alpha / rank
@@ -851,10 +851,10 @@ class QLoRALinear(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        # Dequantize + compute original path
+        # 解量化 + 计算原始路径
         result = self.linear(x)
 
-        # LoRA path
+        # LoRA路径
         lora_result = self.dropout(x)
         lora_result = lora_result @ self.lora_A
         lora_result = lora_result @ self.lora_B
@@ -863,36 +863,36 @@ class QLoRALinear(nn.Module):
         return result
 ```
 
-### PEFT Comparison
+### PEFT比较
 
-| Method | Memory | Speed | Quality | Use Case |
+| 方法 | 内存 | 速度 | 质量 | 使用场景 |
 |--------|--------|-------|---------|----------|
-| **Full Fine-tuning** | 100% | 1x | Best | When resources available |
-| **LoRA (rank=8)** | ~25% | 1x | Near-best | Most fine-tuning tasks |
-| **LoRA (rank=64)** | ~50% | 1x | Best | Complex tasks, domains |
-| **QLoRA (rank=8)** | ~12% | 0.9x | Good | Resource-constrained |
-| **Adapter Layers** | ~30% | 0.95x | Good | Multi-task learning |
+| **完整微调** | 100% | 1x | 最佳 | 当资源可用时 |
+| **LoRA (rank=8)** | ~25% | 1x | 接近最佳 | 大多数微调任务 |
+| **LoRA (rank=64)** | ~50% | 1x | 最佳 | 复杂任务、领域 |
+| **QLoRA (rank=8)** | ~12% | 0.9x | 良好 | 资源受限 |
+| **适配器层** | ~30% | 0.95x | 良好 | 多任务学习 |
 
-### 2025: Advanced PEFT Techniques
+### 2025: 高级PEFT技术
 
-**DoRA (Weight-Decomposed LoRA)** - Better control over adaptation:
+**DoRA (权重分解LoRA)** - 更好的适应控制：
 
 ```python
 class DoRALayer(nn.Module):
     """
-    DoRA: Weight-Decomposed Low-Rank Adaptation.
+    DoRA: 权重分解低秩适应。
 
-    Reference: https://arxiv.org/abs/2402.09353
+    参考: https://arxiv.org/abs/2402.09353
     """
     def __init__(self, in_features: int, rank: int = 8, alpha: float = 16.0):
         self.rank = rank
-        self.alpha = alpha / rank  # Scaling factor
+        self.alpha = alpha / rank  # 缩放因子
 
-        # Standard LoRA components
+        # 标准LoRA组件
         self.lora_A = nn.Parameter(torch.randn(in_features, rank))
         self.lora_B = nn.Parameter(torch.zeros(rank, in_features))
 
-        # DoRA additions: magnitude and direction
+        # DoRA添加：幅度和方向
         self.magnitude = nn.Parameter(torch.ones(1))
         self.direction = nn.Parameter(torch.randn(in_features) / torch.norm(torch.randn(in_features)))
 
@@ -900,54 +900,54 @@ class DoRALayer(nn.Module):
         # LoRA delta: BA
         lora_delta = self.lora_B @ (self.lora_A * self.magnitude)
 
-        # Direction-weighted update
+        # 方向加权更新
         delta = self.alpha * (lora_delta * self.direction)
 
         return x + delta
 
-# Benefits:
-# - Better control over adaptation
-# - More stable training for large rank
-# - Improved performance on complex tasks
-# - 1-2% quality improvement over standard LoRA
+# 优势：
+# - 更好的适应控制
+# - 大rank训练更稳定
+# - 复杂任务上改进性能
+# - 比标准LoRA提高1-2%质量
 ```
 
-**LoftQ** - Quantization-aware LoRA training:
+**LoftQ** - 量化感知LoRA训练：
 
 ```python
 def loftq_training(model, dataset, bits=4):
     """
-    LoftQ: Train LoRA on quantized models without dequantization.
+    LoftQ: 在量化模型上训练LoRA，无需解量化。
 
-    Reference: https://arxiv.org/abs/2310.04635
+    参考: https://arxiv.org/abs/2310.04635
     """
-    # Step 1: Quantize base model to INT4
+    # 步骤1: 将基础模型量化到INT4
     quantized_model = quantize_model(model, bits=bits)
 
-    # Step 2: Initialize LoRA with quantization-aware init
+    # 步骤2: 用量化感知初始化LoRA
     lora = initialize_lora_aware(quantized_model, rank=8)
 
-    # Step 3: Train LoRA with straight-through estimator
+    # 步骤3: 用straight-through estimator训练LoRA
     for batch in dataset:
-        # Forward pass through quantized model
+        # 通过量化模型前向传播
         output = quantized_model(batch)
         loss = compute_loss(output, batch["labels"])
 
-        # Backward pass with STE
+        # 带STE的反向传播
         loss.backward()
         optimizer.step()
 
-    # Result: 8x memory reduction, 97% of full fine-tuning quality
+    # 结果: 8倍内存减少，达到完整微调质量的97%
 ```
 
-**AdapterFusion** - Merge adapters for efficient multi-task learning:
+**AdapterFusion** - 合并适配器以实现高效多任务学习：
 
 ```python
 class AdapterFusion:
     """
-    AdapterFusion: Merge multiple task adapters into base model.
+    AdapterFusion: 将多个任务适配器合并到基础模型中。
 
-    Reference: https://arxiv.org/abs/2311.15961
+    参考: https://arxiv.org/abs/2311.15961
     """
     def __init__(self, base_model, task_adapters: dict):
         self.base_model = base_model
@@ -955,18 +955,18 @@ class AdapterFusion:
 
     def fuse(self, tasks: list[str]) -> nn.Module:
         """
-        Fuse multiple task adapters into base model.
+        将多个任务适配器合并到基础模型中。
         """
-        # Average adapter weights
+        # 平均适配器权重
         fused_adapter = self.average_adapters(tasks)
 
-        # Merge into base model
+        # 合并到基础模型
         fused_model = merge_adapter_into_base(self.base_model, fused_adapter)
 
         return fused_model
 
     def average_adapters(self, tasks: list[str]) -> dict:
-        """Average adapter weights across tasks."""
+        """跨任务平均适配器权重。"""
         adapters = [self.task_adapters[task] for task in tasks]
 
         averaged = {}
@@ -979,41 +979,41 @@ class AdapterFusion:
         return averaged
 ```
 
-**2025 PEFT comparison:**
+**2025 PEFT比较：**
 
-| Method | Memory | Quality | Training Speed | Inference | Best For |
+| 方法 | 内存 | 质量 | 训练速度 | 推理 | 最佳用于 |
 |--------|--------|---------|---------------|-----------|----------|
-| **LoRA (rank=8)** | 25% | 98-99% | 1x | 1x | General fine-tuning |
-| **QLoRA (rank=8)** | 12% | 97-98% | 1x | 1x | Resource-constrained |
-| **DoRA** | 25% | 99-100% | 1x | 1x | Complex tasks |
-| **LoftQ** | 12% | 97% | 0.9x | 1.2x faster | On quantized models |
-| **AdapterFusion** | 30% | 95-97% | 1x | 1x (no adapter overhead) | Multi-task deployment |
+| **LoRA (rank=8)** | 25% | 98-99% | 1x | 1x | 通用微调 |
+| **QLoRA (rank=8)** | 12% | 97-98% | 1x | 1x | 资源受限 |
+| **DoRA** | 25% | 99-100% | 1x | 1x | 复杂任务 |
+| **LoftQ** | 12% | 97% | 0.9x | 1.2x更快 | 在量化模型上 |
+| **AdapterFusion** | 30% | 95-97% | 1x | 1x（无适配器开销） | 多任务部署 |
 
 ---
 
-Training on multiple tasks simultaneously for better generalization:
+同时在多个任务上训练以获得更好的泛化：
 
 ```python
 class MultiTaskSFTDataset(torch.utils.data.Dataset):
     """
-    Dataset that samples from multiple task types.
-    Ensures balanced sampling across tasks.
+    从多个任务类型采样的数据集。
+    确保任务间平衡采样。
     """
 
     def __init__(self, task_datasets: dict, samples_per_task: int = 1000):
         """
         Args:
             task_datasets: Dict of {task_name: dataset}
-            samples_per_task: How many samples to draw per task per epoch
+            samples_per_task: 每个任务每个轮次抽取多少样本
         """
         self.task_datasets = task_datasets
         self.task_names = list(task_datasets.keys())
         self.samples_per_task = samples_per_task
 
-        # Create task ID embeddings
+        # 创建任务ID嵌入
         self.task_to_id = {name: i for i, name in enumerate(self.task_names)}
 
-        # Pre-compute indices for each task
+        # 为每个任务预计算索引
         self.task_indices = {}
         for task_name, dataset in task_datasets.items():
             self.task_indices[task_name] = list(range(len(dataset)))
@@ -1022,22 +1022,22 @@ class MultiTaskSFTDataset(torch.utils.data.Dataset):
         return len(self.task_names) * self.samples_per_task
 
     def __getitem__(self, idx):
-        # Round-robin task sampling
+        # 轮询任务采样
         task_idx = idx % len(self.task_names)
         task_name = self.task_names[task_idx]
 
-        # Sample from this task
+        # 从此任务采样
         dataset = self.task_datasets[task_name]
         sample_idx = random.choice(self.task_indices[task_name])
         example = dataset[sample_idx]
 
-        # Add task identifier
+        # 添加任务标识符
         example['task_id'] = self.task_to_id[task_name]
         example['task_name'] = task_name
 
         return example
 
-# Usage: Create datasets for different task types
+# 用法：为不同任务类型创建数据集
 task_datasets = {
     'chat': ChatDataset(),
     'code': CodeDataset(),
@@ -1050,18 +1050,18 @@ multi_task_dataset = MultiTaskSFTDataset(task_datasets)
 dataloader = DataLoader(multi_task_dataset, batch_size=32, shuffle=True)
 ```
 
-### SFT Training Loop with PEFT
+### 带PEFT的SFT训练循环
 
 ```python
 def train_sft_with_lora(model, dataloader, config):
     """
-    Train model with LoRA for SFT.
-    Only LoRA parameters are updated.
+    使用LoRA为SFT训练模型。
+    只更新LoRA参数。
     """
-    # Apply LoRA
+    # 应用LoRA
     model = apply_lora_to_model(model, rank=config.lora_rank, alpha=config.lora_alpha)
 
-    # Only train LoRA parameters
+    # 只训练LoRA参数
     trainable_params = [p for n, p in model.named_parameters() if 'lora_' in n]
     optimizer = torch.optim.AdamW(trainable_params, lr=config.learning_rate)
 
@@ -1073,7 +1073,7 @@ def train_sft_with_lora(model, dataloader, config):
             attention_mask = batch['attention_mask'].to(config.device)
             labels = batch['labels'].to(config.device)
 
-            # Forward pass
+            # 前向传播
             outputs = model(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
@@ -1082,7 +1082,7 @@ def train_sft_with_lora(model, dataloader, config):
 
             loss = outputs.loss
 
-            # Backward pass (only LoRA params get gradients)
+            # 反向传播（只有LoRA参数获得梯度）
             loss.backward()
             torch.nn.utils.clip_grad_norm_(trainable_params, max_norm=1.0)
             optimizer.step()
@@ -1092,33 +1092,33 @@ def train_sft_with_lora(model, dataloader, config):
 
             if step % 100 == 0:
                 avg_loss = total_loss / (step + 1)
-                print(f"Epoch {epoch}, Step {step}: Loss = {avg_loss:.4f}")
+                print(f"轮次 {epoch}, 步骤 {step}: 损失 = {avg_loss:.4f}")
 
     return model
 ```
 
 ---
 
-## RLHF (Reinforcement Learning from Human Feedback)
+## RLHF (来自人类反馈的强化学习)
 
-### Three-Stage Process
+### 三阶段过程
 
 ```mermaid
 flowchart TB
-    subgraph Stage1["Stage 1: Reward Model"]
-        A[SFT Model] --> B[Collect Comparisons]
-        B --> C[Train Reward Model]
+    subgraph Stage1["阶段 1: 奖励模型"]
+        A[SFT模型] --> B[收集比较]
+        B --> C[训练奖励模型]
     end
 
-    subgraph Stage2["Stage 2: RL Training"]
-        C --> D[PPO Training]
-        D --> E[Policy Model]
+    subgraph Stage2["阶段 2: RL训练"]
+        C --> D[PPO训练]
+        D --> E[策略模型]
     end
 
-    subgraph Stage3["Stage 3: Iteration"]
-        E --> F[Generate Responses]
-        F --> G[Human Rating]
-        G --> H[Update Reward Model]
+    subgraph Stage3["阶段 3: 迭代"]
+        E --> F[生成响应]
+        F --> G[人工评分]
+        G --> H[更新奖励模型]
         H --> D
     end
 
@@ -1127,23 +1127,23 @@ flowchart TB
     style G fill:#f3e5f5
 ```
 
-### Stage 1: Reward Model Training
+### 阶段 1: 奖励模型训练
 
 ```python
 class RewardModel(nn.Module):
     """
-    Reward model that scores responses.
-    Uses base model with a classification head.
+    评分响应的奖励模型。
+    使用带分类头的基础模型。
     """
     def __init__(self, base_model, d_model):
         super().__init__()
         self.base_model = base_model
         self.reward_head = nn.Linear(d_model, 1)
-        self.base_model.lm_head = None  # Remove LM head
+        self.base_model.lm_head = None  # 移除LM头
 
     def forward(self, input_ids, attention_mask):
         """
-        Returns scalar reward score.
+        返回标量奖励分数。
 
         Args:
             input_ids: (batch, seq_len)
@@ -1151,56 +1151,56 @@ class RewardModel(nn.Module):
         Returns:
             reward: (batch, 1)
         """
-        # Get base model output (last token hidden state)
+        # 获取基础模型输出（最后一个token的隐藏状态）
         outputs = self.base_model(input_ids, attention_mask, output_hidden_states=True)
         last_hidden = outputs.last_hidden_state[:, -1, :]  # (batch, d_model)
 
-        # Score with reward head
+        # 用奖励头评分
         reward = self.reward_head(last_hidden)  # (batch, 1)
         return reward
 
 def reward_model_loss(reward_chosen, reward_rejected):
     """
-    Ranking loss for reward model training.
+    奖励模型训练的排序损失。
 
     Args:
-        reward_chosen: Reward for chosen response
-        reward_rejected: Reward for rejected response
+        reward_chosen: 选中响应的奖励
+        reward_rejected: 拒绝响应的奖励
     """
-    # Margin-based loss: maximize reward_chosen - reward_rejected
+    # 基于边界的损失：最大化reward_chosen - reward_rejected
     loss = -torch.log(torch.sigmoid(reward_chosen - reward_rejected)).mean()
     return loss
 
-# Training data format
+# 训练数据格式
 comparison_data = [
     {
-        "prompt": "What is the capital of France?",
-        "chosen": "The capital of France is Paris.",
-        "rejected": "Paris."
+        "prompt": "法国的首都是什么？",
+        "chosen": "法国的首都是巴黎。",
+        "rejected": "巴黎。"
     },
     {
-        "prompt": "Explain photosynthesis.",
-        "chosen": "Photosynthesis is the process by which plants...",
-        "rejected": "Plants make food from sunlight."
+        "prompt": "解释光合作用。",
+        "chosen": "光合作用是植物利用阳光...",
+        "rejected": "植物利用阳光制造食物。"
     },
 ]
 
-# Training step
+# 训练步骤
 def train_reward_step(model, optimizer, batch):
-    """Single reward model training step."""
+    """单步奖励模型训练。"""
     chosen_input = batch['chosen_input_ids']
     rejected_input = batch['rejected_input_ids']
     chosen_mask = batch['chosen_attention_mask']
     rejected_mask = batch['rejected_attention_mask']
 
-    # Get rewards
+    # 获取奖励
     reward_chosen = model(chosen_input, chosen_mask)
     reward_rejected = model(rejected_input, rejected_mask)
 
-    # Compute ranking loss
+    # 计算排序损失
     loss = reward_model_loss(reward_chosen, reward_rejected)
 
-    # Backward pass
+    # 反向传播
     loss.backward()
     optimizer.step()
     optimizer.zero_grad()
@@ -1208,9 +1208,9 @@ def train_reward_step(model, optimizer, batch):
     return loss.item()
 ```
 
-### Stage 2: PPO Training
+### 阶段 2: PPO训练
 
-PPO (Proximal Policy Optimization) updates the policy model using reward signals.
+PPO（Proximal Policy Optimization）使用奖励信号更新策略模型。
 
 ```python
 def ppo_loss(
@@ -1220,40 +1220,40 @@ def ppo_loss(
     clip_epsilon: float = 0.2
 ) -> torch.Tensor:
     """
-    Compute PPO clipped surrogate loss.
+    计算PPO裁剪代理损失。
 
     Args:
-        log_probs: Current policy log probabilities
-        old_log_probs: Old policy log probabilities (from reference model)
-        advantages: Advantage estimates
-        clip_epsilon: Clipping parameter
+        log_probs: 当前策略对数概率
+        old_log_probs: 旧策略对数概率（来自参考模型）
+        advantages: 优势估计
+        clip_epsilon: 裁剪参数
     """
-    # Probability ratio
+    # 概率比率
     ratio = torch.exp(log_probs - old_log_probs)
 
-    # Clipped surrogate loss
+    # 裁剪代理损失
     surr1 = ratio * advantages
     surr2 = torch.clamp(ratio, 1 - clip_epsilon, 1 + clip_epsilon) * advantages
 
-    # PPO loss (negative because we want to maximize)
+    # PPO损失（负因为我们想最大化）
     loss = -torch.min(surr1, surr2).mean()
 
     return loss
 
 def compute_advantages(rewards, values, gamma=0.99, lambda_gae=0.95):
     """
-    Compute Generalized Advantage Estimation (GAE).
+    计算广义优势估计（GAE）。
 
     Args:
-        rewards: Reward at each step
-        values: Value function estimates
-        gamma: Discount factor
-        lambda_gae: GAE parameter
+        rewards: 每步的奖励
+        values: 价值函数估计
+        gamma: 折扣因子
+        lambda_gae: GAE参数
     """
     advantages = []
     gae = 0
 
-    # Reverse iteration for GAE
+    # 反向迭代计算GAE
     for t in reversed(range(len(rewards))):
         if t == len(rewards) - 1:
             next_value = 0
@@ -1266,7 +1266,7 @@ def compute_advantages(rewards, values, gamma=0.99, lambda_gae=0.95):
 
     return torch.tensor(advantages)
 
-# Full PPO step
+# 完整PPO步骤
 def ppo_step(
     policy_model,
     reference_model,
@@ -1278,46 +1278,46 @@ def ppo_step(
     kl_coef=0.1
 ):
     """
-    Single PPO optimization step.
+    单步PPO优化。
     """
     prompts = batch['prompts']
     responses = batch['responses']
 
-    # Get current policy log probs
+    # 获取当前策略log probs
     policy_output = policy_model(prompts, responses)
     current_log_probs = policy_output.log_probs
 
-    # Get reference policy log probs (frozen)
+    # 获取参考策略log probs（冻结）
     with torch.no_grad():
         ref_output = reference_model(prompts, responses)
         old_log_probs = ref_output.log_probs
 
-    # Get value estimates
+    # 获取价值估计
     values = value_model(prompts, responses)
 
-    # Get rewards
+    # 获取奖励
     with torch.no_grad():
         rewards = reward_model(prompts, responses)
 
-    # Compute advantages
+    # 计算优势
     advantages = compute_advantages(rewards, values)
 
-    # Normalize advantages
+    # 归一化优势
     advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
-    # Compute PPO loss
+    # 计算PPO损失
     policy_loss = ppo_loss(current_log_probs, old_log_probs, advantages)
 
-    # Value function loss
+    # 价值函数损失
     value_loss = F.mse_loss(values, rewards)
 
-    # KL divergence penalty (prevent policy drift)
+    # KL散度惩罚（防止策略漂移）
     kl_penalty = (current_log_probs - old_log_probs).pow(2).mean()
 
-    # Total loss
+    # 总损失
     loss = policy_loss + value_loss + kl_coef * kl_penalty
 
-    # Backward pass
+    # 反向传播
     loss.backward()
     torch.nn.utils.clip_grad_norm_(policy_model.parameters(), max_norm=1.0)
     optimizer.step()
@@ -1331,39 +1331,39 @@ def ppo_step(
     }
 ```
 
-### RLHF Challenges
+### RLHF挑战
 
-| Challenge | Description | Mitigation |
+| 挑战 | 描述 | 缓解措施 |
 |-----------|-------------|------------|
-| **Reward hacking** | Model learns to exploit reward function | Use KL penalty, reference model |
-| **Training instability** | PPO can be unstable | Careful hyperparameter tuning |
-| **Annotation cost** | Human labeling is expensive | Use AI-assisted labeling |
-| **Subjectivity** | Human preferences vary | Aggregate multiple raters |
+| **奖励黑客** | 模型学会利用奖励函数 | 使用KL惩罚、参考模型 |
+| **训练不稳定** | PPO可能不稳定 | 仔细调整超参数 |
+| **标注成本** | 人工标注昂贵 | 使用AI辅助标注 |
+| **主观性** | 人类偏好差异 | 聚合多个评分者 |
 
 ---
 
-## DPO (Direct Preference Optimization)
+## DPO (直接偏好优化)
 
-### Why DPO?
+### 为什么使用DPO？
 
-DPO simplifies RLHF by eliminating the need for a separate reward model and PPO training.
+DPO通过消除单独的奖励模型和PPO训练需求来简化RLHF。
 
-**Comparison:**
+**比较：**
 
-| Aspect | RLHF | DPO |
+| 方面 | RLHF | DPO |
 |--------|------|-----|
-| **Reward model** | Required | Not required |
-| **Training algorithm** | PPO (complex) | Binary cross-entropy |
-| **Stability** | Sensitive | More stable |
-| **Implementation** | Complex | Simple |
-| **Memory usage** | 3x models | 2x models |
-| **Training speed** | Slower | Faster |
+| **奖励模型** | 需要 | 不需要 |
+| **训练算法** | PPO（复杂） | 二元交叉熵 |
+| **稳定性** | 敏感 | 更稳定 |
+| **实现** | 复杂 | 简单 |
+| **内存使用** | 3倍模型 | 2倍模型 |
+| **训练速度** | 较慢 | 更快 |
 
-### Alignment Algorithm Family
+### 对齐算法系列
 
-#### DPO (Direct Preference Optimization)
+#### DPO (直接偏好优化)
 
-DPO directly optimizes the policy using preference pairs:
+DPO使用偏好对直接优化策略：
 
 ```python
 def dpo_loss(
@@ -1374,27 +1374,27 @@ def dpo_loss(
     beta: float = 0.1
 ) -> torch.Tensor:
     """
-    Compute DPO loss.
+    计算DPO损失。
 
     Args:
-        policy_chosen_logps: Policy log probs for chosen responses
-        policy_rejected_logps: Policy log probs for rejected responses
-        reference_chosen_logps: Reference model log probs for chosen
-        reference_rejected_logps: Reference model log probs for rejected
-        beta: DPO temperature parameter
+        policy_chosen_logps: 策略对选中响应的log概率
+        policy_rejected_logps: 策略对拒绝响应的log概率
+        reference_chosen_logps: 参考模型对选中响应的log概率
+        reference_rejected_logps: 参考模型对拒绝响应的log概率
+        beta: DPO温度参数
     """
-    # Compute log ratios
+    # 计算log比率
     policy_logratios = policy_chosen_logps - policy_rejected_logps
     reference_logratios = reference_chosen_logps - reference_rejected_logps
 
-    # DPO loss
+    # DPO损失
     losses = -F.logsigmoid(beta * (policy_logratios - reference_logratios))
     return losses.mean()
 ```
 
-#### KTO (Kahneman-Tversky Optimization)
+#### KTO (Kahneman-Tversky优化)
 
-KTO optimizes for human-like asymmetry in preferences:
+KTO优化人类偏好中的不对称性：
 
 ```python
 def kto_loss(
@@ -1404,34 +1404,34 @@ def kto_loss(
     beta: float = 0.1
 ) -> torch.Tensor:
     """
-    Kahneman-Tversky Optimization loss.
-    Treats chosen and rejected responses asymmetrically.
+    Kahneman-Tversky优化损失。
+    不对称地处理选中和拒绝的响应。
 
     Args:
-        policy_logps: Log probs from policy model
-        reference_logps: Log probs from reference model
-        is_chosen: Boolean tensor indicating chosen (True) vs rejected (False)
-        beta: Temperature parameter
+        policy_logps: 策略模型的log概率
+        reference_logps: 参考模型的log概率
+        is_chosen: 布尔张量，表示选中（True）vs拒绝（False）
+        beta: 温度参数
     """
-    # Compute KL divergence
+    # 计算KL散度
     kl = policy_logps - reference_logps
 
-    # Separate chosen and rejected
+    # 分离选中和拒绝
     chosen_mask = is_chosen
     rejected_mask = ~is_chosen
 
-    # Loss function is asymmetric
-    # For chosen: we want to minimize KL (keep good responses)
-    # For rejected: we want to maximize KL (push away from bad responses)
+    # 损失函数是不对称的
+    # 对于选中：我们想最小化KL（保持好的响应）
+    # 对于拒绝：我们想最大化KL（远离坏的响应）
     chosen_loss = torch.clamp(kl[chosen_mask], max=0).pow(2).mean() if chosen_mask.any() else torch.tensor(0.0)
     rejected_loss = torch.clamp(kl[rejected_mask], min=0).pow(2).mean() if rejected_mask.any() else torch.tensor(0.0)
 
     return beta * (chosen_loss + rejected_loss)
 ```
 
-#### ORPO (Odds Ratio Preference Optimization)
+#### ORPO (Odds Ratio偏好优化)
 
-ORPO adds a simple preference term to standard language modeling:
+ORPO向标准语言建模添加简单的偏好项：
 
 ```python
 def orpo_loss(
@@ -1440,49 +1440,49 @@ def orpo_loss(
     beta: float = 0.1
 ) -> torch.Tensor:
     """
-    Odds Ratio Preference Optimization loss.
-    No reference model needed.
+    Odds Ratio偏好优化损失。
+    不需要参考模型。
 
     Args:
-        policy_chosen_logps: Log probs for chosen
-        policy_rejected_logps: Log probs for rejected
-        beta: Preference weight
+        policy_chosen_logps: 选中响应的log概率
+        policy_rejected_logps: 拒绝响应的log概率
+        beta: 偏好权重
     """
-    # Log odds ratio
+    # Log odds比率
     log_odds_ratio = policy_chosen_logps - policy_rejected_logps
 
-    # Sigmoid of log odds is the probability of choosing chosen over rejected
-    # We want to maximize this probability
+    # Log odds的sigmoid是选择选中而非拒绝的概率
+    # 我们想最大化这个概率
     loss = -F.logsigmoid(beta * log_odds_ratio).mean()
 
     return loss
 ```
 
-#### RLAIF (RL from AI Feedback)
+#### RLAIF (来自AI反馈的RL)
 
-**RLAIF** (Reinforcement Learning from AI Feedback) uses a stronger model to provide feedback instead of humans:
+**RLAIF**（来自AI反馈的强化学习）使用更强模型提供反馈而不是人类：
 
 ```python
 def rlaiF_training(base_model, teacher_model, dataset):
     """
-    RLAIF: Train using AI feedback instead of human feedback.
+    RLAIF：使用AI反馈进行训练。
 
-    Reference: https://arxiv.org/abs/2309.00267
+    参考: https://arxiv.org/abs/2309.00267
     """
-    # Generate comparison pairs using teacher model
+    # 使用教师模型生成比较对
     preference_data = []
     for prompt in dataset:
-        # Generate two responses
+        # 生成两个响应
         response_A = base_model.generate(prompt, temperature=0.7)
         response_B = base_model.generate(prompt, temperature=1.0)
 
-        # Teacher model evaluates
+        # 教师模型评估
         preference = teacher_model.compare_responses(
             prompt=prompt,
             response_A=response_A,
             response_B=response_B
         )
-        # preference: "A" or "B" or "tie"
+        # preference: "A" 或 "B" 或 "tie"
 
         preference_data.append({
             "prompt": prompt,
@@ -1490,19 +1490,19 @@ def rlaiF_training(base_model, teacher_model, dataset):
             "rejected": response_B if preference == "A" else response_A
         })
 
-    # Train DPO with AI-generated preferences
+    # 使用AI生成的偏好训练DPO
     train_dpo(base_model, preference_data)
 
-# Benefits:
-# - No human labeling required (faster, cheaper)
-# - Can generate unlimited training data
-# - Teacher model improves over time (iterative refinement)
-# - Quality approaches human RLHF
+# 优势：
+# - 不需要人工标注（更快、更便宜）
+# - 可以生成无限训练数据
+# - 教师模型随时间改进（迭代改进）
+# - 质量接近人类RLHF
 ```
 
-### 2025: GRPO - Group Relative Policy Optimization
+### 2025: GRPO - 群体相对策略优化
 
-**GRPO** (from DeepSeek R1) is the latest advancement in alignment optimization:
+**GRPO**（来自DeepSeek R1）是对齐优化的最新进展：
 
 ```python
 def grpo_training(
@@ -1512,137 +1512,137 @@ def grpo_training(
     group_size: int = 8
 ):
     """
-    GRPO: Group Relative Policy Optimization.
+    GRPO: 群体相对策略优化。
 
-    Reference: DeepSeek R1 technical report (2025)
+    参考: DeepSeek R1技术报告 (2025)
     """
-    # Step 1: Generate multiple outputs per prompt
+    # 步骤1: 为每个prompt生成多个输出
     for prompts_batch in chunk(prompts, group_size):
-        # Generate group_size responses for each prompt
+        # 为每个prompt生成group_size个响应
         responses = []
         for prompt in prompts_batch:
             for _ in range(group_size):
                 response = model.generate(prompt, temperature=0.7)
                 responses.append(response)
 
-        # Step 2: Score all responses relative to each other
+        # 步骤2: 相互评分所有响应
         scores = reference_model.batch_score_responses(
             prompts_batch,
             responses
         )
 
-        # Step 3: Compute group-relative advantages
-        # Key innovation: Compare within groups, not across all batches
+        # 步骤3: 计算群体相对优势
+        # 关键创新：在群体内比较，而不是跨所有批次
         advantages = compute_group_relative_advantages(
             scores,
             group_size=group_size
         )
 
-        # Step 4: Update policy using group-relative objective
+        # 步骤4: 使用群体相对目标更新策略
         for response, advantage in zip(responses, advantages):
-            # Policy gradient loss with group-relative advantage
+            # 带群体相对优势的策略梯度损失
             policy_loss = compute_policy_gradient(response, advantage)
 
-            # Update model
+            # 更新模型
             policy_loss.backward()
             optimizer.step()
 
-# GRPO advantages over PPO:
-# 1. More efficient: Batch relative scoring
-# 2. Better exploration: Multiple generations per prompt
-# 3. Stable training: Normalized within groups
-# 4. Better reasoning: Encourages diverse solutions
+# GRPO相对于PPO的优势：
+# 1. 更高效：批相对评分
+# 2. 更好探索：每个prompt多个生成
+# 3. 稳定训练：群体内归一化
+# 4. 更好推理：鼓励多样化解决方案
 
-# DeepSeek R1 results:
-# - Math (MATH): 92.3% (vs 85% for PPO)
-# - Code (Codeforces): 55% (vs 40% for PPO)
-# - Training time: Similar to PPO, better sample efficiency
+# DeepSeek R1结果：
+# - 数学（MATH）: 92.3%（vs PPO的85%）
+# - 代码（Codeforces）: 55%（vs PPO的40%）
+# - 训练时间：与PPO相似，更好的样本效率
 ```
 
-**GRPO vs PPO vs DPO comparison (2025):**
+**GRPO vs PPO vs DPO比较 (2025)：**
 
-| Aspect | PPO | DPO | GRPO |
+| 方面 | PPO | DPO | GRPO |
 |--------|-----|-----|-------|
-| **Training complexity** | High (reward model + policy) | Low (direct) | Medium (no reward model) |
-| **Sample efficiency** | Medium | High | Very High |
-| **Reasoning performance** | Good | Better | Best |
-| **Training stability** | Medium | High | High |
-| **Compute cost** | High | Low | Medium |
-| **Best for** | General alignment | Instruction following | Complex reasoning |
-| **2025 status** | Proven | Proven | Emerging (DeepSeek R1) |
+| **训练复杂度** | 高（奖励模型+策略） | 低（直接） | 中等（无奖励模型） |
+| **样本效率** | 中等 | 高 | 非常高 |
+| **推理性能** | 良好 | 更好 | 最佳 |
+| **训练稳定性** | 中等 | 高 | 高 |
+| **计算成本** | 高 | 低 | 中等 |
+| **最佳用于** | 通用对齐 | 指令遵循 | 复杂推理 |
+| **2025状态** | 已验证 | 已验证 | 新兴（DeepSeek R1） |
 
-### 2025: Iterative DPO
+### 2025: 迭代DPO
 
-**Iterative DPO** improves alignment through multiple refinement rounds:
+**迭代DPO**通过多个改进轮次提高对齐：
 
 ```python
 def iterative_dpo(base_model, dataset, num_rounds: int = 3):
     """
-    Iterative DPO: Multiple rounds of DPO for better alignment.
+    迭代DPO：通过多个DPO轮次提高对齐。
 
-    Each round improves on the previous version.
+    每轮都在前一个版本上改进。
     """
     model = base_model
 
     for round_idx in range(num_rounds):
-        print(f"Round {round_idx + 1}/{num_rounds}")
+        print(f"轮次 {round_idx + 1}/{num_rounds}")
 
-        # Step 1: Generate comparisons with current model
+        # 步骤1: 用当前模型生成比较
         comparisons = generate_comparisons(model, dataset)
 
-        # Step 2: Human annotators verify/edit comparisons
+        # 步骤2: 人工标注者验证/编辑比较
         verified_comparisons = human_verify(comparisons)
 
-        # Step 3: Train DPO on verified data
+        # 步骤3: 在验证数据上训练DPO
         model = train_dpo(model, verified_comparisons)
 
-        # Step 4: Evaluate alignment quality
+        # 步骤4: 评估对齐质量
         metrics = evaluate_alignment(model)
-        print(f"Round {round_idx + 1} metrics: {metrics}")
+        print(f"轮次 {round_idx + 1} 指标: {metrics}")
 
-        # Early stopping if converged
+        # 如果收敛则提前停止
         if metrics["win_rate"] > 0.95:
-            print("Converged early")
+            print("提前收敛")
             break
 
     return model
-# Each round improves alignment by 5-10%
-# 3 rounds achieve ~95% win rate vs GPT-4 baseline
+# 每轮提高对齐5-10%
+# 3轮实现相对于GPT-4基线约95%胜率
 ```
 
 ---
 
-## 2025: Training Infrastructure Advances
+## 2025: 训练基础设施进展
 
-### MoE Training Stability
+### MoE训练稳定性
 
-Training Mixture-of-Experts models requires special techniques to prevent router collapse:
+训练专家混合模型需要特殊技术来防止路由器崩溃：
 
 ```python
 class MoETrainingTrainer:
     """
-    Trainer for Mixture-of-Experts models with stability techniques.
+    专家混合模型的训练器，带稳定性技术。
 
-    Reference: Switch Transformer, Mixtral training papers
+    参考: Switch Transformer, Mixtral训练论文
     """
 
     def __init__(self, model, num_experts: int, capacity_factor: float = 1.25):
         self.model = model
         self.num_experts = num_experts
-        self.capacity_factor = capacity_factor  # Max tokens per expert
+        self.capacity_factor = capacity_factor  # 每个专家最大token数
 
     def compute_auxiliary_loss(self, router_logits: torch.Tensor) -> torch.Tensor:
         """
-        Compute auxiliary load balancing loss.
-        Ensures all experts are utilized evenly.
+        计算辅助负载平衡损失。
+        确保所有专家均匀使用。
         """
-        # Compute expert selection probabilities
+        # 计算专家选择概率
         router_probs = F.softmax(router_logits, dim=-1)
 
-        # Target: uniform distribution across experts
+        # 目标：专家间均匀分布
         target = torch.ones_like(router_probs) / self.num_experts
 
-        # KL divergence loss
+        # KL散度损失
         aux_loss = F.kl_div(
             router_probs.log(),
             target.log(),
@@ -1653,39 +1653,39 @@ class MoETrainingTrainer:
 
     def compute_router_z_loss(self, router_logits: torch.Tensor) -> torch.Tensor:
         """
-        Z-loss: Penalizes large router logits for stability.
+        Z-loss：惩罚大的路由器logits以提高稳定性。
 
-        Reference: DeepSeek-V3 techniques (2025)
+        参考: DeepSeek-V3技术 (2025)
         """
-        # Penalize logit magnitudes
+        # 惩罚logit幅度
         z_loss = (router_logits ** 2).mean()
 
-        # Weight: typically 0.001-0.01
+        # 权重：通常0.001-0.01
         return 0.001 * z_loss
 
     def train_step(self, batch: dict) -> dict:
         """
-        Training step with MoE-specific losses.
+        带MoE特定损失的训练步骤。
         """
-        # Forward pass
+        # 前向传播
         outputs = self.model(**batch)
 
-        # Primary loss (language modeling)
+        # 主要损失（语言建模）
         primary_loss = outputs.loss
 
-        # Auxiliary losses
+        # 辅助损失
         router_aux_loss = self.compute_auxiliary_loss(outputs.router_logits)
 
-        # Router Z-loss (stability)
+        # 路由器Z-loss（稳定性）
         z_loss = self.compute_router_z_loss(outputs.router_logits)
 
-        # Total loss
+        # 总损失
         total_loss = primary_loss + router_aux_loss + z_loss
 
-        # Backward pass
+        # 反向传播
         total_loss.backward()
 
-        # Gradient clipping (important for MoE)
+        # 梯度裁剪（对MoE很重要）
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
 
         return {
@@ -1696,21 +1696,21 @@ class MoETrainingTrainer:
         }
 ```
 
-### 2025: Curriculum Learning Advances
+### 2025: 课程学习进展
 
-Modern pre-training uses sophisticated curriculum strategies:
+现代预训练使用复杂的课程策略：
 
 ```python
 class AdvancedCurriculum:
     """
-    Advanced curriculum learning for 2025 LLMs.
+    2025 LLM的高级课程学习。
 
-    Incorporates data quality scoring, annealing, and multi-stage objectives.
+    结合数据质量评分、退火和多阶段目标。
     """
 
     def __init__(self):
         self.stages = [
-            # Stage 1: Foundation (40% of tokens)
+            # 阶段1: 基础（40%的token）
             CurriculumStage(
                 name="foundation",
                 data_quality_threshold=0.8,
@@ -1723,7 +1723,7 @@ class AdvancedCurriculum:
                     "papers": 0.05
                 }
             ),
-            # Stage 2: Knowledge (30% of tokens)
+            # 阶段2: 知识（30%的token）
             CurriculumStage(
                 name="knowledge",
                 data_quality_threshold=0.9,
@@ -1736,7 +1736,7 @@ class AdvancedCurriculum:
                     "code": 0.1
                 }
             ),
-            # Stage 3: Reasoning (30% of tokens)
+            # 阶段3: 推理（30%的token）
             CurriculumStage(
                 name="reasoning",
                 data_quality_threshold=0.95,
@@ -1752,10 +1752,10 @@ class AdvancedCurriculum:
         ]
 
     def get_stage_config(self, step: int) -> dict:
-        """Get training configuration for current step."""
-        total_steps = 300000  # Example total pre-training steps
+        """获取当前步的训练配置。"""
+        total_steps = 300000  # 示例总预训练步数
 
-        # Determine current stage
+        # 确定当前阶段
         if step < total_steps * 0.4:
             stage = self.stages[0]
         elif step < total_steps * 0.7:
@@ -1771,247 +1771,247 @@ class AdvancedCurriculum:
         }
 ```
 
-### 2025: Distributed Training Optimizations
+### 2025: 分布式训练优化
 
-**FSDP (Fully Sharded Data Parallel) + ZeRO-3** optimizations:
+**FSDP（完全分片数据并行）+ ZeRO-3**优化：
 
 ```python
-# Modern distributed training setup
+# 现代分布式训练设置
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 
 def setup_distributed_training():
     """
-    Setup FSDP with ZeRO-3 and CPU offloading.
+    使用ZeRO-3和CPU卸载设置FSDP。
     """
-    # Initialize process group
+    # 初始化进程组
     dist.init_process_group(backend="nccl")
 
-    # Model sharding strategy
+    # 模型分片策略
     sharding_strategy = [
-        # Shard everything for maximum memory efficiency
-        "*",  # All parameters
+        # 为最大内存效率分片所有内容
+        "*",  # 所有参数
     ]
 
-    # FSDP with CPU offloading
+    # FSDP带CPU卸载
     model = FSDP(
         base_model,
         sharding_strategy=sharding_strategy,
-        cpu_offload=CPU_OFFLOAD,  # Offload to CPU when not needed
-        forward_prefetch=True,  # Prefetch next batch
-        backward_prefetch=True,  # Prefetch during backward pass
-        mixed_precision=True,  # FP16 training
+        cpu_offload=CPU_OFFLOAD,  # 不需要时卸载到CPU
+        forward_prefetch=True,  # 预取下一批次
+        backward_prefetch=True,  # 反向传播期间预取
+        mixed_precision=True,  # FP16训练
     )
 
-    # Optimizer with CPU offload
+    # 带CPU卸载的优化器
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=3e-4,
-        fused=True,  # Fused AdamW implementation (faster)
-        cpu_offload=True  # Offload optimizer states to CPU
+        fused=True,  # 融合AdamW实现（更快）
+        cpu_offload=True  # 优化器状态卸载到CPU
     )
 
     return model, optimizer
 ```
 
-**2025 training infrastructure:**
+**2025训练基础设施：**
 
-| Technique | Memory Reduction | Speed Impact | Quality Impact |
+| 技术 | 内存减少 | 速度影响 | 质量影响 |
 |-----------|-------------------|--------------|---------------|
-| **ZeRO-3** | 3-4x | 5-10% slower | None |
-| **FSDP** | 2-3x | None | None |
-| **Gradient checkpointing** | 2x | 20-30% slower | None |
-| **FlashAttention-2** | None | 2-3x faster | None |
-| **Mixed precision (FP16)** | 2x | 2-3x faster | ~1% degradation |
-| **Combined stack** | ~12x total | Similar | ~1% degradation |
+| **ZeRO-3** | 3-4x | 5-10% 较慢 | 无 |
+| **FSDP** | 2-3x | 无 | 无 |
+| **梯度检查点** | 2x | 20-30% 较慢 | 无 |
+| **FlashAttention-2** | 无 | 2-3x 更快 | 无 |
+| **混合精度（FP16）** | 2x | 2-3x 更快 | ~1% 退化 |
+| **组合栈** | ~12x 总计 | 类似 | ~1% 退化 |
 
 ---
 
-## Interview FAQ
+## 面试FAQ
 
 <details>
-<summary><strong>Q: What's the difference between RLHF, DPO, and GRPO?</strong></summary>
+<summary><strong>Q: RLHF、DPO和GRPO有什么区别？</strong></summary>
 
-**A:** Three alignment methods with different trade-offs:
+**A:** 三种不同的对齐方法，有不同的权衡：
 
-**RLHF (Reinforcement Learning from Human Feedback)**:
-- **Process**: Train reward model → PPO optimization
-- **Pros**: Proven in production (GPT-4, Claude)
-- **Cons**: Complex, unstable, requires reward model
-- **2025 Status**: Still used for largest models
+**RLHF（来自人类反馈的强化学习）**：
+- **过程**：训练奖励模型 → PPO优化
+- **优点**：已在生产中验证（GPT-4、Claude）
+- **缺点**：复杂、不稳定、需要奖励模型
+- **2025状态**：仍用于最大模型
 
-**DPO (Direct Preference Optimization)**:
-- **Process**: Directly optimize on preference pairs
-- **Pros**: Simpler, more stable, no reward model
-- **Cons**: Requires reference model
-- **2025 Status**: Default for most alignment tasks
+**DPO（直接偏好优化）**：
+- **过程**：直接在偏好对上优化
+- **优点**：更简单、更稳定、无奖励模型
+- **缺点**：需要参考模型
+- **2025状态**：大多数对齐任务的默认选择
 
-**GRPO (Group Relative Policy Optimization)**:
-- **Process**: Compare multiple outputs per prompt within group
-- **Pros**: No reference model, better for reasoning, reward-free
-- **Cons**: Requires group_size outputs per prompt
-- **2025 Status**: Used by DeepSeek-R1 for reasoning models
+**GRPO（群体相对策略优化）**：
+- **过程**：在群体内比较每个prompt的多个输出
+- **优点**：无参考模型、对推理更好、无奖励
+- **缺点**：每个prompt需要group_size个输出
+- **2025状态**：DeepSeek-R1用于推理模型
 
-**2025 Verdict**: DPO for standard alignment, GRPO for reasoning models, RLHF for largest-scale production.
+**2025判断标准**：标准对齐用DPO，推理模型用GRPO，最大规模生产用RLHF。
 </details>
 
 <details>
-<summary><strong>Q: What causes MoE training instability and how do you fix it?</strong></summary>
+<summary><strong>Q: 什么导致MoE训练不稳定以及如何解决？</strong></summary>
 
-**A:** Three main instability issues:
+**A:** 三个主要不稳定问题：
 
-**1. Router Collapse**:
-- All tokens route to same expert
-- **Fix**: Auxiliary load-balancing loss
+**1. 路由器崩溃**：
+- 所有token路由到同一专家
+- **解决**：辅助负载平衡损失
 ```python
 load_balance_loss = alpha * (num_experts * std(expert_usage) / mean(expert_usage))
 ```
 
-**2. Router Z-loss** (2025):
-- Large router logits cause training instability
-- **Fix**: Penalize large logits
+**2. 路由器Z-loss** (2025)：
+- 大路由器logit导致训练不稳定
+- **解决**：惩罚大的logit
 ```python
 router_z_loss = (router_logits ** 2).mean()
 total_loss = main_loss + 0.001 * router_z_loss
 ```
 
-**3. Expert Overflow**:
-- Expert receives more tokens than capacity
-- **Fix**: Drop tokens or route to next layer
+**3. 专家溢出**：
+- 专家接收的token超过容量
+- **解决**：丢弃token或路由到下一层
 
-**2025 Solutions**:
-- **Sigmoid gating** instead of softmax
-- **Shared experts** to reduce redundancy
-- **Gradual expert activation** during training
-- **Expert capacity factor** of 1.25-1.5
+**2025解决方案**：
+- **Sigmoid门控**而非softmax
+- **共享专家**以减少冗余
+- **训练期间逐渐激活专家**
+- **专家容量因子**1.25-1.5
 </details>
 
 <details>
-<summary><strong>Q: How does Chinchilla scaling law change LLM training?</strong></summary>
+<summary><strong>Q: Chinchilla缩放定律如何改变LLM训练？</strong></summary>
 
-**A:** Chinchilla (2022) overturned previous assumptions:
+**A:** Chinchilla（2022）改变了之前的假设：
 
-**Before Chinchilla**:
-- Train models on more tokens with fewer params
-- Example: GPT-3: 175B params, 300B tokens
+**Chinchilla之前**：
+- 训练更多参数的模型，使用更少token
+- 示例：GPT-3: 175B参数，300B token
 
-**After Chinchilla**:
-- **Optimal ratio**: 20 tokens per parameter
-- **Example**: 70B model should train on 1.4T tokens
-- **Result**: Same compute budget → better model
+**Chinchilla之后**：
+- **最优比例**：每个参数20个token
+- **示例**：70B模型应该训练1.4T token
+- **结果**：相同计算预算→更好模型
 
-**2025 Update**:
-- **Data-constrained scaling**: When data is limited, train longer
-- **Compute-optimal**: 1.5-2x Chinchilla for better inference
-- **Llama 3.1 405B**: Trained on ~15T tokens (~37 tokens per param)
+**2025更新**：
+- **数据受限缩放**：当数据有限时，训练更长时间
+- **计算最优**：推理时1.5-2倍Chinchilla
+- **Llama 3.1 405B**：训练约15T token（每个参数约37个token）
 
-**Interview Formula**:
-- Optimal tokens ≈ 20 × parameters (Chinchilla scaling law)
-- Example: 70B model should train on 1.4T tokens
+**面试公式**：
+- 最优token数 ≈ 20 × 参数（Chinchilla缩放定律）
+- 示例：70B模型应该训练1.4T token
 </details>
 
 <details>
-<summary><strong>Q: When should I use LoRA vs DoRA vs full fine-tuning?</strong></summary>
+<summary><strong>Q: 什么时候应该用LoRA vs DoRA vs 完整微调？</strong></summary>
 
-**A:** Decision framework based on task and resources:
+**A:** 基于任务和资源的决策框架：
 
-**Use LoRA when**:
-- **Standard PEFT**: Rank-8 to Rank-64
-- Limited compute/memory
-- Single-task adaptation
-- Quick iteration needed
+**用LoRA当**：
+- **标准PEFT**：rank-8到rank-64
+- 计算内存有限
+- 单任务适应
+- 需要快速迭代
 
-**Use DoRA when** (2025):
-- Need better quality than LoRA
-- Weight magnitude + direction both matter
-- Can afford slight overhead
-- Complex tasks (reasoning, coding)
+**用DoRA当**（2025）：
+- 需要比LoRA更好的质量
+- 权重幅度+方向都很重要
+- 能承受轻微开销
+- 复杂任务（推理、编码）
 
-**Use AdapterFusion when**:
-- Multi-task learning
-- Need to combine multiple adapters
-- Task switching at inference
+**用AdapterFusion当**：
+- 多任务学习
+- 需要合并多个适配器
+- 推理时任务切换
 
-**Use full fine-tuning when**:
-- Domain shift is massive (e.g., medical, legal)
-- Have ample compute (100+ GPUs)
-- Maximum quality required
-- Training from scratch or near-scratch
+**用完整微调当**：
+- 领域转移巨大（如医疗、法律）
+- 有充足计算（100+ GPU）
+- 需要最大质量
+- 从头或近头训练
 
-**2025 Verdict**: Start with LoRA, upgrade to DoRA if quality insufficient, full fine-tune only when necessary.
+**2025判断标准**：从LoRA开始，质量不足时升级到DoRA，仅在必要时完整微调。
 </details>
 
 <details>
-<summary><strong>Q: What is the alignment tax and how do you minimize it?</strong></summary>
+<summary><strong>Q: 对齐税和拒绝机制是什么？</strong></summary>
 
-**A:** Alignment tax is performance loss from alignment:
+**A:** 对齐税是从对齐带来的性能权衡：
 
-**Typical taxes**:
-- Coding: -3 to -5%
-- Math: -2 to -4%
-- Knowledge: -1 to -2%
-- Safety: +40 to +50% (improvement)
+**典型税**：
+- 编码：-3 到 -5%
+- 数学：-2 到 -4%
+- 知识：-1 到 -2%
+- 安全性：+40 到 +50%（改善）
 
-**Minimization strategies (2025)**:
+**最小化策略（2025）**：
 
-**1. Curriculum Learning**:
-- Stage 1: Foundation (raw capability)
-- Stage 2: Knowledge (domain expertise)
-- Stage 3: Alignment (SFT + DPO)
-- Result: Lower tax, better safety
+**1. 课程学习**：
+- 阶段1：基础（原始能力）
+- 阶段2：知识（领域专业知识）
+- 阶段3：对齐（SFT + DPO）
+- 结果：更低税，更好安全性
 
-**2. Data quality over quantity**:
-- 10K high-quality pairs > 1M noisy pairs
-- Expert-written examples
-- Red-teaming dataset
+**2. 数据质量而非数量**：
+- 10K高质量对 > 1M噪声对
+- 专家编写示例
+- 红队数据集
 
-**3. Iterative refinement**:
-- Multiple DPO rounds (2-4)
-- Self-generated preference data
-- On-policy sampling
+**3. 迭代改进**：
+- 多轮DPO（2-4轮）
+- 自生成偏好数据
+- 在策略采样
 
-**4. RLAIF**:
-- Scale feedback with AI judges
-- Better coverage than humans
-- Reduced cost
+**4. RLAIF**：
+- 用AI评委扩展反馈
+- 比人类更好的覆盖
+- 降低成本
 
-**2025 Best Practice**: DPO with iterative refinement + RLAIF for scaling.
+**2025最佳实践**：带迭代改进的DPO + 用于扩展的RLAIF。
 </details>
 
 <details>
-<summary><strong>Q: How do you train LLMs with limited GPU memory?</strong></summary>
+<summary><strong>Q: 如何在有限GPU内存下训练LLM？</strong></summary>
 
-**A:** Memory optimization stack (12x reduction possible):
+**A:** 内存优化栈（可实现12倍减少）：
 
-**1. ZeRO-3** (DeepSpeed):
-- Shard optimizer states, gradients, parameters
-- **Memory savings**: 3-4x
-- **Trade-off**: 5-10% slower from communication
+**1. ZeRO-3**（DeepSpeed）：
+- 分片优化器状态、梯度、参数
+- **内存节省**：3-4倍
+- **权衡**：通信导致5-10%较慢
 
-**2. FSDP** (PyTorch):
-- Fully sharded data parallel
-- **Memory savings**: 2-3x
-- **Trade-off**: Minimal speed impact
+**2. FSDP**（PyTorch）：
+- 完全分片数据并行
+- **内存节省**：2-3倍
+- **权衡**：最小速度影响
 
-**3. Gradient Checkpointing**:
-- Recompute activations during backward pass
-- **Memory savings**: 2x
-- **Trade-off**: 20-30% slower
+**3. 梯度检查点**：
+- 反向传播期间重新计算激活
+- **内存节省**：2倍
+- **权衡**：20-30%较慢
 
-**4. Mixed Precision**:
-- FP16 training instead of FP32
-- **Memory savings**: 2x
-- **Trade-off**: 1% quality degradation
+**4. 混合精度**：
+- FP16训练而非FP32
+- **内存节省**：2倍
+- **权衡**：1%质量退化
 
-**5. FlashAttention-2**:
-- IO-aware attention implementation
-- **Memory savings**: None (but faster)
-- **Speed benefit**: 2-3x faster
+**5. FlashAttention-2**：
+- IO感知注意力实现
+- **内存节省**：无（但更快）
+- **速度收益**：2-3倍更快
 
-**2025 Setup**:
+**2025设置**：
 ```python
-# Combined stack for 70B model on 8x A100 40GB
+# 8x A100 40GB上70B模型的组合栈
 model = AutoModelForCausalLM.from_pretrained(
     "meta-llama/Llama-3.1-70B",
     device_map="auto",
@@ -2022,48 +2022,48 @@ model = AutoModelForCausalLM.from_pretrained(
 </details>
 
 <details>
-<summary><strong>Q: What's the difference between pre-training data curation and SFT data curation?</strong></summary>
+<summary><strong>Q: 预训练数据策划和SFT数据策划有什么区别？</strong></summary>
 
-**A:** Two different data philosophies:
+**A:** 两种不同的数据理念：
 
-**Pre-training Data** (Scale focus):
-- **Volume**: Trillions of tokens
-- **Sources**: Web crawl, books, code, papers
-- **Quality**: Medium (deduplicated, filtered)
-- **Diversity**: Critical (cover all domains)
-- **Format**: Raw text (no instruction format)
+**预训练数据**（规模重点）：
+- **数量**：万亿token
+- **来源**：网络爬取、书籍、代码、论文
+- **质量**：中等（去重、过滤）
+- **多样性**：关键（覆盖所有领域）
+- **格式**：原始文本（无指令格式）
 
-**SFT Data** (Quality focus):
-- **Volume**: Millions of examples (100-1000x less)
-- **Sources**: Expert-written, synthetic, human demonstrations
-- **Quality**: High (hand-curated, verified)
-- **Diversity**: Task-specific
-- **Format**: Instruction-response pairs
+**SFT数据**（质量重点）：
+- **数量**：百万示例（比预训练少100-1000倍）
+- **来源**：专家编写、合成、人工演示
+- **质量**：高（手工策划、验证）
+- **多样性**：任务特定
+- **格式**：指令响应对
 
-**2025 SFT Curation Best Practices**:
+**2025 SFT策划最佳实践**：
 
-1. **Multi-turn conversations** (not just single Q&A)
-2. **Chain-of-thought reasoning** for complex tasks
-3. **Code execution traces** for programming
-4. **Tool use demonstrations** for agents
-5. **Refusal examples** for safety
+1. **多轮对话**（不只是单个Q&A）
+2. **思维链推理**用于复杂任务
+3. **代码执行跟踪**用于编程
+4. **工具使用演示**用于智能体
+5. **拒绝示例**用于安全性
 
-**Rule of thumb**:
-- Pre-training: "More data is better"
-- SFT: "Better data is better"
+**经验法则**：
+- 预训练："更多数据更好"
+- SFT："更好数据更好"
 </details>
 
 ---
 
-## Full DPO Training Implementation (Reference)
+## 完整DPO训练实现（参考）
 
-Complete DPO training loop with logging and checkpointing:
+带日志记录和检查点保存的完整DPO训练循环：
 
 ```python
 class DPOTrainer:
     """
-    Direct Preference Optimization trainer.
-    Simplifies RLHF by removing the need for reward models and PPO.
+    直接偏好优化训练器。
+    通过消除奖励模型和PPO需求来简化RLHF。
     """
 
     def __init__(
@@ -2079,52 +2079,52 @@ class DPOTrainer:
         self.beta = beta
         self.max_length = max_length
 
-        # Freeze reference model
+        # 冻结参考模型
         for param in self.reference_model.parameters():
             param.requires_grad = False
 
-        # Optimizer for policy model only
+        # 仅策略模型的优化器
         self.optimizer = torch.optim.AdamW(
             self.policy_model.parameters(),
             lr=learning_rate
         )
 
     def compute_log_probs(self, model, input_ids, attention_mask, labels):
-        """Compute log probabilities for sequences."""
+        """计算序列的log概率。"""
         outputs = model(
             input_ids=input_ids,
             attention_mask=attention_mask,
             labels=labels
         )
 
-        # Get log probs from model outputs
+        # 从模型输出获取log probs
         logits = outputs.logits
         labels = labels[:, 1:].clone()
         logits = logits[:, :-1, :]
 
-        # Compute log probs for each token
+        # 计算每个token的log probs
         log_probs = F.log_softmax(logits, dim=-1)
 
-        # Gather log probs for actual labels
+        # 收集实际标签的log probs
         gathered_log_probs = torch.gather(
             log_probs,
             2,
             labels.unsqueeze(-1)
         ).squeeze(-1)
 
-        # Sum over sequence length
+        # 沿序列长度求和
         sequence_log_probs = gathered_log_probs.sum(-1)
 
         return sequence_log_probs
 
     def train_step(self, batch):
-        """Single DPO training step."""
+        """单步DPO训练。"""
         chosen_input = batch['chosen_input_ids']
         rejected_input = batch['rejected_input_ids']
         chosen_mask = batch['chosen_attention_mask']
         rejected_mask = batch['rejected_attention_mask']
 
-        # Get policy log probs
+        # 获取策略log probs
         policy_chosen_logps = self.compute_log_probs(
             self.policy_model, chosen_input, chosen_mask, chosen_input
         )
@@ -2132,7 +2132,7 @@ class DPOTrainer:
             self.policy_model, rejected_input, rejected_mask, rejected_input
         )
 
-        # Get reference log probs (no grad)
+        # 获取参考log probs（无梯度）
         with torch.no_grad():
             ref_chosen_logps = self.compute_log_probs(
                 self.reference_model, chosen_input, chosen_mask, chosen_input
@@ -2141,20 +2141,20 @@ class DPOTrainer:
                 self.reference_model, rejected_input, rejected_mask, rejected_input
             )
 
-        # Compute DPO loss
+        # 计算DPO损失
         policy_logratios = policy_chosen_logps - policy_rejected_logps
         reference_logratios = ref_chosen_logps - ref_rejected_logps
 
         losses = -F.logsigmoid(self.beta * (policy_logratios - reference_logratios))
         loss = losses.mean()
 
-        # Backward pass
+        # 反向传播
         self.optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.policy_model.parameters(), max_norm=1.0)
         self.optimizer.step()
 
-        # Compute metrics
+        # 计算指标
         with torch.no_grad():
             chosen_rewards = self.beta * (policy_chosen_logps - ref_chosen_logps)
             rejected_rewards = self.beta * (policy_rejected_logps - ref_rejected_logps)
@@ -2167,10 +2167,10 @@ class DPOTrainer:
             'rejected_reward': rejected_rewards.mean().item()
         }
 
-# Usage
+# 用法
 trainer = DPOTrainer(
     policy_model=sft_model,
-    reference_model=sft_model_copy,  # Copy of SFT model
+    reference_model=sft_model_copy,  # SFT模型的副本
     beta=0.1,
     learning_rate=1e-6
 )
@@ -2180,102 +2180,102 @@ for epoch in range(num_epochs):
         metrics = trainer.train_step(batch)
 
         if step % 100 == 0:
-            print(f"Epoch {epoch}, Step {step}:")
-            print(f"  Loss: {metrics['loss']:.4f}")
-            print(f"  Accuracy: {metrics['accuracy']:.4f}")
-            print(f"  Chosen Reward: {metrics['chosen_reward']:.4f}")
-            print(f"  Rejected Reward: {metrics['rejected_reward']:.4f}")
+            print(f"轮次 {epoch}, 步骤 {step}:")
+            print(f"  损失: {metrics['loss']:.4f}")
+            print(f"  准确率: {metrics['accuracy']:.4f}")
+            print(f"  选中奖励: {metrics['chosen_reward']:.4f}")
+            print(f"  拒绝奖励: {metrics['rejected_reward']:.4f}")
 ```
 
 ---
 
-## Alignment Tax and Refusal Mechanisms
+## 对齐税和拒绝机制
 
-### Alignment Tax
+### 对齐税
 
-The performance trade-off from alignment:
+对齐带来的性能权衡：
 
-| Task | Base Model | Aligned Model | Tax |
+| 任务 | 基础模型 | 对齐模型 | 税 |
 |------|-----------|---------------|-----|
-| **Coding** | 72% | 68% | -4% |
-| **Math** | 65% | 62% | -3% |
-| **Safety** | 45% | 95% | +50% |
+| **编码** | 72% | 68% | -4% |
+| **数学** | 65% | 62% | -3% |
+| **安全性** | 45% | 95% | +50% |
 
-**Key insight:** Alignment significantly improves safety but may slightly degrade task performance.
+**关键见解**: 对齐显著改善安全性但可能略微降低任务性能。
 
-### Refusal Mechanisms
+### 拒绝机制
 
 ```python
-# Models learn refusal patterns during RLHF/DPO
+# 模型在RLHF/DPO期间学习拒绝模式
 refusal_patterns = [
-    "I cannot fulfill this request.",
-    "I'm not able to help with that.",
-    "I don't provide assistance for this type of request.",
+    "我无法满足这个请求。",
+    "我无法帮助那个。",
+    "我不提供此类请求的帮助。",
 ]
 
-# These are triggered by:
-# - Harmful content detection
-# - Policy violations
-# - Safety-related keywords
+# 这些由以下触发：
+# - 有害内容检测
+# - 策略违规
+# - 安全相关关键词
 
-# Training example for refusal:
+# 拒绝的训练示例：
 {
-    "prompt": "How do I make a bomb?",
-    "chosen": "I cannot provide instructions on creating explosives or other dangerous items.",
-    "rejected": "To make a bomb, you would need..."
+    "prompt": "如何制造炸弹？",
+    "chosen": "我不能提供关于制造爆炸物或其他危险物品的说明。",
+    "rejected": "要制造炸弹，你需要..."
 }
 ```
 
 ---
 
-## Training Infrastructure
+## 训练基础设施
 
-### Distributed Training
+### 分布式训练
 
 ```python
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 def setup_distributed():
-    """Initialize distributed training."""
+    """初始化分布式训练。"""
     dist.init_process_group(backend='nccl')
     local_rank = int(os.environ['LOCAL_RANK'])
     torch.cuda.set_device(local_rank)
     return local_rank
 
 def wrap_model_for_ddp(model, local_rank):
-    """Wrap model for distributed data parallel training."""
+    """为分布式数据并行训练包装模型。"""
     model = model.to(f'cuda:{local_rank}')
     model = DDP(model, device_ids=[local_rank])
     return model
 
-# Gradient accumulation for large effective batch sizes
+# 为大有效批量大小使用梯度累积
 def train_with_accumulation(model, dataloader, optimizer, accumulation_steps=4):
     """
-    Train with gradient accumulation.
+    使用梯度累积进行训练。
     """
     model.train()
     optimizer.zero_grad()
 
     for i, batch in enumerate(dataloader):
-        # Forward pass
+        # 前向传播
         loss = model(**batch) / accumulation_steps
 
-        # Backward pass (accumulate)
+        # 反向传播（累积）
         loss.backward()
 
-        # Update every N steps
+        # 每N步更新
         if (i + 1) % accumulation_steps == 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             optimizer.zero_grad()
 ```
 
-### Monitoring and Checkpointing
+### 监控和检查点保存
 
 ```python
 def save_checkpoint(model, optimizer, scheduler, step, path):
-    """Save training checkpoint."""
+    """保存训练检查点。"""
     checkpoint = {
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
@@ -2283,39 +2283,39 @@ def save_checkpoint(model, optimizer, scheduler, step, path):
         'step': step,
     }
     torch.save(checkpoint, path)
-    print(f"Saved checkpoint at step {step}")
+    print(f"在步骤 {step} 保存检查点")
 
 def load_checkpoint(model, optimizer, scheduler, path):
-    """Load training checkpoint."""
+    """加载训练检查点。"""
     checkpoint = torch.load(path)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
     step = checkpoint['step']
-    print(f"Loaded checkpoint from step {step}")
+    print(f"从步骤 {step} 加载检查点")
     return step
 
-# Logging metrics
+# 记录指标
 def log_metrics(metrics, step):
-    """Log training metrics."""
-    print(f"Step {step}:")
+    """记录训练指标。"""
+    print(f"步骤 {step}:")
     for key, value in metrics.items():
         print(f"  {key}: {value:.4f}")
 
-    # Log to wandb/tensorboard
+    # 记录到wandb/tensorboard
     # wandb.log(metrics, step=step)
 ```
 
 ---
 
-## Spring AI Fine-Tuning Context
+## Spring AI微调上下文
 
-Spring AI provides utilities for fine-tuning language models on custom datasets. While most organizations use pre-trained models, understanding fine-tuning is valuable for domain-specific applications.
+Spring AI为在自定义数据集上微调语言模型提供工具。虽然大多数组织使用预训练模型，但理解微调对于领域特定应用很有价值。
 
-### Fine-Tuning with Spring AI
+### 使用Spring AI进行微调
 
 ```java
-// Fine-tuning service using Spring AI
+// 使用Spring AI的微调服务
 @Service
 public class FineTuningService {
     private final OpenAiApi openAiApi;
@@ -2336,17 +2336,17 @@ public class FineTuningService {
         return openAiApi.createFineTuningJob(request);
     }
 
-    // Check fine-tuning job status
+    // 检查微调作业状态
     public FineTuningJobStatus checkJobStatus(String jobId) {
         return openAiApi.getFineTuningJob(jobId);
     }
 }
 ```
 
-### Dataset Preparation
+### 数据集准备
 
 ```java
-// Preparing SFT (Supervised Fine-Tuning) data
+// 准备SFT（监督微调）数据
 @Service
 public class DatasetPreparationService {
 
@@ -2354,7 +2354,7 @@ public class DatasetPreparationService {
         List<QAPair> trainingData,
         String outputPath
     ) throws IOException {
-        // Convert to JSONL format required for fine-tuning
+        // 转换为微调所需的JSONL格式
         // {"messages": [{"role": "user", "content": "..."},
         //              {"role": "assistant", "content": "..."}]}
 
@@ -2366,7 +2366,7 @@ public class DatasetPreparationService {
             .map(msgList -> new FineTuningData(msgList))
             .collect(Collectors.toList());
 
-        // Write as JSONL
+        // 写为JSONL
         try (BufferedWriter writer = Files.newBufferedWriter(
                 Path.of(outputPath))) {
             ObjectMapper mapper = new ObjectMapper();
@@ -2377,14 +2377,14 @@ public class DatasetPreparationService {
         }
     }
 
-    // Validate dataset format
+    // 验证数据集格式
     public boolean validateDataset(String jsonlPath) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         try (Stream<String> lines = Files.lines(Path.of(jsonlPath))) {
             return lines.allMatch(line -> {
                 try {
                     FineTuningData data = mapper.readValue(line, FineTuningData.class);
-                    return data.messages().size() >= 2;  // At least user + assistant
+                    return data.messages().size() >= 2;  // 至少user + assistant
                 } catch (Exception e) {
                     return false;
                 }
@@ -2394,39 +2394,39 @@ public class DatasetPreparationService {
 }
 ```
 
-### When to Use Fine-Tuning vs. RAG
+### 何时使用微调vs RAG
 
 ```java
-// Service for choosing between fine-tuning and RAG
+// 选择微调和RAG之间策略的服务
 @Service
 public class StrategySelectionService {
 
     public Recommendation recommendStrategy(String useCase) {
         return switch (useCase.toLowerCase()) {
-            // Use RAG when:
+            // 使用RAG当：
             case "knowledge", "facts", "documentation", "search" ->
                 new Recommendation(
                     Strategy.RAG,
-                    "RAG is better for dynamic knowledge that changes frequently"
+                    "RAG更适合频繁变化的动态知识"
                 );
 
-            // Use fine-tuning when:
+            // 使用微调当：
             case "style", "format", "domain-specific", "code-patterns" ->
                 new Recommendation(
                     Strategy.FINE_TUNE,
-                    "Fine-tuning is better for learning patterns, style, and domain-specific language"
+                    "微调更适合学习模式、风格和领域特定语言"
                 );
 
-            // Use both when:
+            // 两者都用当：
             case "complex-domain", "medical", "legal" ->
                 new Recommendation(
                     Strategy.BOTH,
-                    "Use RAG for facts + fine-tuning for domain language and reasoning patterns"
+                    "RAG用于事实 + 微调用于领域语言和推理模式"
                 );
 
             default -> new Recommendation(
                 Strategy.RAG,
-                "RAG is the default choice for most applications"
+                "RAG是大多数应用的默认选择"
             );
         };
     }
@@ -2440,103 +2440,103 @@ public class StrategySelectionService {
 }
 ```
 
-### Fine-Tuning Best Practices
+### 微调最佳实践
 
-**Data Quality**:
-- Minimum 1000 high-quality examples for meaningful improvement
-- Ensure diversity in training examples
-- Remove duplicate or conflicting examples
-- Use 80/10/10 split for train/validation/test
+**数据质量**：
+- 最少1000个高质量示例才能获得有意义的改进
+- 确保训练示例多样化
+- 移除重复或冲突的示例
+- 使用80/10/10进行训练/验证/测试分割
 
-**Training Parameters**:
-- Start with 3-5 epochs for most use cases
-- Use learning rate of 1e-5 to 5e-5
-- Monitor validation loss to prevent overfitting
-- Stop when validation loss stops improving
+**训练参数**：
+- 大多数用例开始3-5轮
+- 使用1e-5到5e-5的学习率
+- 监控验证损失以防止过拟合
+- 当验证损失停止改进时停止
 
-**Cost Considerations**:
-- Fine-tuning 7B model: ~$100-500 depending on dataset size
-- Fine-tuning 70B model: ~$1000-5000
-- RAG is often more cost-effective for knowledge-heavy tasks
+**成本考虑**：
+- 微调7B模型：~$100-500（取决于数据集大小）
+- 微调70B模型：~$1000-5000
+- 对于知识密集型任务，RAG通常更经济高效
 
 ---
 
-## Summary for Interviews
+## 面试总结
 
-**Training Pipeline (2025)**:
-1. **Three-stage pipeline**: Pre-training → SFT → Alignment (RLHF/DPO/GRPO)
-2. **Chinchilla scaling laws**: 20 tokens per parameter optimal ratio; 1.5-2x for inference-optimal
-3. **Advanced PEFT**: DoRA (weight decomposition), LoftQ (quantization-aware), AdapterFusion (multi-task)
-4. **Alignment methods**: RLHF (production), DPO (default), GRPO (reasoning), RLAIF (scalable)
-5. **MoE training**: Router Z-loss, auxiliary load balancing, sigmoid gating for stability
-6. **Memory optimization**: ZeRO-3 + FSDP + gradient checkpointing = 12x reduction
-7. **Alignment tax minimization**: Curriculum learning, iterative DPO, high-quality data
-8. **2025 trends**: GRPO for reasoning, DoRA for PEFT, RLAIF for scaling, curriculum learning for stability
+**训练流水线（2025）**：
+1. **三阶段流水线**：预训练 → SFT → 对齐（RLHF/DPO/GRPO）
+2. **Chinchilla缩放定律**：每个参数20个token的最优比例；推理时1.5-2倍
+3. **高级PEFT**：DoRA（权重分解）、LoftQ（量化感知）、AdapterFusion（多任务）
+4. **对齐方法**：RLHF（生产）、DPO（默认）、GRPO（推理）、RLAIF（可扩展）
+5. **MoE训练**：路由器Z-loss、辅助负载平衡、sigmoid门控以提高稳定性
+6. **内存优化**：ZeRO-3 + FSDP + 梯度检查点 = 12倍减少
+7. **对齐税最小化**：课程学习、迭代DPO、高质量数据
+8. **2025趋势**：GRPO用于推理、DoRA用于PEFT、RLAIF用于扩展、课程学习用于稳定性
 
-:::tip Implementation Resources
-For hands-on practice with training pipelines:
+:::tip 实施资源
+用于训练流水线实践的动手练习：
 
-**1. Alignment methods**:
-- [DPO trainer (Hugging Face TRL)](https://huggingface.co/docs/trl/main/en/dpo_trainer)
-- [GRPO implementation (DeepSeek R1)](https://github.com/deepseek-ai/DeepSeek-R1)
-- [Alignments comparison](https://arxiv.org/abs/2407.01094)
+**1. 对齐方法**：
+- [DPO训练器（Hugging Face TRL）](https://huggingface.co/docs/trl/main/en/dpo_trainer)
+- [GRPO实现（DeepSeek R1）](https://github.com/deepseek-ai/DeepSeek-R1)
+- [对齐比较](https://arxiv.org/abs/2407.01094)
 
-**2. PEFT techniques**:
-- [LoRA implementation](https://github.com/microsoft/LoRA)
-- [DoRA paper](https://arxiv.org/abs/2402.09353)
+**2. PEFT技术**：
+- [LoRA实现](https://github.com/microsoft/LoRA)
+- [DoRA论文](https://arxiv.org/abs/2402.09353)
 - [AdapterFusion](https://arxiv.org/abs/2005.00047)
 
-**3. Distributed training**:
+**3. 分布式训练**：
 - [DeepSpeed ZeRO](https://www.deepspeed.ai/tutorials/zero/)
 - [PyTorch FSDP](https://pytorch.org/tutorials/intermediate/FSDP_adavnced_tutorial.html)
 - [FlashAttention-2](https://github.com/Dao-AILab/flash-attention)
 
-**4. MoE training**:
+**4. MoE训练**：
 - [Switch Transformer](https://arxiv.org/abs/2101.03961)
-- [Mixtral implementation](https://huggingface.co/docs/transformers/model_doc/mixtral)
-- [MoE training stability](https://arxiv.org/abs/2401.04088)
+- [Mixtral实现](https://huggingface.co/docs/transformers/model_doc/mixtral)
+- [MoE训练稳定性](https://arxiv.org/abs/2401.04088)
 :::
 
 ---
 
-## Key Takeaways (Original)
+## 原始关键要点
 
-1. **Pre-training** builds foundational capability from diverse text
-2. **SFT** teaches instruction-following with quality examples
-3. **RLHF/DPO** aligns model with human preferences
-4. **Scaling laws** guide optimal data/compute allocation
-5. **Alignment tax** trades some capability for safety
-
----
-
-## References
-
-**Kaplan, J., McCandlish, S., Henighan, T., et al. (2020).** "Scaling Laws for Neural Language Models." *arXiv:2001.08361*.
-
-**Link:** [arXiv:2001.08361](https://arxiv.org/abs/2001.08361)
-
-**Original scaling laws paper establishing relationship between compute, data, and performance.**
+1. **预训练**从多样化文本构建基础能力
+2. **SFT**用高质量示例教授指令遵循
+3. **RLHF/DPO**将模型与人类偏好对齐
+4. **缩放定律**指导最优数据/计算分配
+5. **对齐税**以牺牲一些能力换取安全
 
 ---
 
-**Hoffmann, J., Borgeaud, S., Mensch, A., et al. (2022).** "Training Compute-Optimal Large Language Models." *arXiv:2203.15556*.
+## 参考文献
 
-**Link:** [arXiv:2203.15556](https://arxiv.org/abs/2203.15556)
+**Kaplan, J., McCandlish, S., Henighan, T., et al. (2020).** "神经网络语言模型的缩放定律。" *arXiv:2001.08361*。
 
-**Chinchilla scaling laws - optimal data allocation for LLM training.**
+**链接:** [arXiv:2001.08361](https://arxiv.org/abs/2001.08361)
 
----
-
-**Ouyang, L., Wu, J., Jiang, A., et al. (2022).** "Training language models to follow instructions with human feedback." *NeurIPS 2022*.
-
-**Link:** [arXiv:2203.02155](https://arxiv.org/abs/2203.02155)
-
-**InstructGPT paper introducing the three-stage training pipeline (pre-training, SFT, RLHF).**
+**原始缩放定律论文，建立了计算、数据和性能之间的关系。**
 
 ---
 
-**Wei, A., Rowland, M., Liu, H., et al. (2024).** "Direct Preference Optimization: Your Language Model is Secretly a Reward Model." *ICLR 2024*.
+**Hoffmann, J., Borgeaud, S., Mensch, A., et al. (2022).** "训练计算最优的大语言模型。" *arXiv:2203.15556*。
 
-**Link:** [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+**链接:** [arXiv:2203.15556](https://arxiv.org/abs/2203.15556)
 
-**Introduction of DPO as a simpler alternative to RLHF.**
+**Chinchilla缩放定律 - LLM训练的最优数据分配。**
+
+---
+
+**Ouyang, L., Wu, J., Jiang, A., et al. (2022).** "使用人类反馈训练遵循指令的语言模型。" *NeurIPS 2022*。
+
+**链接:** [arXiv:2203.02155](https://arxiv.org/abs/2203.02155)
+
+**介绍三阶段训练流水线（预训练、SFT、RLHF）的InstructGPT论文。**
+
+---
+
+**Wei, A., Rowland, M., Liu, H., et al. (2024).** "直接偏好优化：你的语言模型秘密是一个奖励模型。" *ICLR 2024*。
+
+**链接:** [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+
+**引入DPO作为RLHF的更简单替代方案。**

@@ -1,10 +1,10 @@
 ---
-title: "5 Spring AI Prompts"
-description: "Spring AI Prompt API: ChatClient, PromptTemplate, Message types, and prompt engineering patterns for enterprise applications"
+title: "5 Spring AI 提示词"
+description: "Spring AI 提示词 API：ChatClient、PromptTemplate、消息类型和企业应用的提示词工程模式"
 published: 2025-01-21
 tags: ["prompt-engineering", "spring-ai", "java", "chat-client", "prompt-template"]
 category: "prompt-engineering"
-series: "Prompt Engineering Guide"
+series: "提示词工程指南"
 seriesOrder: 5
 draft: false
 ---
@@ -12,11 +12,11 @@ draft: false
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-## 1. Introduction: What are Spring AI Prompts?
+## 1. 介绍：什么是 Spring AI 提示词？
 
-Spring AI's **Prompt** system provides a structured, type-safe way to communicate with AI models. The `Prompt` class acts as a container for organized `Message` objects and optional `ChatOptions`, enabling sophisticated multi-turn conversations and precise control over model behavior.
+Spring AI 的 **Prompt** 系统提供了一种结构化、类型安全的方式来与 AI 模型通信。`Prompt` 类作为组织化的 `Message` 对象和可选 `ChatOptions` 的容器，支持复杂的多轮对话并精确控制模型行为。
 
-### 1.1 The Prompt Class
+### 1.1 Prompt 类
 
 ```java
 public class Prompt implements ModelRequest<List<Message>> {
@@ -46,14 +46,14 @@ public class Prompt implements ModelRequest<List<Message>> {
 }
 ```
 
-The `Prompt` class serves as the primary abstraction for sending requests to AI models. It encapsulates:
+`Prompt` 类是向 AI 模型发送请求的主要抽象。它封装了：
 
-- **Messages**: A sequence of message objects representing the conversation history
-- **ChatOptions**: Model-specific parameters (temperature, max tokens, etc.)
+- **Messages**：表示对话历史的消息对象序列
+- **ChatOptions**：模型特定参数（温度、最大令牌数等）
 
-### 1.2 Message Interface
+### 1.2 Message 接口
 
-Every `Message` embodies a unique role within the prompt, differing in content and intent:
+每个 `Message` 在提示词中体现独特的角色，内容和意图各不相同：
 
 ```java
 public interface Content {
@@ -69,7 +69,7 @@ public interface Message extends Content {
 }
 ```
 
-For multimodal support (text + images, audio, etc.), messages can also implement:
+对于多模态支持（文本+图像、音频等），消息还可以实现：
 
 ```java
 public interface MediaContent extends Content {
@@ -78,62 +78,62 @@ public interface MediaContent extends Content {
 }
 ```
 
-### 1.3 Message Types and Roles
+### 1.3 消息类型和角色
 
-Spring AI defines four primary message roles via the `MessageType` enum:
+Spring AI 通过 `MessageType` 枚举定义了四种主要消息角色：
 
 ```java
 public enum MessageType {
-    USER("user"),           // User's input - questions, commands, statements
-    ASSISTANT("assistant"), // AI's response to user input
-    SYSTEM("system"),       // Instructions guiding AI behavior and style
-    TOOL("tool");           // Additional information from tool/function calls
+    USER("user"),           // 用户的输入 - 问题、命令、陈述
+    ASSISTANT("assistant"), // AI 对用户输入的响应
+    SYSTEM("system"),       // 指导 AI 行为和风格的指令
+    TOOL("tool");           // 工具/函数调用的附加信息
 }
 ```
 
-**Role Functions**:
+**角色功能**：
 
-| Role | Purpose | Usage |
-|------|---------|-------|
-| **SYSTEM** | Guides the AI's behavior and response style | Sets parameters, rules, context before conversation |
-| **USER** | Represents the user's input | Questions, commands, statements to the AI |
-| **ASSISTANT** | The AI's response to user input | Maintains conversation flow and context |
-| **TOOL** | Returns information from tool calls | Provides data from function executions |
+| 角色 | 用途 | 使用方式 |
+|------|------|----------|
+| **SYSTEM** | 指导 AI 的行为和响应风格 | 在对话前设置参数、规则、上下文 |
+| **USER** | 代表用户的输入 | 向 AI 提出问题、命令、陈述 |
+| **ASSISTANT** | AI 对用户输入的响应 | 维护对话流程和上下文 |
+| **TOOL** | 返回工具调用的信息 | 提供函数执行的数据 |
 
-### 1.4 Why Spring AI Prompts?
+### 1.4 为什么使用 Spring AI 提示词？
 
 ```plaintext
-Direct LLM API Calls:                Spring AI Prompts:
+直接 LLM API 调用：                Spring AI 提示词：
 ┌─────────────────────────────────┐        ┌─────────────────────────────────┐
-│ Manual string concatenation     │        │ Type-safe Message API          │
-│ Error-prone JSON handling       │        │ Fluent ChatClient API           │
-│ No structure for templates      │        │ Built-in PromptTemplate         │
-│ Manual conversation tracking    │        │ ChatMemory integration          │
-│ Provider-specific formats       │        │ Provider-agnostic abstraction   │
+│ 手动字符串拼接                   │        │ 类型安全的消息 API              │
+│ 容易出错的 JSON 处理             │        │ 流畅的 ChatClient API           │
+│ 没有模板结构                    │        │ 内置 PromptTemplate             │
+│ 手动对话跟踪                    │        │ ChatMemory 集成                │
+│ 提供商特定格式                  │        │ 提供商无关的抽象                │
 └─────────────────────────────────┘        └─────────────────────────────────┘
-         Fragile, repetitive code   →           Clean, maintainable code
+         脆弱、重复的代码   →           清晰、可维护的代码
 ```
 
-**Key Advantages**:
+**主要优势**：
 
-1. **Type Safety**: Compile-time checking for message types and structures
-2. **Template Management**: Built-in support for parameterized prompts
-3. **Provider Agnostic**: Switch between OpenAI, Anthropic, Gemini without code changes
-4. **Conversation Management**: Easy tracking of multi-turn conversations
-5. **Multimodal Support**: Unified API for text, images, audio, and video
+1. **类型安全**：对消息类型和结构的编译时检查
+2. **模板管理**：内置参数化提示词支持
+3. **提供商无关**：在 OpenAI、Anthropic、Gemini 之间切换无需代码更改
+4. **对话管理**：轻松跟踪多轮对话
+5. **多模态支持**：文本、图像、音频和视频的统一 API
 
 ---
 
-## 2. Prompt Architecture & Design Philosophy
+## 2. 提示词架构与设计理念
 
-### 2.1 Design Principles
+### 2.1 设计原则
 
-Spring AI's Prompt system is built on three core principles:
+Spring AI 的提示词系统建立在三个核心原则上：
 
-#### 2.1.1 Fluent API Design
+#### 2.1.1 流畅的 API 设计
 
 ```java
-// Chain method calls for readable, declarative code
+// 链式方法调用实现可读的声明式代码
 String response = chatClient.prompt()
     .system("You are a helpful assistant")
     .user("What is Spring AI?")
@@ -141,10 +141,10 @@ String response = chatClient.prompt()
     .content();
 ```
 
-#### 2.1.2 Type Safety
+#### 2.1.2 类型安全
 
 ```java
-// Strong typing catches errors at compile time
+// 强类型在编译时捕获错误
 Message systemMessage = new SystemMessage("You are an expert Java developer");
 Message userMessage = new UserMessage("Review this code");
 
@@ -152,22 +152,22 @@ List<Message> messages = List.of(systemMessage, userMessage);
 Prompt prompt = new Prompt(messages);
 ```
 
-#### 2.1.3 Extensibility
+#### 2.1.3 可扩展性
 
 ```java
-// Easy to add custom message types, renderers, and advisors
+// 轻松添加自定义消息类型、渲染器和顾问
 public class CustomMessage implements Message {
-    // Custom implementation
+    // 自定义实现
 }
 ```
 
-### 2.2 Architecture Overview
+### 2.2 架构概述
 
 ```plaintext
 ┌─────────────────────────────────────────────────────────────────────┐
-│                       ChatClient (Entry Point)                      │
+│                       ChatClient（入口点）                          │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │              ChatClient.prompt() Fluent API                 │   │
+│  │              ChatClient.prompt() 流畅 API                   │   │
 │  │  .system() / .user() / .advisors() / .options() / .call()  │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────┬───────────────────────────────────────┘
@@ -186,7 +186,7 @@ public class CustomMessage implements Message {
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                       ChatModel Abstraction                          │
+│                       ChatModel 抽象层                              │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
 │  │  OpenAI  │  │Anthropic │  │  Gemini  │  │  Ollama  │  ...      │
 │  │  ChatModel│ │ChatModel │  │ ChatModel│  │ ChatModel│           │
@@ -194,32 +194,32 @@ public class CustomMessage implements Message {
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.3 Advantages and Disadvantages
+### 2.3 优势和劣势
 
-| Advantages | Description |
-|------------|-------------|
-| **Fluent API** | Chain method calls for readable, declarative code |
-| **Type Safety** | Compile-time checking prevents runtime errors |
-| **Template Support** | Built-in `PromptTemplate` for parameterized prompts |
-| **Provider Agnostic** | Unified API across multiple AI providers |
-| **Spring Integration** | Seamless Spring Boot auto-configuration |
-| **Extensibility** | Custom advisors, renderers, and message types |
-| **Observability** | Built-in metrics and tracing support |
+| 优势 | 描述 |
+|------|------|
+| **流畅 API** | 链式方法调用实现可读的声明式代码 |
+| **类型安全** | 编译时检查防止运行时错误 |
+| **模板支持** | 内置 `PromptTemplate` 支持参数化提示词 |
+| **提供商无关** | 跨多个 AI 提供商的统一 API |
+| **Spring 集成** | 无缝的 Spring Boot 自动配置 |
+| **可扩展性** | 自定义顾问、渲染器和消息类型 |
+| **可观察性** | 内置指标和跟踪支持 |
 
-| Disadvantages | Mitigation Strategies |
-|---------------|----------------------|
-| **Learning Curve** | Extensive official docs and examples |
-| **Abstraction Overhead** | For simple scripts, direct API might be lighter |
-| **Spring Dependency** | Requires Spring Boot runtime |
-| **Version Changes** | API may evolve between releases (use stable versions) |
+| 劣势 | 缓解策略 |
+|------|----------|
+| **学习曲线** | 丰富的官方文档和示例 |
+| **抽象开销** | 对于简单脚本，直接 API 可能更轻量 |
+| **Spring 依赖** | 需要 Spring Boot 运行时 |
+| **版本变更** | API 可能在版本之间演变（使用稳定版本） |
 
 ---
 
-## 3. ChatClient.prompt() API - Complete Reference
+## 3. ChatClient.prompt() API - 完整参考
 
-The **ChatClient** offers a fluent API for building prompts and calling AI models. It supports both synchronous and streaming programming models.
+**ChatClient** 提供了构建提示词和调用 AI 模型的流畅 API。它支持同步和流式编程模型。
 
-### 3.1 Basic ChatClient Setup
+### 3.1 基本 ChatClient 设置
 
 ```java
 @Configuration
@@ -232,7 +232,7 @@ public class ChatClientConfig {
 }
 ```
 
-### 3.2 Starting Prompts: Three Ways
+### 3.2 开始提示词：三种方式
 
 ```java
 @Service
@@ -241,41 +241,41 @@ public class PromptService {
 
     private final ChatClient chatClient;
 
-    // Way 1: Start fluent API (most common)
+    // 方式 1：开始流畅 API（最常见）
     public String promptWithFluentApi(String userInput) {
-        return chatClient.prompt()              // Start fluent API
-            .user(userInput)                    // Add user message
-            .call()                             // Execute
-            .content();                         // Extract content
+        return chatClient.prompt()              // 开始流畅 API
+            .user(userInput)                    // 添加用户消息
+            .call()                             // 执行
+            .content();                         // 提取内容
     }
 
-    // Way 2: Use existing Prompt object
+    // 方式 2：使用现有的 Prompt 对象
     public String promptWithPromptObject(Prompt existingPrompt) {
-        return chatClient.prompt(existingPrompt) // Use pre-built Prompt
+        return chatClient.prompt(existingPrompt) // 使用预构建的 Prompt
             .call()
             .content();
     }
 
-    // Way 3: Convenience method with string
+    // 方式 3：使用字符串的便捷方法
     public String promptWithString(String message) {
-        return chatClient.prompt(message)        // Shorthand for .user(message)
+        return chatClient.prompt(message)        // .user(message) 的简写
             .call()
             .content();
     }
 }
 ```
 
-### 3.3 System and User Messages
+### 3.3 系统和用户消息
 
 ```java
-// Basic system and user messages
+// 基本系统消息和用户消息
 String response = chatClient.prompt()
     .system("You are a helpful Java developer assistant")
     .user("How do I create a REST controller in Spring Boot?")
     .call()
     .content();
 
-// System message with parameters
+// 带参数的系统消息
 String response = chatClient.prompt()
     .system(s -> s
         .text("You are a {role} for {company}. Be {tone}.")
@@ -286,7 +286,7 @@ String response = chatClient.prompt()
     .call()
     .content();
 
-// User message with parameters
+// 带参数的用户消息
 String response = chatClient.prompt()
     .user(u -> u
         .text("Translate '{text}' to {language}")
@@ -296,19 +296,19 @@ String response = chatClient.prompt()
     .content();
 ```
 
-### 3.4 Execution Modes: Call vs Stream
+### 3.4 执行模式：调用 vs 流式
 
 <Tabs>
-<TabItem label="Blocking Call" value="blocking">
+<TabItem label="阻塞调用" value="blocking">
 
 ```java
-// Simple blocking call - returns String directly
+// 简单阻塞调用 - 直接返回 String
 String response = chatClient.prompt()
     .user("What is Spring AI?")
     .call()
     .content();
 
-// Get full ChatResponse with metadata
+// 获取带完整元数据的 ChatResponse
 ChatResponse response = chatClient.prompt()
     .user("What is Spring AI?")
     .call()
@@ -321,7 +321,7 @@ log.info("Tokens used: input={}, output={}",
     usage.getPromptTokens(),
     usage.getCompletionTokens());
 
-// Type-safe entity extraction
+// 类型安全的实体提取
 ProductAnalysis analysis = chatClient.prompt()
     .user("Analyze this product: Wireless Bluetooth Headphones")
     .call()
@@ -330,29 +330,29 @@ ProductAnalysis analysis = chatClient.prompt()
 
 </TabItem>
 
-<TabItem label="Streaming" value="streaming">
+<TabItem label="流式" value="streaming">
 
 ```java
-// Stream content chunks as they arrive
+// 流式接收内容块
 Flux<String> stream = chatClient.prompt()
     .user("Explain microservices architecture")
     .stream()
     .content();
 
-// Subscribe to streaming response
+// 订阅流式响应
 stream.subscribe(
     chunk -> System.out.print(chunk),  // On next
     error -> error.printStackTrace(),  // On error
     () -> System.out.println("\nDone") // On complete
 );
 
-// Stream with full response metadata
+// 流式响应带完整元数据
 Flux<ChatResponse> streamWithMetadata = chatClient.prompt()
     .user("Tell me a story")
     .stream()
     .chatResponse();
 
-// Server-Sent Events (SSE) endpoint
+// 服务器发送事件（SSE）端点
 @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 public Flux<ServerSentEvent<String>> streamChat(@RequestParam String message) {
 
@@ -369,7 +369,7 @@ public Flux<ServerSentEvent<String>> streamChat(@RequestParam String message) {
             .build()));
 }
 
-// Aggregate streaming into final response
+// 将流式响应聚合为最终响应
 Mono<String> aggregated = chatClient.prompt()
     .user("Write a haiku about Spring")
     .stream()
@@ -380,10 +380,10 @@ Mono<String> aggregated = chatClient.prompt()
 </TabItem>
 </Tabs>
 
-### 3.5 Prompt Options: ChatOptions
+### 3.5 提示词选项：ChatOptions
 
 ```java
-// Default options in ChatClient builder
+// ChatClient 构建器中的默认选项
 ChatClient defaultClient = ChatClient.builder(chatModel)
     .defaultOptions(OpenAiChatOptions.builder()
         .model("gpt-4")
@@ -392,24 +392,24 @@ ChatClient defaultClient = ChatClient.builder(chatModel)
         .build())
     .build();
 
-// Override options at runtime
+// 运行时覆盖选项
 String response = chatClient.prompt()
     .user("Generate production code")
     .options(OpenAiChatOptions.builder()
-        .temperature(0.2)  // Lower temperature for code
+        .temperature(0.2)  // 代码生成使用低温度
         .maxTokens(1000)
         .build())
     .call()
     .content();
 
-// Provider-agnostic options
+// 提供商无关的选项
 ChatOptions portableOptions = ChatOptions.builder()
     .model("gpt-4")
     .temperature(0.7)
     .maxTokens(2000)
     .build();
 
-// Model-specific options
+// 特定于模型的选项
 OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
     .model("gpt-4-turbo")
     .temperature(0.7)
@@ -419,10 +419,10 @@ OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
     .build();
 ```
 
-### 3.6 Advanced ChatClient Methods
+### 3.6 高级 ChatClient 方法
 
 ```java
-// Get ChatClientResponse with advisor context
+// 获取带顾问上下文的 ChatClientResponse
 ChatClientResponse fullResponse = chatClient.prompt()
     .user("What's the weather?")
     .advisors(new QuestionAnswerAdvisor(vectorStore))
@@ -432,7 +432,7 @@ ChatClientResponse fullResponse = chatClient.prompt()
 ChatResponse chatResponse = fullResponse.getChatResponse();
 Map<String, Object> advisorContext = fullResponse.getAdvisorContext();
 
-// Multiple advisors with parameters
+// 带参数的多个顾问
 String response = chatClient.prompt()
     .system("You are a helpful assistant")
     .user(userMessage)
@@ -443,7 +443,7 @@ String response = chatClient.prompt()
     .call()
     .content();
 
-// Streaming with advisors
+// 流式响应带顾问
 Flux<String> streamingResponse = chatClient.prompt()
     .user("Explain reactive programming")
     .advisors(new PromptEnhancementAdvisor())
@@ -453,41 +453,41 @@ Flux<String> streamingResponse = chatClient.prompt()
 
 ---
 
-## 4. Message Types & Roles
+## 4. 消息类型与角色
 
-### 4.1 Message Implementations
+### 4.1 消息实现
 
-Spring AI provides concrete implementations for each message type:
+Spring AI 为每种消息类型提供了具体实现：
 
 ```java
-// System Message - sets AI behavior and context
+// 系统消息 - 设置 AI 行为和上下文
 SystemMessage systemMsg = new SystemMessage(
     "You are an expert Java developer. " +
     "Provide code examples with explanations."
 );
 
-// User Message - represents user input
+// 用户消息 - 代表用户输入
 UserMessage userMsg = new UserMessage(
     "How do I create a REST endpoint in Spring Boot?"
 );
 
-// Assistant Message - represents AI's response
+// 助手消息 - 代表 AI 的响应
 AssistantMessage assistantMsg = new AssistantMessage(
     "To create a REST endpoint in Spring Boot, " +
     "use the @RestController annotation..."
 );
 
-// Tool Message - contains tool call results
+// 工具消息 - 包含工具调用结果
 ToolMessage toolMsg = new ToolMessage(
     "tool_call_id_123",
     "The current weather in Tokyo is 22°C, sunny."
 );
 ```
 
-### 4.2 Messages with Metadata
+### 4.2 带元数据的消息
 
 ```java
-// User message with metadata
+// 带元数据的用户消息
 Map<String, Object> metadata = new HashMap<>();
 metadata.put("userId", "user-123");
 metadata.put("timestamp", Instant.now().toString());
@@ -498,7 +498,7 @@ UserMessage messageWithMetadata = new UserMessage(
     metadata
 );
 
-// Access metadata in custom advisors
+// 在自定义顾问中访问元数据
 @Component
 public class MetadataLoggingAdvisor implements CallAroundAdvisor {
 
@@ -517,10 +517,10 @@ public class MetadataLoggingAdvisor implements CallAroundAdvisor {
 }
 ```
 
-### 4.3 Multimodal Messages (MediaContent)
+### 4.3 多模态消息（MediaContent）
 
 ```java
-// Text + Image message
+// 文本 + 图像消息
 Resource imageResource = new ClassPathResource("images/architecture-diagram.png");
 
 UserMessage multimodalMessage = new UserMessage(
@@ -528,7 +528,7 @@ UserMessage multimodalMessage = new UserMessage(
     List.of(new Media(MimeTypeUtils.IMAGE_JPG, imageResource))
 );
 
-// Multiple media types
+// 多种媒体类型
 Resource diagram = new ClassPathResource("diagram.png");
 Resource codeSnippet = new ClassPathResource("snippet.txt");
 
@@ -540,7 +540,7 @@ UserMessage multiMediaMessage = new UserMessage(
     )
 );
 
-// Using with ChatClient
+// 在 ChatClient 中使用
 String response = chatClient.prompt()
     .user(u -> u
         .text("What's in this image?")
@@ -549,10 +549,10 @@ String response = chatClient.prompt()
     .content();
 ```
 
-### 4.4 Creating Complete Prompts
+### 4.4 创建完整提示词
 
 ```java
-// Single-turn prompt
+// 单轮提示词
 List<Message> messages = List.of(
     new SystemMessage("You are a helpful assistant"),
     new UserMessage("What's the capital of France?")
@@ -560,7 +560,7 @@ List<Message> messages = List.of(
 
 Prompt singleTurnPrompt = new Prompt(messages);
 
-// Multi-turn conversation prompt
+// 多轮对话提示词
 List<Message> conversation = List.of(
     new SystemMessage("You are a Java tutor"),
     new UserMessage("What is dependency injection?"),
@@ -570,7 +570,7 @@ List<Message> conversation = List.of(
 
 Prompt multiTurnPrompt = new Prompt(conversation);
 
-// Prompt with options
+// 带选项的提示词
 Prompt promptWithOptions = new Prompt(
     messages,
     OpenAiChatOptions.builder()
@@ -579,7 +579,7 @@ Prompt promptWithOptions = new Prompt(
         .build()
 );
 
-// Using Prompt with ChatModel directly
+// 直接使用 Prompt 与 ChatModel
 @Autowired
 private ChatModel chatModel;
 
@@ -588,14 +588,14 @@ ChatResponse response = chatModel.call(promptWithOptions);
 
 ---
 
-## 5. PromptTemplate Deep Dive
+## 5. PromptTemplate 深度解析
 
-**PromptTemplate** provides first-class prompt management with variable substitution, custom delimiters, and resource loading.
+**PromptTemplate** 提供一流的提示词管理，支持变量替换、自定义分隔符和资源加载。
 
-### 5.1 Basic Template Usage
+### 5.1 基本模板使用
 
 ```java
-// Create template with placeholders
+// 创建带占位符的模板
 PromptTemplate template = PromptTemplate.builder()
     .template("""
         Translate the following text to {language}.
@@ -607,19 +607,19 @@ PromptTemplate template = PromptTemplate.builder()
         """)
     .build();
 
-// Render template with variables
+// 用变量渲染模板
 Map<String, Object> variables = Map.of(
     "language", "Spanish",
     "text", "Hello, world!"
 );
 
 String renderedPrompt = template.render(variables);
-// Output: "Translate the following text to Spanish. ..."
+// 输出: "Translate the following text to Spanish. ..."
 
-// Create Prompt directly
+// 直接创建 Prompt
 Prompt prompt = template.create(variables);
 
-// Create Prompt with ChatOptions
+// 创建带 ChatOptions 的 Prompt
 Prompt promptWithOptions = template.create(
     variables,
     ChatOptions.builder()
@@ -628,9 +628,9 @@ Prompt promptWithOptions = template.create(
 );
 ```
 
-### 5.2 TemplateRenderer Interface
+### 5.2 TemplateRenderer 接口
 
-Spring AI uses the `TemplateRenderer` interface for variable substitution:
+Spring AI 使用 `TemplateRenderer` 接口进行变量替换：
 
 ```java
 @FunctionalInterface
@@ -641,14 +641,14 @@ public interface TemplateRenderer
 }
 ```
 
-**Built-in Renderers**:
+**内置渲染器**：
 
-#### 5.2.1 StTemplateRenderer (Default)
+#### 5.2.1 StTemplateRenderer（默认）
 
-Based on StringTemplate engine by Terence Parr:
+基于 Terence Parr 的 StringTemplate 引擎：
 
 ```java
-// Default {variable} syntax
+// 默认 {variable} 语法
 PromptTemplate defaultTemplate = PromptTemplate.builder()
     .template("Hello {name}, welcome to {company}")
     .build();
@@ -656,7 +656,7 @@ PromptTemplate defaultTemplate = PromptTemplate.builder()
 
 #### 5.2.2 NoOpTemplateRenderer
 
-For scenarios with no template processing:
+对于没有模板处理的场景：
 
 ```java
 PromptTemplate staticTemplate = PromptTemplate.builder()
@@ -665,10 +665,10 @@ PromptTemplate staticTemplate = PromptTemplate.builder()
     .build();
 ```
 
-### 5.3 Custom Delimiters
+### 5.3 自定义分隔符
 
 ```java
-// Custom delimiters for JSON prompts
+// JSON 提示词的自定义分隔符
 PromptTemplate jsonTemplate = PromptTemplate.builder()
     .renderer(StTemplateRenderer.builder()
         .startDelimiterToken("{{")
@@ -687,7 +687,7 @@ String rendered = jsonTemplate.render(Map.of(
     "query", "List all users"
 ));
 
-// XML-style delimiters
+// XML 风格的分隔符
 PromptTemplate xmlTemplate = PromptTemplate.builder()
     .renderer(StTemplateRenderer.builder()
         .startDelimiterToken("<%")
@@ -696,7 +696,7 @@ PromptTemplate xmlTemplate = PromptTemplate.builder()
     .template("User: <%userName%>, Action: <%action%>")
     .build();
 
-// Double braces for Mustache-like syntax
+// 双大括号用于 Mustache 风格语法
 PromptTemplate mustacheTemplate = PromptTemplate.builder()
     .renderer(StTemplateRenderer.builder()
         .startDelimiterToken("{{")
@@ -706,26 +706,26 @@ PromptTemplate mustacheTemplate = PromptTemplate.builder()
     .build();
 ```
 
-### 5.4 Template from External Resources
+### 5.4 来自外部资源的模板
 
 ```java
-// Template from classpath resource
+// 来自类路径资源的模板
 PromptTemplate externalTemplate = PromptTemplate.builder()
     .resource(new ClassPathResource("prompts/code-review.st"))
     .build();
 
-// Template from file system
+// 来自文件系统的模板
 PromptTemplate fileTemplate = PromptTemplate.builder()
     .resource(new FileSystemResource("src/main/resources/prompts/qa-system.st"))
     .build();
 
-// Template from URL
+// 来自 URL 的模板
 PromptTemplate urlTemplate = PromptTemplate.builder()
     .resource(new UrlResource("https://example.com/prompts/chatbot.st"))
     .build();
 ```
 
-**External template file** (`prompts/code-review.st`):
+**外部模板文件**（`prompts/code-review.st`）：
 
 ```text
 You are a senior code reviewer with expertise in \{language\}.
@@ -749,7 +749,7 @@ Provide your review in the following format:
 - Recommendations: [list]
 ```
 
-**Usage**:
+**用法**：
 
 ```java
 String rendered = externalTemplate.render(Map.of(
@@ -759,13 +759,14 @@ String rendered = externalTemplate.render(Map.of(
 ));
 ```
 
-### 5.5 Template Composition
+### 5.5 模板组合
 
 ```java
-// Define system and user templates
+// 定义系统和用户模板
 PromptTemplate systemTemplate = PromptTemplate.builder()
     .template("""
-        You are a {role} with expertise in {expertise}.
+        You are a {role} with expertise in {domain}.
+        
         Guidelines:
         - Be concise and professional
         - Provide examples when helpful
@@ -776,18 +777,18 @@ PromptTemplate systemTemplate = PromptTemplate.builder()
 PromptTemplate userTemplate = PromptTemplate.builder()
     .template("""
         Task: {task}
-
+        
         Context:
         {context}
-
+        
         Please provide a detailed response.
         """)
     .build();
 
-// Compose into complete Prompt
+// 组合成完整 Prompt
 String systemPrompt = systemTemplate.render(Map.of(
     "role", "senior developer",
-    "expertise", "Spring Boot",
+    "domain", "Spring Boot",
     "focus_area", "best practices"
 ));
 
@@ -801,7 +802,7 @@ Prompt composedPrompt = new Prompt(List.of(
     new UserMessage(userPrompt)
 ));
 
-// Use with ChatClient
+// 在 ChatClient 中使用
 ChatResponse response = chatClient.prompt()
     .system(systemPrompt)
     .user(userPrompt)
@@ -809,21 +810,21 @@ ChatResponse response = chatClient.prompt()
     .chatResponse();
 ```
 
-### 5.6 PromptTemplate Interfaces
+### 5.6 PromptTemplate 接口
 
-The `PromptTemplate` class implements multiple interfaces for flexibility:
+`PromptTemplate` 类实现了多个接口以提供灵活性：
 
 ```java
-// PromptTemplateStringActions - Render to String
+// PromptTemplateStringActions - 渲染为字符串
 String rendered = template.render();
 String withVars = template.render(Map.of("key", "value"));
 
-// PromptTemplateMessageActions - Create Message
+// PromptTemplateMessageActions - 创建消息
 Message message = template.createMessage();
 Message messageWithVars = template.createMessage(Map.of("key", "value"));
 Message messageWithMedia = template.createMessage(List.of(media));
 
-// PromptTemplateActions - Create Prompt
+// PromptTemplateActions - 创建 Prompt
 Prompt prompt = template.create();
 Prompt promptWithVars = template.create(Map.of("key", "value"));
 Prompt promptWithOptions = template.create(
@@ -834,11 +835,11 @@ Prompt promptWithOptions = template.create(
 
 ---
 
-## 6. System Prompts: Configuration & Best Practices
+## 6. 系统提示词：配置和最佳实践
 
-System prompts define the AI's behavior, personality, and constraints. Spring AI provides multiple ways to configure them.
+系统提示词定义了 AI 的行为、个性和约束。Spring AI 提供了多种配置方式。
 
-### 6.1 Global Default System Prompt
+### 6.1 全局默认系统提示词
 
 ```java
 @Configuration
@@ -849,7 +850,7 @@ public class ChatClientConfig {
         return builder
             .defaultSystem("""
                 You are a helpful assistant for TechCorp.
-
+                
                 Guidelines:
                 - Be concise and professional
                 - When uncertain, ask for clarification
@@ -861,7 +862,7 @@ public class ChatClientConfig {
 }
 ```
 
-### 6.2 Parameterized System Prompts
+### 6.2 参数化系统提示词
 
 ```java
 @Configuration
@@ -873,11 +874,11 @@ public class ChatClientConfig {
             .defaultSystem(s -> s
                 .text("""
                     You are a {role} for {company}.
-
+                    
                     Expertise: {expertise}
                     Tone: {tone}
                     Language: {language}
-
+                    
                     Guidelines:
                     {guidelines}
                     """)
@@ -901,7 +902,7 @@ public class ChatClientConfig {
 }
 ```
 
-### 6.3 Runtime Parameter Binding
+### 6.3 运行时参数绑定
 
 ```java
 @RestController
@@ -917,7 +918,7 @@ public class ChatController {
 
         return chatClient.prompt()
             .system(s -> s
-                .param("voice", voice)  // Override voice parameter
+                .param("voice", voice)  // 覆盖 voice 参数
                 .param("timestamp", Instant.now().toString()))
             .user(message)
             .call()
@@ -926,24 +927,24 @@ public class ChatController {
 }
 ```
 
-### 6.4 Multiple ChatClients for Different Use Cases
+### 6.4 针对不同用例的多个 ChatClient
 
 ```java
 @Configuration
 public class MultiChatClientConfig {
 
-    // Customer support chatbot
+    // 客户支持聊天机器人
     @Bean
     public ChatClient customerSupportChat(ChatClient.Builder builder) {
         return builder
             .defaultSystem("""
                 You are a customer support agent for TechCorp.
-
+                
                 Personality:
                 - Empathetic and patient
                 - Solution-oriented
                 - Knowledgeable about products
-
+                
                 Guidelines:
                 - Always greet customers warmly
                 - Listen actively to understand issues
@@ -951,25 +952,25 @@ public class MultiChatClientConfig {
                 - Escalate complex issues gracefully
                 """)
             .defaultOptions(OpenAiChatOptions.builder()
-                .temperature(0.8)  // Higher for more conversational tone
+                .temperature(0.8)  // 更高以获得更对话的语调
                 .build())
             .build();
     }
 
-    // Code review assistant
+    // 代码审查助手
     @Bean
     public ChatClient codeReviewChat(ChatClient.Builder builder) {
         return builder
             .defaultSystem("""
                 You are a senior code reviewer with 15 years of experience.
-
+                
                 Focus Areas:
                 - Security vulnerabilities (SQL injection, XSS, etc.)
                 - Performance bottlenecks
                 - Code readability and maintainability
                 - Adherence to SOLID principles
                 - Test coverage
-
+                
                 Response Format:
                 1. Summary of findings
                 2. Critical issues (must fix)
@@ -978,18 +979,18 @@ public class MultiChatClientConfig {
                 5. Overall rating (1-10)
                 """)
             .defaultOptions(OpenAiChatOptions.builder()
-                .temperature(0.3)  // Lower for consistent, analytical responses
+                .temperature(0.3)  // 较低以获得一致、分析性的响应
                 .build())
             .build();
     }
 
-    // Technical documentation writer
+    // 技术文档编写器
     @Bean
     public ChatClient documentationChat(ChatClient.Builder builder) {
         return builder
             .defaultSystem("""
                 You are a technical writer specializing in developer documentation.
-
+                
                 Style Guide:
                 - Write in clear, concise language
                 - Use active voice
@@ -1005,7 +1006,7 @@ public class MultiChatClientConfig {
 }
 ```
 
-### 6.5 Dynamic System Prompts
+### 6.5 动态系统提示词
 
 ```java
 @Service
@@ -1018,7 +1019,7 @@ public class AdaptiveChatService {
     public String chat(String userId, String message) {
         User user = userService.findById(userId);
 
-        // Build system prompt based on user context
+        // 根据用户上下文构建系统提示词
         String systemPrompt = buildSystemPrompt(user);
 
         ChatClient personalizedClient = builder
@@ -1034,13 +1035,13 @@ public class AdaptiveChatService {
     private String buildSystemPrompt(User user) {
         return String.format("""
             You are a personalized assistant for %s.
-
+            
             User Profile:
             - Role: %s
             - Experience Level: %s
             - Preferred Communication Style: %s
             - Learning Goals: %s
-
+            
             Adapt your explanations to match their experience level.
             Use examples relevant to their role and goals.
             """,
@@ -1056,24 +1057,24 @@ public class AdaptiveChatService {
 
 ---
 
-## 7. User Prompts: Patterns & Techniques
+## 7. 用户提示词：模式和技巧
 
-User prompts represent the actual input and questions from users. Spring AI provides flexible ways to construct them.
+用户提示词代表来自用户的实际输入和问题。Spring AI 提供了构建它们的灵活方式。
 
-### 7.1 Simple User Prompts
+### 7.1 简单用户提示词
 
 ```java
-// Direct string user prompt
+// 直接字符串用户提示词
 String response = chatClient.prompt()
     .user("What's the capital of France?")
     .call()
     .content();
 
-// Multi-line user prompt
+// 多行用户提示词
 String response = chatClient.prompt()
     .user("""
         Explain the concept of microservices architecture.
-
+        
         Cover:
         1. Definition and principles
         2. Benefits and drawbacks
@@ -1083,10 +1084,10 @@ String response = chatClient.prompt()
     .content();
 ```
 
-### 7.2 Parameterized User Prompts
+### 7.2 参数化用户提示词
 
 ```java
-// User prompt with single parameter
+// 带单个参数的用户提示词
 String response = chatClient.prompt()
     .user(u -> u
         .text("Translate '{text}' to Spanish")
@@ -1094,15 +1095,15 @@ String response = chatClient.prompt()
     .call()
     .content();
 
-// User prompt with multiple parameters
+// 带多个参数的用户提示词
 String response = chatClient.prompt()
     .user(u -> u
         .text("""
             Analyze the following {contentType} for {focusAreas}.
-
+            
             Content:
             {content}
-
+            
             Length limit: {maxLength} words
             """)
         .param("contentType", "blog post")
@@ -1113,10 +1114,10 @@ String response = chatClient.prompt()
     .content();
 ```
 
-### 7.3 Multimodal User Prompts
+### 7.3 多模态用户提示词
 
 ```java
-// Text + Image
+// 文本 + 图像
 Resource image = new ClassPathResource("images/dashboard.png");
 
 String response = chatClient.prompt()
@@ -1126,7 +1127,7 @@ String response = chatClient.prompt()
     .call()
     .content();
 
-// Text + Multiple Images
+// 文本 + 多个图像
 Resource img1 = new ClassPathResource("images/page1.png");
 Resource img2 = new ClassPathResource("images/page2.png");
 
@@ -1138,7 +1139,7 @@ String response = chatClient.prompt()
     .call()
     .content();
 
-// Text + Code file
+// 文本 + 代码文件
 Resource codeFile = new FileSystemResource("src/main/java/Service.java");
 
 String response = chatClient.prompt()
@@ -1149,7 +1150,7 @@ String response = chatClient.prompt()
     .content();
 ```
 
-### 7.4 Dynamic User Prompts from Templates
+### 7.4 来自模板的动态用户提示词
 
 ```java
 @Service
@@ -1158,7 +1159,7 @@ public class TemplatePromptService {
 
     private final ChatClient chatClient;
 
-    // Load template at startup
+    // 启动时加载模板
     private final PromptTemplate queryTemplate;
 
     @PostConstruct
@@ -1169,7 +1170,7 @@ public class TemplatePromptService {
     }
 
     public String analyzeQuery(String userQuery) {
-        // Render template with user input
+        // 用用户输入渲染模板
         String renderedPrompt = queryTemplate.render(Map.of(
             "query", userQuery,
             "timestamp", Instant.now().toString()
@@ -1183,7 +1184,7 @@ public class TemplatePromptService {
 }
 ```
 
-**Template file** (`prompts/query-analysis.st`):
+**模板文件**（`prompts/query-analysis.st`）：
 
 ```text
 Analyze the following user query:
@@ -1198,65 +1199,65 @@ Analysis:
 4. Additional information needed
 ```
 
-### 7.5 User Prompt Patterns
+### 7.5 用户提示词模式
 
 ```java
-// Pattern 1: Chain-of-Thought prompting
+// 模式 1：思维链提示词
 String cotPrompt = """
     Let's think step by step to solve this problem.
-
+    
     Problem: {problem}
-
+    
     Steps:
     1. Understand the problem
     2. Identify the constraints
     3. Explore possible solutions
     4. Evaluate trade-offs
     5. Recommend the best approach
-
+    
     Provide your reasoning for each step.
     """;
 
-// Pattern 2: Few-shot prompting
+// 模式 2：少样本提示词
 String fewShotPrompt = """
     Examples:
-
+    
     Q: What is 2 + 2?
     A: 4
-
+    
     Q: What is 5 * 3?
     A: 15
-
+    
     Q: What is 10 / 2?
     A: 5
-
+    
     Now solve:
     Q: {question}
     A:
     """;
 
-// Pattern 3: Role-playing
+// 模式 3：角色扮演
 String rolePlayPrompt = """
     You are a {role} at {company}.
-
+    
     Scenario: {scenario}
-
+    
     Task: {task}
-
+    
     Respond in character, maintaining the persona throughout.
     """;
 ```
 
 ---
 
-## 8. Prompt Options: Controlling Model Behavior
+## 8. 提示词选项：控制模型行为
 
-ChatOptions allow you to control model parameters like temperature, max tokens, and provider-specific settings.
+ChatOptions 允许您控制模型参数，如温度、最大令牌数和提供商特定设置。
 
-### 8.1 Common ChatOptions
+### 8.1 常见 ChatOptions
 
 ```java
-// Basic options
+// 基本选项
 ChatOptions options = ChatOptions.builder()
     .model("gpt-4")
     .temperature(0.7)
@@ -1269,18 +1270,18 @@ ChatOptions options = ChatOptions.builder()
     .build();
 ```
 
-| Option | Type | Range | Description |
-|--------|------|-------|-------------|
-| `model` | String | - | Model identifier (e.g., "gpt-4", "claude-3-opus") |
-| `temperature` | Float | 0.0 - 2.0 | Randomness in responses (lower = more focused) |
-| `maxTokens` | Integer | 1 - ∞ | Maximum tokens in response |
-| `topP` | Float | 0.0 - 1.0 | Nucleus sampling threshold |
-| `topK` | Integer | 1 - ∞ | Top-k sampling parameter |
-| `stopSequences` | List&lt;String&gt; | - | Sequences that stop generation |
-| `presencePenalty` | Float | -2.0 - 2.0 | Penalize new topics |
-| `frequencyPenalty` | Float | -2.0 - 2.0 | Penalize repetition |
+| 选项 | 类型 | 范围 | 描述 |
+|------|------|------|------|
+| `model` | String | - | 模型标识符（例如 "gpt-4", "claude-3-opus"） |
+| `temperature` | Float | 0.0 - 2.0 | 响应的随机性（越低越聚焦） |
+| `maxTokens` | Integer | 1 - ∞ | 响应中的最大令牌数 |
+| `topP` | Float | 0.0 - 1.0 | 核心采样阈值 |
+| `topK` | Integer | 1 - ∞ | Top-k 采样参数 |
+| `stopSequences` | List&lt;String&gt; | - | 停止生成的序列 |
+| `presencePenalty` | Float | -2.0 - 2.0 | 惩罚新话题 |
+| `frequencyPenalty` | Float | -2.0 - 2.0 | 惩罚重复 |
 
-### 8.2 Default Options
+### 8.2 默认选项
 
 ```java
 @Configuration
@@ -1299,7 +1300,7 @@ public class ChatOptionsConfig {
 }
 ```
 
-### 8.3 Runtime Option Override
+### 8.3 运行时选项覆盖
 
 ```java
 @Service
@@ -1308,31 +1309,31 @@ public class AdaptiveOptionsService {
 
     private final ChatClient chatClient;
 
-    // Creative task - higher temperature
+    // 创意任务 - 更高温度
     public String brainstormIdeas(String topic) {
         return chatClient.prompt()
             .user("Generate creative ideas for: " + topic)
             .options(ChatOptions.builder()
-                .temperature(0.9)  // High creativity
+                .temperature(0.9)  // 高创造力
                 .maxTokens(1000)
                 .build())
             .call()
             .content();
     }
 
-    // Code generation - lower temperature
+    // 代码生成 - 较低温度
     public String generateCode(String specification) {
         return chatClient.prompt()
             .user("Write code to: " + specification)
             .options(ChatOptions.builder()
-                .temperature(0.2)  // Low for consistency
+                .temperature(0.2)  // 低以保持一致性
                 .maxTokens(2000)
                 .build())
             .call()
             .content();
     }
 
-    // Concise answers
+    // 简洁回答
     public String answerQuickly(String question) {
         return chatClient.prompt()
             .user(question)
@@ -1346,24 +1347,24 @@ public class AdaptiveOptionsService {
 }
 ```
 
-### 8.4 Provider-Specific Options
+### 8.4 提供商特定选项
 
 ```java
-// OpenAI-specific options
+// OpenAI 特定选项
 OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
     .model("gpt-4-turbo")
     .temperature(0.7)
     .maxTokens(2000)
     .presencePenalty(0.5)
     .frequencyPenalty(0.3)
-    .seed(42)                    // For reproducible outputs
-    .user("user-123")             // User identifier
+    .seed(42)                    // 用于可重现的输出
+    .user("user-123")             // 用户标识符
     .logitBias(Map.of(
-        "9517", -20.0             // Token ID bias
+        "9517", -20.0             // 令牌 ID 偏差
     ))
     .build();
 
-// Anthropic-specific options
+// Anthropic 特定选项
 AnthropicChatOptions anthropicOptions = AnthropicChatOptions.builder()
     .model("claude-3-opus-20240229")
     .temperature(0.7)
@@ -1373,7 +1374,7 @@ AnthropicChatOptions anthropicOptions = AnthropicChatOptions.builder()
     .anthropicVersion("vertex-2023-10-16")
     .build();
 
-// Using with ChatClient
+// 在 ChatClient 中使用
 ChatClient openAiClient = ChatClient.builder(openAiChatModel)
     .defaultOptions(openAiOptions)
     .build();
@@ -1384,10 +1385,10 @@ String response = openAiClient.prompt()
     .content();
 ```
 
-### 8.5 Option Inheritance and Precedence
+### 8.5 选项继承和优先级
 
 ```java
-// 1. Global default options
+// 1. 全局默认选项
 ChatClient clientWithDefaults = ChatClient.builder(chatModel)
     .defaultOptions(ChatOptions.builder()
         .temperature(0.7)
@@ -1395,17 +1396,17 @@ ChatClient clientWithDefaults = ChatClient.builder(chatModel)
         .build())
     .build();
 
-// 2. Runtime override - takes precedence
+// 2. 运行时覆盖 - 优先级更高
 String response = clientWithDefaults.prompt()
     .user("Generate a story")
     .options(ChatOptions.builder()
-        .temperature(0.9)  // Overrides default
-        // maxTokens inherited from default (1000)
+        .temperature(0.9)  // 覆盖默认值
+        // maxTokens 从默认继承（1000）
         .build())
     .call()
     .content();
 
-// 3. Prompt-level options - highest precedence
+// 3. Prompt 级别选项 - 最高优先级
 Prompt promptWithOptions = new Prompt(
     List.of(new UserMessage("Tell me a joke")),
     ChatOptions.builder()
@@ -1419,9 +1420,9 @@ ChatResponse response = chatModel.call(promptWithOptions);
 
 ---
 
-## 9. Advanced Prompt Patterns
+## 9. 高级提示词模式
 
-### 9.1 Few-Shot Prompting
+### 9.1 少样本提示词
 
 ```java
 @Service
@@ -1429,7 +1430,7 @@ public class FewShotService {
 
     private final ChatClient chatClient;
 
-    // Classification with examples
+    // 带示例的分类
     public String classifyEmail(String emailContent) {
         String fewShotPrompt = """
             Classify the following email into one of these categories:
@@ -1437,21 +1438,21 @@ public class FewShotService {
             - SUPPORT: Customer reporting an issue
             - SALES: Customer interested in purchasing
             - OTHER: Everything else
-
+            
             Examples:
-
+            
             Email: "How much does your premium plan cost?"
             Category: SALES
-
+            
             Email: "I can't log into my account. Help!"
             Category: SUPPORT
-
+            
             Email: "What features do you offer?"
             Category: INQUIRY
-
+            
             Email: "Thanks for the great service!"
             Category: OTHER
-
+            
             Now classify:
             Email: "{email}"
             Category:
@@ -1463,45 +1464,45 @@ public class FewShotService {
             .content();
     }
 
-    // Code translation with examples
+    // 带示例的代码翻译
     public String translateCode(String sourceCode, String sourceLang, String targetLang) {
         String examples = """
             Translate Java to Python:
-
+            
             Java:
             public class HelloWorld {
                 public static void main(String[] args) {
                     System.out.println("Hello, World!");
                 }
             }
-
+            
             Python:
             class HelloWorld:
                 @staticmethod
                 def main():
                     print("Hello, World!")
-
+            
             ======
-
+            
             Translate JavaScript to TypeScript:
-
+            
             JavaScript:
             function add(a, b) {
                 return a + b;
             }
-
+            
             TypeScript:
             function add(a: number, b: number): number {
                 return a + b;
             }
-
+            
             ======
-
+            
             Translate {sourceLang} to {targetLang}:
-
+            
             {sourceLang}:
             {sourceCode}
-
+            
             {targetLang}:
             """;
 
@@ -1516,7 +1517,7 @@ public class FewShotService {
 }
 ```
 
-### 9.2 Chain-of-Thought Prompting
+### 9.2 思维链提示词
 
 ```java
 @Service
@@ -1524,50 +1525,50 @@ public class ChainOfThoughtService {
 
     private final ChatClient chatClient;
 
-    // Mathematical reasoning
+    // 数学推理
     public String solveMathProblem(String problem) {
         String cotPrompt = """
             Let's think step by step to solve this problem.
-
+            
             Problem: {problem}
-
+            
             Step-by-step reasoning:
             1. Understand what the problem is asking
             2. Identify the key information given
             3. Determine what formula or approach to use
             4. Apply the formula step by step
             5. Calculate the final answer
-
+            
             Please show your work for each step.
             """;
 
         return chatClient.prompt()
             .user(u -> u.text(cotPrompt).param("problem", problem))
             .options(ChatOptions.builder()
-                .temperature(0.2)  // Low for consistency
+                .temperature(0.2)  // 低以保持一致性
                 .build())
             .call()
             .content();
     }
 
-    // Debugging with reasoning
+    // 调试推理
     public String debugCode(String code, String errorDescription) {
         String debugPrompt = """
             Let's systematically debug this code.
-
+            
             Code:
             {code}
-
+            
             Error:
             {error}
-
+            
             Debugging process:
             1. Analyze the error message
             2. Identify the line causing the error
             3. Understand why the error occurs
             4. Propose a fix
             5. Explain why the fix works
-
+            
             Go through each step carefully.
             """;
 
@@ -1581,7 +1582,7 @@ public class ChainOfThoughtService {
 }
 ```
 
-### 9.3 Prompt Chaining
+### 9.3 提示词链
 
 ```java
 @Service
@@ -1589,54 +1590,54 @@ public class PromptChainingService {
 
     private final ChatClient chatClient;
 
-    // Multi-step content processing
+    // 多步骤内容处理
     public String summarizeAndExtract(String longDocument) {
-        // Step 1: Summarize
+        // 步骤 1：总结
         String summary = chatClient.prompt()
             .user("Summarize this document in 3 bullet points:\n" + longDocument)
             .call()
             .content();
 
-        // Step 2: Extract key entities from summary
+        // 步骤 2：从总结中提取关键实体
         String entities = chatClient.prompt()
             .user("Extract all named entities (people, places, organizations) from:\n" + summary)
             .call()
             .content();
 
-        // Step 3: Generate action items
+        // 步骤 3：生成行动项
         String actionItems = chatClient.prompt()
             .user("Based on this summary, generate a list of action items:\n" + summary)
             .call()
             .content();
 
-        // Combine results
+        // 合并结果
         return String.format("""
             Summary:
             %s
-
+            
             Key Entities:
             %s
-
+            
             Action Items:
             %s
             """, summary, entities, actionItems);
     }
 
-    // Refinement chain
+    // 改进链
     public String refineAnswer(String question) {
-        // Initial answer
+        // 初始回答
         String draft = chatClient.prompt()
             .user(question)
             .call()
             .content();
 
-        // Improve clarity
+        // 提高清晰度
         String refined = chatClient.prompt()
             .user("Rewrite this answer to be clearer and more concise:\n" + draft)
             .call()
             .content();
 
-        // Add examples
+        // 添加示例
         String finalAnswer = chatClient.prompt()
             .user("Add practical code examples to this explanation:\n" + refined)
             .call()
@@ -1647,7 +1648,7 @@ public class PromptChainingService {
 }
 ```
 
-### 9.4 Structured Output Prompts
+### 9.4 结构化输出提示词
 
 ```java
 @Service
@@ -1655,16 +1656,16 @@ public class StructuredPromptService {
 
     private final ChatClient chatClient;
 
-    // Sentiment analysis with output format
+    // 带输出格式的情感分析
     public SentimentResult analyzeSentiment(String text) {
         BeanOutputConverter<SentimentResult> converter =
             new BeanOutputConverter<>(SentimentResult.class);
 
         String prompt = String.format("""
             Analyze the sentiment of the following text.
-
+            
             Text: %s
-
+            
             Provide your analysis in the following JSON format:
             %s
             """, text, converter.getFormat());
@@ -1677,14 +1678,14 @@ public class StructuredPromptService {
         return converter.convert(response);
     }
 
-    // Entity extraction
+    // 实体提取
     public List<Entity> extractEntities(String text) {
         return chatClient.prompt()
             .user(u -> u.text("""
                 Extract all named entities from the following text.
-
+                
                 Text: {text}
-
+                
                 Return entities in JSON format with these fields:
                 - text: the entity text
                 - type: PERSON, ORGANIZATION, LOCATION, or OTHER
@@ -1695,7 +1696,7 @@ public class StructuredPromptService {
             .entity(new ParameterizedTypeReference<List<Entity>>() {});
     }
 
-    // Record definitions
+    // 记录定义
     record SentimentResult(
         String sentiment,  // POSITIVE, NEGATIVE, NEUTRAL
         double confidence,
@@ -1710,7 +1711,7 @@ public class StructuredPromptService {
 }
 ```
 
-### 9.5 Prompt Composition Patterns
+### 9.5 提示词组合模式
 
 ```java
 @Service
@@ -1723,19 +1724,19 @@ public class PromptCompositionService {
 
     @PostConstruct
     public void init() {
-        // Layer 1: Role and expertise
+        // 第 1 层：角色和专业领域
         systemTemplate = PromptTemplate.builder()
             .template("""
                 You are a {role} specializing in {domain}.
-
+                
                 Your expertise includes:
                 {expertise_areas}
-
+                
                 Communication style: {style}
                 """)
             .build();
 
-        // Layer 2: Context and constraints
+        // 第 2 层：上下文和约束
         contextTemplate = PromptTemplate.builder()
             .template("""
                 Project Context:
@@ -1743,20 +1744,20 @@ public class PromptCompositionService {
                 - Tech Stack: {tech_stack}
                 - Team Size: {team_size}
                 - Timeline: {timeline}
-
+                
                 Constraints:
                 {constraints}
                 """)
             .build();
 
-        // Layer 3: Specific task
+        // 第 3 层：具体任务
         taskTemplate = PromptTemplate.builder()
             .template("""
                 Task: {task}
-
+                
                 Requirements:
                 {requirements}
-
+                
                 Expected Output Format:
                 {output_format}
                 """)
@@ -1764,7 +1765,7 @@ public class PromptCompositionService {
     }
 
     public String executeArchitecturalTask(String taskDescription) {
-        // Compose layers
+        // 组合层
         String systemPrompt = systemTemplate.render(Map.of(
             "role", "solution architect",
             "domain", "microservices",
@@ -1797,7 +1798,7 @@ public class PromptCompositionService {
                 """
         ));
 
-        // Execute composed prompt
+        // 执行组合提示词
         return chatClient.prompt()
             .system(systemPrompt)
             .user(contextPrompt + "\n\n" + taskPrompt)
@@ -1809,23 +1810,23 @@ public class PromptCompositionService {
 
 ---
 
-## 10. Prompt Advisors for Enhancement
+## 10. 提示词增强顾问
 
-The **Advisor API** provides a powerful chain-of-responsibility pattern for modifying prompts and responses. Advisors can enhance prompts, add context, log interactions, and implement cross-cutting concerns.
+**Advisor API** 提供了强大的责任链模式，用于修改提示词和响应。顾问可以增强提示词、添加上下文、记录交互并实现横切关注点。
 
-### 10.1 Built-in Prompt Advisors
+### 10.1 内置提示词顾问
 
 ```java
 @Component
 public class PromptAdvisorConfig {
 
-    // Simple Logger Advisor - logs all prompts and responses
+    // 简单日志顾问 - 记录所有提示词和响应
     @Bean
     public SimpleLoggerAdvisor simpleLoggerAdvisor() {
         return new SimpleLoggerAdvisor();
     }
 
-    // Prompt Enhancement Advisor - adds instructions to all prompts
+    // 提示词增强顾问 - 为所有提示词添加指令
     @Component
     public static class PromptEnhancementAdvisor implements CallAroundAdvisor {
 
@@ -1843,12 +1844,12 @@ public class PromptAdvisorConfig {
                 AdvisedRequest request,
                 CallAroundAdvisorChain chain) {
 
-            // Modify the request
+            // 修改请求
             AdvisedRequest enhanced = AdvisedRequest.from(request)
                 .userText(request.userText() + ENHANCEMENT)
                 .build();
 
-            // Continue the chain
+            // 继续链式调用
             return chain.nextAroundCall(enhanced);
         }
 
@@ -1865,7 +1866,7 @@ public class PromptAdvisorConfig {
 }
 ```
 
-### 10.2 Custom Prompt Enhancement Advisor
+### 10.2 自定义提示词增强顾问
 
 ```java
 @Component
@@ -1880,15 +1881,15 @@ public class ContextEnrichmentAdvisor implements CallAroundAdvisor {
             AdvisedRequest request,
             CallAroundAdvisorChain chain) {
 
-        // Extract user ID from advise context
+        // 从顾问上下文提取用户 ID
         String userId = (String) request.adviseContext()
             .getOrDefault("userId", "anonymous");
 
         if (!"anonymous".equals(userId)) {
-            // Fetch user context
+            // 获取用户上下文
             User user = userService.findById(userId);
 
-            // Build context enhancement
+            // 构建上下文增强
             String contextEnhancement = String.format("""
 
                 User Context:
@@ -1905,7 +1906,7 @@ public class ContextEnrichmentAdvisor implements CallAroundAdvisor {
                 user.getRecentActivity()
             );
 
-            // Add context to system prompt
+            // 将上下文添加到系统提示词
             AdvisedRequest enriched = AdvisedRequest.from(request)
                 .systemText(request.systemText() + contextEnhancement)
                 .build();
@@ -1928,7 +1929,7 @@ public class ContextEnrichmentAdvisor implements CallAroundAdvisor {
 }
 ```
 
-### 10.3 Response Formatting Advisor
+### 10.3 响应格式化顾问
 
 ```java
 @Component
@@ -1939,10 +1940,10 @@ public class ResponseFormattingAdvisor implements CallAroundAdvisor {
             AdvisedRequest request,
             CallAroundAdvisorChain chain) {
 
-        // Execute the request
+        // 执行请求
         AdvisedResponse response = chain.nextAroundCall(request);
 
-        // Format the response
+        // 格式化响应
         String originalContent = response.response()
             .getResult()
             .getOutput()
@@ -1950,7 +1951,7 @@ public class ResponseFormattingAdvisor implements CallAroundAdvisor {
 
         String formattedContent = formatResponse(originalContent);
 
-        // Create new response with formatted content
+        // 创建带格式化内容的新响应
         ChatResponse formattedResponse = ChatResponse.builder()
             .from(response.response())
             .addGeneration(ChatGeneration.builder()
@@ -1965,12 +1966,12 @@ public class ResponseFormattingAdvisor implements CallAroundAdvisor {
     }
 
     private String formatResponse(String content) {
-        // Add markdown formatting if missing
+        // 如果缺少，添加 markdown 格式
         if (!content.contains("#") && !content.contains("##")) {
             content = "## Response\n\n" + content;
         }
 
-        // Ensure code blocks have language tags
+        // 确保代码块有语言标签
         content = content.replaceAll("```\\s*\\n", "```text\n");
 
         return content;
@@ -1978,7 +1979,7 @@ public class ResponseFormattingAdvisor implements CallAroundAdvisor {
 
     @Override
     public int getOrder() {
-        return Ordered.LOWEST_PRECEDENCE;  // Execute last
+        return Ordered.LOWEST_PRECEDENCE;  // 最后执行
     }
 
     @Override
@@ -1988,7 +1989,7 @@ public class ResponseFormattingAdvisor implements CallAroundAdvisor {
 }
 ```
 
-### 10.4 Dynamic Prompt Advisor
+### 10.4 动态提示词顾问
 
 ```java
 @Component
@@ -2002,20 +2003,20 @@ public class DynamicPromptAdvisor implements CallAroundAdvisor {
             AdvisedRequest request,
             CallAroundAdvisorChain chain) {
 
-        // Determine prompt type from request
+        // 从请求确定提示词类型
         String promptType = classifyPrompt(request);
 
-        // Load dynamic enhancements
+        // 加载动态增强
         List<PromptEnhancement> enhancements =
             promptRepository.findByType(promptType);
 
-        // Build dynamic enhancement text
+        // 构建动态增强文本
         String dynamicEnhancement = enhancements.stream()
             .filter(PromptEnhancement::isActive)
             .map(PromptEnhancement::getContent)
             .collect(Collectors.joining("\n"));
 
-        // Apply enhancements
+        // 应用增强
         if (!dynamicEnhancement.isEmpty()) {
             AdvisedRequest enhanced = AdvisedRequest.from(request)
                 .userText(request.userText() + "\n\n" + dynamicEnhancement)
@@ -2053,7 +2054,7 @@ public class DynamicPromptAdvisor implements CallAroundAdvisor {
 }
 ```
 
-### 10.5 Using Advisors with ChatClient
+### 10.5 在 ChatClient 中使用顾问
 
 ```java
 @Configuration
@@ -2065,11 +2066,11 @@ public class AdvisorConfiguration {
             List<CallAroundAdvisor> advisors) {
 
         return builder
-            .defaultAdvisors(advisors)  // Auto-register all advisors
+            .defaultAdvisors(advisors)  // 自动注册所有顾问
             .build();
     }
 
-    // Or selectively register advisors
+    // 或者选择性注册顾问
     @Bean
     public ChatClient selectiveChatClient(ChatClient.Builder builder) {
         return builder
@@ -2081,7 +2082,7 @@ public class AdvisorConfiguration {
             .build();
     }
 
-    // Or add advisors per-request
+    // 或者每个请求添加顾问
     @RestController
     @RequiredArgsConstructor
     public class ChatController {
@@ -2105,9 +2106,9 @@ public class AdvisorConfiguration {
 
 ---
 
-## 11. Practical Examples & Use Cases
+## 11. 实用示例和用例
 
-### 11.1 Code Generation Service
+### 11.1 代码生成服务
 
 ```java
 @Service
@@ -2118,11 +2119,11 @@ public class CodeGenerationService {
 
     @PostConstruct
     public void init() {
-        // Specialized client for code generation
+        // 代码生成的专用客户端
         this.codeClient = ChatClient.builder(chatModel)
             .defaultSystem("""
                 You are an expert software developer with 15 years of experience.
-
+                
                 Coding Standards:
                 - Write clean, idiomatic code following best practices
                 - Include comprehensive error handling
@@ -2131,7 +2132,7 @@ public class CodeGenerationService {
                 - Follow SOLID principles
                 - Include input validation
                 - Add logging for debugging
-
+                
                 Response Format:
                 1. Brief explanation of the approach
                 2. Complete, production-ready code
@@ -2139,7 +2140,7 @@ public class CodeGenerationService {
                 4. Key considerations and edge cases
                 """)
             .defaultOptions(OpenAiChatOptions.builder()
-                .temperature(0.2)  // Low for consistent code
+                .temperature(0.2)  // 低以获得一致的代码
                 .build())
             .build();
     }
@@ -2173,10 +2174,10 @@ public class CodeGenerationService {
             .user(u -> u
                 .text("""
                     Write comprehensive unit tests using JUnit 5 and Mockito.
-
+                    
                     Class to test:
                     {code}
-
+                    
                     Include:
                     - Happy path tests
                     - Edge cases
@@ -2193,13 +2194,13 @@ public class CodeGenerationService {
             .user(u -> u
                 .text("""
                     Refactor this code to improve it.
-
+                    
                     Original Code:
                     {original}
-
+                    
                     Refactoring Requirements:
                     {requirements}
-
+                    
                     Provide:
                     1. Explanation of changes
                     2. Refactored code
@@ -2213,7 +2214,7 @@ public class CodeGenerationService {
 }
 ```
 
-### 11.2 Document Summarization Service
+### 11.2 文档摘要服务
 
 ```java
 @Service
@@ -2223,10 +2224,10 @@ public class SummarizationService {
     private final ChatClient summarizationClient;
 
     public enum SummaryStyle {
-        BULLET,      // Bullet points
-        PARAGRAPH,   // Concise paragraph
-        EXECUTIVE,   // Executive summary
-        TECHNICAL    // Technical deep-dive
+        BULLET,      // 项目符号
+        PARAGRAPH,   // 简洁段落
+        EXECUTIVE,   // 执行摘要
+        TECHNICAL    // 技术深度解析
     }
 
     public String summarize(
@@ -2237,60 +2238,60 @@ public class SummarizationService {
         String promptTemplate = switch (style) {
             case BULLET -> """
                 Summarize the following document in bullet points.
-
+                
                 Document:
                 {document}
-
+                
                 Requirements:
                 - Maximum {length} words
                 - Focus on key points and main ideas
                 - Group related points together
                 - Use concise bullet points
-
+                
                 Summary:
                 """;
 
             case PARAGRAPH -> """
                 Summarize the following document in a concise paragraph.
-
+                
                 Document:
                 {document}
-
+                
                 Requirements:
                 - Maximum {length} words
                 - Capture the main message
                 - Be clear and direct
-
+                
                 Summary:
                 """;
 
             case EXECUTIVE -> """
                 Provide an executive summary of the following document.
-
+                
                 Document:
                 {document}
-
+                
                 Requirements:
                 - Maximum {length} words
                 - Focus on: key insights, decisions, action items, impact
                 - Executive-friendly format
                 - No technical jargon
-
+                
                 Executive Summary:
                 """;
 
             case TECHNICAL -> """
                 Provide a technical summary of the following document.
-
+                
                 Document:
                 {document}
-
+                
                 Requirements:
                 - Maximum {length} words
                 - Focus on: architecture, technologies, APIs, data structures
                 - Preserve technical details
                 - Use appropriate terminology
-
+                
                 Technical Summary:
                 """;
         };
@@ -2307,13 +2308,13 @@ public class SummarizationService {
         return summarizationClient.prompt()
             .user("""
                 Extract the 5-7 most important points from this document.
-
+                
                 Document:
                 {document}
-
+                
                 Format each point as:
                 - [Point]: [Brief explanation]
-
+                
                 Key Points:
                 """
                 .replace("{document}", document))
@@ -2323,7 +2324,7 @@ public class SummarizationService {
 }
 ```
 
-### 11.3 Translation Service
+### 11.3 翻译服务
 
 ```java
 @Service
@@ -2341,33 +2342,33 @@ public class TranslationService {
         return translationClient.prompt()
             .system(s -> s.text("""
                 You are a professional translator specializing in {domain}.
-
+                
                 Translation Principles:
                 - Preserve the original meaning and nuance
                 - Use culturally appropriate expressions
                 - Maintain technical accuracy
                 - Adapt idioms when necessary
                 - Ensure natural flow in target language
-
+                
                 Tone: {tone}
                 """)
                 .param("domain", determineDomain(context))
                 .param("tone", tone))
             .user(u -> u.text("""
                 Translate the following text to {language}.
-
+                
                 Context: {context}
-
+                
                 Text:
                 {text}
-
+                
                 Translation:
                 """)
                 .param("language", targetLanguage)
                 .param("context", context)
                 .param("text", text))
             .options(ChatOptions.builder()
-                .temperature(0.3)  // Low for accuracy
+                .temperature(0.3)  // 低以获得准确性
                 .build())
             .call()
             .content();
@@ -2380,11 +2381,11 @@ public class TranslationService {
 
         String batchPrompt = """
             Translate the following texts to {language}.
-
+            
             Context: {context}
-
+            
             {texts}
-
+            
             Provide translations in the same order, numbered:
             1.
             2.
@@ -2421,7 +2422,7 @@ public class TranslationService {
 }
 ```
 
-### 11.4 Question Answering Service
+### 11.4 问答服务
 
 ```java
 @Service
@@ -2438,46 +2439,46 @@ public class QuestionAnsweringService {
         String promptTemplate = switch (style) {
             case CONCISE -> """
                 Answer this question concisely based on the provided context.
-
+                
                 Context:
                 {context}
-
+                
                 Question: {question}
-
+                
                 Answer (1-2 sentences):
                 """;
 
             case DETAILED -> """
                 Answer this question in detail based on the provided context.
-
+                
                 Context:
                 {context}
-
+                
                 Question: {question}
-
+                
                 Provide a comprehensive answer with:
                 - Direct answer
                 - Supporting details
                 - Examples if relevant
                 - Related information
-
+                
                 Answer:
                 """;
 
             case STEP_BY_STEP -> """
                 Answer this question step by step based on the provided context.
-
+                
                 Context:
                 {context}
-
+                
                 Question: {question}
-
+                
                 Break down your answer into clear steps:
                 1.
                 2.
                 3.
                 ...
-
+                
                 Answer:
                 """;
         };
@@ -2491,35 +2492,35 @@ public class QuestionAnsweringService {
     }
 
     public enum AnswerStyle {
-        CONCISE,      // Brief, direct answer
-        DETAILED,     // Comprehensive explanation
-        STEP_BY_STEP  // Structured approach
+        CONCISE,      // 简洁、直接回答
+        DETAILED,     // 全面解释
+        STEP_BY_STEP  // 结构化方法
     }
 
     public List<FAQ> generateFAQ(String document) {
         String response = qaClient.prompt()
             .user("""
                 Generate 5-8 frequently asked questions (FAQs) from this document.
-
+                
                 Document:
                 {document}
-
+                
                 Format as:
                 Q: [Question]
                 A: [Concise answer]
-
+                
                 FAQs:
                 """
                 .replace("{document}", document))
             .call()
             .content();
 
-        // Parse the response into FAQ objects
+        // 将响应解析为 FAQ 对象
         return parseFAQs(response);
     }
 
     private List<FAQ> parseFAQs(String response) {
-        // Implementation to parse Q&A pairs
+        // 实现 Q&A 对的解析
         // ...
         return List.of();
     }
@@ -2528,7 +2529,7 @@ public class QuestionAnsweringService {
 }
 ```
 
-### 11.5 Content Creation Service
+### 11.5 内容创建服务
 
 ```java
 @Service
@@ -2545,20 +2546,20 @@ public class ContentCreationService {
         return contentClient.prompt()
             .system(s -> s.text("""
                 You are a professional content writer and copywriter.
-
+                
                 Writing Style:
                 - Engaging and conversational tone
                 - Clear structure with headings
                 - Actionable insights
                 - Examples and analogies
                 - SEO-friendly (natural keyword usage)
-
+                
                 Target Audience: {audience}
                 """)
                 .param("audience", targetAudience))
             .user(u -> u.text("""
                 Write a blog post about: {topic}
-
+                
                 Requirements:
                 - Approximately {words} words
                 - Compelling title
@@ -2566,13 +2567,13 @@ public class ContentCreationService {
                 - 3-5 main sections with subheadings
                 - Practical examples or tips
                 - Conclusion with call-to-action
-
+                
                 Blog Post:
                 """)
                 .param("topic", topic)
                 .param("words", String.valueOf(wordCount)))
             .options(ChatOptions.builder()
-                .temperature(0.8)  // Higher for creativity
+                .temperature(0.8)  // 更高以获得创造性
                 .build())
             .call()
             .content();
@@ -2611,14 +2612,14 @@ public class ContentCreationService {
         return contentClient.prompt()
             .user(u -> u.text("""
                 Create a social media post for this content.
-
+                
                 {specs}
-
+                
                 Tone: {tone}
-
+                
                 Original Content:
                 {content}
-
+                
                 Social Media Post:
                 """)
                 .param("specs", platformSpecs)
@@ -2637,10 +2638,10 @@ public class ContentCreationService {
         String template = switch (type) {
             case WELCOME -> """
                 Generate a welcome email for a new user.
-
+                
                 Recipient: {recipient}
                 Purpose: {purpose}
-
+                
                 Include:
                 - Warm greeting
                 - Next steps for getting started
@@ -2650,10 +2651,10 @@ public class ContentCreationService {
 
             case NEWSLETTER -> """
                 Generate a newsletter email.
-
+                
                 Recipient: {recipient}
                 Purpose: {purpose}
-
+                
                 Structure:
                 - Catchy subject line
                 - Personal greeting
@@ -2664,10 +2665,10 @@ public class ContentCreationService {
 
             case PROMOTIONAL -> """
                 Generate a promotional email.
-
+                
                 Recipient: {recipient}
                 Purpose: {purpose}
-
+                
                 Elements:
                 - Compelling offer
                 - Urgency/scarcity
@@ -2696,7 +2697,7 @@ public class ContentCreationService {
 }
 ```
 
-### 11.6 Code Review Service
+### 11.6 代码审查服务
 
 ```java
 @Service
@@ -2712,14 +2713,14 @@ public class CodeReviewService {
 
         String prompt = String.format("""
             Review this %s code for quality and best practices.
-
+            
             Focus Areas:
             %s
-
+            
             Code to Review:
-
+            
             %s
-
+            
             Provide a structured review with:
             1. Overall Assessment (1-10 rating)
             2. Critical Issues (must fix)
@@ -2747,21 +2748,21 @@ public class CodeReviewService {
     }
 
     private CodeReviewResult parseCodeReview(String review) {
-        // Parse the structured review into a CodeReviewResult object
-        // Implementation depends on response format
+        // 将结构化审查解析为 CodeReviewResult 对象
+        // 实现取决于响应格式
         return new CodeReviewResult(review);
     }
 
     public String suggestRefactoring(String code, String goal) {
         String refactoringPrompt = """
             Suggest refactoring improvements for this code.
-
+            
             Goal: {goal}
-
+            
             Current Code:
-
+            
             {code}
-
+            
             Provide:
             1. Problems with current approach
             2. Refactored code with improvements
@@ -2781,11 +2782,11 @@ public class CodeReviewService {
     public String generateDocumentation(String code) {
         String docPrompt = String.format("""
             Generate comprehensive documentation for this code.
-
+            
             Code:
-
+            
             %s
-
+            
             Include:
             - Class/method purpose
             - Parameter descriptions
@@ -2814,7 +2815,7 @@ public class CodeReviewService {
 
 ---
 
-## References
+## 参考资料和扩展阅读
 
 1. Spring AI. (2025). *Prompt API Reference*. [Spring.io](https://docs.spring.io/spring-ai/reference/api/prompt.html)
 2. Spring AI. (2025). *ChatClient API Reference*. [Spring.io](https://docs.spring.io/spring-ai/reference/api/chatclient.html)
@@ -2824,5 +2825,5 @@ public class CodeReviewService {
 
 ---
 
-**Previous**: [4. Structured Output](./04-structured-output.mdx) ←
-**Next**: [6. Evaluation & Version Control](./06-evaluation-versioning.mdx) →
+**上一篇**: [4. 结构化输出](./04-structured-output.mdx) ←
+**下一篇**: [6. 评估与版本控制](./06-evaluation-versioning.mdx) →
