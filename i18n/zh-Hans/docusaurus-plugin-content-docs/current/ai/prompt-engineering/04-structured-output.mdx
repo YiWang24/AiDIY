@@ -1,93 +1,93 @@
 ---
-title: "4 Structured Output Engineering"
-description: "Master JSON Mode, XML tagging, schema enforcement, and provider-specific techniques for production-grade LLM outputs"
+title: "4 结构化输出工程"
+description: "掌握 JSON 模式、XML 标签、模式强制执行以及针对生产级 LLM 输出的提供商特定技术"
 published: 2025-01-21
 tags: ["prompt-engineering", "structured-output", "json", "schema", "spring-ai"]
 category: "prompt-engineering"
-series: "Prompt Engineering Guide"
+series: "提示工程指南"
 seriesOrder: 3
 draft: false
 ---
 
-## Why Structured Output Matters
+## 为什么结构化输出很重要
 
-**Structured output enforcement improves reliability by 3-5x** in enterprise applications. Without it, LLM outputs are unpredictable strings that require complex parsing, error handling, and retry logic.
+**结构化输出强制执行在企业应用中可提高 3-5 倍的可靠性**。没有它，LLM 输出是不可预测的字符串，需要复杂的解析、错误处理和重试逻辑。
 
-### The Reliability Problem
+### 可靠性问题
 
 ```plaintext
-Without Structured Output:
+无结构化输出时：
 ┌─────────────────────────────────────────────────────────────┐
-│ LLM Response: "Here's the analysis:                        │
-│ - Revenue: probably around $50M                            │
-│ - Growth: Strong! About 15%                                │
-│ - Risk: Medium (see notes below)                           │
-│ Note: Numbers are estimates..."                            │
+│ LLM 响应："这里是分析：                                   │
+│ - 收入：可能在 5000 万左右                               │
+│ - 增长：强劲！约 15%                                     │
+│ - 风险：中等（详见下文）                                 │
+│ 注意：数字是估算..."                                     │
 └─────────────────────────────────────────────────────────────┘
-                        ↓ Parsing Hell
-         - Regex extraction fails on edge cases
-         - Number formats vary ("$50M" vs "50000000")
-         - Risk levels inconsistent ("Medium" vs "3/5")
-         - Extra text breaks JSON parsing
+                        ↓ 解析地狱
+         - 正则提取在边缘情况下失败
+         - 数字格式多样（"$50M" vs "50000000"）
+         - 风险等级不一致（"Medium" vs "3/5"）
+         - 额外文本破坏 JSON 解析
 
-With Structured Output:
+结构化输出时：
 ┌─────────────────────────────────────────────────────────────┐
-│ {                                                          │
-│   "revenue": 50000000,                                     │
-│   "growthRate": 0.15,                                      │
+│ {                                                         │
+│   "revenue": 50000000,                                    │
+│   "growthRate": 0.15,                                     │
 │   "riskLevel": "MEDIUM",                                   │
-│   "confidence": 0.85                                       │
-│ }                                                          │
+│   "confidence": 0.85                                      │
+│ }                                                         │
 └─────────────────────────────────────────────────────────────┘
-                        ↓ Direct Parse
-         - JSON.parse() works every time
-         - Type-safe deserialization
-         - Validated against schema
-         - No ambiguity
+                        ↓ 直接解析
+         - JSON.parse() 每次都成功
+         - 类型安全的反序列化
+         - 对照模式验证
+         - 无歧义
 ```
 
-### Business Impact
+### 业务影响
 
-| Metric | Without Structure | With Structure | Improvement |
+| 指标 | 无结构 | 有结构 | 改进 |
 |--------|-------------------|----------------|-------------|
-| Parse Success Rate | 75-85% | 99.9%+ | +15-25% |
-| Retry Rate | 15-25% | less than 1% | -95% |
-| Token Waste | High (verbose) | Low (precise) | -30-50% |
-| Integration Time | Days/weeks | Hours | 10x faster |
-| Production Incidents | Weekly | Rare | -90% |
+| 解析成功率 | 75-85% | 99.9%+ | +15-25% |
+| 重试率 | 15-25% | 少于 1% | -95% |
+| 令牌浪费 | 高（冗长） | 低（精确） | -30-50% |
+| 集成时间 | 天/周 | 小时 | 快 10 倍 |
+| 生产事件 | 每周 | 罕见 | -90% |
 
 ---
 
-## 1. JSON Mode: Provider Implementations
+## 1. JSON 模式：提供商实现
 
-### 1.1 OpenAI Structured Outputs (2024)
+### 1.1 OpenAI 结构化输出（2024）
 
-OpenAI's Structured Outputs feature guarantees **100% schema adherence** through constrained decoding. The model is mathematically constrained to only generate tokens that conform to your schema.
+OpenAI 的结构化输出功能通过**受限制解码**保证 **100% 的模式遵循**。模型在数学上被限制为只生成符合您模式的令牌。
 
-:::tip[Key Innovation]
-Unlike "JSON mode" which only ensures valid JSON, Structured Outputs ensure valid JSON **that matches your exact schema**. This is achieved through constrained decoding at the token generation level.
+:::tip[关键创新]
+与仅确保有效 JSON 的"JSON 模式"不同，结构化输出确保**完全符合您模式的**有效 JSON。这是通过在令牌生成级别的受限解码实现的。
 :::
 
-**How It Works**:
+**工作原理**：
 ```plaintext
-Traditional JSON Mode:
-  Model generates → Valid JSON (any structure) → Hope it matches
+传统 JSON 模式：
+  模型生成 → 有效 JSON（任何结构）→ 希望它匹配
 
-Structured Outputs:
-  Schema → Constrained Token Space → Only valid tokens generated
+结构化输出：
+  模式 → 受限令牌空间 → 只生成有效令牌
 
-  Example: If schema requires "status": enum["active", "inactive"]
-  Token probabilities for other values = 0
+  示例：如果模式要求 "status": enum["active", "inactive"]
+  其他值的令牌概率 = 0
 ```
 
-**Implementation**:
+**实现**：
 
 ```typescript
 import OpenAI from 'openai';
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
 
-// Define schema with Zod
+// 使用 Zod 定义模式
 const AnalysisResult = z.object({
   sentiment: z.enum(['positive', 'negative', 'neutral']),
   confidence: z.number().min(0).max(1),
@@ -105,42 +105,42 @@ const client = new OpenAI();
 const response = await client.beta.chat.completions.parse({
   model: 'gpt-4o-2024-08-06',
   messages: [
-    { role: 'system', content: 'Analyze customer feedback and extract insights.' },
+    { role: 'system', content: '分析客户反馈并提取见解。' },
     { role: 'user', content: feedbackText }
   ],
   response_format: zodResponseFormat(AnalysisResult, 'analysis')
 });
 
-// Fully typed response - no parsing needed!
+// 完全类型化的响应 - 无需解析！
 const analysis = response.choices[0].message.parsed;
-console.log(analysis.sentiment); // TypeScript knows this is 'positive' | 'negative' | 'neutral'
+console.log(analysis.sentiment); // TypeScript 知道这是 'positive' | 'negative' | 'neutral'
 ```
 
-**Supported Schema Features**:
+**支持的模式特性**：
 
-| Feature | Support | Notes |
+| 特性 | 支持 | 备注 |
 |---------|---------|-------|
-| `string`, `number`, `boolean` | ✅ Full | Basic types |
-| `array` | ✅ Full | With typed items |
-| `object` | ✅ Full | Nested objects supported |
-| `enum` | ✅ Full | String enums |
-| `anyOf` | ✅ Full | Union types |
-| `$ref` / definitions | ✅ Full | Recursive schemas |
-| `additionalProperties: false` | ⚠️ Required | Must be set |
-| `required` | ⚠️ Required | All properties must be required |
+| `string`, `number`, `boolean` | ✅ 完整 | 基本类型 |
+| `array` | ✅ 完整 | 带类型化项目 |
+| `object` | ✅ 完整 | 支持嵌套对象 |
+| `enum` | ✅ 完整 | 字符串枚举 |
+| `anyOf` | ✅ 完整 | 联合类型 |
+| `$ref` / definitions | ✅ 完整 | 递归模式 |
+| `additionalProperties: false` | ⚠️ 必需 | 必须设置 |
+| `required` | ⚠️ 必需 | 所有属性都必须必需 |
 
-**Limitations**:
-- Maximum 5 levels of nesting
-- Maximum 100 total properties
-- No `additionalProperties: true`
-- All fields must be `required` (use `anyOf` with `null` for optional)
+**限制**：
+- 最多 5 层嵌套
+- 最多 100 个属性总数
+- 不支持 `additionalProperties: true`
+- 所有字段都必须是 `required`（使用 `anyOf` 与 `null` 表示可选）
 
-### 1.2 Anthropic: Tool-Use Workaround
+### 1.2 Anthropic：工具使用变通方案
 
-Anthropic's Claude doesn't have native JSON mode, but achieves structured output through **tool use** (function calling).
+Anthropic 的 Claude 没有原生 JSON 模式，但通过**工具使用**（函数调用）实现结构化输出。
 
-:::info[Anthropic's Approach]
-Instead of a dedicated JSON mode, Anthropic recommends using tool definitions as schemas. The model "calls" a tool with structured arguments, effectively producing JSON output.
+:::info[Anthropic 的方法]
+不使用专门的 JSON 模式，Anthropic 建议使用工具定义作为模式。模型"调用"具有结构化参数的工具，有效地产生 JSON 输出。
 :::
 
 ```python
@@ -148,33 +148,33 @@ import anthropic
 
 client = anthropic.Anthropic()
 
-# Define the "output schema" as a tool
+# 将"输出模式"定义为工具
 tools = [{
     "name": "submit_analysis",
-    "description": "Submit the structured analysis results",
+    "description": "提交结构化分析结果",
     "input_schema": {
         "type": "object",
         "properties": {
             "sentiment": {
                 "type": "string",
                 "enum": ["positive", "negative", "neutral"],
-                "description": "Overall sentiment of the text"
+                "description": "文本的整体情感"
             },
             "confidence": {
                 "type": "number",
                 "minimum": 0,
                 "maximum": 1,
-                "description": "Confidence score between 0 and 1"
+                "description": "0 到 1 之间的置信度分数"
             },
             "key_phrases": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Important phrases extracted from text"
+                "description": "从文本中提取的重要短语"
             },
             "summary": {
                 "type": "string",
                 "maxLength": 500,
-                "description": "Brief summary of the content"
+                "description": "内容的简要总结"
             }
         },
         "required": ["sentiment", "confidence", "key_phrases", "summary"]
@@ -185,27 +185,27 @@ response = client.messages.create(
     model="claude-sonnet-4-20250514",
     max_tokens=1024,
     tools=tools,
-    tool_choice={"type": "tool", "name": "submit_analysis"},  # Force tool use
+    tool_choice={"type": "tool", "name": "submit_analysis"},  # 强制工具使用
     messages=[{
         "role": "user",
-        "content": f"Analyze this customer feedback and submit your analysis:\n\n{feedback_text}"
+        "content": f"分析此客户反馈并提交您的分析：\n\n{feedback_text}"
     }]
 )
 
-# Extract structured data from tool call
+# 从工具调用中提取结构化数据
 tool_use = next(block for block in response.content if block.type == "tool_use")
-analysis = tool_use.input  # This is your structured JSON
+analysis = tool_use.input  # 这是您的结构化 JSON
 ```
 
 ### 1.3 Google Gemini
 
-Gemini supports JSON mode with schema enforcement:
+Gemini 支持带模式强制执行的 JSON 模式：
 
 ```python
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
 
-# Define schema
+# 定义模式
 response_schema = {
     "type": "object",
     "properties": {
@@ -227,69 +227,69 @@ model = genai.GenerativeModel(
     )
 )
 
-response = model.generate_content("Analyze: " + text)
+response = model.generate_content("分析: " + text)
 result = json.loads(response.text)
 ```
 
-### 1.4 Provider Comparison Matrix
+### 1.4 提供商比较矩阵
 
-| Feature | OpenAI | Anthropic | Gemini | Mistral |
+| 特性 | OpenAI | Anthropic | Gemini | Mistral |
 |---------|--------|-----------|--------|---------|
-| Native JSON Mode | ✅ | ❌ | ✅ | ✅ |
-| Schema Enforcement | ✅ 100% | Via tools | ✅ | ⚠️ Partial |
-| Constrained Decoding | ✅ | ❌ | ✅ | ❌ |
-| Nested Objects | ✅ 5 levels | ✅ Unlimited | ✅ | ✅ |
-| Recursive Schemas | ✅ | ✅ | ⚠️ Limited | ❌ |
-| Streaming Support | ✅ | ✅ | ✅ | ✅ |
-| Token Efficiency | High | Medium | High | Medium |
+| 原生 JSON 模式 | ✅ | ❌ | ✅ | ✅ |
+| 模式强制执行 | ✅ 100% | 通过工具 | ✅ | ⚠️ 部分支持 |
+| 受限解码 | ✅ | ❌ | ✅ | ❌ |
+| 嵌套对象 | ✅ 5 层 | ✅ 无限 | ✅ | ✅ |
+| 递归模式 | ✅ | ✅ | ⚠️ 有限 | ❌ |
+| 流式支持 | ✅ | ✅ | ✅ | ✅ |
+| 令牌效率 | 高 | 中等 | 高 | 中等 |
 
 ---
 
-## 2. XML Tagging: Structure Without Schema
+## 2. XML 标签：无模式的结构
 
-XML tags provide lightweight structure without requiring API-level schema enforcement. This approach works with **any LLM** and is particularly effective with Claude.
+XML 标签提供轻量级结构而不需要 API 级别的模式强制执行。这种方法适用于**任何 LLM**，并且在 Claude 中特别有效。
 
-### 2.1 Why XML Beats Markdown Delimiters
+### 2.1 为什么 XML 优于 Markdown 分隔符
 
 ```plaintext
-Markdown Delimiters (Problematic):
+Markdown 分隔符（有问题）：
 ┌─────────────────────────────────────────────────────────────┐
-│ ## Instructions                                            │
-│ Review the code                                            │
-│                                                            │
-│ ## Context                                                 │
-│ E-commerce platform                                        │
-│                                                            │
-│ Problem: # and ## appear in code, markdown, conversations  │
-│ LLMs often confuse section boundaries                      │
+│ ## 说明                                                   │
+│ 检查代码                                                 │
+│                                                         │
+│ ## 上下文                                                │
+│ 电子商务平台                                             │
+│                                                         │
+│ 问题：# 和 ## 出现在代码、markdown、对话中                 │
+│ LLM 经常混淆部分边界                                     │
 └─────────────────────────────────────────────────────────────┘
 
-XML Tags (Reliable):
+XML 标签（可靠）：
 ┌─────────────────────────────────────────────────────────────┐
-│ <instructions>                                             │
-│ Review the code                                            │
-│ </instructions>                                            │
-│                                                            │
-│ <context>                                                  │
-│ E-commerce platform                                        │
-│ </context>                                                 │
-│                                                            │
-│ Benefits:                                                  │
-│ - Unambiguous boundaries                                   │
-│ - Hierarchical nesting                                     │
-│ - +25% instruction adherence (Anthropic research)          │
-│ - Easy programmatic parsing                                │
+│ <instructions>                                            │
+│ 检查代码                                                 │
+│ </instructions>                                          │
+│                                                         │
+│ <context>                                                │
+│ 电子商务平台                                             │
+│ </context>                                               │
+│                                                         │
+│ 优势：                                                  │
+│ - 无歧义的边界                                           │
+│ - 分层嵌套                                               │
+│ +25% 指令遵循（Anthropic 研究）                          │
+│ - 易于程序化解析                                         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 2.2 XML Tagging Patterns
+### 2.2 XML 标签模式
 
-**Pattern 1: Input Organization**
+**模式 1：输入组织**
 
 ```xml
 <system_context>
-You are a senior code reviewer at a fintech company.
-Your reviews prioritize security, performance, and maintainability.
+您是一家金融科技公司的高级代码审查员。
+您的审查优先考虑安全性、性能和可维护性。
 </system_context>
 
 <code_to_review language="typescript">
@@ -301,99 +301,99 @@ async function processPayment(userId: string, amount: number) {
 </code_to_review>
 
 <review_focus>
-<item priority="high">Security vulnerabilities</item>
-<item priority="high">Error handling</item>
-<item priority="medium">Performance implications</item>
-<item priority="low">Code style</item>
+<item priority="high">安全漏洞</item>
+<item priority="high">错误处理</item>
+<item priority="medium">性能影响</item>
+<item priority="low">代码风格</item>
 </review_focus>
 
 <output_requirements>
-Provide your review in the following format:
+以以下格式提供您的审查：
 <review>
 <finding severity="critical|high|medium|low">
-<location>file:line</location>
-<issue>Description</issue>
-<recommendation>Fix suggestion</recommendation>
-<code_example>Corrected code</code_example>
+<location>文件:行号</location>
+<issue>描述</issue>
+<recommendation>修复建议</recommendation>
+<code_example>修正后的代码</code_example>
 </finding>
 </review>
 </output_requirements>
 ```
 
-**Pattern 2: Multi-Document Processing**
+**模式 2：多文档处理**
 
 ```xml
 <documents>
 <document id="1" type="contract">
-[Contract text here]
+[合同文本]
 </document>
 
 <document id="2" type="amendment">
-[Amendment text here]
+[修正案文本]
 </document>
 
 <document id="3" type="correspondence">
-[Email thread here]
+[邮件线程]
 </document>
 </documents>
 
 <task>
-Cross-reference all documents and identify:
-1. Conflicting terms between contract and amendment
-2. Commitments made in correspondence not in contract
-3. Missing signatures or dates
+交叉引用所有文档并识别：
+1. 合同和修正案之间的冲突条款
+2. 通信中承诺但未在合同中的内容
+3. 缺少签名或日期
 </task>
 
 <output>
 <analysis>
 <conflict doc_refs="1,2">
-<section>Payment Terms</section>
-<original>Net 30</original>
-<amended>Net 45</amended>
+<section>付款条款</section>
+<original>净 30 天</original>
+<amended>净 45 天</amended>
 <resolution_needed>true</resolution_needed>
 </conflict>
 </analysis>
 </output>
 ```
 
-**Pattern 3: Chain-of-Thought with XML**
+**模式 3：带 XML 的思维链**
 
 ```xml
 <problem>
-A train leaves Station A at 9:00 AM traveling at 60 mph.
-Another train leaves Station B at 10:00 AM traveling at 80 mph.
-Stations are 280 miles apart. When do they meet?
+A 站点 9:00 AM 发出一列火车，速度为 60 mph。
+B 站点 10:00 AM 发出另一列火车，速度为 80 mph。
+站点相距 280 英里。它们何时相遇？
 </problem>
 
 <instructions>
-Solve step by step, showing your work.
+逐步解决，显示您的工作。
 </instructions>
 
 <response_format>
 <solution>
 <step number="1">
-<action>What you're calculating</action>
-<calculation>Math expression</calculation>
-<result>Intermediate result</result>
+<action>您正在计算的</action>
+<calculation>数学表达式</calculation>
+<result>中间结果</result>
 </step>
-<!-- More steps -->
-<answer>Final answer with units</answer>
-<verification>Check your answer</verification>
+<!-- 更多步骤 -->
+<answer>带单位的最终答案</answer>
+<verification>检查您的答案</verification>
 </solution>
 </response_format>
 ```
 
-### 2.3 Parsing XML Responses
+### 2.3 解析 XML 响应
 
 ```typescript
-// Simple regex extraction (for well-formed responses)
+// 简单的正则提取（用于格式良好的响应）
 function extractXMLContent(response: string, tag: string): string | null {
   const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
   const match = response.match(regex);
   return match ? match[1].trim() : null;
 }
 
-// Extract all findings
+// 提取所有发现
 function extractFindings(response: string): Finding[] {
   const findings: Finding[] = [];
   const regex = /<finding severity="([^"]+)">([\s\S]*?)<\/finding>/gi;
@@ -412,35 +412,35 @@ function extractFindings(response: string): Finding[] {
   return findings;
 }
 
-// Usage
+// 使用方法
 const review = extractXMLContent(response, 'review');
 const findings = extractFindings(review);
 ```
 
 ---
 
-## 3. Anthropic Prefilling: Control Output Start
+## 3. Anthropic 预填充：控制输出开始
 
-Anthropic's unique **prefilling** feature lets you pre-populate the assistant's response, forcing specific output formats.
+Anthropic 独特的**预填充**功能让您可以预填充助手的响应，强制特定的输出格式。
 
-### 3.1 How Prefilling Works
+### 3.1 预填充如何工作
 
 ```plaintext
-Normal Flow:
-User: "Analyze this data"
-Assistant: "I'd be happy to analyze this data. Here's what I found..."
-            ↑ Model decides how to start
+正常流程：
+用户："分析这些数据"
+助手："我很乐意分析这些数据。这是我发现的结果..."
+            ↑ 模型决定如何开始
 
-With Prefilling:
-User: "Analyze this data"
-Assistant: {"analysis":     ← You provide this
-           "sentiment": "positive", ...}
-            ↑ Model continues from your prefix
+使用预填充：
+用户："分析这些数据"
+助手：{"analysis":    ← 您提供这个
+       "sentiment": "positive", ...}
+            ↑ 模型从您的开头继续
 ```
 
-### 3.2 Prefilling Patterns
+### 3.2 预填充模式
 
-**Pattern 1: Force JSON Output**
+**模式 1：强制 JSON 输出**
 
 ```python
 response = client.messages.create(
@@ -449,60 +449,60 @@ response = client.messages.create(
     messages=[
         {
             "role": "user",
-            "content": "Extract entities from: 'Apple CEO Tim Cook announced iPhone 16 in Cupertino'"
+            "content": "从以下内容提取实体：'Apple CEO Tim Cook 在 Cupertino 宣布了 iPhone 16'"
         },
         {
             "role": "assistant",
-            "content": '{"entities": ['  # Prefill forces JSON array
+            "content": '{"entities": ['  # 预填充强制 JSON 数组
         }
     ]
 )
 
-# Response continues: '"Apple", "Tim Cook", "iPhone 16", "Cupertino"]}'
+# 响应继续：'"Apple", "Tim Cook", "iPhone 16", "Cupertino"]}'
 full_json = '{"entities": [' + response.content[0].text
 result = json.loads(full_json)
 ```
 
-**Pattern 2: Force Specific Format**
+**模式 2：强制特定格式**
 
 ```python
-# Force markdown table output
+# 强制 markdown 表格输出
 response = client.messages.create(
     model="claude-sonnet-4-20250514",
     messages=[
-        {"role": "user", "content": "Compare Python vs JavaScript"},
-        {"role": "assistant", "content": "| Feature | Python | JavaScript |\n|---------|--------|------------|\n|"}
+        {"role": "user", "content": "比较 Python vs JavaScript"},
+        {"role": "assistant", "content": "| 特性 | Python | JavaScript |\n|---------|--------|------------|\n|"}
     ]
 )
 
-# Force code block
+# 强制代码块
 response = client.messages.create(
     model="claude-sonnet-4-20250514",
     messages=[
-        {"role": "user", "content": "Write a function to reverse a string"},
+        {"role": "user", "content": "编写一个反转字符串的函数"},
         {"role": "assistant", "content": "```python\ndef reverse_string(s: str) -> str:\n    "}
     ]
 )
 ```
 
-**Pattern 3: Skip Preamble**
+**模式 3：跳过序言**
 
 ```python
-# Without prefilling:
-# "I'd be happy to help! Here's the translation..."
+# 无预填充时：
+# "我很乐意帮助！这是翻译..."
 
-# With prefilling - direct output:
+# 使用预填充 - 直接输出：
 response = client.messages.create(
     model="claude-sonnet-4-20250514",
     messages=[
-        {"role": "user", "content": "Translate to French: Hello, how are you?"},
-        {"role": "assistant", "content": "Bonjour"}  # Forces direct translation
+        {"role": "user", "content": "翻译成法语：Hello, how are you?"},
+        {"role": "assistant", "content": "Bonjour"}  # 强制直接翻译
     ]
 )
-# Response: ", comment allez-vous?"
+# 响应：", comment allez-vous?"
 ```
 
-**Pattern 4: XML Structure Prefilling**
+**模式 4：XML 结构预填充**
 
 ````python
 response = client.messages.create(
@@ -511,7 +511,7 @@ response = client.messages.create(
         {
             "role": "user",
             "content": """
-Analyze this code for security issues:
+分析此代码的安全问题：
 ```python
 def login(username, password):
     query = f"SELECT * FROM users WHERE name='{username}' AND pass='{password}'"
@@ -527,46 +527,46 @@ def login(username, password):
 )
 ````
 
-### 3.3 Prefilling Best Practices
+### 3.3 预填充最佳实践
 
-| Do | Don't |
+| 做 | 不做 |
 |----|-------|
-| Use for consistent output format | Prefill complete thoughts (model may contradict) |
-| Start JSON objects/arrays | Prefill middle of JSON values |
-| Force direct answers (skip preamble) | Use excessively long prefills |
-| Match expected output structure | Prefill with invalid syntax |
+| 用于一致的输出格式 | 预填充完整的想法（模型可能矛盾） |
+| 开始 JSON 对象/数组 | 预填充 JSON 值的中间部分 |
+| 强制直接答案（跳过序言） | 使用过长的预填充 |
+| 匹配预期的输出结构 | 使用无效的语法预填充 |
 
 ---
 
-## 4. Spring AI: Production-Grade Structured Output
+## 4. Spring AI：生产级结构化输出
 
-Spring AI provides **type-safe structured output** through `OutputConverter` implementations, particularly the `BeanOutputConverter`.
+Spring AI 通过 `OutputConverter` 实现，特别是 `BeanOutputConverter`，提供**类型安全的结构化输出**。
 
-### 4.1 BeanOutputConverter Deep Dive
+### 4.1 BeanOutputConverter 深入了解
 
 ```java
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.converter.BeanOutputConverter;
 
-// 1. Define your response types
-@JsonClassDescription("Complete analysis of customer feedback")
+// 1. 定义响应类型
+@JsonClassDescription("客户反馈的完整分析")
 public record FeedbackAnalysis(
-    @JsonPropertyDescription("Overall sentiment: POSITIVE, NEGATIVE, or NEUTRAL")
+    @JsonPropertyDescription("整体情感：POSITIVE、NEGATIVE 或 NEUTRAL")
     @JsonProperty(required = true)
     Sentiment sentiment,
 
-    @JsonPropertyDescription("Confidence score between 0 and 1")
+    @JsonPropertyDescription("0 到 1 之间的置信度分数")
     @JsonProperty(required = true)
     Double confidence,
 
-    @JsonPropertyDescription("Key themes extracted from feedback")
+    @JsonPropertyDescription("从反馈中提取的关键主题")
     @JsonProperty(required = true)
     List<Theme> themes,
 
-    @JsonPropertyDescription("Suggested actions based on feedback")
+    @JsonPropertyDescription("基于反馈的建议行动")
     List<String> actionItems,
 
-    @JsonPropertyDescription("Priority level for response")
+    @JsonPropertyDescription("响应的优先级")
     @JsonProperty(required = true)
     Priority priority
 ) {
@@ -581,7 +581,7 @@ public record Theme(
     List<String> exampleQuotes
 ) {}
 
-// 2. Service implementation
+// 2. 服务实现
 @Service
 @Slf4j
 public class FeedbackAnalysisService {
@@ -593,14 +593,14 @@ public class FeedbackAnalysisService {
     }
 
     public FeedbackAnalysis analyzeFeedback(String feedbackText) {
-        // Create converter - generates JSON schema from Java type
+        // 创建转换器 - 从 Java 类型生成 JSON 模式
         BeanOutputConverter<FeedbackAnalysis> converter =
             new BeanOutputConverter<>(FeedbackAnalysis.class);
 
         String prompt = """
-            Analyze the following customer feedback and extract insights.
+            分析以下客户反馈并提取见解。
 
-            Feedback:
+            反馈：
             {feedback}
 
             {format}
@@ -609,11 +609,11 @@ public class FeedbackAnalysisService {
         FeedbackAnalysis result = chatClient.prompt()
             .user(u -> u.text(prompt)
                 .param("feedback", feedbackText)
-                .param("format", converter.getFormat()))  // Injects JSON schema
+                .param("format", converter.getFormat()))  // 注入 JSON 模式
             .call()
-            .entity(FeedbackAnalysis.class);  // Type-safe conversion
+            .entity(FeedbackAnalysis.class);  // 类型安全转换
 
-        log.info("Analysis complete: sentiment={}, confidence={}",
+        log.info("分析完成：sentiment={}, confidence={}",
             result.sentiment(), result.confidence());
 
         return result;
@@ -621,28 +621,28 @@ public class FeedbackAnalysisService {
 }
 ```
 
-### 4.2 Generated Schema Example
+### 4.2 生成模式示例
 
-The `BeanOutputConverter` automatically generates this schema:
+`BeanOutputConverter` 自动生成以下模式：
 
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "description": "Complete analysis of customer feedback",
+  "description": "客户反馈的完整分析",
   "properties": {
     "sentiment": {
       "type": "string",
       "enum": ["POSITIVE", "NEGATIVE", "NEUTRAL", "MIXED"],
-      "description": "Overall sentiment: POSITIVE, NEGATIVE, or NEUTRAL"
+      "description": "整体情感：POSITIVE、NEGATIVE 或 NEUTRAL"
     },
     "confidence": {
       "type": "number",
-      "description": "Confidence score between 0 and 1"
+      "description": "0 到 1 之间的置信度分数"
     },
     "themes": {
       "type": "array",
-      "description": "Key themes extracted from feedback",
+      "description": "从反馈中提取的关键主题",
       "items": {
         "type": "object",
         "properties": {
@@ -670,25 +670,25 @@ The `BeanOutputConverter` automatically generates this schema:
 }
 ```
 
-### 4.3 List and Complex Type Conversion
+### 4.3 列表和复杂类型转换
 
 ```java
-// List of objects
+// 对象列表
 @Service
 public class ProductExtractor {
 
     private final ChatClient chatClient;
 
     public List<Product> extractProducts(String description) {
-        // Use ParameterizedTypeReference for generic types
+        // 使用 ParameterizedTypeReference 处理泛型类型
         return chatClient.prompt()
-            .user("Extract all products mentioned: " + description)
+            .user("提取提到的所有产品：" + description)
             .call()
             .entity(new ParameterizedTypeReference<List<Product>>() {});
     }
 }
 
-// Nested complex types
+// 嵌套复杂类型
 public record OrderAnalysis(
     @JsonProperty(required = true)
     Customer customer,
@@ -713,7 +713,7 @@ public record OrderAnalysis(
 }
 ```
 
-### 4.4 Error Handling and Validation
+### 4.4 错误处理和验证
 
 ```java
 @Service
@@ -735,38 +735,38 @@ public class RobustStructuredOutputService {
                     .call()
                     .entity(responseType);
 
-                // Validate with Bean Validation
+                // 使用 Bean Validation 验证
                 Set<ConstraintViolation<T>> violations = validator.validate(result);
                 if (!violations.isEmpty()) {
                     String errors = violations.stream()
                         .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                         .collect(Collectors.joining(", "));
-                    throw new ValidationException("Validation failed: " + errors);
+                    throw new ValidationException("验证失败：" + errors);
                 }
 
                 return result;
 
             } catch (JsonParseException | ValidationException e) {
                 lastException = e;
-                log.warn("Attempt {} failed: {}", attempt, e.getMessage());
+                log.warn("尝试 {} 失败：{}", attempt, e.getMessage());
 
                 if (attempt < maxRetries) {
-                    // Add clarification for retry
-                    prompt = prompt + "\n\nPrevious attempt failed. " +
-                        "Please ensure valid JSON matching the schema exactly.";
+                    // 添加澄清以供重试
+                    prompt = prompt + "\n\n前一次尝试失败。 " +
+                        "请确保有效的 JSON 精确匹配模式。";
                 }
             }
         }
 
         throw new StructuredOutputException(
-            "Failed after " + maxRetries + " attempts", lastException);
+            "尝试 " + maxRetries + " 次后失败", lastException);
     }
 }
 ```
 
-### 4.5 MapOutputConverter for Dynamic Schemas
+### 4.5 用于动态模式的 MapOutputConverter
 
-When you don't have a predefined class:
+当您没有预定义类时：
 
 ```java
 @Service
@@ -778,11 +778,11 @@ public class DynamicAnalysisService {
         MapOutputConverter converter = new MapOutputConverter();
 
         String prompt = """
-            Analyze the following content and return structured data.
+            分析以下内容并返回结构化数据。
 
-            Content: {content}
+            内容：{content}
 
-            Required fields: {schema}
+            必需字段：{schema}
 
             {format}
             """;
@@ -800,9 +800,9 @@ public class DynamicAnalysisService {
 
 ---
 
-## 5. Advanced Structured Output Patterns
+## 5. 高级结构化输出模式
 
-### 5.1 Streaming Structured Output
+### 5.1 流式结构化输出
 
 ```java
 @Service
@@ -812,15 +812,15 @@ public class StreamingStructuredService {
 
     public Flux<PartialAnalysis> streamAnalysis(String content) {
         return chatClient.prompt()
-            .user("Analyze: " + content)
+            .user("分析：" + content)
             .stream()
             .content()
-            .bufferUntil(chunk -> chunk.contains("},"))  // Buffer until complete object
+            .bufferUntil(chunk -> chunk.contains("},"))  // 缓冲到完整对象
             .map(this::parsePartialJson)
             .filter(Objects::nonNull);
     }
 
-    // For structured streaming with validation
+    // 用于带验证的流式结构化输出
     public Flux<StreamingEvent> streamWithProgress(String content) {
         AtomicReference<StringBuilder> buffer = new AtomicReference<>(new StringBuilder());
 
@@ -837,7 +837,7 @@ public class StreamingStructuredService {
 }
 ```
 
-### 5.2 Multi-Format Output
+### 5.2 多格式输出
 
 ```java
 public record MultiFormatResponse(
@@ -860,23 +860,23 @@ public record MultiFormatResponse(
     public record Visualization(String type, Map<String, Object> config) {}
 }
 
-// Prompt for multi-format
+// 多格式提示
 String prompt = """
-    Analyze the sales data and provide:
-    1. A structured summary
-    2. Key data points as JSON
-    3. A markdown report for stakeholders
-    4. An SQL query to reproduce this analysis
-    5. A visualization configuration
+    分析销售数据并提供：
+    1. 结构化摘要
+    2. 作为 JSON 的关键数据点
+    3. 面向利益相关者的 markdown 报告
+    4. 重复此分析的 SQL 查询
+    5. 可视化配置
 
-    Data:
+    数据：
     {data}
 
     {format}
     """;
 ```
 
-### 5.3 Conditional Schema Selection
+### 5.3 条件模式选择
 
 ```java
 @Service
@@ -910,20 +910,20 @@ public class AdaptiveOutputService {
 
 ---
 
-## 6. Common Mistakes and Solutions
+## 6. 常见错误和解决方案
 
-### Mistake 1: Overly Complex Schemas
+### 错误 1：过于复杂的模式
 
 ```java
-// ❌ BAD: Too many nested levels, optional fields everywhere
+// ❌ 错误：太多嵌套层，到处都是可选字段
 public record OverlyComplexAnalysis(
     Optional<Level1> level1,
     Optional<List<Optional<Level2>>> level2s,
     Map<String, Optional<Level3>> level3Map
-    // ... 50 more fields
+    // ... 50 多个字段
 ) {}
 
-// ✅ GOOD: Flat, required fields, clear purpose
+// ✅ 正确：扁平的、必需字段、清晰目的
 public record FocusedAnalysis(
     @JsonProperty(required = true) String category,
     @JsonProperty(required = true) Double score,
@@ -931,53 +931,53 @@ public record FocusedAnalysis(
 ) {}
 ```
 
-### Mistake 2: Missing Schema Instructions
+### 错误 2：缺少模式说明
 
 ```java
-// ❌ BAD: No format instructions
+// ❌ 错误：没有格式说明
 return chatClient.prompt()
-    .user("Analyze this: " + content)
+    .user("分析这个：" + content)
     .call()
-    .entity(Analysis.class);  // Model doesn't know the schema!
+    .entity(Analysis.class);  // 模型不知道模式！
 
-// ✅ GOOD: Include format instructions
+// ✅ 正确：包含格式说明
 BeanOutputConverter<Analysis> converter = new BeanOutputConverter<>(Analysis.class);
 return chatClient.prompt()
-    .user(content + "\n\n" + converter.getFormat())  // Schema included
+    .user(content + "\n\n" + converter.getFormat())  // 包含模式
     .call()
     .entity(Analysis.class);
 ```
 
-### Mistake 3: No Validation
+### 错误 3：没有验证
 
 ```java
-// ❌ BAD: Trust model output blindly
+// ❌ 错误：盲目信任模型输出
 Analysis result = chatClient.prompt().user(prompt).call().entity(Analysis.class);
-return result;  // What if confidence is -5 or 200?
+return result;  // 如果置信度是 -5 或 200 怎么办？
 
-// ✅ GOOD: Validate output
+// ✅ 正确：验证输出
 Analysis result = chatClient.prompt().user(prompt).call().entity(Analysis.class);
 
 if (result.confidence() < 0 || result.confidence() > 1) {
-    throw new InvalidOutputException("Confidence out of bounds: " + result.confidence());
+    throw new InvalidOutputException("置信度超出范围：" + result.confidence());
 }
 if (result.categories().isEmpty()) {
-    throw new InvalidOutputException("At least one category required");
+    throw new InvalidOutputException("至少需要一个类别");
 }
 return result;
 ```
 
-### Mistake 4: Ignoring Partial Failures
+### 错误 4：忽略部分失败
 
 ```java
-// ❌ BAD: All-or-nothing
+// ❌ 错误：全有或全无
 public List<ProductAnalysis> analyzeProducts(List<String> products) {
     return products.stream()
-        .map(p -> chatClient.prompt().user("Analyze: " + p).call().entity(ProductAnalysis.class))
-        .toList();  // One failure kills everything
+        .map(p -> chatClient.prompt().user("分析：" + p).call().entity(ProductAnalysis.class))
+        .toList();  // 一次失败就全部失败
 }
 
-// ✅ GOOD: Graceful degradation
+// ✅ 正确：优雅降级
 public AnalysisBatch analyzeProducts(List<String> products) {
     List<ProductAnalysis> successes = new ArrayList<>();
     List<FailedAnalysis> failures = new ArrayList<>();
@@ -997,88 +997,88 @@ public AnalysisBatch analyzeProducts(List<String> products) {
 
 ---
 
-## 7. Structured Output Decision Tree
+## 7. 结构化输出决策树
 
 ```plaintext
-Need Structured Output?
+需要结构化输出？
         │
         ▼
 ┌───────────────────────────────────────┐
-│ Do you need 100% schema compliance?   │
+│ 您需要 100% 模式 compliance？         │
 └───────────────────────────────────────┘
         │
     ┌───┴───┐
     │       │
-   Yes      No
+   是       否
     │       │
     ▼       ▼
 ┌─────────┐ ┌─────────────────────────────┐
-│ OpenAI? │ │ Lightweight structure only? │
+│ OpenAI？ │ │ 仅轻量级结构？               │
 └─────────┘ └─────────────────────────────┘
     │               │
 ┌───┴───┐       ┌───┴───┐
 │       │       │       │
-Yes     No     Yes      No
+是       否     是       否
 │       │       │       │
 ▼       ▼       ▼       ▼
-Use     Use     Use     Use
-Struct  Tool    XML     JSON
-Output  Use     Tags    Mode
-        (Any)   (Any)   +Retry
+使用     使用     使用     使用
+结构化   工具     XML     JSON
+输出     使用     标签     模式
+        (任何)   (任何)   +重试
 ```
 
-**Quick Reference**:
+**快速参考**：
 
-| Scenario | Recommended Approach |
+| 场景 | 推荐方法 |
 |----------|---------------------|
-| OpenAI + critical reliability | Structured Outputs (100% guarantee) |
-| Anthropic + any structured need | Tool use as schema |
-| Multi-provider + portability | XML tags with parsing |
-| Simple JSON + acceptable retry | JSON mode + validation |
-| Spring AI + type safety | BeanOutputConverter |
+| OpenAI + 关键可靠性 | 结构化输出（100% 保证） |
+| Anthropic + 任何结构化需求 | 工具使用作为模式 |
+| 多提供商 + 可移植性 | XML 标签带解析 |
+| 简单 JSON + 可接受重试 | JSON 模式 + 验证 |
+| Spring AI + 类型安全 | BeanOutputConverter |
 
 ---
 
-## 8. Quick Reference
+## 8. 快速参考
 
-### Format Instructions Template
+### 格式说明模板
 
 ```plaintext
-Your response must be valid JSON matching this schema:
+您的响应必须与此模式匹配的有效 JSON：
 
 {schema}
 
-Requirements:
-- Output ONLY the JSON object, no additional text
-- All required fields must be present
-- Enums must use exact values specified
-- Numbers must be within specified ranges
-- Arrays can be empty but must be present if required
+要求：
+- 仅输出 JSON 对象，无额外文本
+- 所有必需字段必须存在
+- 枚举必须使用指定的确切值
+- 数字必须在指定范围内
+- 数组可以为空但如果必需则必须存在
 ```
 
-### Validation Checklist
+### 验证清单
 
-- [ ] Schema complexity appropriate (≤5 nesting levels)
-- [ ] All fields have clear descriptions
-- [ ] Required vs optional clearly marked
-- [ ] Enums have complete value sets
-- [ ] Number ranges specified where applicable
-- [ ] Retry logic implemented
-- [ ] Validation layer after parsing
-- [ ] Error handling for parse failures
-- [ ] Logging for debugging
-
----
-
-## References
-
-1. OpenAI. (2024). *Structured Outputs*. [OpenAI Documentation](https://platform.openai.com/docs/guides/structured-outputs)
-2. Anthropic. (2024). *Tool Use for Structured Output*. [Anthropic Documentation](https://docs.anthropic.com/en/docs/build-with-claude/tool-use)
-3. Google. (2024). *Gemini JSON Mode*. [Google AI Documentation](https://ai.google.dev/gemini-api/docs/json-mode)
-4. Spring AI. (2024). *Structured Output Converters*. [Spring AI Reference](https://docs.spring.io/spring-ai/reference/api/structured-output-converter.html)
-5. Willison, S. (2024). *Structured Output Comparison*. [Blog Post](https://simonwillison.net/2024/structured-outputs/)
+- [ ] 模式复杂度适当（≤5 层嵌套）
+- [ ] 所有字段都有清晰的描述
+- [ ] 必需与可选明确标记
+- [ ] 枚举有完整值集
+- [ ] 适用处指定数字范围
+- [ ] 实现重试逻辑
+- [ ] 解析后验证层
+- [ ] 解析失败的错误处理
+- [ ] 调试日志
 
 ---
 
-**Previous**: [2.2 Core Reasoning Patterns](./03-reasoning-patterns.mdx) ←
-**Next**: [2.4 Spring AI Implementation](./05-spring-ai.mdx) →
+## 参考文献
+
+1. OpenAI. (2024). *结构化输出*. [OpenAI 文档](https://platform.openai.com/docs/guides/structured-outputs)
+2. Anthropic. (2024). *用于结构化输出的工具使用*. [Anthropic 文档](https://docs.anthropic.com/en/docs/build-with-claude/tool-use)
+3. Google. (2024). *Gemini JSON 模式*. [Google AI 文档](https://ai.google.dev/gemini-api/docs/json-mode)
+4. Spring AI. (2024). *结构化输出转换器*. [Spring AI 参考](https://docs.spring.io/spring-ai/reference/api/structured-output-converter.html)
+5. Willison, S. (2024). *结构化输出比较*. [博客文章](https://simonwillison.net/2024/structured-outputs/)
+
+---
+
+**上一个**：[2.2 核心推理模式](./03-reasoning-patterns.mdx) ←
+**下一个**：[2.4 Spring AI 实现](./05-spring-ai.mdx) →

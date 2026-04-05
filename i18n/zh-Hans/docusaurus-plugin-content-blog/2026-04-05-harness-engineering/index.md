@@ -11,6 +11,8 @@ tags: [harness-engineering, ai-agents, orchestration, safety, 2026-perspective]
 
 一个原始模型，无论它多么智能，就像一个没有底盘、方向盘或刹车的强大引擎。在生产环境中，单靠引擎非但不能解决问题，反而是一种风险。所谓的“产品”，是确保引擎安全地将车辆带到目的地的整个系统。正是这种认识催生了 **Harness 工程**（Harness Engineering）这一学科——它是将概率模型转化为确定性智能体系统（Agentic System）的编排、安全和可观测性层。
 
+<!--truncate-->
+
 在本文中，我们将深入探讨为什么 Harness（治理框架/工程支撑层）已成为智能体时代的“操作系统”，以及它如何定义“炫酷演示”与“可靠生产系统”之间的界限。
 
 ---

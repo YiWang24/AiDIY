@@ -144,4 +144,4 @@ The engineers who succeed in this era will not be those who can "talk" to AI, bu
 - **OpenAI (2025).** *Inference-Time Scaling and the o1 Architecture.* [https://openai.com/research/o1-reasoning](https://openai.com/research/o1-reasoning)
 - **Anthropic (2026).** *Structural Integrity in Large Context Windows.* [https://anthropic.com/research/xml-contracts](https://anthropic.com/research/xml-contracts)
 - **Google AI (2026).** *Gemini 3.0: The End of Prompt Heuristics.* [https://ai.google/blog/gemini-3-heuristics](https://ai.google/blog/gemini-3-heuristics)
-- **AiDIY (2026).** *The Harness Engineering Manifesto.* [https://aidiy.io/blog/harness-engineering](/blog/2026-04-05-harness-engineering/)
+- **AiDIY (2026).** *The Harness Engineering Manifesto.* [/blog/harness-engineering-orchestration-safety/](/blog/harness-engineering-orchestration-safety/)

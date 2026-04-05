@@ -1,36 +1,35 @@
 ---
 id: state-management
-title: 3. State Management
-sidebar_label: 3. State Management
-description: Agent State Persistence and Recovery - Checkpointing, Serialization, and Distributed State
+title: 3. 状态管理
+sidebar_label: 3. 状态管理
+description: Agent 状态持久化和恢复 - Checkpointing（检查点）、Serialization（序列化）和 Distributed State（分布式状态）
+---
+# 3. 状态管理
+
+> **"状态是 agent 的记忆。没有适当的状态管理，agents 无法学习、恢复或改进。"**
+
+状态管理是指捕获、持久化和恢复 agent 状态（State）跨执行的实践。它使 agents 能够从故障中恢复，在长时间运行的工作流中维护上下文，并在多个 agent 实例之间协调。
+
 ---
 
-# 3. State Management
+## 3.1 Agent 状态类型
 
-> **"State is the memory of an agent. Without proper state management, agents cannot learn, recover, or improve."**
-
-State management is the practice of capturing, persisting, and restoring agent state across executions. It enables agents to resume from failures, maintain context over long-running workflows, and coordinate across multiple agent instances.
-
----
-
-## 3.1 Agent State Types
-
-### State Taxonomy
+### 状态分类
 
 ```mermaid
 flowchart TB
-    subgraph AgentState["Agent State"]
+    subgraph AgentState["Agent State（Agent 状态）"]
         direction TB
-        Conv[Conversation State]
-        Task[Task State]
-        Mem[Memory State]
-        Env[Environment State]
+        Conv[Conversation State（对话状态）]
+        Task[Task State（任务状态）]
+        Mem[Memory State（记忆状态）]
+        Env[Environment State（环境状态）]
     end
 
-    subgraph Persistence["Persistence Strategy"]
-        Ephemeral[Ephemeral<br/>In-memory]
+    subgraph Persistence["Persistence Strategy（持久化策略）"]
+        Ephemeral[Ephemeral<br/>In-memory（内存）]
         Session[Session<br/>Redis]
-        Persistent[Persistent<br/>Database]
+        Persistent[Persistent<br/>Database（数据库）]
     end
 
     Conv --> Ephemeral
@@ -44,9 +43,9 @@ flowchart TB
     style Env fill:#fff3e0
 ```
 
-### Conversation State
+### 对话状态（Conversation State）
 
-Dialogue history and context.
+对话历史和上下文。
 
 ```java
 @Document(collection = "conversation_state")
@@ -120,9 +119,9 @@ public class ConversationStateManager {
 }
 ```
 
-### Task State
+### 任务状态（Task State）
 
-Current progress and status of tasks.
+当前任务的进度和状态。
 
 ```java
 @Document(collection = "task_state")
@@ -176,7 +175,7 @@ public class TaskStateManager {
 
     public TaskState create(TaskState state) {
         state.setCreatedAt(Instant.now());
-        state.setStatus(TaskStatus.TaskStatus.PENDING);
+        state.setStatus(TaskStatus.PENDING);
         return mongoTemplate.save(state);
     }
 
@@ -192,7 +191,7 @@ public class TaskStateManager {
 
     public void markInProgress(String taskId) {
         update(taskId, state -> {
-            state.setStatus(TaskStatus.TaskStatus.IN_PROGRESS);
+            state.setStatus(TaskStatus.IN_PROGRESS);
             if (state.getStartedAt() == null) {
                 state.setStartedAt(Instant.now());
             }
@@ -204,7 +203,7 @@ public class TaskStateManager {
         Map<String, Object> output
     ) {
         update(taskId, state -> {
-            state.setStatus(TaskStatus.TaskStatus.COMPLETED);
+            state.setStatus(TaskStatus.COMPLETED);
             state.setCompletedAt(Instant.now());
             state.setOutputData(output);
         });
@@ -216,7 +215,7 @@ public class TaskStateManager {
         String stackTrace
     ) {
         update(taskId, state -> {
-            state.setStatus(TaskStatus.TaskStatus.FAILED);
+            state.setStatus(TaskStatus.FAILED);
             state.setCompletedAt(Instant.now());
 
             TaskState.ErrorInfo errorInfo = new TaskState.ErrorInfo();
@@ -230,9 +229,9 @@ public class TaskStateManager {
 }
 ```
 
-### Memory State
+### 记忆状态（Memory State）
 
-Learned information and knowledge.
+学到的信息和知识。
 
 ```java
 @Document(collection = "memory_state")
@@ -243,9 +242,9 @@ public class MemoryState {
     private String agentId;
     private String userId;
 
-    private Map<String, Object> facts;           // Entity memories
-    private List<Memory> episodicMemories;       // Past experiences
-    private Map<String, Object> semanticMemory;  // Knowledge
+    private Map<String, Object> facts;           // Entity memories（实体记忆）
+    private List<Memory> episodicMemories;       // Past experiences（过去经历）
+    private Map<String, Object> semanticMemory;  // Knowledge（知识）
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -347,24 +346,24 @@ public class MemoryStateManager {
 
 ---
 
-## 3.2 Persistence Strategies
+## 3.2 持久化策略
 
-### When to Persist
+### 何时持久化
 
 ```mermaid
 flowchart LR
-    subgraph Events["Persistence Events"]
-        Start[Task Start]
-        Step[Step Complete]
-        Error[Error Occurs]
-        Periodic[Periodic<br/>Checkpoint]
-        Complete[Task Complete]
+    subgraph Events["Persistence Events（持久化事件）"]
+        Start[Task Start（任务开始）]
+        Step[Step Complete（步骤完成）]
+        Error[Error Occurs（错误发生）]
+        Periodic[Periodic<br/>Checkpoint（定期检查点）]
+        Complete[Task Complete（任务完成）]
     end
 
-    subgraph Storage["Storage Backend"]
-        Redis[Redis<br/>Fast, Ephemeral]
-        PG[PostgreSQL<br/>Persistent]
-        S3[S3<br/>Archive]
+    subgraph Storage["Storage Backend（存储后端）"]
+        Redis[Redis<br/>Fast, Ephemeral（快速，临时）]
+        PG[PostgreSQL<br/>Persistent（持久）]
+        S3[S3<br/>Archive（归档）]
     end
 
     Start --> Redis
@@ -379,9 +378,9 @@ flowchart LR
     style S3 fill:#e8f5e9
 ```
 
-### Redis Session Storage
+### Redis 会话存储
 
-Fast, ephemeral state for active sessions.
+用于活跃会话的快速、临时状态。
 
 ```java
 @Service
@@ -447,9 +446,9 @@ public class RedisStateStore {
 }
 ```
 
-### PostgreSQL Persistent Storage
+### PostgreSQL 持久化存储
 
-Durable state for long-term retention.
+用于长期保留的持久状态。
 
 ```java
 @Service
@@ -526,11 +525,11 @@ public class PostgreSQLStateStore {
 
 ---
 
-## 3.3 State Recovery
+## 3.3 状态恢复
 
-### Checkpointing
+### 检查点（Checkpointing）
 
-Periodically save state during long-running tasks.
+在长时间运行的任务中定期保存状态。
 
 ```java
 @Service
@@ -622,9 +621,9 @@ public class CheckpointService {
 }
 ```
 
-### Resume from Failure
+### 从故障恢复
 
-Restore state and continue after failures.
+在故障后恢复状态并继续执行。
 
 ```java
 @Service
@@ -652,12 +651,12 @@ public class StateRecoveryService {
         TaskState taskState = existingTask.get();
 
         // Check status
-        if (taskState.getStatus() == TaskStatus.TaskStatus.COMPLETED) {
+        if (taskState.getStatus() == TaskStatus.COMPLETED) {
             log.info("Task already completed: {}", taskId);
             return AgentResult.fromTaskState(taskState);
         }
 
-        if (taskState.getStatus() == TaskStatus.TaskStatus.FAILED) {
+        if (taskState.getStatus() == TaskStatus.FAILED) {
             log.info("Resuming failed task: {}", taskId);
 
             // Increment retry count
@@ -694,11 +693,11 @@ public class StateRecoveryService {
 
 ---
 
-## 3.4 Distributed State
+## 3.4 分布式状态
 
-### Multi-Agent Coordination
+### 多 Agent 协调
 
-Share state across multiple agent instances.
+在多个 agent 实例之间共享状态。
 
 ```java
 @Service
@@ -767,9 +766,9 @@ public class DistributedStateService {
 }
 ```
 
-### Distributed Locks
+### 分布式锁（Distributed Locks）
 
-Prevent race conditions in multi-agent scenarios.
+在多 Agent 场景中防止竞态条件。
 
 ```java
 @Service
@@ -866,11 +865,11 @@ public class AgentCoordinator {
 
 ---
 
-## 3.5 State Migration
+## 3.5 状态迁移
 
-### Schema Evolution
+### 模式演进（Schema Evolution）
 
-Handle state schema changes over time.
+处理随时间变化的模式。
 
 ```java
 @Service
@@ -926,52 +925,52 @@ public class StateMigrationService {
 
 ---
 
-## 3.6 Key Takeaways
+## 3.6 关键要点
 
-### State Types
+### 状态类型
 
-| Type | Purpose | Storage | Duration |
-|------|---------|---------|----------|
-| **Conversation** | Dialogue history | Redis | Hours |
-| **Task** | Task progress | PostgreSQL | Days |
-| **Memory** | Learned info | PostgreSQL | Permanent |
+| 类型 | 用途 | 存储 | 持续时间 |
+|------|------|------|----------|
+| **对话状态** | 对话历史 | Redis | 小时 |
+| **任务状态** | 任务进度 | PostgreSQL | 天 |
+| **记忆状态** | 学到的信息 | PostgreSQL | 永久 |
 
-### Persistence Strategy
+### 持久化策略
 
-- **Redis**: Fast, ephemeral, session state
-- **PostgreSQL**: Durable, long-term state
-- **S3**: Archive, cold storage
+- **Redis**: 快速、临时、会话状态
+- **PostgreSQL**: 持久、长期状态
+- **S3**: 归档、冷存储
 
-### Recovery Pattern
+### 恢复模式
 
 ```
-Execute → Checkpoint → Error → Restore → Resume
+执行 → 检查点 → 错误 → 恢复 → 继续
 ```
 
-### Distributed State
+### 分布式状态
 
-- **Pub/Sub**: Real-time updates
-- **Shared State**: Common data
-- **Distributed Locks**: Prevent conflicts
+- **发布/订阅**: 实时更新
+- **共享状态**: 共享数据
+- **分布式锁**: 防止冲突
 
 ---
 
-## 3.7 Next Steps
+## 3.7 下一步
 
-**Continue your journey:**
-- → **[4. Error Handling & Recovery](../error-handling)** - Advanced error strategies
-- → **[5. Observability](../observability)** - Monitoring and tracing
+**继续您的旅程：**
+- → **[4. 错误处理与恢复](../error-handling)** - 高级错误策略
+- → **[5. 可观测性](../observability)** - 监控和追踪
 
 ---
 
-:::tip Checkpoint Frequently
-The more frequently you checkpoint, the less work you lose on failure. Balance checkpoint frequency with overhead.
+:::tip 频繁检查点
+越频繁地检查点，失败时丢失的工作就越少。平衡检查点频率和开销。
 :::
 
-:::warning Test Recovery
-Don't assume state recovery works. Test it regularly by killing processes mid-execution.
+:::warning 测试恢复
+不要假设状态恢复有效。通过在执行中途终止进程定期测试。
 :::
 
-:::info Use TTL
-Set TTL on ephemeral state to prevent memory leaks. Not all state needs to live forever.
+:::info 使用 TTL
+在临时状态上设置 TTL 以防止内存泄漏。并非所有状态都需要永远存在。
 :::

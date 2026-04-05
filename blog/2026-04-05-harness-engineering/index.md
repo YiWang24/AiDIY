@@ -9,7 +9,9 @@ tags: [harness-engineering, ai-agents, orchestration, safety, 2026-perspective]
 
 In the early days of the Generative AI explosion, the industry was obsessed with the "Brain"—the Large Language Model (LLM) itself. We measured success by parameter counts, context window sizes, and benchmark scores like MMLU or HumanEval. However, as we cross into 2026, the narrative has shifted fundamentally. We have realized a hard truth: **The model is not the product.**
 
-A raw model, no matter how intelligent, is like a powerful engine without a chassis, steering wheel, or brakes. In a production environment, an engine alone is a liability. The "Product" is the entire system that ensures the engine moves the vehicle safely to its destination. This realization has given birth to the discipline of **Harness Engineering**—the orchestration, safety, and observability layer that transforms a probabilistic model into a deterministic agentic system.
+A raw model, no matter how intelligent, is like a powerful engine without a chassis, steering wheel, or brakes. In a production environment, an engine alone is a liability. The "Product" is the entire system that ensures the engine moves the vehicle safely to its destination. This realization has given birth to the discipline of **Harness Engineering**—the orchestration, safety, and orchestration layer that transforms a probabilistic model into a deterministic agentic system.
+
+<!--truncate-->
 
 In this deep dive, we explore why the harness has become the "OS" for the agentic era and how it defines the boundary between a "cool demo" and a "reliable production system."
 
