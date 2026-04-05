@@ -216,7 +216,30 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Network & OS",
+      label: "Operating System",
+      collapsed: false,
+      items: [
+        {
+          type: "doc",
+          id: "cs/os/index",
+          label: "Overview",
+          key: "cs-os-overview",
+        },
+        { type: "doc", id: "cs/os/introduction", label: "1. Introduction to OS" },
+        { type: "doc", id: "cs/os/process-management", label: "2. Process Management" },
+        { type: "doc", id: "cs/os/threads-concurrency", label: "3. Threads & Concurrency" },
+        { type: "doc", id: "cs/os/memory-management", label: "4. Memory Management" },
+        { type: "doc", id: "cs/os/file-system", label: "5. File System" },
+        { type: "doc", id: "cs/os/io-system", label: "6. I/O System" },
+        { type: "doc", id: "cs/os/storage-system", label: "7. Storage System" },
+        { type: "doc", id: "cs/os/security-protection", label: "8. Security & Protection" },
+        { type: "doc", id: "cs/os/virtualization", label: "9. Virtualization" },
+        { type: "doc", id: "cs/os/linux-essentials", label: "10. Linux Essentials" },
+      ],
+    },
+    {
+      type: "category",
+      label: "Computer Network",
       collapsed: false,
       items: [
         {
