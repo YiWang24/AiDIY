@@ -32,7 +32,14 @@ const config = {
   // to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: "en",
-    locales: ["en"],
+    locales: ["en", "zh-Hans"],
+    localeConfigs: {
+      "zh-Hans": {
+        label: "简体中文",
+        direction: "ltr",
+        htmlLang: "zh-Hans",
+      },
+    },
   },
 
   presets: [
@@ -127,6 +134,10 @@ const config = {
             label: "Case Studies",
           },
           { to: "/blog", label: "Blog", position: "left" },
+          {
+            type: "localeDropdown",
+            position: "right",
+          },
           {
             href: "https://www.yiw.me",
             label: "Portfolio",
@@ -284,6 +295,14 @@ const config = {
           light: "rgb(255, 255, 255)",
           dark: "rgb(20, 20, 20)",
         },
+      },
+      // Algolia DocSearch
+      algolia: {
+        appId: "CSJ7Z9I0M3",
+        apiKey: "dd47b690a13d6bc605cf37f72f74992a",
+        indexName: "AI Engineering Docs",
+        contextualSearch: true,
+        searchPagePath: "search",
       },
       // Live codeblock configuration
       liveCodeBlock: {

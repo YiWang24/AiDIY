@@ -1,0 +1,333 @@
+---
+id: index
+title: Context Engineering
+sidebar_label: 概览
+description: 在 AI 应用中管理上下文窗口和优化信息检索的技术与模式
+---
+
+# 上下文工程
+
+上下文工程聚焦于大语言模型（LLM）中有限上下文窗口管理的关键挑战。它涵盖了选择、组织和优化模型在推理时可访问信息的策略。
+
+## 上下文窗口挑战
+
+### 什么是上下文窗口？
+
+**上下文窗口**是 LLM 在单次请求中可处理的最大文本量（以 token 计量）。这包括：
+- 系统提示词
+- 对话历史
+- 检索到的文档
+- 用户输入
+- 预期输出
+
+### 上下文窗口大小（2025）
+
+| 模型 | 上下文窗口 | 备注 |
+|------|-----------|------|
+| GPT-4 Turbo | 128K tokens | 经过生产验证 |
+| Claude 3.5 Sonnet | 200K tokens | 代码能力出色 |
+| Gemini Pro | 1M tokens | 目前最大 |
+| Claude 3 Opus | 200K tokens | 高质量输出 |
+
+**关键洞察**：Token 数量 ≠ 词数量。大约 1K tokens ≈ 750 个英文单词，但代码和特殊字符消耗更多 token。
+
+## 核心问题
+
+### 1. 容量有限
+
+```
+问题：重要信息在超出上下文窗口时被截断。
+
+示例：500 页的技术手册无法放入单次请求中。
+影响：模型无法看到所有相关信息，可能遗漏关键细节。
+```
+
+### 2. 信息密度
+
+```
+问题：并非所有信息都有同等价值。
+
+示例：100 页文档可能只包含 5 页相关信息。
+影响：用低价值信息填充上下文浪费有限容量。
+```
+
+### 3. 检索精度
+
+```
+问题：找到"正确的"信息比找到"某些"信息更难。
+
+示例：搜索"authentication"可能返回不相关的提及。
+影响：糟糕的检索导致糟糕的响应，无论模型质量如何。
+```
+
+## 上下文工程策略
+
+### 策略 1：检索增强生成（RAG）
+
+**概念**：仅检索最相关的文档并注入上下文。
+
+```python
+# 基本 RAG 流程
+user_query = "How do I implement OAuth 2.0 with Spring Security?"
+
+# 1. 搜索相关文档
+relevant_docs = vector_store.search(query, top_k=5)
+
+# 2. 构建上下文
+context = "\n\n".join([doc.content for doc in relevant_docs])
+
+# 3. 注入提示词
+prompt = f"""
+Context:
+{context}
+
+Question: {user_query}
+
+Answer based on the context above.
+"""
+```
+
+**最佳实践：**
+- 使用语义搜索（embeddings）而非关键词搜索
+- 实现带阈值的关联度评分
+- 包含文档元数据（来源、日期、作者）
+
+### 策略 2：分层摘要
+
+**概念**：创建多层摘要以同时提供概览和细节。
+
+```python
+# 三层摘要结构
+class DocumentSummary:
+    executive_summary: str  # 100 词，高层概念
+    section_summaries: List[str]  # 每部分 300 词，关键要点
+    detailed_excerpts: List[str]  # 关键部分的完整文本
+
+# 根据查询复杂度选择
+if query.is_high_level():
+    context = doc.executive_summary
+elif query.requires_detail():
+    context = doc.section_summaries
+else:
+    context = doc.detailed_excerpts
+```
+
+### 策略 3：基于查询的路由
+
+**概念**：根据意图将查询路由到专门的上下文。
+
+```python
+# 基于意图的上下文选择
+query_intents = analyze_intents(user_query)
+
+if "code" in query_intents:
+    context = code_repository_context
+elif "documentation" in query_intents:
+    context = documentation_context
+elif "architecture" in query_intents:
+    context = architecture_diagrams_context
+else:
+    context = general_knowledge_base
+```
+
+### 策略 4：动态上下文裁剪
+
+**概念**：在上下文填满时持续移除相关性较低的信息。
+
+```python
+# 基于优先级的上下文管理
+context_items = [
+    {"content": item, "priority": score, "timestamp": now}
+    for item, score in retrieved_items
+]
+
+# 按优先级排序并保留前 N 项
+context_items.sort(key=lambda x: x["priority"], reverse=True)
+active_context = context_items[:max_items]
+
+# 容量满时移除最旧的低优先级项
+def should_add(new_item, current_context):
+    if len(current_context) < max_items:
+        return True
+    lowest_priority = min(current_context, key=lambda x: x["priority"])
+    return new_item["priority"] > lowest_priority["priority"]
+```
+
+## 优化技术
+
+### 1. Token 优化
+
+**在不丢失含义的情况下压缩提示词：**
+
+```python
+# 冗长版：150 tokens
+"""
+You are a helpful assistant with expertise in Java programming,
+specifically the Spring Boot framework. Please help the user by
+answering their questions about building web applications.
+"""
+
+# 简洁版：35 tokens（效果相同）
+"Expert Spring Boot developer. Answer questions concisely with code examples."
+```
+
+### 2. 可复用上下文模式
+
+**定义上下文模板：**
+
+```python
+# 定义一次，到处复用
+SYSTEM_PROMPTS = {
+    "code_review": """Senior code reviewer. Focus on: security, performance,
+                     maintainability. Provide specific line references.""",
+
+    "architecture": """Solutions architect. Consider: scalability, reliability,
+                      cost-efficiency. Compare trade-offs explicitly.""",
+
+    "debugging": """Senior engineer. Debug systematically: identify symptoms,
+                  analyze causes, propose solutions with verification steps."""
+}
+```
+
+### 3. 上下文缓存
+
+**缓存高成本的上下文操作：**
+
+```python
+# 缓存嵌入和搜索结果
+@cache.memoize(timeout=3600)
+def get_context_for_query(query: str) -> List[Document]:
+    # 高成本操作：嵌入 + 搜索
+    return vector_store.search(query, top_k=10)
+
+# 每次请求仅检索新信息
+cached_context = get_context_for_query(query)
+new_information = filter_new(cached_context, recent_docs)
+final_context = cached_context + new_information
+```
+
+### 4. 多轮上下文管理
+
+**高效管理对话历史：**
+
+```python
+class ConversationManager:
+    def summarize_history(self, messages: List[Message]) -> str:
+        """将旧消息压缩为摘要"""
+        recent = messages[-5:]  # 保留最近 5 条消息原文
+        old = messages[:-5]  # 摘要旧消息
+
+        summary = llm.complete(f"""
+        Summarize this conversation concisely:
+        {format_messages(old)}
+
+        Include: topics discussed, decisions made, key information.
+        """)
+
+        return f"Previous conversation summary:\n{summary}\n\nRecent messages:\n{format_messages(recent)}"
+```
+
+## 评估指标
+
+### 上下文质量指标
+
+| 指标 | 描述 | 目标值 |
+|------|------|--------|
+| **检索精确率** | 检索到的文档中相关文档的百分比 | > 80% |
+| **检索召回率** | 相关文档中被检索到的百分比 | > 70% |
+| **上下文利用率** | 实际使用的上下文窗口百分比 | > 60% |
+| **回答准确率** | 正确使用检索信息的回答百分比 | > 85% |
+
+### 监控
+
+```python
+# 跟踪上下文性能
+context_metrics = {
+    "retrieval_time": time_taken,
+    "tokens_used": input_tokens + output_tokens,
+    "retrieved_docs": len(retrieved),
+    "context_precision": calculate_precision(retrieved, relevant),
+    "answer_relevance": score_relevance(answer, query),
+}
+
+# 记录以供分析
+context_logger.log(context_metrics)
+```
+
+## 工具与框架
+
+### 向量数据库（用于语义搜索）
+
+- **Pinecone**：托管式向量数据库，性能出色
+- **Weaviate**：开源，支持混合搜索
+- **Qdrant**：高性能，易于自部署
+- **pgvector**：PostgreSQL 的向量搜索扩展
+
+### 上下文管理库
+
+- **LangChain**：上下文管理器、检索器和文档加载器
+- **LlamaIndex**：高级索引和检索策略
+- **Haystack**：用于上下文检索的深度学习
+- **Chroma**：轻量级向量数据库，适合开发
+
+## 高级模式
+
+### 重排序模式
+
+```
+1. 初始检索：获取 50-100 个文档（快速、近似）
+2. 重排序：使用更复杂的模型排名前 10
+3. 上下文注入：仅使用前 5 个进行实际生成
+```
+
+### 知识图谱模式
+
+```
+1. 从文档中提取实体和关系
+2. 构建连接信息的图
+3. 遍历图查找相关上下文
+4. 同时提供文档和关系
+```
+
+### 混合专家模式
+
+```
+1. 分类查询类型（代码、架构、调试）
+2. 路由到该类型的专用检索系统
+3. 使用领域特定的上下文模板
+4. 合并结果以获得综合答案
+```
+
+## 常见陷阱
+
+### 陷阱 1：过度检索
+
+**问题**：检索过多文档淹没了相关信息。
+
+**解决方案**：注重精确率而非召回率。漏掉一个文档比包含 50 个无关文档要好。
+
+### 陷阱 2：忽略元数据
+
+**问题**：不按日期、版本或相关性过滤导致使用过时信息。
+
+**解决方案**：始终在检索中包含元数据并向用户展示。
+
+### 陷阱 3：静态上下文
+
+**问题**：对所有查询使用相同的上下文，无论意图如何。
+
+**解决方案**：实现查询分析和动态上下文选择。
+
+## 最佳实践总结
+
+1. **衡量一切**：跟踪检索质量和上下文利用率
+2. **持续迭代**：上下文工程需要不断优化
+3. **平衡广度和深度**：不要为了相关性牺牲广度，反之亦然
+4. **让用户参与**：让他们对上下文质量提供反馈
+5. **为扩展做规划**：设计能应对增长的上下文系统
+
+## 延伸阅读
+
+- [Transformer 中的注意力机制](https://arxiv.org/abs/1706.03762)
+- [大语言模型的检索增强生成](https://arxiv.org/abs/2005.11401)
+- [上下文窗口优化技术](https://blog.anthropic.com/context-optimization)

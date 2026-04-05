@@ -1,0 +1,627 @@
+---
+id: tokenization
+title: Tokenization - How LLMs See Text
+sidebar_label: 2 Tokenization（分词）
+description: 深入了解字节对编码（BPE）、词表权衡，以及为什么模型无法数清字符。2025 年更新。
+slug: /ai/llm-fundamentals/tokenization
+---
+
+# Tokenization：LLM 的原子单位
+
+> **"如果你不理解 Tokenization，你就无法理解为什么 LLM 在简单任务上会失败。"**
+
+Tokenization 是将原始文本转换为模型可处理的整数序列（ID）的过程。它是整个流水线的第一步，也是许多与数学、拼写和代码相关的"幻觉"的根源。
+
+---
+
+## 为什么需要 Tokenization？
+
+计算机理解数字，而不是字符串。我们需要一种将文本映射到数字的方法。
+
+### 粒度范围
+我们可以在不同层级进行分词：
+
+| 方法 | 词表大小 | 序列长度 | 优点 | 缺点 |
+|------|---------|---------|------|------|
+| **字符级** | 小（~100-256） | 很长 | 没有 OOV（词表外）问题 | 上下文窗口很快填满；单个字符缺乏语义 |
+| **词级** | 巨大（1M+） | 短 | 语义丰富 | "稀有词"问题；巨大的 Embedding 矩阵参数 |
+| **子词级（BPE）** | **最优**（~32k-100k） | **中等** | 平衡效率与灵活性 | 实现复杂性 |
+
+现代 LLM 普遍使用**子词 Tokenization**（特别是 BPE 或其变体）。
+
+### 2025 年 Tokenization 现状
+
+**关键发展**：
+- **字节级 BPE** 已成为标准（GPT-4o、Llama 3/4）——处理所有 Unicode，无 OOV 错误
+- **tiktoken 主导地位**：OpenAI 的分词器比替代方案快 3-6 倍，成为事实标准
+- **多语言优化**：SentencePiece 的 Unigram 在形态丰富的语言上优于 BPE
+- **效率提升**：BlockBPE 和并行分词用于更快推理
+
+---
+
+## 字节对编码（BPE）
+
+### 工作原理
+BPE 是一种迭代算法，从字符开始，不断合并最频繁的相邻 token 对。
+
+1. **初始化**：词表 = 所有单个字符（或字节级 BPE 中的字节）
+2. **计数**：找出语料库中最频繁的相邻 token 对（如 "e" 和 "r" → "er"）
+3. **合并**：为该对创建新 token
+4. **重复**：继续直到达到目标词表大小（如 32k）
+
+### 交互式示例
+
+考虑语料库：`["hug", "pug", "pun", "bun"]`
+
+1. **开始**：`h, u, g, p, n, b`
+2. **最频繁对**：`u` + `g` → `ug`
+3. **新状态**：`h, ug, p, n, b`（新增 `ug` token）
+4. **下一个频繁对**：`u` + `n` → `un`
+5. **最终 token**：`ug`、`un`、`h`、`p`、`b`
+
+现在，`hug` 被编码为 `[h, ug]`。
+
+### 字节级 BPE（2025 年标准）
+
+**问题**：传统字符级 BPE 的基础词表约有 ~100K 字符（所有 Unicode），仍可能遇到 OOV 错误。
+
+**解决方案**：字节级 BPE 直接操作 UTF-8 字节：
+- **基础词表**：256 个字节（覆盖所有 Unicode，无 OOV）
+- **示例**："é" 可以是 `195, 169`（两个字节）或如果被学到合并则为单字节
+
+**为什么重要**：
+```python
+import tiktoken
+enc = tiktoken.encoding_for_model("gpt-4o")
+
+# 处理任何 Unicode 无错误
+print(enc.encode("你好世界"))  # 中文: [32409, 30255, 9892, 162]
+print(enc.encode("こんにちは"))  # 日文: [32864, 25669, 32465, 27414, 28821]
+print(enc.encode("مرحبا"))  # 阿拉伯文: [2174, 1945, 10982, 2686]
+```
+
+**采用情况**：
+- **GPT-2/3/4**：字节级 BPE
+- **Llama 3/4**：通过 tiktoken 使用 GPT-4 分词器
+- **Claude**：自定义字节级 BPE 变体
+
+### Python 实现（简化版）
+
+```python
+def get_stats(vocab):
+    pairs = collections.defaultdict(int)
+    for word, freq in vocab.items():
+        symbols = word.split()
+        for i in range(len(symbols)-1):
+            pairs[symbols[i],symbols[i+1]] += freq
+    return pairs
+
+def merge_vocab(pair, v_in):
+    v_out = {}
+    bigram = re.escape(' '.join(pair))
+    p = re.compile(r'(?<!\S)' + bigram + r'(?!\\S)')
+    for word in v_in:
+        w_out = p.sub(''.join(pair), word)
+        v_out[w_out] = v_in[word]
+    return v_out
+```
+
+---
+
+## 算法对比：BPE vs WordPiece vs Unigram
+
+面试中需要了解这三种算法的区别。
+
+| 特性 | **BPE**（GPT-2/3/4、Llama） | **WordPiece**（BERT） | **Unigram**（T5、ALBERT） |
+|------|---------------------------|----------------------|--------------------------|
+| **合并策略** | 确定性：合并**最频繁**的 pair | 概率性：合并提升数据**似然**的 pair（PMI） | 概率性：从大规模开始，**剪枝**最不有用的 token |
+| **理念** | 自底向上（字符 → 子词） | 自底向上 | 自顶向下（所有子串 → 保留最佳） |
+| **正则化** | 无（确定性） | 无 | **子词正则化**：训练期间可采样不同分割（增加噪声/鲁棒性） |
+| **词表初始化** | 小（字符/字节）→ 增长 | 小 → 增长 | 大（所有子串）→ 缩小 |
+| **Token 选择** | 基于频率 | 基于 PMI（点互信息） | 基于概率（unigram 语言模型） |
+| **繁殖力**（平均 token/词） | **中等**（~2.5-3.0） | **高**（~3.0-3.5） | **低**（~2.0）——最佳压缩 |
+| **形态学** | 可解释性较差 | 中等 | **最佳**——产生更具形态可解释性的 token |
+| **库** | tiktoken、HuggingFace | HuggingFace | **SentencePiece**（默认） |
+
+### 2025 年研究洞察
+
+**Unigram 在形态保持上优于 BPE**：
+- Bostrom & Durrett (2020)：Unigram 产生更具形态可解释性的 token
+- 示例：`destabilizing` → Unigram：`de + stabilizing`，BPE：`dest + abil + iz + ing`
+- **下游影响**：在 Unigram token 上训练的模型微调性能更好
+
+**何时使用哪种**：
+- **BPE**：默认选择，高效，广泛采用（GPT、Llama）
+- **WordPiece**：BERT 风格模型，需要基于 PMI 的合并时
+- **Unigram**：多语言模型，形态丰富的语言（阿拉伯语、土耳其语、芬兰语），压缩重要时
+
+> **注意**：大多数生成式模型（GPT 系列、Llama）使用 BPE，因为它是标准且高效的。T5 使用 SentencePiece（Unigram），处理多语言文本稍好。
+
+---
+
+## "Strawberry" 问题
+
+为什么 GPT-4 无法数清 "Strawberry" 中的 'r'？
+
+**答案**：因为它**从未看到单词 "Strawberry"**。它看到的是 token ID。
+
+```python
+import tiktoken
+enc = tiktoken.encoding_for_model("gpt-4o")
+print(enc.encode("Strawberry"))
+# 输出: [9241, 8075] -> 对应 ["Straw", "berry"]
+```
+
+模型接收到 `[ID_1, ID_2]`。
+- `ID_1`（"Straw"）向量：包含"干草杆"、"吸管"的语义概念
+- `ID_2`（"berry"）向量：包含"小水果"的语义概念
+
+除非模型在训练期间记住了每个 token ID 的拼写（它试图这样做，但不完美），否则它无法"数"字母。
+
+**面试启示**：
+- 不要要求 LLM 在没有工具的情况下执行字符级操作（反转字符串、密码）
+- 这是*根本性的架构限制*，不仅仅是"训练不好"
+- **变通方案**：使用工具/代码进行字符级任务，而非原始 LLM 推理
+
+### 2025 年更新：Strawberry 基准测试
+
+不同分词器的处理方式不同：
+
+```python
+# GPT-4o (cl100k_base)
+# "Strawberry" -> [9241, 8075] (["Straw", "berry"])
+# 无法数清 r：3 个 token，'r' 分散在其中
+
+# Llama 3（使用 GPT-4 分词器）
+# "strawberry" -> [49607, 8698, 11, 8205] (["str", "aw", "berry", "."])
+# 仍然被分割，但边界不同
+
+# Claude 3.5（自定义分词器）
+# "strawberry" -> [9900, 12072, 9177] (["str", "aw", "berry"])
+# 类似的限制
+```
+
+**没有现代分词器能解决这个问题**——这是子词 Tokenization 的固有特性。
+
+---
+
+## 技术深入
+
+### 1. 预分词
+BPE 运行前，文本会被规范化。
+
+**Unicode 规范化**：
+- **NFC**（规范化组合）：`é` 作为单个字符（U+00E9）
+- **NFD**（规范化分解）：`e` + `´`（U+0065 U+0301）
+- **影响**：影响分词边界和词表大小
+
+**分割规则**：
+- GPT-4 在 `'`（撇号）和空格上分割
+- 确保标点符号一致处理
+- 示例：`"don't"` → `["don", "'", "t"]` 或 `["do", "n't"]`，取决于训练
+
+### 2. 空格处理
+
+**不同分词器的方法不同**：
+
+| 分词器 | 空格表示 | 示例 |
+|--------|---------|------|
+| **SentencePiece**（Llama/T5） | 将空格视为字符（通常是 `_` 或 `<0x20>`） | `" Hello"` → `_Hello` |
+| **Tiktoken**（GPT） | 空格是 token 的一部分 | `" Hello"` → ` Hello` |
+| **WordPiece**（BERT） | 使用 `##` 表示续接 | `" Hello"` → `Hello`（无前导空格 token） |
+
+**影响**：`" hello"` 和 `"hello"` 有不同的 ID。这就是为什么提示对尾部空格很敏感。
+
+**2025 年更新**：
+- 大多数现代分词器使用**字节级 BPE**，空格只是字节 `0x20`
+- 避免特殊处理，跨语言更一致
+
+### 3. 词表大小权衡
+
+为什么不使用 100 万个 token？
+
+**Embedding 矩阵大小**：$V \times d_{model}$
+- 100k 词表，4096 维 = 仅 Embedding 就有 **400M 参数**！
+- 32k 词表，4096 维 = **131M 参数**
+
+**边际收益递减**：
+- 稀有 token 出现频率太低，模型学不到好的 Embedding
+- **最优范围**：大多数模型 32k-100k
+- **Llama 2**：32k 词表
+- **GPT-2**：50k 词表
+- **GPT-4o**：100k 词表（cl100k_base）
+- **Llama 3**：128k 词表
+
+**2025 年研究**：
+- Ali 等人（2024）：33k 和 50k 词表在英文任务上优于更大词表
+- **多语言权衡**：多语言模型需要更大词表（100k+）
+- **特定领域**：代码模型受益于更大词表（150k+ 用于编程 token）
+
+### 4. 各语言的 Token 效率
+
+并非所有语言的分词效率相同：
+
+| 语言 | 每 token 词汇数（约） | 效率 |
+|------|---------------------|------|
+| **英语** | 0.75-1.0 tokens/词 | ★★★★★（最有效） |
+| **西班牙语/法语/德语** | 1.2-1.5 tokens/词 | ★★★★☆ |
+| **中文/日文/韩文** | 2.0-3.0 tokens/词 | ★★★☆☆ |
+| **阿拉伯语/希伯来语** | 2.5-3.5 tokens/词 | ★★☆☆☆ |
+| **泰语/老挝语/高棉语** | 3.0-4.0 tokens/词 | ★★☆☆☆ |
+| **代码（编程）** | 0.5-1.5 tokens/token | ★★★★☆（取决于语言） |
+
+**影响**：
+- API 使用对非英语语言**更昂贵**
+- 同样的中文提示可能比英文贵 3 倍
+- **变通方案**：使用特定语言的分词器或压缩
+
+---
+
+## 特殊 Token 映射
+
+了解这些对于调试原始模型输入至关重要。
+
+| Token 类型 | GPT-4o | Llama 3/4 | 说明 |
+|------------|-------|---------|------|
+| **BOS**（开始） | - | `<\|begin_of_text\|>` | 标志生成的开始 |
+| **EOS**（结束） | `<\|endoftext\|>` | `<\|end_of_text\|>` | 标志模型停止 |
+| **PAD** | - | - | 用于批处理（使所有序列等长） |
+| **角色开始** | - | `<\|start_header_id\|>` | "User"、"Assistant"、"System" |
+| **角色结束** | - | `<\|eot_id\|>` | 回合结束 |
+| **图像** | `<\|image\|>` | - | 视觉模态 |
+
+**2025 年更新**：
+- 现代模型使用**特殊 token 元组**而非单个 token
+- 示例：Llama 3 使用 `<|start_header_id|>user<|end_header_id|>` 标记角色
+- **目的**：实现对对话结构的精细控制
+
+---
+
+## 安全：Tokenization 攻击
+
+**通过 Token 分割的提示注入**：
+攻击者可以通过将禁用词拆分为不寻常的 token 来绕过安全过滤器（通常是一个更简单的分类器），而 LLM 会重建这些词。
+
+*示例*：如果 "bomb" 被禁用：
+- 用户输入：`"b" + "omb"`
+- 分词器：`[ID_b, ID_omb]`
+- 安全过滤器："我没看到 'bomb'"
+- LLM：拼接 Embedding → "bomb"
+
+### 2025 年攻击向量
+
+**Unicode 同形字**：
+- 使用不同脚本中视觉上相似的字符
+- 示例：`"аdmin"`（西里尔字母 'а'）vs `"admin"`（拉丁字母 'a'）
+- 分词器处理方式不同，可能绕过过滤器
+
+**Token 走私**：
+- 跨 token 边界拆分恶意内容
+- 示例：`"D<|ROT|>ROP"`，其中 `<|ROT|>` 是特殊 token
+- 分词后重建为 "DROP"
+
+**防御策略**：
+1. **规范化**：在分词前规范化 Unicode（NFC/NFD）
+2. **Token 级过滤**：在 token 级别而非字符串级别应用安全检查
+3. **对抗训练**：在对齐训练期间加入 token 拆分攻击
+
+---
+
+## 2025 年：性能优化
+
+### BlockBPE（并行 BPE Tokenization）
+
+**问题**：BPE 本质上是顺序的——必须按顺序应用合并规则。
+
+**解决方案**：BlockBPE 以并行块处理分词。
+- **加速**：长文本快 3-5 倍
+- **权衡**：在数学/代码任务上有轻微质量损失
+- **状态**：研究阶段（arXiv:2507.11941）
+
+### GPU Tokenization
+
+**问题**：CPU 分词在高吞吐量时成为瓶颈。
+
+**解决方案**：将分词移至 GPU。
+- **库**：TensorRT-LLM、vLLM 探索 GPU 分词器
+- **挑战**：需要重大架构变更
+- **2025 年状态**：早期研究，未达生产就绪
+
+### Token 缓存
+
+**技术**：对常见提示缓存分词结果。
+- **系统提示**：缓存系统提示的分词
+- **模板**：缓存带变量的提示模板
+- **节省**：聊天应用延迟降低 10-30%
+
+---
+
+## 库与工具
+
+### tiktoken（OpenAI）
+
+**为什么使用**：
+- 比 HuggingFace tokenizers **快 3-6 倍**
+- 基于 Rust（通过 tiktoken-rs 绑定）
+- GPT-2/3/4 模型的**标准**
+
+```python
+import tiktoken
+
+# 加载分词器
+enc = tiktoken.encoding_for_model("gpt-4o")
+
+# 编码文本
+tokens = enc.encode("Hello, world!")
+print(tokens)  # [9906, 11, 1917, 0]
+
+# 计算 token 数
+count = len(tokens)
+print(f"Token 数: {count}")
+
+# 解码回文本
+text = enc.decode(tokens)
+print(text)  # "Hello, world!"
+```
+
+**2025 年更新**：现可通过社区绑定在 R、Go、JavaScript、Rust 中使用。
+
+### HuggingFace Tokenizers
+
+**为什么使用**：
+- **最全面**：支持 BPE、WordPiece、Unigram
+- **生产就绪**：用 Rust 编写，Python 绑定
+- **集成**：与 Transformers 库无缝协作
+
+```python
+from transformers import AutoTokenizer
+
+# 加载分词器
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3-8B")
+
+# 编码
+tokens = tokenizer.encode("Hello, world!")
+print(tokens)  # [1, 9906, 11, 1917, 2]（含 BOS/EOS）
+
+# 快速分词
+# 使用 Rust 后端，非常快
+inputs = tokenizer(["Hello", "world"], padding=True, return_tensors="pt")
+```
+
+### SentencePiece（Google）
+
+**为什么使用**：
+- **语言无关**：将文本视为原始字节流
+- **多语言**：非常适合无空格语言（中文、日文、泰语）
+- **Unigram + BPE**：实现两种算法
+
+```python
+import sentencepiece as spm
+
+# 训练分词器
+spm.SentencePieceTrainer.train(
+    input='corpus.txt',
+    model_prefix='m',
+    vocab_size=32000,
+    model_type='unigram',  # 或 'bpe'、'char'、'word'
+    user_defined_symbols=['<user>', '<assistant>']
+)
+
+# 加载并使用
+sp = spm.SentencePieceProcessor()
+sp.load('m.model')
+tokens = sp.encode("Hello, world!")
+print(tokens)  # [1532, 12, 2359, 37]
+```
+
+---
+
+## Spring AI Tokenization API
+
+Spring AI 提供分词工具，用于在生产应用中估算成本和管理上下文窗口。
+
+### Token 计数服务
+
+```java
+// Spring AI Token 计数
+@Service
+public class TokenizationService {
+    private final Tokenizer tokenizer;
+
+    public int countTokens(String text) {
+        return tokenizer.count(text);
+    }
+
+    // 演示 "Strawberry" 问题
+    public void demonstrateTokenizationIssue() {
+        String text = "Strawberry";
+        int count = tokenizer.count(text); // 可能返回 2，而非 10
+        // Tokens: ["Straw", "berry"] - 模型看不到单个字母
+        // 这就是 LLM 在字符级任务上的困难所在
+    }
+
+    // API 调用前的成本估算
+    public CostEstimate estimateCost(String prompt, String model) {
+        int promptTokens = tokenizer.count(prompt);
+        int estimatedOutput = promptTokens / 2; // 粗略估算
+        int totalTokens = promptTokens + estimatedOutput;
+
+        return new CostEstimate(
+            model,
+            totalTokens,
+            pricingService.calculate(model, totalTokens)
+        );
+    }
+}
+```
+
+### 成本优化策略
+
+```java
+// 优化 Token 使用的服务
+@Service
+public class CostOptimizationService {
+    private final Tokenizer tokenizer;
+    private final ChatClient chatClient;
+
+    // 截断提示以适应上下文窗口
+    public String fitInContext(String longPrompt, int maxTokens) {
+        int currentTokens = tokenizer.count(longPrompt);
+
+        if (currentTokens <= maxTokens) {
+            return longPrompt;
+        }
+
+        // 计算需要截断多少
+        double ratio = (double) maxTokens / currentTokens;
+        int targetLength = (int) (longPrompt.length() * ratio);
+
+        // 截断并验证
+        String truncated = longPrompt.substring(0, targetLength);
+        while (tokenizer.count(truncated) > maxTokens && targetLength > 0) {
+            targetLength -= 100;
+            truncated = longPrompt.substring(0, Math.max(0, targetLength));
+        }
+
+        return truncated;
+    }
+
+    // 带 Token 预算的批处理
+    public List<String> processBatch(List<String> inputs, int maxTokensPerRequest) {
+        List<String> results = new ArrayList<>();
+
+        for (String input : inputs) {
+            int tokens = tokenizer.count(input);
+            if (tokens > maxTokensPerRequest) {
+                // 跳过或截断
+                String truncated = fitInContext(input, maxTokensPerRequest - 100);
+                results.add(processWithTruncationWarning(truncated));
+            } else {
+                results.add(chatClient.prompt().user(input).call().content());
+            }
+        }
+
+        return results;
+    }
+}
+```
+
+### 生产中处理多语言输入
+
+```java
+// 多语言 Token 计数和成本估算
+@Service
+public class MultilingualTokenService {
+    private final Tokenizer tokenizer;
+
+    // 按语言估算 Token
+    public LanguageEstimate estimateByLanguage(String text, String language) {
+        int tokens = tokenizer.count(text);
+        int words = text.split("\\s+").length;
+
+        // 语言特定的效率因子
+        double tokensPerWord = switch (language.toLowerCase()) {
+            case "english" -> 0.75;
+            case "spanish", "french", "german" -> 1.3;
+            case "chinese", "japanese", "korean" -> 2.5;
+            case "arabic", "hebrew" -> 3.0;
+            default -> 1.5;
+        };
+
+        double expectedTokens = words * tokensPerWord;
+        double efficiency = expectedTokens / tokens; // 越高越好
+
+        return new LanguageEstimate(
+            language,
+            tokens,
+            words,
+            tokensPerWord,
+            efficiency
+        );
+    }
+
+    // 警告用户多语言成本
+    public String getCostWarning(String text, String language) {
+        LanguageEstimate estimate = estimateByLanguage(text, language);
+
+        if (estimate.efficiency() < 0.5) {
+            return String.format(
+                "警告：%s 的 Token 效率低于英文。" +
+                "此文本使用 %.2f tokens/词（英文为 0.75）。" +
+                "预估成本：%.1fx 更高。",
+                language,
+                estimate.tokensPerWord(),
+                1.0 / estimate.efficiency()
+            );
+        }
+        return "Token 使用在预期范围内。";
+    }
+}
+```
+
+### Token 预算管理
+
+```java
+// 跨请求管理 Token 预算
+@Component
+public class TokenBudgetManager {
+    private final Tokenizer tokenizer;
+    private final Map<String, Integer> userBudgets = new ConcurrentHashMap<>();
+
+    // 检查用户是否有足够预算
+    public boolean hasBudget(String userId, String prompt) {
+        int tokens = tokenizer.count(prompt);
+        Integer remaining = userBudgets.getOrDefault(userId, 10000);
+        return remaining >= tokens;
+    }
+
+    // 从用户预算中扣除 Token
+    public void deductTokens(String userId, String prompt, String response) {
+        int totalTokens = tokenizer.count(prompt) + tokenizer.count(response);
+        userBudgets.merge(userId, -totalTokens, Integer::sum);
+    }
+
+    // 获取剩余预算
+    public int getRemainingBudget(String userId) {
+        return userBudgets.getOrDefault(userId, 10000);
+    }
+}
+```
+
+---
+
+## 面试要点总结
+
+1. **LLM 不阅读文本**，它阅读 BPE（或 Unigram/WordPiece）产生的整数 ID
+2. **BPE 平衡**词表大小与序列长度，但 **Unigram** 产生更具形态可解释性的 token
+3. **Tokenization 伪影**导致数学、拼写和字符串反转中的失败（"Strawberry" 问题）
+4. **词表大小**是权衡：更大词表 = 更短序列（更快推理）但更多参数（VRAM 使用）。最优范围：32k-100k
+5. **多语言**：英文约 0.75 词/token。其他语言效率更低（更多 token/词），API 使用更昂贵
+6. **字节级 BPE**（2025 年标准）：256 字节基础词表，处理所有 Unicode 无 OOV 错误
+7. **tiktoken** 比替代方案快 3-6 倍，成为事实标准
+8. **安全**：Token 拆分启用提示注入攻击——通过规范化和 Token 级过滤防御
+9. **性能**：BlockBPE 和 GPU Tokenization 是 2025+ 的新兴优化
+
+:::tip 练习
+使用 Python 的 `tiktoken` 检查不同字符串如何被分解。这有助于建立对提示为何失败的直觉。
+
+```python
+import tiktoken
+
+enc = tiktoken.encoding_for_model("gpt-4o")
+
+# 测试不同语言
+texts = [
+    "Hello world",  # 英文
+    "Bonjour le monde",  # 法文
+    "你好世界",  # 中文
+    "مرحبا بالعالم",  # 阿拉伯文
+]
+
+for text in texts:
+    tokens = enc.encode(text)
+    print(f"{text:20} → {len(tokens)} tokens: {tokens}")
+```
+
+也推荐尝试 [tiktoken 交互式应用](https://tiktoken.vercel.app/) 实时查看分词过程。
+:::

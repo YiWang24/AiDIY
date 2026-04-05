@@ -1,0 +1,26 @@
+---
+title: TLS 握手
+description: TLS 握手基础和证书故障排查
+---
+
+# TLS 握手
+
+TLS 在 HTTP 交换之前建立加密并验证服务器身份。
+
+## 实际验证
+
+```bash
+openssl s_client -connect api.example.com:443 -servername api.example.com
+curl -v https://api.example.com/health
+```
+
+## 常见问题
+
+- 证书过期或缺少中间 CA
+- SNI 与 SAN/CN 之间的主机名不匹配
+- 不支持的协议或密码套件没有交集
+
+## 相关阅读
+
+- [应用层 - TLS](../application-layer#tls-ssl)
+- [TLS 问题排查](../troubleshooting/tls-issues)

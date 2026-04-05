@@ -1,0 +1,158 @@
+---
+id: index
+title: Frontend Development
+sidebar_label: 前端开发
+description: React、Next.js 和现代 Web 开发
+---
+
+# ⚛️ 前端开发
+
+> **"最好的界面是无形的——它们就是好用。"**
+
+使用 React 和 Next.js 构建现代、响应式、高性能的 Web 应用。
+
+---
+
+## ⚛️ React 基础
+
+### 组件模式
+
+```jsx
+// 函数组件（推荐）
+export function UserCard({ user, onSelect }) {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <div 
+      className="user-card"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onSelect(user.id)}
+    >
+      <Avatar src={user.avatarUrl} />
+      <h3>{user.name}</h3>
+      {isHovered && <p>{user.email}</p>}
+    </div>
+  );
+}
+```
+
+### Hooks 核心模式
+
+```jsx
+// 自定义 Hook - 数据获取
+function useUserData(userId) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    
+    fetch(`/api/users/${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!cancelled) {
+          setUser(data);
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        if (!cancelled) {
+          setError(err.message);
+          setLoading(false);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  return { user, loading, error };
+}
+```
+
+### 状态管理对比
+
+| 方案 | 适用场景 | 复杂度 |
+|------|----------|--------|
+| **useState** | 组件内部状态 | 低 |
+| **useContext** | 跨少量组件共享 | 低 |
+| **Zustand** | 中等复杂度全局状态 | 中 |
+| **Redux Toolkit** | 大型应用复杂状态 | 高 |
+| **Jotai/Recoil** | 原子化状态管理 | 中 |
+
+---
+
+## ⚡ Next.js
+
+### App Router（推荐）
+
+```jsx
+// app/layout.tsx
+export default function RootLayout({ children }) {
+  return (
+    <html lang="zh-CN">
+      <body>{children}</body>
+    </html>
+  );
+}
+
+// app/page.tsx - 服务端组件（默认）
+export default async function HomePage() {
+  const data = await fetch('https://api.example.com/posts');
+  const posts = await data.json();
+  
+  return (
+    <main>
+      {posts.map(post => (
+        <article key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.excerpt}</p>
+        </article>
+      ))}
+    </main>
+  );
+}
+```
+
+### 数据获取策略
+
+| 策略 | 用途 | 示例 |
+|------|------|------|
+| **SSR** | 每次请求时渲染 | 动态页面、个性化内容 |
+| **SSG** | 构建时生成 | 博客、文档、营销页面 |
+| **ISR** | 增量静态再生成 | 经常更新的内容 |
+| **CSR** | 客户端渲染 | 仪表板、交互式工具 |
+
+---
+
+## 🎨 样式方案
+
+### 推荐方案
+
+| 方案 | 特点 | 适用场景 |
+|------|------|----------|
+| **Tailwind CSS** | 原子化 CSS | 快速开发、一致性设计 |
+| **CSS Modules** | 局部作用域 | 组件级别样式 |
+| **Styled Components** | CSS-in-JS | 动态样式、主题 |
+| **Vanilla Extract** | 类型安全 CSS | TypeScript 项目 |
+
+---
+
+## 📝 详细主题
+
+- [动画实现](/docs/engineering/frontend/animation)
+- [认证与授权](/docs/engineering/frontend/auth)
+- [表单处理](/docs/engineering/frontend/forms)
+- [性能优化](/docs/engineering/frontend/performance)
+- [前端测试](/docs/engineering/frontend/testing)
+
+---
+
+:::tip 前端性能建议
+1. **代码分割** - 按路由懒加载
+2. **图片优化** - 使用 WebP、懒加载
+3. **缓存策略** - 合理使用 SWR/React Query
+4. **Bundle 分析** - 监控包体积增长
+5. **Core Web Vitals** - 关注 LCP、FID、CLS
+:::

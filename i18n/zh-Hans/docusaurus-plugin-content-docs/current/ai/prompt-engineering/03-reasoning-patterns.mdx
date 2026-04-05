@@ -1,0 +1,1209 @@
+---
+title: "3 核心推理模式"
+description: "掌握 Zero-shot、Few-shot、CoT、ReAct、Tree of Thoughts、Self-Consistency 及使用时机"
+published: 2025-01-21
+tags: ["prompt-engineering", "reasoning", "ai", "llm", "cot", "react"]
+category: "prompt-engineering"
+series: "Prompt Engineering Guide"
+seriesOrder: 2
+draft: false
+---
+
+## 介绍
+
+大型语言模型本身并不推理——它们预测 token。然而，2022-2025 年的研究表明，**特定的提示模式可以激发系统性的推理行为**，在复杂任务上显著提高性能。
+
+本章涵盖了每个提示工程师应该掌握的核心推理模式，从基础的 Zero-shot 和 Few-shot 技术到 Tree of Thoughts 和 Self-Consistency 等高级方法。
+
+### LLM 推理的演变
+
+```
+2020: 基础提示
+├─ 直接提问，直接回答
+└─ 没有推理结构
+
+2022: 思维链革命
+├─ Wei 等人引入 CoT（数学 +23-50%）
+├─ Kojima 等人发现 zero-shot CoT
+└─ "让我们一步步思考" 成为标志性口号
+
+2023: 高级推理
+├─ Tree of Thoughts（24 点游戏 74% vs 4%）
+├─ ReAct 模式用于工具使用（+34%）
+├─ Self-Consistency 提高鲁棒性（+11-17%）
+└─ Graph of Thoughts 出现
+
+2024-2025: 推理模型
+├─ OpenAI o1 和 o3 具有扩展思维
+├─ DeepSeek R1 具有长链思维
+├─ 测试时计算扩展
+└─ 内在推理能力成熟
+```
+
+### 性能总结
+
+| 模式 | 最适用 | 性能提升 | Token 成本 |
+|---------|----------|-----------------|------------|
+| **Zero-Shot** | 简单任务 | 基线 | 低 |
+| **Zero-Shot CoT** | 快速推理 | +10-25% | 中等 |
+| **Few-Shot** | 格式对齐 | +40% | 中等 |
+| **Few-Shot CoT** | 复杂推理 | +23-50% | 高 |
+| **Self-Consistency** | 高风险决策 | CoT +11-17% | 非常高 |
+| **ReAct** | 工具使用，代理 | 代理任务 +34% | 高 |
+| **Tree of Thoughts** | 多步骤问题 | 74% vs 4% (CoT) | 非常高 |
+
+## 1. Zero-Shot 提示
+
+### 什么是 Zero-Shot
+
+Zero-Shot 提示不提供任何示例。模型完全依赖其预训练知识来理解和完成任务。
+
+### 使用时机
+
+| 使用场景 | Zero-Shot 为何有效 |
+|----------|-------------------|
+| 简单的事实查询 | 模型拥有广泛的世界知识 |
+| 常见任务 | 在训练数据中有很好的代表 |
+| 快速原型设计 | 无需精心制作示例即可快速迭代 |
+| 强大的现代模型 | GPT-4、Claude 3、Gemini Pro 在 zero-shot 上表现出色 |
+
+### 研究洞察（2024-2025）
+
+最新研究表明，**现代微调模型已经内化了推理能力**，使 Zero-Shot 提示出人意料地有效：
+
+> "在 Zero-Shot CoT 设置下，最近的强大模型已经表现出强大的推理能力，Few-Shot CoT 示例的主要作用是对齐输出格式。" — EMNLP 2025 研究发现
+
+**关键发现**：对于 GPT-4、Claude 3 和类似模型，当指定了输出格式时，Zero-Shot 通常在数学推理任务中匹配或超过 Few-Shot 的性能。
+
+### 最佳实践
+
+**1. 明确指定任务：**
+```xml
+<!-- ❌ 太模糊 -->
+<instruction>帮我处理这段代码</instruction>
+
+<!-- ✅ 具体 -->
+<instruction>
+审查这个 Java 方法的空指针异常。
+列出每个风险及其行号和修复建议。
+</instruction>
+```
+
+**2. 明确指定输出格式：**
+```xml
+<instruction>
+对以下评论进行情感分类。
+
+输出格式：
+{
+  "sentiment": "positive" | "negative" | "neutral",
+  "confidence": 0.0-1.0,
+  "key_phrases": ["phrase1", "phrase2"]
+}
+
+评论：[文本]
+</instruction>
+```
+
+**3. 对推理使用 Zero-Shot CoT：**
+```xml
+<instruction>
+一步步解决这个问题，然后提供最终答案。
+
+问题：[复杂问题]
+
+仔细思考后再回答。
+</instruction>
+```
+
+### Spring AI 实现
+
+```java
+@Service
+public class ZeroShotService {
+
+    private final ChatClient chatClient;
+
+    public ZeroShotService(ChatClient.Builder builder) {
+        this.chatClient = builder.build();
+    }
+
+    public String classify(String text) {
+        return chatClient.prompt()
+            .system("""
+                你是一个情感分类器。
+                只回复一个词：positive、negative 或 neutral。
+                """)
+            .user(text)
+            .call()
+            .content();
+    }
+
+    // 用于推理的 Zero-Shot CoT
+    public String solveWithReasoning(String problem) {
+        return chatClient.prompt()
+            .user("""
+                一步步解决这个问题：
+
+%s
+
+仔细思考每个步骤，然后提供你的最终答案。
+                """.formatted(problem))
+            .call()
+            .content();
+    }
+}
+```
+
+## 2. Few-Shot 提示
+
+### 什么是 Few-Shot
+
+Few-Shot 提示提供示例（通常是 2-8 个）来演示期望的输入-输出模式。模型通过这些示例学习来处理相似任务。
+
+### 研究发现
+
+**性能**：在格式敏感任务上比 Zero-Shot 提升 40%（Brown et al., 2020）
+
+**最佳示例数量**：
+- 3-5 个示例：最佳的成本/性能比
+- 更多示例：收益递减，成本增加
+- 质量优于数量：一个优秀的例子胜过五个平庸的例子
+
+**最新见解（2024-2025）**：对于现代推理模型（o1、R1），Few-Shot 实际上可能会**损害**性能，因为会覆盖模型优越的内部推理能力。
+
+### 使用时机
+
+| 场景 | 建议 |
+|----------|---------------|
+| **输出格式对齐** | ✅ 极佳—示例显示确切格式 |
+| **领域特定模式** | ✅ 对专业术语/风格很有效 |
+| **分类任务** | ✅ 对标签对齐非常有效 |
+| **复杂推理（强大模型）** | ⚠️ 可能没有帮助或会损害性能 |
+| **简单事实查询** | ❌ 不必要的开销 |
+
+### 最佳实践
+
+**1. 选择多样、具有代表性的示例：**
+```xml
+<examples>
+<!-- 示例 1：简单情况 -->
+输入："产品按时送达，效果很好！"
+输出：{"sentiment": "positive", "confidence": 0.95}
+
+<!-- 示例 2：负面情况 -->
+输入："质量太差。用了一天就坏了。"
+输出：{"sentiment": "negative", "confidence": 0.92}
+
+<!-- 示例 3：边界情况（混合） -->
+输入："功能好但性价比不高。"
+输出：{"sentiment": "neutral", "confidence": 0.78}
+</examples>
+```
+
+**2. 包括边界情况：**
+```xml
+<examples>
+<!-- 正常情况 -->
+输入："法国的首都是什么？"
+输出：{"answer": "巴黎", "confidence": "high"}
+
+<!-- 边界情况：模糊问题 -->
+输入："首都是哪个？"
+输出：{"answer": null, "confidence": "low", "clarification_needed": "哪个国家？"}
+
+<!-- 边界情况：多个有效答案 -->
+输入："说出一个质数"
+输出：{"answer": "7", "confidence": "high", "alternatives": [2, 3, 5, 11]}
+</examples>
+```
+
+**3. 使示例复杂度与任务匹配：**
+```xml
+<!-- 用于 SQL 生成 -->
+<examples>
+<!-- 简单查询 -->
+用户：查找所有活跃用户
+SQL：SELECT * FROM users WHERE status = 'active';
+
+<!-- 连接查询 -->
+用户：获取带有客户名称的订单
+SQL：SELECT o.id, o.total, c.name
+     FROM orders o
+     JOIN customers c ON o.customer_id = c.id;
+
+<!-- 复杂聚合 -->
+用户：按产品类别统计月收入
+SQL：SELECT
+       DATE_TRUNC('month', o.created_at) as month,
+       p.category,
+       SUM(oi.quantity * oi.price) as revenue
+     FROM orders o
+     JOIN order_items oi ON o.id = oi.order_id
+     JOIN products p ON oi.product_id = p.id
+     GROUP BY 1, 2
+     ORDER BY 1, 3 DESC;
+</examples>
+```
+
+### Spring AI 实现
+
+```java
+@Service
+public class FewShotService {
+
+    private final ChatClient chatClient;
+
+    // 将示例存储为结构化数据
+    private static final List<Example> SQL_EXAMPLES = List.of(
+        new Example(
+            "查找过去 7 天创建的用户",
+            "SELECT * FROM users WHERE created_at >= NOW() - INTERVAL '7 days'"
+        ),
+        new Example(
+            "按状态统计订单数量",
+            "SELECT status, COUNT(*) as count FROM orders GROUP BY status"
+        ),
+        new Example(
+            "按总消费获取前 5 名客户",
+            """
+            SELECT c.name, SUM(o.total) as total_spend
+            FROM customers c
+            JOIN orders o ON c.id = o.customer_id
+            GROUP BY c.id
+            ORDER BY total_spend DESC
+            LIMIT 5
+            """
+        )
+    );
+
+    public String generateSQL(String naturalLanguage) {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("从自然语言生成 SQL。\n\n");
+        prompt.append("示例：\n");
+
+        for (Example ex : SQL_EXAMPLES) {
+            prompt.append("用户：").append(ex.input()).append("\n");
+            prompt.append("SQL：").append(ex.output()).append("\n\n");
+        }
+
+        prompt.append("用户：").append(naturalLanguage).append("\n");
+        prompt.append("SQL：");
+
+        return chatClient.prompt()
+            .user(prompt.toString())
+            .call()
+            .content();
+    }
+
+    record Example(String input, String output) {}
+}
+```
+
+## 3. 思维链（CoT）提示
+
+### 什么是思维链
+
+思维链提示让模型逐步推理，将复杂问题分解成中间步骤，然后得出最终答案。
+
+### CoT 背后的科学
+
+**工作原理**：CoT 允许模型使用中间 token 作为"工作记忆"，将复杂问题分解成可以顺序求解的子问题。
+
+**关键研究发现**：
+
+| 研究 | 发现 |
+|-------|---------|
+| Wei et al. (2022) | 在 100B+ 模型上，数学/逻辑问题 +23-50% |
+| Kojima et al. (2022) | "让我们一步步思考" 在 zero-shot 中触发推理 |
+| Wang et al. (2023) | Self-consistency 进一步将 CoT 提高 11-17% |
+| NeurIPS 2024 | CoT 可以通过解码而不仅仅是提示来激发 |
+
+**模型大小很重要**：CoT 只对大型模型（100B+ 参数）提供显著好处。较小的模型可能会产生流畅但有错误的推理。
+
+### Zero-Shot CoT
+
+最简单的形式：添加"让我们一步步思考"来触发推理。
+
+```xml
+<instruction>
+解决这个问题：
+
+一家商店以每个 2 美元的价格卖苹果，每个 3 美元的价格卖橙子。
+如果 Sarah 买了 4 个苹果和 3 个橙子，并用 20 美元支付，
+她收到多少找零？
+
+让我们一步步思考。
+</instruction>
+```
+
+**输出**：
+```
+让我一步步思考：
+
+步骤 1：计算苹果的成本
+4 个苹果 × $2 = $8
+
+步骤 2：计算橙子的成本
+3 个橙子 × $3 = $9
+
+步骤 3：计算总成本
+$8 + $9 = $17
+
+步骤 4：计算找零
+$20 - $17 = $3
+
+Sarah 收到 $3 找零。
+```
+
+### Few-Shot CoT
+
+提供带有明确推理链的示例：
+
+```xml
+<instruction>
+通过展示你的工作来解决数学问题。
+
+示例 1：
+问题：Tom 有 5 个弹珠。他给 Jane 2 个，从 Bob 那里收到 3 个。
+Tom 现在有多少个弹珠？
+
+解答：
+- 开始：Tom 有 5 个弹珠
+- 给 Jane 后：5 - 2 = 3 个弹珠
+- 从 Bob 收到后：3 + 3 = 6 个弹珠
+- 答案：Tom 有 6 个弹珠
+
+示例 2：
+问题：一个矩形长度为 8cm，宽度为 5cm。
+它的周长是多少？
+
+解答：
+- 周长公式：2 × (长度 + 宽度)
+- 代入数值：2 × (8 + 5)
+- 计算总和：2 × 13
+- 计算周长：26
+- 答案：周长是 26cm
+
+现在解决：
+问题：[你的问题]
+
+解答：
+</instruction>
+```
+
+### 高级 CoT 变体
+
+**1. 自动 CoT（Zhang et al., 2022）**
+
+使用聚类自动生成多样化的示例：
+```
+1. 按类型对问题聚类
+2. 从每个聚类中选择代表性示例
+3. 用"让我们一步步思考"生成推理链
+4. 将这些作为 Few-Shot 示例使用
+```
+
+**2. 结构化 CoT**
+
+强制执行特定的推理结构：
+````xml
+<instruction>
+使用此结构分析此代码中的错误：
+
+1. 理解：代码应该做什么？
+2. 跟踪：一步步执行流程
+3. 识别：出现什么意外行为？
+4. 解释：为什么会出现这个错误？
+5. 修复：提供修正后的代码
+
+代码：
+```java
+public int divide(int a, int b) {
+    return a / b;
+}
+```
+</instruction>
+````
+
+**3. 验证 CoT**
+
+添加验证步骤：
+```xml
+<instruction>
+解决这个问题，然后验证你的答案：
+
+问题：[问题]
+
+步骤：
+1. 展示所有解题步骤来解决问题
+2. 清晰陈述你的答案
+3. 通过倒推或使用不同方法来验证
+4. 确认或纠正你的答案
+</instruction>
+```
+
+### CoT 损害性能的情况
+
+**最新研究（ICML 2025）** 显示，在特定场景下 CoT 可能会降低性能：
+
+| 场景 | 为何 CoT 会造成损害 | 替代方案 |
+|----------|---------------|-------------|
+| **模式识别** | 过度思考干扰直觉 | Zero-Shot |
+| **简单事实查询** | 不必要的推理增加噪声 | 直接回答 |
+| **时间敏感任务** | 推理 token 增加延迟 | Zero-Shot |
+| **隐含知识任务** | 语言化干扰回忆 | Zero-Shot |
+
+**经验法则**：需要显式逻辑步骤的问题使用 CoT。跳过模式匹配或事实回忆。
+
+### Spring AI 实现
+
+```java
+@Service
+public class ChainOfThoughtService {
+
+    private final ChatClient chatClient;
+
+    public ChainOfThoughtService(ChatClient.Builder builder) {
+        this.chatClient = builder
+            .defaultSystem("""
+                你是一个数学问题解决者。
+                总是逐步展示你的推理过程。
+                清晰地格式化每个步骤，然后陈述最终答案。
+                """)
+            .build();
+    }
+
+    // Zero-Shot CoT
+    public String solveWithReasoning(String problem) {
+        return chatClient.prompt()
+            .user("""
+                一步步解决这个问题：
+
+%s
+
+让我们仔细思考。
+                """.formatted(problem))
+            .call()
+            .content();
+    }
+
+    // 带验证的结构化 CoT
+    public ReasoningResult solveAndVerify(String problem) {
+        String response = chatClient.prompt()
+            .user("""
+                使用以下结构解决这个问题：
+
+## 问题
+%s
+
+## 逐步解答
+[展示你的推理的每个步骤]
+
+## 答案
+[清晰地陈述最终答案]
+
+## 验证
+[使用不同方法验证你的答案]
+
+## 置信度
+[评估你的置信度：HIGH、MEDIUM 或 LOW]
+                """.formatted(problem))
+            .call()
+            .content();
+
+        return parseReasoningResult(response);
+    }
+
+    record ReasoningResult(
+        String solution,
+        String answer,
+        String verification,
+        String confidence
+    ) {}
+}
+```
+
+## 4. Self-Consistency
+
+### 什么是 Self-Consistency
+
+Self-Consistency 为同一问题生成多个推理路径，并选择出现频率最高的答案（多数投票）。
+
+### 科学原理
+
+**关键见解**：不同的推理路径可能有错误，但正确答案往往会多次尝试后收敛。
+
+**性能**：比标准 CoT 提高 11-17%（Wang et al., 2023）
+
+**工作原理**：
+```
+问题 → 生成 N 个推理路径 → 提取答案 → 投票 → 最常见答案
+```
+
+### 使用时机
+
+| 场景 | 建议 |
+|----------|---------------|
+| **高风险决策** | ✅ 极佳—减少单个路径的错误 |
+| **数学/逻辑问题** | ✅ 对可验证的答案很好 |
+| **模糊问题** | ✅ 好于识别不确定性 |
+| **简单查询** | ❌ 杀鸡用牛刀—使用 Zero-Shot |
+| **成本敏感应用** | ⚠️ N× token 成本 |
+
+### 实现策略
+
+**基本方法**：
+1. 使用温度 > 0 生成 5-10 个不同解
+2. 从每个解中提取最终答案
+3. 返回带有置信度分数的多数答案
+
+**温度设置**：
+- `temperature: 0.7-1.0` 用于多样化路径
+- 更高温度 = 更多多样性但每条路径质量可能更低
+- 平衡点：`0.8` 通常最佳
+
+### Spring AI 实现
+
+```java
+@Service
+public class SelfConsistencyService {
+
+    private final ChatClient chatClient;
+    private static final int NUM_PATHS = 5;
+
+    public SelfConsistencyResult solveWithConsistency(String problem) {
+        List<String> answers = new ArrayList<>();
+        List<String> reasoningPaths = new ArrayList<>();
+
+        // 生成多个推理路径
+        for (int i = 0; i < NUM_PATHS; i++) {
+            String response = chatClient.prompt()
+                .user("""
+                    一步步解决这个问题：
+
+%s
+
+以 "最终答案：[你的答案]" 结尾。
+                    """.formatted(problem))
+                .options(ChatOptions.builder()
+                    .temperature(0.8)  // 更高温度以获得多样性
+                    .build())
+                .call()
+                .content();
+
+            reasoningPaths.add(response);
+            answers.add(extractFinalAnswer(response));
+        }
+
+        // 多数投票
+        Map<String, Long> answerCounts = answers.stream()
+            .collect(Collectors.groupingBy(
+                Function.identity(),
+                Collectors.counting()
+            ));
+
+        String majorityAnswer = answerCounts.entrySet().stream()
+            .max(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey)
+            .orElse("无共识");
+
+        double confidence = (double) answerCounts.getOrDefault(majorityAnswer, 0L)
+            / NUM_PATHS;
+
+        return new SelfConsistencyResult(
+            majorityAnswer,
+            confidence,
+            answerCounts,
+            reasoningPaths
+        );
+    }
+
+    private String extractFinalAnswer(String response) {
+        Pattern pattern = Pattern.compile("最终答案：\\s*(.+?)(?:\\n|$)",
+            Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(response);
+        return matcher.find() ? matcher.group(1).trim() : "未知";
+    }
+
+    record SelfConsistencyResult(
+        String answer,
+        double confidence,
+        Map<String, Long> answerDistribution,
+        List<String> reasoningPaths
+    ) {}
+}
+```
+
+### 高级：加权 Self-Consistency
+
+根据推理质量对答案加权：
+
+```java
+public WeightedResult solveWithWeightedConsistency(String problem) {
+    List<ScoredAnswer> scoredAnswers = new ArrayList<>();
+
+    for (int i = 0; i < NUM_PATHS; i++) {
+        String reasoning = generateReasoning(problem);
+        String answer = extractAnswer(reasoning);
+        double quality = evaluateReasoningQuality(reasoning);
+
+        scoredAnswers.add(new ScoredAnswer(answer, quality, reasoning));
+    }
+
+    // 加权投票
+    Map<String, Double> weightedScores = scoredAnswers.stream()
+        .collect(Collectors.groupingBy(
+            ScoredAnswer::answer,
+            Collectors.summingDouble(ScoredAnswer::quality)
+        ));
+
+    String bestAnswer = weightedScores.entrySet().stream()
+        .max(Map.Entry.comparingByValue())
+        .map(Map.Entry::getKey)
+        .orElse("无共识");
+
+    return new WeightedResult(bestAnswer, weightedScores);
+}
+
+record ScoredAnswer(String answer, double quality, String reasoning) {}
+```
+
+## 5. ReAct（推理 + 行动）
+
+### 什么是 ReAct
+
+ReAct 将推理（思考）与行动（工具调用）交织在一起，允许模型获取信息并动态调整其方法。
+
+### 模式
+
+```
+思考：[我需要弄清楚什么]
+行动：[工具名(参数)]
+观察：[工具结果]
+... 重复 ...
+思考：[我现在有足够的信息]
+答案：[基于观察的最终答案]
+```
+
+### 研究发现
+
+**性能**：在需要外部信息的代理任务上提高 34%（Yao et al., 2022）
+
+**主要优势**：
+- **接地推理**：行动提供真实数据
+- **错误恢复**：模型可以根据观察调整
+- **透明度**：清晰的推理轨迹用于调试
+- **工具集成**：函数调用的自然模式
+
+### 使用时机
+
+| 场景 | ReAct 为何出色 |
+|----------|-----------------|
+| **信息检索** | 可以搜索和验证事实 |
+| **多步骤任务** | 根据结果调整方法 |
+| **工具密集型工作流** | 与 API 的自然集成 |
+| **调试/调查** | 清晰的推理轨迹 |
+
+### ReAct 模板
+
+```xml
+<system>
+你是一个研究助理，可以访问这些工具：
+
+1. search(query) - 在网上搜索信息
+2. calculate(expression) - 计算数学表达式
+3. lookup(term) - 查找定义或事实
+4. verify(claim) - 验证陈述
+
+使用此格式：
+思考：[下一步如何做的推理]
+行动：工具名(参数)
+观察：[工具结果将出现在这里]
+... 继续直到你有答案 ...
+思考：[我有足够的信息来回答]
+答案：[带引用的最终答案]
+
+始终在行动前思考。验证重要事实。
+</system>
+
+<user>
+问题：Apple 的当前市值是多少，与 Microsoft 的市值相比如何？
+</user>
+```
+
+**预期响应**：
+```
+思考：我需要找到 Apple 和 Microsoft 的当前市值。
+让我搜索最新的数据。
+
+行动：search("Apple market cap 2025")
+观察：截至 2025 年 1 月，Apple 的市值约为 3.5 万亿美元。
+
+思考：现在我需要 Microsoft 的市值进行比较。
+
+行动：search("Microsoft market cap 2025")
+观察：截至 2025 年 1 月，Microsoft 的市值约为 3.1 万亿美元。
+
+思考：我有了两个数据。让我计算差异。
+
+行动：calculate("3.5 - 3.1")
+观察：0.4
+
+思考：我现在有足够的信息来全面回答。
+
+答案：截至 2025 年 1 月，Apple 的市值约为 3.5 万亿美元，
+而 Microsoft 的市值约为 3.1 万亿美元。Apple 的市值
+比 Microsoft 高约 4000 亿美元（或大致 13%）。
+```
+
+### 带 Tool Calling 的 Spring AI 实现
+
+```java
+@Service
+public class ReActService {
+
+    private final ChatClient chatClient;
+
+    public ReActService(ChatClient.Builder builder) {
+        this.chatClient = builder
+            .defaultSystem("""
+                你是一个逐步推理的研究助理。
+
+                对于每个步骤：
+                1. 思考：解释你需要找出什么
+                2. 行动：如果需要，使用工具
+                3. 观察：记录结果
+                4. 重复直到你能回答
+
+                始终在得出结论前验证重要事实。
+                """)
+            .defaultTools(
+                new SearchTool(),
+                new CalculatorTool(),
+                new FactCheckerTool()
+            )
+            .build();
+    }
+
+    public ResearchResult research(String question) {
+        String response = chatClient.prompt()
+            .user(question)
+            .call()
+            .content();
+
+        return parseResearchResult(response);
+    }
+
+    // 工具定义
+    @Tool
+    @Description("在网上搜索最新信息")
+    static class SearchTool {
+        public String search(
+            @Description("搜索查询") String query
+        ) {
+            // 实现：调用搜索 API
+            return searchService.search(query);
+        }
+    }
+
+    @Tool
+    @Description("计算数学表达式")
+    static class CalculatorTool {
+        public String calculate(
+            @Description("数学表达式") String expression
+        ) {
+            // 实现：计算表达式
+            return String.valueOf(evaluator.evaluate(expression));
+        }
+    }
+
+    @Tool
+    @Description("验证事实性声明")
+    static class FactCheckerTool {
+        public String verify(
+            @Description("要验证的声明") String claim
+        ) {
+            // 实现：可靠来源事实核查
+            return factChecker.verify(claim);
+        }
+    }
+}
+```
+
+## 6. 思维树（ToT）
+
+### 什么是思维树
+
+思维树通过同时探索多个推理路径、评估每个路径的前景并在需要时回溯，从而扩展了 CoT。
+
+### 科学原理
+
+**关键见解**：复杂问题通常需要探索多种方法才能找到正确的解决方案。ToT 允许 deliberate、systematic 探索。
+
+**性能**：
+- 24 点游戏：**74% 成功率 vs 4%**（标准 CoT）
+- 创意写作：**60% vs 16%** 关于连贯的故事生成
+
+### 工作原理
+
+```
+                    [问题]
+                        │
+            ┌───────────┼───────────┐
+            ▼           ▼           ▼
+        [路径 A]    [路径 B]    [路径 C]
+            │           │           │
+        [评估: 0.8] [评估: 0.3] [评估: 0.9] ← 评估前景
+            │                       │
+            ▼                       ▼
+        [继续]              [继续]  ← 探索有前景的路径
+            │                       │
+        [死胡同]              [解决方案！]
+```
+
+**过程**：
+1. **分解**：将问题分解为思考步骤
+2. **生成**：在每个步骤创建多个候选思考
+3. **评估**：为每个思考的前景打分
+4. **搜索**：探索有前景的路径（BFS 或 DFS）
+5. **回溯**：如果卡住，返回到更早的状态
+
+### 使用时机
+
+| 问题类型 | ToT 的好处 |
+|-------------|-------------|
+| **数学谜题** | 探索不同的方程排列 |
+| **规划** | 考虑多个行动序列 |
+| **创意写作** | 尝试不同的情节方向 |
+| **代码调试** | 测试多个假设 |
+| **游戏** | 评估移动序列 |
+
+**不推荐用于**：
+- 简单的直接问题
+- 时间关键应用（高延迟）
+- 成本敏感场景（许多 API 调用）
+
+### ToT 实现方法
+
+**1. 单一提示 ToT（更简单）**：
+
+```xml
+<instruction>
+使用思维树推理解决这个谜题。
+
+谜题：使用数字 4、5、6、20 和基本运算符（+、-、×、÷）
+得到 24。每个数字必须恰好使用一次。
+
+过程：
+1. 生成 3 个不同的初始方法
+2. 评估哪个最有前景（1-10 分）
+3. 进一步探索前 2 个方法
+4. 如果卡住，回溯并尝试不同的路径
+5. 继续直到找到解决方案
+
+展示你的探索树：
+</instruction>
+```
+
+**2. 多步 ToT（更强大）**：
+
+```java
+@Service
+public class TreeOfThoughtsService {
+
+    private final ChatClient chatClient;
+    private static final int BREADTH = 3;  // 每个步骤的思考数
+    private static final int MAX_DEPTH = 5;
+
+    public ToTResult solve(String problem) {
+        ThoughtNode root = new ThoughtNode(problem, null, 0);
+        return bfsSearch(root);
+    }
+
+    private ToTResult bfsSearch(ThoughtNode root) {
+        Queue<ThoughtNode> queue = new LinkedList<>();
+        queue.offer(root);
+
+        while (!queue.isEmpty()) {
+            ThoughtNode current = queue.poll();
+
+            if (current.depth >= MAX_DEPTH) continue;
+
+            // 生成候选思考
+            List<String> thoughts = generateThoughts(current);
+
+            // 评估每个思考
+            for (String thought : thoughts) {
+                double score = evaluateThought(current, thought);
+
+                if (isSolution(thought)) {
+                    return new ToTResult(thought, current.getPath());
+                }
+
+                if (score > 0.5) {  // 只探索有前景的路径
+                    ThoughtNode child = new ThoughtNode(
+                        thought, current, current.depth + 1
+                    );
+                    child.score = score;
+                    queue.offer(child);
+                }
+            }
+        }
+
+        return ToTResult.noSolution();
+    }
+
+    private List<String> generateThoughts(ThoughtNode node) {
+        String response = chatClient.prompt()
+            .user("""
+                当前问题状态：
+%s
+
+之前的思考：
+%s
+
+生成 %d 个不同的下一步来探索。
+将每个格式化为单独的编号选项。
+                """.formatted(
+                    node.state,
+                    node.getPath(),
+                    BREADTH
+                ))
+            .call()
+            .content();
+
+        return parseThoughts(response);
+    }
+
+    private double evaluateThought(ThoughtNode parent, String thought) {
+        String evaluation = chatClient.prompt()
+            .user("""
+                在 0-1 的尺度上评估这个推理步骤：
+
+问题：%s
+之前的步骤：%s
+提议的步骤：%s
+
+考虑：
+- 它是否朝着解决方案取得进展？
+- 逻辑是否有效？
+- 它是否避免死胡同？
+
+只返回 0 到 1 之间的一个数字。
+                """.formatted(
+                    parent.state,
+                    parent.getPath(),
+                    thought
+                ))
+            .call()
+            .content();
+
+        return Double.parseDouble(evaluation.trim());
+    }
+}
+```
+
+### 简化的 ToT 提示
+
+对于没有复杂代码的快速 ToT：
+
+```xml
+<instruction>
+使用有意识的探索来解决：
+
+问题：[你的问题]
+
+## 步骤 1：生成初始方法
+列出 3 种从根本上解决这个问题的方式。
+
+## 步骤 2：快速评估
+对每种方法，评估其前景（1-10）并简要解释。
+
+## 步骤 3：深入研究
+采用评分最高的方法并一步步工作。
+如果遇到死胡同，注明"回溯"并尝试下一个方法。
+
+## 步骤 4：解决方案
+展示你的最终答案和成功的推理路径。
+</instruction>
+```
+
+## 7. 高级模式
+
+### 思维图（GoT）
+
+通过允许思维合并并形成任意图结构来扩展 ToT：
+
+```
+    [思考 A] ──────┐
+                      ▼
+    [思考 B] ─────[合并洞察]────▶ [解决方案]
+                      ▲
+    [思考 C] ──────┘
+```
+
+**用例**：不同推理路径提供互补洞察的问题。
+
+### 最小到最大提示
+
+将复杂问题分解为更简单的子问题：
+
+```xml
+<instruction>
+通过分解来解决这个复杂问题：
+
+问题：[复杂问题]
+
+步骤 1：列出解决这个所需的子问题（从最简单的开始）
+步骤 2：按顺序解决每个子问题
+步骤 3：结合解决方案来回答原始问题
+</instruction>
+```
+
+### 思维程序（PoT）
+
+生成代码来解决问题，然后执行：
+
+```xml
+<instruction>
+通过编写 Python 代码来解决：
+
+问题：计算 10,000 美元在 5% 年利率、
+按月复利、3 年后的复利。
+
+编写 Python 程序来计算这个，然后展示结果。
+</instruction>
+```
+
+**输出**：
+```python
+principal = 10000
+rate = 0.05
+n = 12  # 月复利
+t = 3   # 年
+
+amount = principal * (1 + rate/n)**(n*t)
+interest = amount - principal
+
+print(f"最终金额：${amount:.2f}")
+print(f"赚取利息：${interest:.2f}")
+
+# 结果：
+# 最终金额：$11,614.72
+# 赚取利息：$1,614.72
+```
+
+## 模式选择指南
+
+### 决策树
+
+```
+开始：是什么类型的问题？
+
+├─ 简单事实查询？
+│  └─ Zero-Shot
+│
+├─ 格式敏感任务？
+│  └─ Few-Shot（侧重输出格式）
+│
+├─ 需要多步推理？
+│  ├─ 期望单个正确答案？
+│  │  └─ 思维链
+│  │
+│  ├─ 高风险，需要置信度？
+│  │  └─ Self-Consistency（CoT × N 路径）
+│  │
+│  └─ 存在多个有效方法？
+│     └─ 思维树
+│
+├─ 需要外部信息？
+│  └─ ReAct（带工具调用）
+│
+└─ 创造性/开放性任务？
+   └─ ToT 或思维图
+```
+
+### 快速参考表
+
+| 模式 | Token 数量 | 延迟 | 最适用 | 避免使用 |
+|---------|--------|---------|----------|------------|
+| **Zero-Shot** | 低 | 快速 | 简单任务 | 复杂推理 |
+| **Zero-Shot CoT** | 中等 | 中等 | 快速推理 | 模式识别 |
+| **Few-Shot** | 中等 | 中等 | 格式对齐 | 强大的现代模型 |
+| **Few-Shot CoT** | 高 | 慢速 | 复杂数学/逻辑 | 简单查询 |
+| **Self-Consistency** | 非常高 | 慢速 | 高风险决策 | 成本敏感 |
+| **ReAct** | 高 | 可变 | 工具密集型任务 | 无工具可用 |
+| **ToT** | 非常高 | 非常慢 | 多步谜题 | 时间关键应用 |
+
+## 常见错误
+
+### 错误 1：对一切都使用 CoT
+
+**问题**：CoT 为简单任务增加不必要的开销。
+
+```xml
+<!-- ❌ 杀鸡用牛刀 -->
+Q：2 + 2 是什么？
+让我们一步步思考...
+
+<!-- ✅ 适当 -->
+Q：2 + 2 是什么？
+A：4
+```
+
+### 错误 2：Self-Consistency 的错误温度
+
+**问题**：低温度产生相同的路径。
+
+```java
+// ❌ 所有路径将几乎相同
+.options(ChatOptions.builder().temperature(0.0).build())
+
+// ✅ 多样化路径以实现有意义投票
+.options(ChatOptions.builder().temperature(0.8).build())
+```
+
+### 错误 3：Few-Shot 示例不足
+
+**问题**：示例没有覆盖任务空间。
+
+```xml
+<!-- ❌ 只有正面示例 -->
+示例：[positive, positive, positive]
+结果：模型可能永远不会预测负面
+
+<!-- ✅ 平衡的示例 -->
+示例：[positive, negative, neutral, edge_case]
+```
+
+### 错误 4：没有适当工具的 ReAct
+
+**问题**：模型编造工具结果。
+
+```xml
+<!-- ❌ 没有实际工具可用 -->
+行动：search("query")
+观察：[模型编造结果]
+
+<!-- ✅ 真实工具集成 -->
+行动：search("query")
+观察：[实际 API 响应]
+```
+
+## 总结
+
+**关键要点**：
+
+1. **从简单开始**：先 Zero-Shot，只在需要时增加复杂性
+2. **模式匹配问题**：CoT 用于推理，ReAct 用于工具，ToT 用于探索
+3. **现代模型很强大**：GPT-4/Claude 通常不需要 Few-Shot
+4. **测量一切**：跟踪每种模式的准确性、延迟和成本
+5. **CoT 不是万能的**：某些任务因为显式推理而受损
+
+**下一章**：既然你理解了推理模式，学习如何从 LLM 获取**结构化输出**—JSON 模式、XML 标记和 Spring AI 的类型安全响应。
+
+---
+
+**上一篇**：[2.1 提示的结构](./02-prompt-anatomy.mdx) ←
+**下一篇**：[2.3 结构化输出](./04-structured-output.mdx) →

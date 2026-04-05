@@ -1,0 +1,30 @@
+---
+title: DNS 解析
+description: DNS 查询流程、缓存和后端调试技巧
+---
+
+# DNS 解析
+
+## 查询流程
+
+1. 客户端 stub 解析器向递归解析器发起请求
+2. 解析器依次查询根 → TLD → 权威名称服务器
+3. 响应按 TTL 缓存
+
+## 常见故障模式
+
+- `NXDOMAIN`——记录名称错误
+- 近期迁移后缓存未更新
+- 流量突增导致解析器超时
+
+## 常用命令
+
+```bash
+dig api.example.com
+dig +trace api.example.com
+```
+
+## 相关阅读
+
+- [应用层 - DNS](../application-layer#dns)
+- [DNS 问题排查](../troubleshooting/dns-issues)

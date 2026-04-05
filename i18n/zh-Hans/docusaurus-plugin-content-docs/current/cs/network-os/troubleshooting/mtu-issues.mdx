@@ -1,0 +1,18 @@
+---
+title: MTU 问题
+description: 诊断路径 MTU 不匹配和分片问题
+---
+
+# MTU 问题
+
+## 常见症状
+
+- 仅大 payload 请求挂起
+- VPN/隧道上间歇性 TLS 握手失败
+- 重传激增但无明显应用错误
+
+## 排查步骤
+
+1. 使用 `ping -M do -s <size>` 探测 MTU
+2. 捕获 ICMP fragmentation-needed 数据包
+3. 调整接口 MTU 和/或 TCP MSS

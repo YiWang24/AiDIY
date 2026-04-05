@@ -1,0 +1,1310 @@
+---
+title: "6 评估与版本控制"
+description: "衡量提示词质量、A/B测试、指标框架以及生产环境中的提示词管理"
+published: 2025-01-21
+tags: ["prompt-engineering", "evaluation", "testing", "mlops", "metrics"]
+category: "prompt-engineering"
+series: "提示工程指南"
+seriesOrder: 5
+draft: false
+---
+
+## 为什么评估很重要
+
+**没有衡量，提示工程就是猜测。** 生产AI系统需要系统性的评估、版本控制和持续改进——就像传统软件一样。
+
+### 评估差距
+
+```plaintext
+传统软件:                  AI/提示开发:
+┌─────────────────────────────┐        ┌─────────────────────────────┐
+│ ✅ 单元测试               │        │ ❌ "看起来不错"          │
+│ ✅ 集成测试               │        │ ❌ 手动抽查               │
+│ ✅ 覆盖率指标             │        │ ❌ 基于感觉的迭代        │
+│ ✅ CI/CD门控              │        │ ❌ 发布后祈祷            │
+│ ✅ 性能基准               │        │ ❌ 未知的回归            │
+└─────────────────────────────┘        └─────────────────────────────┘
+
+        良好的工程实践          vs         "提示感觉"
+```
+
+### 专业方法
+
+```plaintext
+系统性提示工程:
+┌──────────────────────────────────────────────────────────────────────┐
+│  定义 → 测量 → 迭代 → 验证 → 部署 → 监控 → 重复                    │
+├──────────────────────────────────────────────────────────────────────┤
+│  ✅ 带有真实数据的评估数据集                                   │
+│  ✅ 自动化指标（准确性、相关性、连贯性）                        │
+│  ✅ LLM作为评判者用于主观质量评估                              │
+│  ✅ A/B测试基础设施                                             │
+│  ✅ 提示词版本控制                                              │
+│  ✅ CI/CD质量门控                                              │
+│  ✅ 生产监控和告警                                             │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 1. 评估基础
+
+### 1.1 什么是评估？
+
+**评估**（evaluation）是一个结构化的测试，用于衡量提示词在特定任务上的性能。它包含：
+
+```plaintext
+评估组件:
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  1. 数据集               2. 指标               3. 阈值            │
+│  ┌─────────────────┐       ┌─────────────────┐     ┌─────────────┐ │
+│  │ 输入: "法国的    │       │ 准确率: 95%     │     │ 通过: >90%  │ │
+│  │   首都是什么?"  │  →    │ 相关性: 0.87    │  →  │ 失败: <90%  │ │
+│  │ 期望: 巴黎     │       │ 延迟: 1.2s     │     │             │ │
+│  └─────────────────┘       └─────────────────┘     └─────────────┘ │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 评估类型
+
+| 类型 | 描述 | 何时使用 |
+|------|-------------|-------------|
+| **离线评估** | 在测试数据集上进行批量评估 | 开发、CI/CD |
+| **在线评估** | 与真实用户进行A/B测试 | 生产验证 |
+| **LLM作为评判者** | 另一个LLM评估响应 | 无真实数据可用时 |
+| **人工评估** | 专家人工标注 | 黄金标准、校准 |
+| **自动化指标** | BLEU、ROUGE、BERTScore | 翻译、摘要 |
+
+### 1.3 评估数据集设计
+
+:::warning[数据集大小指南]
+最小数据集大小因任务复杂度而异。太小=不可靠的指标。太大=浪费资源。
+:::
+
+| 任务类型 | 最小样本 | 推荐 | 备注 |
+|-----------|-----------------|-------------|-------|
+| 二分类 | 100 | 500+ | 平衡类别 |
+| 多分类（5个类别） | 200 | 1000+ | 每个类别40+ |
+| 开放式生成 | 50 | 200+ | 多样化场景 |
+| RAG评估 | 100 | 300+ | 多样化的查询类型 |
+| 摘要 | 50 | 150+ | 不同文档长度 |
+| 代码生成 | 100 | 500+ | 涵盖边缘情况 |
+
+**数据集结构**：
+
+```json
+{
+  "dataset_id": "customer-support-v2",
+  "created": "2025-01-21",
+  "task_type": "classification",
+  "samples": [
+    {
+      "id": "cs-001",
+      "input": "我的订单还没到，已经2周了",
+      "expected_output": "shipping_delay",
+      "metadata": {
+        "category": "shipping",
+        "difficulty": "easy",
+        "source": "production_logs"
+      }
+    },
+    {
+      "id": "cs-002",
+      "input": "我想退货，但退货按钮不起作用",
+      "expected_output": "return_technical_issue",
+      "metadata": {
+        "category": "returns",
+        "difficulty": "medium",
+        "source": "manual_annotation"
+      }
+    }
+  ]
+}
+```
+
+---
+
+## 2. 评估指标深入
+
+### 2.1 分类指标
+
+```java
+public class ClassificationMetrics {
+
+    public static double accuracy(List<Prediction> predictions) {
+        long correct = predictions.stream()
+            .filter(p -> p.predicted().equals(p.expected()))
+            .count();
+        return (double) correct / predictions.size();
+    }
+
+    public static double precision(List<Prediction> predictions, String positiveClass) {
+        long truePositives = predictions.stream()
+            .filter(p -> p.predicted().equals(positiveClass) &&
+                        p.expected().equals(positiveClass))
+            .count();
+        long predictedPositives = predictions.stream()
+            .filter(p -> p.predicted().equals(positiveClass))
+            .count();
+        return predictedPositives == 0 ? 0 : (double) truePositives / predictedPositives;
+    }
+
+    public static double recall(List<Prediction> predictions, String positiveClass) {
+        long truePositives = predictions.stream()
+            .filter(p -> p.predicted().equals(positiveClass) &&
+                        p.expected().equals(positiveClass))
+            .count();
+        long actualPositives = predictions.stream()
+            .filter(p -> p.expected().equals(positiveClass))
+            .count();
+        return actualPositives == 0 ? 0 : (double) truePositives / actualPositives;
+    }
+
+    public static double f1Score(double precision, double recall) {
+        if (precision + recall == 0) return 0;
+        return 2 * (precision * recall) / (precision + recall);
+    }
+}
+```
+
+### 2.2 文本生成指标
+
+| 指标 | 公式/描述 | 最适合 | 局限性 |
+|--------|---------------------|----------|-------------|
+| **BLEU** | N-gram精确度重叠 | 翻译 | 惩改写 |
+| **ROUGE-N** | N-gram召回率重叠 | 摘要 | 忽略语义 |
+| **ROUGE-L** | 最长公共子序列 | 摘要 | 顺序敏感 |
+| **BERTScore** | 语义嵌入相似度 | 任何生成 | 计算密集 |
+| **METEOR** | 带同义词的调和平均 | 翻译 | 需要资源 |
+
+**实现**：
+
+```python
+# 使用evaluate库
+import evaluate
+
+# BLEU分数
+bleu = evaluate.load("bleu")
+results = bleu.compute(
+    predictions=["猫坐在垫子上"],
+    references=[["猫在垫子上"]]
+)
+print(f"BLEU: {results['bleu']:.3f}")
+
+# ROUGE分数
+rouge = evaluate.load("rouge")
+results = rouge.compute(
+    predictions=["AI正在改变医疗保健"],
+    references=["人工智能正在革命性地改变医疗保健行业"]
+)
+print(f"ROUGE-L: {results['rougeL']:.3f}")
+
+# BERTScore（语义相似）
+bertscore = evaluate.load("bertscore")
+results = bertscore.compute(
+    predictions=["今天天气很好"],
+    references=["外面是个美好的一天"],
+    lang="en"
+)
+print(f"BERTScore F1: {results['f1'][0]:.3f}")
+```
+
+### 2.3 RAG特定指标
+
+```java
+public class RagMetrics {
+
+    /**
+     * 衡量多少检索到的上下文与查询相关
+     */
+    public static double contextRelevance(
+            String query,
+            List<Document> retrievedDocs,
+            EmbeddingModel embeddingModel) {
+
+        float[] queryEmbedding = embeddingModel.embed(query);
+
+        return retrievedDocs.stream()
+            .mapToDouble(doc -> {
+                float[] docEmbedding = embeddingModel.embed(doc.getContent());
+                return cosineSimilarity(queryEmbedding, docEmbedding);
+            })
+            .average()
+            .orElse(0.0);
+    }
+
+    /**
+     * 衡量答案在多大程度上基于检索到的上下文
+     */
+    public static double faithfulness(
+            String answer,
+            List<Document> context,
+            ChatClient judgeClient) {
+
+        String prompt = """
+            给定下面的上下文和答案，评估答案在多大程度上
+            被上下文所支持，评分0-1。
+
+            上下文：
+            %s
+
+            答案：
+            %s
+
+            只返回0到1之间的数字。
+            """.formatted(
+                context.stream().map(Document::getContent).collect(joining("\n\n")),
+                answer
+            );
+
+        String score = judgeClient.prompt().user(prompt).call().content();
+        return Double.parseDouble(score.trim());
+    }
+
+    /**
+     * 衡量答案是否真正回答了问题
+     */
+    public static double answerRelevance(
+            String query,
+            String answer,
+            ChatClient judgeClient) {
+
+        String prompt = """
+            评估这个答案在多大程度上回答了问题，评分0-1。
+
+            问题：%s
+            答案：%s
+
+            只返回0到1之间的数字。
+            """.formatted(query, answer);
+
+        String score = judgeClient.prompt().user(prompt).call().content();
+        return Double.parseDouble(score.trim());
+    }
+}
+```
+
+### 2.4 RAG评估框架（RAGAS风格）
+
+```plaintext
+RAG评估维度:
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  ┌─────────────────┐     ┌─────────────────┐     ┌───────────────┐ │
+│  │ 上下文         │     │ 忠实性          │     │ 答案          │ │
+│  │ 相关性         │     │                │     │ 相关性        │ │
+│  │                │     │                │     │               │ │
+│  │ "检索到的文档   │     │ "答案是否基于    │     │ "答案是否      │ │
+│  │  是否与查询    │     │  上下文？"      │     │  回答问题？"   │ │
+│  │  相关？"       │     │                │     │               │ │
+│  └────────┬────────┘     └────────┬────────┘     └───────┬───────┘ │
+│           │                       │                      │         │
+│           └───────────────────────┼──────────────────────┘         │
+│                                   ▼                                 │
+│                    ┌─────────────────────────────┐                 │
+│                    │   总体RAG分数              │                 │
+│                    │   = 加权平均               │                 │
+│                    └─────────────────────────────┘                 │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. LLM作为评判者的评估
+
+当没有真实数据或评估是主观的时，使用另一个LLM进行评估。
+
+### 3.1 单点评分
+
+```java
+@Service
+public class LlmJudgeService {
+
+    private final ChatClient judgeClient;
+
+    public EvaluationResult evaluateResponse(
+            String query,
+            String response,
+            List<String> criteria) {
+
+        String criteriaList = criteria.stream()
+            .map(c -> "- " + c)
+            .collect(Collectors.joining("\n"));
+
+        String prompt = """
+            您是一位专业评估师。请评估以下回答。
+
+            ## 查询
+            %s
+
+            ## 回答
+            %s
+
+            ## 评估标准
+            %s
+
+            ## 说明
+            对于每个标准，请提供：
+            1. 评分（1-5分，5分为优秀）
+            2. 简要理由
+
+            以JSON格式返回您的评估结果：
+            {
+              "scores": {
+                "标准名称": {"score": X, "reason": "..."}
+              },
+              "overall_score": X.X,
+              "summary": "总体评估..."
+            }
+            """.formatted(query, response, criteriaList);
+
+        String result = judgeClient.prompt()
+            .user(prompt)
+            .call()
+            .content();
+
+        return parseEvaluationResult(result);
+    }
+}
+```
+
+### 3.2 成对比较
+
+```java
+public class PairwiseJudge {
+
+    private final ChatClient judgeClient;
+
+    public ComparisonResult compare(
+            String query,
+            String responseA,
+            String responseB) {
+
+        String prompt = """
+            比较这两个针对同一查询的回答。
+
+            ## 查询
+            %s
+
+            ## 回答 A
+            %s
+
+            ## 回答 B
+            %s
+
+            ## 说明
+            哪个回答更好？请考虑：
+            - 准确性和正确性
+            - 完整性
+            - 清晰性和有用性
+            - 简洁性
+
+            返回JSON：
+            {
+              "winner": "A" 或 "B" 或 "tie",
+              "confidence": 0.0-1.0,
+              "reasoning": "..."
+            }
+            """.formatted(query, responseA, responseB);
+
+        // 通过反向测试减少位置偏差
+        String promptReversed = prompt
+            .replace("回答 A", "回答 X")
+            .replace("回答 B", "回答 A")
+            .replace("回答 X", "回答 B");
+
+        String result1 = judgeClient.prompt().user(prompt).call().content();
+        String result2 = judgeClient.prompt().user(promptReversed).call().content();
+
+        return reconcileResults(result1, result2);
+    }
+}
+```
+
+### 3.3 基于参考的评分
+
+```java
+public class ReferenceGrader {
+
+    private final ChatClient judgeClient;
+
+    public GradingResult gradeWithReference(
+            String query,
+            String response,
+            String referenceAnswer) {
+
+        String prompt = """
+            将此回答与参考答案进行比较评分。
+
+            ## 查询
+            %s
+
+            ## 学生回答
+            %s
+
+            ## 参考答案
+            %s
+
+            ## 评分标准
+            - 5: 与参考答案相同或更好
+            - 4: 基本正确，有少量遗漏
+            - 3: 部分正确，有错误
+            - 2: 有重大错误或内容缺失
+            - 1: 错误或不相关
+
+            返回JSON：
+            {
+              "grade": X,
+              "correct_elements": ["..."],
+              "missing_elements": ["..."],
+              "errors": ["..."],
+              "feedback": "..."
+            }
+            """.formatted(query, response, referenceAnswer);
+
+        return parseGradingResult(
+            judgeClient.prompt().user(prompt).call().content()
+        );
+    }
+}
+```
+
+### 3.4 多评判者集成
+
+```java
+@Service
+public class EnsembleJudge {
+
+    private final List<ChatClient> judges;  // 不同的模型
+
+    public EnsembleResult evaluate(String query, String response) {
+        List<Double> scores = judges.parallelStream()
+            .map(judge -> evaluateWithJudge(judge, query, response))
+            .toList();
+
+        double mean = scores.stream().mapToDouble(d -> d).average().orElse(0);
+        double variance = scores.stream()
+            .mapToDouble(s -> Math.pow(s - mean, 2))
+            .average()
+            .orElse(0);
+
+        return new EnsembleResult(
+            mean,
+            Math.sqrt(variance),  // 标准差
+            scores,
+            variance > 0.5 ? "高分歧度 - 需要人工审核" : "一致性良好"
+        );
+    }
+
+    private double evaluateWithJudge(ChatClient judge, String query, String response) {
+        // 所有评判者使用相同的评估提示
+        String prompt = createEvaluationPrompt(query, response);
+        return Double.parseDouble(judge.prompt().user(prompt).call().content().trim());
+    }
+}
+```
+
+---
+
+## 4. A/B测试基础设施
+
+### 4.1 实验框架
+
+```java
+@Component
+public class PromptExperimentService {
+
+    private final ExperimentRepository experimentRepo;
+    private final MetricsCollector metricsCollector;
+    private final Map<String, ChatClient> variants;
+
+    public ExperimentResult runExperiment(
+            String experimentId,
+            String userId,
+            String query) {
+
+        Experiment experiment = experimentRepo.findById(experimentId)
+            .orElseThrow(() -> new ExperimentNotFoundException(experimentId));
+
+        // 基于用户ID的确定性分配
+        String variantId = assignVariant(userId, experiment);
+        ChatClient client = variants.get(variantId);
+
+        // 执行并测量
+        long startTime = System.currentTimeMillis();
+        String response = client.prompt().user(query).call().content();
+        long latency = System.currentTimeMillis() - startTime;
+
+        // 记录指标
+        metricsCollector.record(ExperimentMetric.builder()
+            .experimentId(experimentId)
+            .variantId(variantId)
+            .userId(userId)
+            .query(query)
+            .response(response)
+            .latencyMs(latency)
+            .timestamp(Instant.now())
+            .build());
+
+        return new ExperimentResult(variantId, response, latency);
+    }
+
+    private String assignVariant(String userId, Experiment experiment) {
+        // 一致性哈希用于稳定分配
+        int hash = Math.abs(userId.hashCode() % 100);
+        int cumulative = 0;
+
+        for (Variant variant : experiment.getVariants()) {
+            cumulative += variant.getTrafficPercentage();
+            if (hash < cumulative) {
+                return variant.getId();
+            }
+        }
+
+        return experiment.getVariants().get(0).getId();  // 后备方案
+    }
+}
+```
+
+### 4.2 实验配置
+
+```yaml
+# experiments/chat-prompt-v2.yaml
+experiment:
+  id: "chat-prompt-v2-test"
+  name: "测试新系统提示"
+  description: "比较简洁与详细系统提示"
+  start_date: "2025-01-21"
+  end_date: "2025-02-21"
+
+  variants:
+    - id: "control"
+      name: "当前生产版本"
+      traffic_percentage: 50
+      prompt_version: "chat-v1.0"
+
+    - id: "treatment"
+      name: "新简洁提示"
+      traffic_percentage: 50
+      prompt_version: "chat-v2.0"
+
+  metrics:
+    primary:
+      - name: "user_satisfaction"
+        type: "thumbs_up_rate"
+        minimum_improvement: 0.05  # 需要5%的改进
+
+    secondary:
+      - name: "response_latency_p95"
+        type: "latency_percentile"
+        threshold_ms: 3000
+
+      - name: "token_usage"
+        type: "average_tokens"
+
+      - name: "task_completion_rate"
+        type: "conversion"
+
+  guardrails:
+    min_sample_size: 1000
+    max_degradation: 0.10  # 如果变差10%则停止
+    confidence_level: 0.95
+```
+
+### 4.3 统计分析
+
+```java
+@Service
+public class ExperimentAnalyzer {
+
+    public AnalysisResult analyze(String experimentId) {
+        List<ExperimentMetric> controlMetrics = metricsRepo
+            .findByExperimentAndVariant(experimentId, "control");
+        List<ExperimentMetric> treatmentMetrics = metricsRepo
+            .findByExperimentAndVariant(experimentId, "treatment");
+
+        // 样本大小检查
+        if (controlMetrics.size() < 1000 || treatmentMetrics.size() < 1000) {
+            return AnalysisResult.insufficientData();
+        }
+
+        // 计算指标
+        double controlSatisfaction = calculateSatisfactionRate(controlMetrics);
+        double treatmentSatisfaction = calculateSatisfactionRate(treatmentMetrics);
+
+        // 统计显著性（两比例z检验）
+        double zScore = calculateZScore(
+            controlSatisfaction, controlMetrics.size(),
+            treatmentSatisfaction, treatmentMetrics.size()
+        );
+        double pValue = calculatePValue(zScore);
+
+        // 效应大小
+        double relativeImprovement =
+            (treatmentSatisfaction - controlSatisfaction) / controlSatisfaction;
+
+        return AnalysisResult.builder()
+            .controlMetric(controlSatisfaction)
+            .treatmentMetric(treatmentSatisfaction)
+            .absoluteDifference(treatmentSatisfaction - controlSatisfaction)
+            .relativeImprovement(relativeImprovement)
+            .pValue(pValue)
+            .isSignificant(pValue < 0.05)
+            .recommendation(generateRecommendation(pValue, relativeImprovement))
+            .build();
+    }
+
+    private String generateRecommendation(double pValue, double improvement) {
+        if (pValue >= 0.05) {
+            return "继续 - 尚未达到统计显著性";
+        }
+        if (improvement > 0.05) {
+            return "发布 - 显著的积极改进";
+        }
+        if (improvement < -0.05) {
+            return "回滚 - 显著的负面影响";
+        }
+        return "无变化 - 差异太小，无关紧要";
+    }
+}
+```
+
+---
+
+## 5. 提示词版本控制
+
+### 5.1 基于文件的版本控制
+
+```plaintext
+prompts/
+├── system/
+│   ├── customer-support/
+│   │   ├── v1.0.yaml
+│   │   ├── v1.1.yaml
+│   │   └── v2.0.yaml
+│   └── code-assistant/
+│       └── v1.0.yaml
+├── tasks/
+│   ├── summarization/
+│   │   └── v1.0.yaml
+│   └── classification/
+│       └── v1.0.yaml
+└── experiments/
+    ├── exp-001-concise-prompt/
+    │   ├── control.yaml
+    │   └── treatment.yaml
+    └── exp-002-few-shot/
+        ├── zero-shot.yaml
+        └── three-shot.yaml
+```
+
+### 5.2 提示词模板架构
+
+```yaml
+# prompts/system/customer-support/v2.0.yaml
+metadata:
+  id: "customer-support-v2.0"
+  version: "2.0.0"
+  created: "2025-01-21"
+  author: "ai-team"
+  status: "production"  # draft, staging, production, deprecated
+  parent_version: "1.1.0"
+
+  change_log: |
+    - 添加了产品退货处理
+    - 改进了沮丧客户的语气
+    - 将响应长度减少了20%
+
+  evaluation:
+    dataset: "customer-support-eval-v3"
+    metrics:
+      accuracy: 0.94
+      user_satisfaction: 0.88
+      avg_latency_ms: 1200
+    evaluated_at: "2025-01-20"
+
+config:
+  model: "gpt-4o"
+  temperature: 0.7
+  max_tokens: 500
+  top_p: 0.95
+
+prompt:
+  system: |
+    您是TechCorp的客户支持代理。
+
+    ## 指导原则
+    - 有帮助、简洁、有同理心
+    - 如果客户沮丧，先承认他们的感受
+    - 如果无法解决问题，总是提供升级选项
+    - 在不检查政策的情况下，不要承诺退款
+
+    ## 能力
+    - 检查订单状态
+    - 处理退货（30天内）
+    - 回答产品问题
+    - 安排回电
+
+    ## 限制
+    - 无法访问支付详情
+    - 无法修改现有订单
+    - 必须升级账单争议
+
+  user: |
+    客户消息：{customer_message}
+
+    订单历史：{order_history}
+
+    之前的对话：{conversation_history}
+```
+
+### 5.3 提示词注册服务
+
+```java
+@Service
+public class PromptRegistry {
+
+    private final PromptRepository promptRepo;
+    private final CacheManager cacheManager;
+
+    @Cacheable(value = "prompts", key = "#promptId + ':' + #version")
+    public PromptTemplate getPrompt(String promptId, String version) {
+        return promptRepo.findByIdAndVersion(promptId, version)
+            .map(this::toPromptTemplate)
+            .orElseThrow(() -> new PromptNotFoundException(promptId, version));
+    }
+
+    public PromptTemplate getLatestPrompt(String promptId) {
+        return promptRepo.findLatestByStatus(promptId, "production")
+            .map(this::toPromptTemplate)
+            .orElseThrow(() -> new PromptNotFoundException(promptId));
+    }
+
+    @Transactional
+    public PromptVersion createVersion(String promptId, PromptVersionRequest request) {
+        // 验证提示词语法
+        validatePromptSyntax(request.getPromptContent());
+
+        // 创建新版本
+        PromptVersion newVersion = PromptVersion.builder()
+            .promptId(promptId)
+            .version(incrementVersion(promptId))
+            .content(request.getPromptContent())
+            .config(request.getConfig())
+            .status("draft")
+            .createdBy(getCurrentUser())
+            .build();
+
+        promptRepo.save(newVersion);
+
+        // 使缓存失效
+        cacheManager.getCache("prompts").evict(promptId);
+
+        return newVersion;
+    }
+
+    @Transactional
+    public void promoteToProduction(String promptId, String version) {
+        // 降级当前生产版本
+        promptRepo.findByIdAndStatus(promptId, "production")
+            .ifPresent(current -> {
+                current.setStatus("deprecated");
+                promptRepo.save(current);
+            });
+
+        // 升级新版本
+        PromptVersion newProd = promptRepo.findByIdAndVersion(promptId, version)
+            .orElseThrow();
+        newProd.setStatus("production");
+        newProd.setPromotedAt(Instant.now());
+        promptRepo.save(newProd);
+
+        // 清除此提示词的所有缓存
+        cacheManager.getCache("prompts").clear();
+    }
+}
+```
+
+---
+
+## 6. CI/CD集成
+
+### 6.1 GitHub Actions工作流
+
+```yaml
+# .github/workflows/prompt-evaluation.yml
+name: Prompt Evaluation Pipeline
+
+on:
+  pull_request:
+    paths:
+      - 'prompts/**'
+
+env:
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate YAML syntax
+        run: |
+          pip install yamllint
+          yamllint prompts/
+
+      - name: Validate prompt schema
+        run: |
+          python scripts/validate_prompts.py prompts/
+
+  evaluate:
+    runs-on: ubuntu-latest
+    needs: syntax-check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Identify changed prompts
+        id: changes
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD | grep "^prompts/" | head -20)
+          echo "changed_prompts=$CHANGED" >> $GITHUB_OUTPUT
+
+      - name: Run evaluations
+        run: |
+          ./mvnw test -Dtest=PromptEvaluationTest \
+            -Dprompts.changed="${{ steps.changes.outputs.changed_prompts }}"
+
+      - name: Check quality gates
+        run: |
+          python scripts/check_quality_gates.py \
+            --results target/eval-results.json \
+            --min-accuracy 0.90 \
+            --min-relevance 0.85
+
+      - name: Upload evaluation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-report
+          path: target/eval-results.json
+
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('target/eval-results.json'));
+
+            const comment = `## Prompt Evaluation Results
+
+            | Metric | Value | Threshold | Status |
+            |--------|-------|-----------|--------|
+            | Accuracy | ${results.accuracy.toFixed(3)} | 0.90 | ${results.accuracy >= 0.90 ? '✅' : '❌'} |
+            | Relevance | ${results.relevance.toFixed(3)} | 0.85 | ${results.relevance >= 0.85 ? '✅' : '❌'} |
+            | Avg Latency | ${results.latency_ms}ms | 2000ms | ${results.latency_ms <= 2000 ? '✅' : '❌'} |
+
+            ${results.passed ? '**✅ All quality gates passed**' : '**❌ Quality gates failed**'}
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  regression-test:
+    runs-on: ubuntu-latest
+    needs: evaluate
+    steps:
+      - name: Compare with baseline
+        run: |
+          python scripts/regression_check.py \
+            --current target/eval-results.json \
+            --baseline baselines/production.json \
+            --max-degradation 0.05
+```
+
+### 6.2 质量门控实现
+
+```java
+@Service
+public class QualityGateService {
+
+    private final EvaluationService evaluationService;
+    private final PromptRegistry promptRegistry;
+
+    public QualityGateResult evaluate(String promptId, String version) {
+        PromptTemplate prompt = promptRegistry.getPrompt(promptId, version);
+        EvaluationResult evalResult = evaluationService.runFullEvaluation(prompt);
+
+        List<GateCheck> checks = new ArrayList<>();
+
+        // 准确率门控
+        checks.add(new GateCheck(
+            "accuracy",
+            evalResult.getAccuracy(),
+            0.90,
+            evalResult.getAccuracy() >= 0.90
+        ));
+
+        // 相关性门控（针对RAG）
+        if (prompt.isRagEnabled()) {
+            checks.add(new GateCheck(
+                "relevance",
+                evalResult.getRelevance(),
+                0.85,
+                evalResult.getRelevance() >= 0.85
+            ));
+        }
+
+        // 延迟门控
+        checks.add(new GateCheck(
+            "latency_p95_ms",
+            evalResult.getLatencyP95(),
+            2000.0,
+            evalResult.getLatencyP95() <= 2000
+        ));
+
+        // Token效率
+        checks.add(new GateCheck(
+            "avg_tokens",
+            evalResult.getAvgTokens(),
+            1500.0,
+            evalResult.getAvgTokens() <= 1500
+        ));
+
+        // 与生产基线的回归检查
+        if (promptRegistry.hasProductionVersion(promptId)) {
+            EvaluationResult baseline = getProductionBaseline(promptId);
+            double degradation = (baseline.getAccuracy() - evalResult.getAccuracy())
+                / baseline.getAccuracy();
+
+            checks.add(new GateCheck(
+                "regression",
+                degradation,
+                0.05,  // 最多5%的退化
+                degradation <= 0.05
+            ));
+        }
+
+        boolean allPassed = checks.stream().allMatch(GateCheck::passed);
+
+        return new QualityGateResult(
+            promptId,
+            version,
+            allPassed,
+            checks,
+            allPassed ? "准备部署" : "质量门控失败"
+        );
+    }
+}
+```
+
+---
+
+## 7. 生产监控
+
+### 7.1 指标收集
+
+```java
+@Component
+public class PromptMetricsCollector {
+
+    private final MeterRegistry meterRegistry;
+
+    public void recordRequest(PromptExecution execution) {
+        // 延迟
+        meterRegistry.timer("prompt.latency",
+            "prompt_id", execution.getPromptId(),
+            "version", execution.getVersion())
+            .record(Duration.ofMillis(execution.getLatencyMs()));
+
+        // Token使用量
+        meterRegistry.counter("prompt.tokens.input",
+            "prompt_id", execution.getPromptId())
+            .increment(execution.getInputTokens());
+
+        meterRegistry.counter("prompt.tokens.output",
+            "prompt_id", execution.getPromptId())
+            .increment(execution.getOutputTokens());
+
+        // 成本估算
+        double cost = calculateCost(
+            execution.getModel(),
+            execution.getInputTokens(),
+            execution.getOutputTokens()
+        );
+        meterRegistry.counter("prompt.cost.usd",
+            "prompt_id", execution.getPromptId(),
+            "model", execution.getModel())
+            .increment(cost);
+
+        // 错误跟踪
+        if (execution.isError()) {
+            meterRegistry.counter("prompt.errors",
+                "prompt_id", execution.getPromptId(),
+                "error_type", execution.getErrorType())
+                .increment();
+        }
+    }
+
+    public void recordFeedback(String promptId, boolean positive) {
+        meterRegistry.counter("prompt.feedback",
+            "prompt_id", promptId,
+            "sentiment", positive ? "positive" : "negative")
+            .increment();
+    }
+}
+```
+
+### 7.2 监控面板查询
+
+```yaml
+# Grafana面板配置
+panels:
+  - title: "Prompt延迟（P95）"
+    query: |
+      histogram_quantile(0.95,
+        sum(rate(prompt_latency_seconds_bucket[5m])) by (le, prompt_id)
+      )
+    alert:
+      threshold: 3
+      condition: "> 3秒持续5分钟"
+
+  - title: "按Prompt的错误率"
+    query: |
+      sum(rate(prompt_errors_total[5m])) by (prompt_id, error_type)
+      /
+      sum(rate(prompt_requests_total[5m])) by (prompt_id)
+    alert:
+      threshold: 0.05
+      condition: "> 5%错误率"
+
+  - title: "用户满意度"
+    query: |
+      sum(prompt_feedback_total{sentiment="positive"}) by (prompt_id)
+      /
+      sum(prompt_feedback_total) by (prompt_id)
+    alert:
+      threshold: 0.80
+      condition: "< 80%满意度"
+
+  - title: "每1000次请求成本"
+    query: |
+      (sum(rate(prompt_cost_usd_total[1h])) by (prompt_id) * 1000)
+      /
+      (sum(rate(prompt_requests_total[1h])) by (prompt_id))
+```
+
+### 7.3 告警配置
+
+```yaml
+# alerts/prompt-alerts.yaml
+alerts:
+  - name: high_error_rate
+    description: "Prompt错误率超过阈值"
+    query: |
+      sum(rate(prompt_errors_total[5m])) by (prompt_id)
+      / sum(rate(prompt_requests_total[5m])) by (prompt_id)
+      > 0.05
+    severity: critical
+    channels: ["pagerduty", "slack-ai-alerts"]
+
+  - name: latency_degradation
+    description: "P95延迟显著增加"
+    query: |
+      histogram_quantile(0.95, rate(prompt_latency_seconds_bucket[10m]))
+      > 3
+    severity: warning
+    channels: ["slack-ai-alerts"]
+
+  - name: satisfaction_drop
+    description: "用户满意度低于80%"
+    query: |
+      sum(prompt_feedback_total{sentiment="positive"}) by (prompt_id)
+      / sum(prompt_feedback_total) by (prompt_id)
+      < 0.80
+    severity: warning
+    channels: ["slack-ai-alerts"]
+
+  - name: cost_spike
+    description: "检测到异常成本增加"
+    query: |
+      rate(prompt_cost_usd_total[1h])
+      > 2 * avg_over_time(rate(prompt_cost_usd_total[1h])[24h:1h])
+    severity: warning
+    channels: ["slack-ai-alerts"]
+```
+
+---
+
+## 8. 持续改进工作流
+
+```plaintext
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    持续改进循环                                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐     │
+│   │ 收集     │ ──→ │ 分析     │ ──→ │ 迭代     │ ──→ │ 验证     │     │
+│   │          │     │          │     │          │     │          │     │
+│   │ • 追踪   │     │ • 发现   │     │ • 创建   │     │ • 运行   │     │
+│   │ • 错误  │     │   失败   │     │   变体   │     │   评估   │     │
+│   │ • 反馈  │     │   模式   │     │ • A/B    │     │ • 质量   │     │
+│   │ • 指标  │     │   问题   │     │   测试   │     │   门控   │     │
+│   └──────────┘     │          │     └──────────┘     └──────────┘     │
+│        ▲           └──────────┘           │               │           │
+│        │                                  │               │           │
+│        │     ┌──────────┐     ┌──────────┐               │           │
+│        │     │ 监控     │ ←── │  部署    │ ←─────────────┘           │
+│        │     │          │     │          │                           │
+│        │     │ • 告警   │     │ • 升级   │                           │
+│        │     │ • 面板   │     │   获胜者 │                           │
+│        │     │ • 异常   │     │ • 更新   │                           │
+│        └─────│   检测   │     │   注册表 │                           │
+│              └──────────┘     └──────────┘                           │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 8.1 生产追踪收集
+
+```java
+@Service
+public class TraceCollector {
+
+    private final TraceRepository traceRepo;
+    private final EvaluationDatasetBuilder datasetBuilder;
+
+    @Async
+    public void collectTrace(PromptTrace trace) {
+        // 存储追踪
+        traceRepo.save(trace);
+
+        // 自动标记需要审核的案例
+        if (shouldFlagForReview(trace)) {
+            flagForHumanReview(trace);
+        }
+
+        // 将负面反馈转换为测试用例
+        if (trace.getFeedback() != null && !trace.getFeedback().isPositive()) {
+            datasetBuilder.addNegativeExample(
+                trace.getPromptId(),
+                trace.getQuery(),
+                trace.getResponse(),
+                trace.getFeedback().getComment()
+            );
+        }
+    }
+
+    private boolean shouldFlagForReview(PromptTrace trace) {
+        return trace.getLatencyMs() > 5000 ||  // 慢
+               trace.isError() ||               // 失败
+               trace.getOutputTokens() > 2000 || // 太冗长
+               containsSensitivePattern(trace.getResponse());  // 安全问题
+    }
+}
+```
+
+### 8.2 自动化测试用例生成
+
+```java
+@Service
+public class TestCaseGenerator {
+
+    private final TraceRepository traceRepo;
+    private final ChatClient judgeClient;
+
+    public List<TestCase> generateFromProduction(
+            String promptId,
+            int count,
+            TestCaseStrategy strategy) {
+
+        List<PromptTrace> traces = switch (strategy) {
+            case FAILURES -> traceRepo.findFailedTraces(promptId, count);
+            case EDGE_CASES -> traceRepo.findEdgeCases(promptId, count);
+            case DIVERSE -> traceRepo.findDiverseTraces(promptId, count);
+            case NEGATIVE_FEEDBACK -> traceRepo.findNegativeFeedback(promptId, count);
+        };
+
+        return traces.stream()
+            .map(this::traceToTestCase)
+            .filter(Objects::nonNull)
+            .toList();
+    }
+
+    private TestCase traceToTestCase(PromptTrace trace) {
+        // 使用LLM从人工反馈生成预期输出
+        if (trace.getFeedback() != null) {
+            String expectedOutput = generateExpectedOutput(
+                trace.getQuery(),
+                trace.getResponse(),
+                trace.getFeedback().getComment()
+            );
+
+            return new TestCase(
+                trace.getQuery(),
+                expectedOutput,
+                TestCase.Source.PRODUCTION_FEEDBACK,
+                trace.getId()
+            );
+        }
+
+        return null;
+    }
+}
+```
+
+---
+
+## 9. 最佳实践总结
+
+### 评估清单
+
+- [ ] **定义成功指标** 在构建之前
+- [ ] **创建评估数据集** 最少100个样本
+- [ ] **在CI/CD中实现自动化评估**
+- [ ] **使用LLM作为评判者** 用于主观质量评估
+- [ ] **部署前运行A/B测试**
+- [ ] **设置质量门控** 有明确的阈值
+- [ ] **使用实时面板监控生产环境**
+- [ ] **收集用户反馈**（点赞/点踩）
+- [ ] **将失败自动转换为测试用例**
+- [ ] **像代码一样版本控制提示词**
+
+### 按用例的指标目标
+
+| 用例 | 主要指标 | 目标 | 次要指标 |
+|----------|----------------|--------|-------------------|
+| 分类 | 准确率 | >95% | F1、延迟 |
+| RAG问答 | 忠实度 | >90% | 相关性、延迟 |
+| 摘要 | ROUGE-L | >0.4 | BERTScore、长度 |
+| 代码生成 | Pass@1 | >70% | 语法正确、延迟 |
+| 客户支持 | 满意度 | >85% | 解决率 |
+| 翻译 | BLEU | >0.3 | BERTScore |
+
+---
+
+## 参考资料
+
+1. Anthropic. (2024). *Evaluating AI Models*. [Anthropic Research](https://www.anthropic.com/research)
+2. OpenAI. (2024). *Building Evals*. [OpenAI Cookbook](https://cookbook.openai.com/articles/related_resources)
+3. Braintrust. (2025). *Best Prompt Evaluation Tools 2025*.
+4. RAGAS. (2024). *RAG Evaluation Framework*. [GitHub](https://github.com/explodinggradients/ragas)
+5. Spring AI. (2025). *Evaluation Documentation*. [Spring.io](https://docs.spring.io/spring-ai/reference/)
+6. Lakera. (2025). *Ultimate Guide to Prompt Engineering*.
+
+---
+
+**上一个**: [2.4 Spring AI实现](./05-spring-ai.mdx) ←
+**下一个**: [3.1 高级技术](./07-advanced-techniques.mdx) →

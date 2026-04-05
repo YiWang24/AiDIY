@@ -1,0 +1,85 @@
+---
+title: 应用层
+description: HTTP、DNS、TLS 及实用的应用层调试方法
+---
+
+# 应用层
+
+应用层是后端服务暴露 API 的地方，也是大多数用户可见故障首次出现的层。
+
+## 为什么重要
+
+后端事故通常看起来像"应用 Bug"，但实际上是由协议行为引起的：
+
+- 响应慢：keep-alive 被禁用或 DNS 延迟突增
+- 间歇性 502/504：上游超时配置不匹配
+- TLS 失败：证书或 SNI 不匹配
+
+## HTTP {#http}
+
+### 核心概念
+
+- 方法：`GET`、`POST`、`PUT`、`DELETE`、`PATCH`
+- 状态码系列：2xx 成功，4xx 客户端问题，5xx 服务端问题
+- 连接模型：短连接 vs 持久化 keep-alive
+
+### 实践指南
+
+- 设置明确的连接/读/写超时
+- 保持上游和网关超时预算一致
+- 对重试敏感的写 API 使用幂等键
+
+## DNS {#dns}
+
+DNS 将服务名转换为 IP 地址，可能成为隐藏的延迟来源。
+
+### 常见陷阱
+
+- 记录变更后缓存过期
+- 低 TTL 导致解析器负载过高
+- 不同环境之间的 Split-horizon DNS 不匹配
+
+### 常用命令
+
+```bash
+dig api.example.com
+nslookup api.example.com
+```
+
+## TLS/SSL {#tls-ssl}
+
+TLS 保护 HTTP 流量安全并验证服务器身份。
+
+### 故障模式
+
+- 证书过期或 SAN 错误
+- SNI 主机名与证书 CN/SAN 不匹配
+- 客户端和服务端密码套件/协议不兼容
+
+### 常用命令
+
+```bash
+openssl s_client -connect api.example.com:443 -servername api.example.com
+curl -v https://api.example.com/health
+```
+
+## 应用层性能
+
+- 使用 keep-alive/连接池复用连接
+- 适当压缩大 payload
+- 避免跨服务边界的频繁请求模式
+
+## 事故排查清单
+
+1. 确认 DNS 解析正确
+2. 验证到目标端口的 TCP 连通性
+3. 检查 TLS 握手和证书有效性
+4. 比较客户端、网关和服务器之间的请求超时链
+5. 使用请求 ID 检查服务器日志
+
+## 相关阅读
+
+- [传输层](../transport-layer)
+- [DNS 解析](../dns)
+- [TLS 握手](../tls)
+- [故障排查概览](../troubleshooting)

@@ -1,0 +1,231 @@
+---
+id: index
+title: DevOps & Cloud
+sidebar_label: DevOps 与云
+description: Docker、Kubernetes、CI/CD、Terraform 和云平台实战
+---
+
+# DevOps 与云
+
+> **"自动化一切。手动操作是错误的开始。"**
+
+掌握容器编排、基础设施即代码和持续交付。
+
+---
+
+## 🐳 Docker 核心概念
+
+### 多阶段构建
+
+```dockerfile
+# 构建阶段
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn package -DskipTests
+
+# 运行阶段
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+### Docker Compose
+
+```yaml
+# docker-compose.yml
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - DB_HOST=postgres
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: myapp
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:
+```
+
+---
+
+## ☸️ Kubernetes 基础
+
+### 资源概览
+
+| 资源 | 用途 |
+|------|------|
+| **Pod** | 最小部署单元 |
+| **Deployment** | 无状态应用管理 |
+| **Service** | 服务发现和负载均衡 |
+| **ConfigMap** | 配置管理 |
+| **Secret** | 敏感信息管理 |
+| **Ingress** | 外部流量路由 |
+
+### 常用 kubectl 命令
+
+```bash
+# 集群信息
+kubectl cluster-info
+kubectl get nodes
+
+# 部署操作
+kubectl apply -f deployment.yaml
+kubectl get pods -w
+kubectl describe pod myapp-xxx
+
+# 扩缩容
+kubectl scale deployment myapp --replicas=5
+
+# 调试
+kubectl logs myapp-xxx -f
+kubectl exec -it myapp-xxx -- /bin/sh
+kubectl port-forward svc/myapp-service 8080:80
+
+# 滚动更新
+kubectl set image deployment/myapp myapp=myapp:v2
+kubectl rollout status deployment/myapp
+kubectl rollout undo deployment/myapp
+```
+
+---
+
+## 🔄 CI/CD（GitHub Actions）
+
+### 完整工作流
+
+```yaml
+# .github/workflows/deploy.yml
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Run tests
+        run: ./mvnw verify
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Deploy to Kubernetes
+        uses: azure/k8s-deploy@v4
+        with:
+          manifests: k8s/
+          images: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+```
+
+---
+
+## ☁️ 云平台
+
+### AWS 服务概览
+
+| 服务 | 用途 | 对应 GCP 服务 |
+|------|------|--------------|
+| **EC2** | 虚拟服务器 | GCP Compute Engine |
+| **S3** | 对象存储 | GCP Cloud Storage |
+| **RDS** | 托管数据库 | GCP Cloud SQL |
+| **Lambda** | 无服务器函数 | GCP Cloud Functions |
+| **EKS** | 托管 Kubernetes | GCP GKE |
+| **CloudWatch** | 监控 | GCP Cloud Monitoring |
+
+### AWS CLI 示例
+
+```bash
+# S3 操作
+aws s3 cp file.txt s3://mybucket/
+aws s3 sync ./dist s3://mybucket/static/
+
+# ECR（容器注册表）
+aws ecr get-login-password | docker login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com
+docker tag myapp:latest <account>.dkr.ecr.<region>.amazonaws.com/myapp:latest
+docker push <account>.dkr.ecr.<region>.amazonaws.com/myapp:latest
+```
+
+---
+
+## 📊 监控三大支柱
+
+| 支柱 | 工具 | 用途 |
+|------|------|------|
+| **日志** | ELK Stack、Loki | 事件记录 |
+| **指标** | Prometheus、CloudWatch | 系统指标 |
+| **追踪** | Jaeger、Zipkin | 请求追踪 |
+
+---
+
+## 📝 详细主题
+
+- [Docker 网络](/docs/engineering/devops/docker-networking)
+- [Helm Charts](/docs/engineering/devops/helm)
+- [K8s RBAC](/docs/engineering/devops/k8s-rbac)
+- [安全最佳实践](/docs/engineering/devops/security)
+- [Terraform 基础设施即代码](/docs/engineering/devops/terraform)
+
+---
+
+:::tip DevOps 原则
+1. **基础设施即代码** - 所有配置版本化
+2. **持续集成** - 频繁合并、自动测试
+3. **持续交付** - 随时可安全部署
+4. **可观测性** - 日志、指标、追踪缺一不可
+5. **不可变基础设施** - 不修改，只替换
+:::

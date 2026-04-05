@@ -1,0 +1,22 @@
+---
+title: 容器网络
+description: Namespace、Bridge、CNI 和容器级别的网络诊断
+---
+
+# 容器网络
+
+容器网络通常结合了 Linux namespace、虚拟网络接口和 overlay/bridge 网络。
+
+## 检查项
+
+- Pod/容器 IP 和路由表
+- 容器 namespace 内的 DNS 解析
+- Service/Pod CIDR 是否重叠
+
+## 常用命令
+
+```bash
+ip a
+ip route
+nslookup kubernetes.default.svc.cluster.local
+```

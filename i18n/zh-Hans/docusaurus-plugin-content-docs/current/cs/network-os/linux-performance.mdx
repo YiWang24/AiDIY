@@ -1,0 +1,17 @@
+---
+title: Linux 性能调优
+description: 后端性能事故中的实用 Linux 级别排查手段
+---
+
+# Linux 性能调优
+
+## 基线检查
+
+- CPU：`top`、`mpstat`
+- 内存：`free`、`vmstat`
+- 磁盘：`iostat`
+- 网络：`ss`、`sar -n`
+
+## 原则
+
+先测量，后调优。在没有可复现瓶颈的情况下，避免进行内核参数调优。

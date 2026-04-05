@@ -1,0 +1,108 @@
+---
+id: index
+title: Database Internals
+sidebar_label: 数据库原理
+description: MySQL 优化、事务隔离和 Redis 缓存策略
+---
+
+# 数据库原理
+
+> **"数据库是任何应用的心脏。"**
+
+理解数据库原理有助于编写高效查询、选择合适的数据模型，并在负载下优化性能。
+
+## 概览
+
+本节涵盖后端工程师最关键的两类数据库：
+
+### MySQL
+
+- [**MySQL 概览**](./mysql/index.mdx) - 架构、存储引擎和基础知识
+- [**架构与存储引擎**](./mysql/architecture.mdx) - InnoDB vs MyISAM、查询执行流程
+- [**索引**](./mysql/indexes.mdx) - B+ Tree、最左前缀规则、优化
+- [**事务**](./mysql/transactions.mdx) - ACID、隔离级别、MVCC
+- [**锁**](./mysql/locking.mdx) - 锁类型、死锁检测
+- [**日志与复制**](./mysql/logging-replication.mdx) - Binlog、redo log、undo log、主从复制
+- [**SQL 优化**](./mysql/optimization.mdx) - EXPLAIN 分析、查询调优
+
+### Redis
+
+- [**Redis 概览**](./redis/index.mdx) - 基础知识和使用场景
+- [**数据结构**](./redis/data-structures.mdx) - String、Hash、List、Set、ZSet
+- [**持久化**](./redis/persistence.mdx) - RDB vs AOF、持久性
+- [**集群与哨兵**](./redis/cluster.mdx) - 高可用和扩展
+- [**缓存模式**](./redis/caching-patterns.mdx) - 缓存策略和失效
+
+### 高级主题
+
+- [**死锁预防**](./advanced/deadlocks.mdx) - 检测和预防死锁
+- [**连接池**](./advanced/connection-pooling.mdx) - 连接池配置
+- [**NoSQL 对比**](./advanced/nosql-comparison.mdx) - MySQL vs Redis vs MongoDB
+
+## 快速参考
+
+### MySQL 索引
+
+| 类型 | 说明 | 使用场景 |
+|------|------|----------|
+| **B+ Tree** | 平衡树，支持范围查询 | 主键、大多数列 |
+| **主键索引** | 聚簇索引，数据与索引一起存储 | 主键 |
+| **二级索引** | 非聚簇，存储主键值 | 频繁查询的列 |
+| **组合索引** | 多列索引 | 多条件 WHERE |
+
+### 事务隔离级别
+
+| 级别 | 脏读 | 不可重复读 | 幻读 | 性能 |
+|------|------|------------|------|------|
+| **Read Uncommitted** | ✅ | ✅ | ✅ | 最快 |
+| **Read Committed (RC)** | ❌ | ✅ | ✅ | 快 |
+| **Repeatable Read (RR)** | ❌ | ❌ | ⚠️* | 中等 |
+| **Serializable** | ❌ | ❌ | ❌ | 最慢 |
+
+*MySQL InnoDB 通过 Gap Lock 防止幻读
+
+### Redis 数据结构
+
+| 结构 | 使用场景 | 命令 |
+|------|----------|------|
+| **String** | 简单缓存、计数器 | `GET`、`SET`、`INCR` |
+| **Hash** | 对象存储 | `HGET`、`HSET`、`HGETALL` |
+| **List** | 消息队列、动态流 | `LPUSH`、`RPOP`、`LRANGE` |
+| **Set** | 唯一元素、标签 | `SADD`、`SMEMBERS`、`SINTER` |
+| **Sorted Set** | 排行榜、排名 | `ZADD`、`ZRANGE`、`ZRANK` |
+
+## 常见陷阱
+
+### MySQL
+- ❌ `WHERE` 列缺少索引 → 全表扫描
+- ❌ 对列使用函数（`WHERE YEAR(date) = 2024`）→ 索引失效
+- ❌ 深分页（`LIMIT 1000000, 10`）→ 扫描数百万行
+- ✅ 使用 `EXPLAIN` 分析查询
+- ✅ 根据查询模式添加索引
+- ✅ 监控慢查询日志
+
+### Redis
+- ❌ 未设置 TTL → 内存泄漏
+- ❌ 缓存击穿 → 数据库过载
+- ❌ 缓存穿透 → 反复查询不存在的数据
+- ✅ 始终为缓存数据设置 TTL
+- ✅ 使用合适的数据结构（对象用 Hash）
+- ✅ 监控内存使用和命中率
+
+## 学习路径
+
+**面试准备**：
+1. MySQL 架构 → 索引 → 事务 → 锁
+2. Redis 数据结构 → 缓存模式 → 持久化
+
+**生产实践**：
+1. MySQL 优化 → 索引 → 事务 → 复制
+2. Redis 缓存模式 → 持久化 → 集群
+
+:::tip 生产建议
+1. **始终使用连接池**（Java 用 HikariCP）
+2. **根据查询模式添加索引**，而非猜测
+3. **定期监控慢查询日志**
+4. **为 Redis 缓存条目设置合适的 TTL**
+5. **读密集型工作负载使用读副本**
+:::

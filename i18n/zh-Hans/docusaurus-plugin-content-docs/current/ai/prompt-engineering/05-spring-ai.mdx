@@ -1,0 +1,2828 @@
+---
+title: "5 Spring AI Prompts"
+description: "Spring AI Prompt API: ChatClient, PromptTemplate, Message types, and prompt engineering patterns for enterprise applications"
+published: 2025-01-21
+tags: ["prompt-engineering", "spring-ai", "java", "chat-client", "prompt-template"]
+category: "prompt-engineering"
+series: "Prompt Engineering Guide"
+seriesOrder: 5
+draft: false
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+## 1. Introduction: What are Spring AI Prompts?
+
+Spring AI's **Prompt** system provides a structured, type-safe way to communicate with AI models. The `Prompt` class acts as a container for organized `Message` objects and optional `ChatOptions`, enabling sophisticated multi-turn conversations and precise control over model behavior.
+
+### 1.1 The Prompt Class
+
+```java
+public class Prompt implements ModelRequest<List<Message>> {
+
+    private final List<Message> messages;
+
+    private ChatOptions chatOptions;
+
+    public Prompt(List<Message> messages) {
+        this.messages = messages;
+    }
+
+    public Prompt(List<Message> messages, ChatOptions chatOptions) {
+        this.messages = messages;
+        this.chatOptions = chatOptions;
+    }
+
+    @Override
+    public List<Message> getInstructions() {
+        return messages;
+    }
+
+    @Override
+    public ChatOptions getOptions() {
+        return chatOptions;
+    }
+}
+```
+
+The `Prompt` class serves as the primary abstraction for sending requests to AI models. It encapsulates:
+
+- **Messages**: A sequence of message objects representing the conversation history
+- **ChatOptions**: Model-specific parameters (temperature, max tokens, etc.)
+
+### 1.2 Message Interface
+
+Every `Message` embodies a unique role within the prompt, differing in content and intent:
+
+```java
+public interface Content {
+
+    String getContent();
+
+    Map<String, Object> getMetadata();
+}
+
+public interface Message extends Content {
+
+    MessageType getMessageType();
+}
+```
+
+For multimodal support (text + images, audio, etc.), messages can also implement:
+
+```java
+public interface MediaContent extends Content {
+
+    Collection<Media> getMedia();
+}
+```
+
+### 1.3 Message Types and Roles
+
+Spring AI defines four primary message roles via the `MessageType` enum:
+
+```java
+public enum MessageType {
+    USER("user"),           // User's input - questions, commands, statements
+    ASSISTANT("assistant"), // AI's response to user input
+    SYSTEM("system"),       // Instructions guiding AI behavior and style
+    TOOL("tool");           // Additional information from tool/function calls
+}
+```
+
+**Role Functions**:
+
+| Role | Purpose | Usage |
+|------|---------|-------|
+| **SYSTEM** | Guides the AI's behavior and response style | Sets parameters, rules, context before conversation |
+| **USER** | Represents the user's input | Questions, commands, statements to the AI |
+| **ASSISTANT** | The AI's response to user input | Maintains conversation flow and context |
+| **TOOL** | Returns information from tool calls | Provides data from function executions |
+
+### 1.4 Why Spring AI Prompts?
+
+```plaintext
+Direct LLM API Calls:                Spring AI Prompts:
+┌─────────────────────────────────┐        ┌─────────────────────────────────┐
+│ Manual string concatenation     │        │ Type-safe Message API          │
+│ Error-prone JSON handling       │        │ Fluent ChatClient API           │
+│ No structure for templates      │        │ Built-in PromptTemplate         │
+│ Manual conversation tracking    │        │ ChatMemory integration          │
+│ Provider-specific formats       │        │ Provider-agnostic abstraction   │
+└─────────────────────────────────┘        └─────────────────────────────────┘
+         Fragile, repetitive code   →           Clean, maintainable code
+```
+
+**Key Advantages**:
+
+1. **Type Safety**: Compile-time checking for message types and structures
+2. **Template Management**: Built-in support for parameterized prompts
+3. **Provider Agnostic**: Switch between OpenAI, Anthropic, Gemini without code changes
+4. **Conversation Management**: Easy tracking of multi-turn conversations
+5. **Multimodal Support**: Unified API for text, images, audio, and video
+
+---
+
+## 2. Prompt Architecture & Design Philosophy
+
+### 2.1 Design Principles
+
+Spring AI's Prompt system is built on three core principles:
+
+#### 2.1.1 Fluent API Design
+
+```java
+// Chain method calls for readable, declarative code
+String response = chatClient.prompt()
+    .system("You are a helpful assistant")
+    .user("What is Spring AI?")
+    .call()
+    .content();
+```
+
+#### 2.1.2 Type Safety
+
+```java
+// Strong typing catches errors at compile time
+Message systemMessage = new SystemMessage("You are an expert Java developer");
+Message userMessage = new UserMessage("Review this code");
+
+List<Message> messages = List.of(systemMessage, userMessage);
+Prompt prompt = new Prompt(messages);
+```
+
+#### 2.1.3 Extensibility
+
+```java
+// Easy to add custom message types, renderers, and advisors
+public class CustomMessage implements Message {
+    // Custom implementation
+}
+```
+
+### 2.2 Architecture Overview
+
+```plaintext
+┌─────────────────────────────────────────────────────────────────────┐
+│                       ChatClient (Entry Point)                      │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │              ChatClient.prompt() Fluent API                 │   │
+│  │  .system() / .user() / .advisors() / .options() / .call()  │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                           Prompt                                    │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  List<Message>               ChatOptions                    │   │
+│  │  ┌────────┐  ┌────────┐        ┌─────────────────────────┐  │   │
+│  │  │ SYSTEM │  │  USER  │  ...   │ model, temperature,     │  │   │
+│  │  │        │  │        │        │ maxTokens, etc.         │  │   │
+│  │  └────────┘  └────────┘        └─────────────────────────┘  │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                       ChatModel Abstraction                          │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
+│  │  OpenAI  │  │Anthropic │  │  Gemini  │  │  Ollama  │  ...      │
+│  │  ChatModel│ │ChatModel │  │ ChatModel│  │ ChatModel│           │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘           │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.3 Advantages and Disadvantages
+
+| Advantages | Description |
+|------------|-------------|
+| **Fluent API** | Chain method calls for readable, declarative code |
+| **Type Safety** | Compile-time checking prevents runtime errors |
+| **Template Support** | Built-in `PromptTemplate` for parameterized prompts |
+| **Provider Agnostic** | Unified API across multiple AI providers |
+| **Spring Integration** | Seamless Spring Boot auto-configuration |
+| **Extensibility** | Custom advisors, renderers, and message types |
+| **Observability** | Built-in metrics and tracing support |
+
+| Disadvantages | Mitigation Strategies |
+|---------------|----------------------|
+| **Learning Curve** | Extensive official docs and examples |
+| **Abstraction Overhead** | For simple scripts, direct API might be lighter |
+| **Spring Dependency** | Requires Spring Boot runtime |
+| **Version Changes** | API may evolve between releases (use stable versions) |
+
+---
+
+## 3. ChatClient.prompt() API - Complete Reference
+
+The **ChatClient** offers a fluent API for building prompts and calling AI models. It supports both synchronous and streaming programming models.
+
+### 3.1 Basic ChatClient Setup
+
+```java
+@Configuration
+public class ChatClientConfig {
+
+    @Bean
+    public ChatClient chatClient(ChatClient.Builder builder) {
+        return builder.build();
+    }
+}
+```
+
+### 3.2 Starting Prompts: Three Ways
+
+```java
+@Service
+@RequiredArgsConstructor
+public class PromptService {
+
+    private final ChatClient chatClient;
+
+    // Way 1: Start fluent API (most common)
+    public String promptWithFluentApi(String userInput) {
+        return chatClient.prompt()              // Start fluent API
+            .user(userInput)                    // Add user message
+            .call()                             // Execute
+            .content();                         // Extract content
+    }
+
+    // Way 2: Use existing Prompt object
+    public String promptWithPromptObject(Prompt existingPrompt) {
+        return chatClient.prompt(existingPrompt) // Use pre-built Prompt
+            .call()
+            .content();
+    }
+
+    // Way 3: Convenience method with string
+    public String promptWithString(String message) {
+        return chatClient.prompt(message)        // Shorthand for .user(message)
+            .call()
+            .content();
+    }
+}
+```
+
+### 3.3 System and User Messages
+
+```java
+// Basic system and user messages
+String response = chatClient.prompt()
+    .system("You are a helpful Java developer assistant")
+    .user("How do I create a REST controller in Spring Boot?")
+    .call()
+    .content();
+
+// System message with parameters
+String response = chatClient.prompt()
+    .system(s -> s
+        .text("You are a {role} for {company}. Be {tone}.")
+        .param("role", "senior developer")
+        .param("company", "TechCorp")
+        .param("tone", "concise and professional"))
+    .user("Explain dependency injection")
+    .call()
+    .content();
+
+// User message with parameters
+String response = chatClient.prompt()
+    .user(u -> u
+        .text("Translate '{text}' to {language}")
+        .param("text", "Hello, world!")
+        .param("language", "Spanish"))
+    .call()
+    .content();
+```
+
+### 3.4 Execution Modes: Call vs Stream
+
+<Tabs>
+<TabItem label="Blocking Call" value="blocking">
+
+```java
+// Simple blocking call - returns String directly
+String response = chatClient.prompt()
+    .user("What is Spring AI?")
+    .call()
+    .content();
+
+// Get full ChatResponse with metadata
+ChatResponse response = chatClient.prompt()
+    .user("What is Spring AI?")
+    .call()
+    .chatResponse();
+
+String content = response.getResult().getOutput().getText();
+Usage usage = response.getMetadata().getUsage();
+
+log.info("Tokens used: input={}, output={}",
+    usage.getPromptTokens(),
+    usage.getCompletionTokens());
+
+// Type-safe entity extraction
+ProductAnalysis analysis = chatClient.prompt()
+    .user("Analyze this product: Wireless Bluetooth Headphones")
+    .call()
+    .entity(ProductAnalysis.class);
+```
+
+</TabItem>
+
+<TabItem label="Streaming" value="streaming">
+
+```java
+// Stream content chunks as they arrive
+Flux<String> stream = chatClient.prompt()
+    .user("Explain microservices architecture")
+    .stream()
+    .content();
+
+// Subscribe to streaming response
+stream.subscribe(
+    chunk -> System.out.print(chunk),  // On next
+    error -> error.printStackTrace(),  // On error
+    () -> System.out.println("\nDone") // On complete
+);
+
+// Stream with full response metadata
+Flux<ChatResponse> streamWithMetadata = chatClient.prompt()
+    .user("Tell me a story")
+    .stream()
+    .chatResponse();
+
+// Server-Sent Events (SSE) endpoint
+@GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+public Flux<ServerSentEvent<String>> streamChat(@RequestParam String message) {
+
+    return chatClient.prompt()
+        .user(message)
+        .stream()
+        .content()
+        .map(chunk -> ServerSentEvent.<String>builder()
+            .data(chunk)
+            .build())
+        .concatWith(Flux.just(ServerSentEvent.<String>builder()
+            .event("done")
+            .data("[DONE]")
+            .build()));
+}
+
+// Aggregate streaming into final response
+Mono<String> aggregated = chatClient.prompt()
+    .user("Write a haiku about Spring")
+    .stream()
+    .content()
+    .reduce("", (acc, chunk) -> acc + chunk);
+```
+
+</TabItem>
+</Tabs>
+
+### 3.5 Prompt Options: ChatOptions
+
+```java
+// Default options in ChatClient builder
+ChatClient defaultClient = ChatClient.builder(chatModel)
+    .defaultOptions(OpenAiChatOptions.builder()
+        .model("gpt-4")
+        .temperature(0.7)
+        .maxTokens(2000)
+        .build())
+    .build();
+
+// Override options at runtime
+String response = chatClient.prompt()
+    .user("Generate production code")
+    .options(OpenAiChatOptions.builder()
+        .temperature(0.2)  // Lower temperature for code
+        .maxTokens(1000)
+        .build())
+    .call()
+    .content();
+
+// Provider-agnostic options
+ChatOptions portableOptions = ChatOptions.builder()
+    .model("gpt-4")
+    .temperature(0.7)
+    .maxTokens(2000)
+    .build();
+
+// Model-specific options
+OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
+    .model("gpt-4-turbo")
+    .temperature(0.7)
+    .maxTokens(2000)
+    .presencePenalty(0.5)
+    .frequencyPenalty(0.3)
+    .build();
+```
+
+### 3.6 Advanced ChatClient Methods
+
+```java
+// Get ChatClientResponse with advisor context
+ChatClientResponse fullResponse = chatClient.prompt()
+    .user("What's the weather?")
+    .advisors(new QuestionAnswerAdvisor(vectorStore))
+    .call()
+    .chatClientResponse();
+
+ChatResponse chatResponse = fullResponse.getChatResponse();
+Map<String, Object> advisorContext = fullResponse.getAdvisorContext();
+
+// Multiple advisors with parameters
+String response = chatClient.prompt()
+    .system("You are a helpful assistant")
+    .user(userMessage)
+    .advisors(a -> a
+        .param(ChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, sessionId)
+        .param("search_query", userMessage))
+    .advisors(new SimpleLoggerAdvisor())
+    .call()
+    .content();
+
+// Streaming with advisors
+Flux<String> streamingResponse = chatClient.prompt()
+    .user("Explain reactive programming")
+    .advisors(new PromptEnhancementAdvisor())
+    .stream()
+    .content();
+```
+
+---
+
+## 4. Message Types & Roles
+
+### 4.1 Message Implementations
+
+Spring AI provides concrete implementations for each message type:
+
+```java
+// System Message - sets AI behavior and context
+SystemMessage systemMsg = new SystemMessage(
+    "You are an expert Java developer. " +
+    "Provide code examples with explanations."
+);
+
+// User Message - represents user input
+UserMessage userMsg = new UserMessage(
+    "How do I create a REST endpoint in Spring Boot?"
+);
+
+// Assistant Message - represents AI's response
+AssistantMessage assistantMsg = new AssistantMessage(
+    "To create a REST endpoint in Spring Boot, " +
+    "use the @RestController annotation..."
+);
+
+// Tool Message - contains tool call results
+ToolMessage toolMsg = new ToolMessage(
+    "tool_call_id_123",
+    "The current weather in Tokyo is 22°C, sunny."
+);
+```
+
+### 4.2 Messages with Metadata
+
+```java
+// User message with metadata
+Map<String, Object> metadata = new HashMap<>();
+metadata.put("userId", "user-123");
+metadata.put("timestamp", Instant.now().toString());
+metadata.put("requestId", UUID.randomUUID().toString());
+
+UserMessage messageWithMetadata = new UserMessage(
+    "What are my recent orders?",
+    metadata
+);
+
+// Access metadata in custom advisors
+@Component
+public class MetadataLoggingAdvisor implements CallAroundAdvisor {
+
+    @Override
+    public AdvisedResponse aroundCall(
+            AdvisedRequest request,
+            CallAroundAdvisorChain chain) {
+
+        Map<String, Object> metadata = request.userTextMetadata();
+        String userId = (String) metadata.get("userId");
+
+        log.info("Processing request for user: {}", userId);
+
+        return chain.nextAroundCall(request);
+    }
+}
+```
+
+### 4.3 Multimodal Messages (MediaContent)
+
+```java
+// Text + Image message
+Resource imageResource = new ClassPathResource("images/architecture-diagram.png");
+
+UserMessage multimodalMessage = new UserMessage(
+    "Explain this architecture diagram",
+    List.of(new Media(MimeTypeUtils.IMAGE_JPG, imageResource))
+);
+
+// Multiple media types
+Resource diagram = new ClassPathResource("diagram.png");
+Resource codeSnippet = new ClassPathResource("snippet.txt");
+
+UserMessage multiMediaMessage = new UserMessage(
+    "Review this architecture and code",
+    List.of(
+        new Media(MimeTypeUtils.IMAGE_PNG, diagram),
+        new Media(MimeTypeUtils.TEXT_PLAIN, codeSnippet)
+    )
+);
+
+// Using with ChatClient
+String response = chatClient.prompt()
+    .user(u -> u
+        .text("What's in this image?")
+        .media(MimeTypeUtils.IMAGE_JPG, new ClassPathResource("photo.jpg")))
+    .call()
+    .content();
+```
+
+### 4.4 Creating Complete Prompts
+
+```java
+// Single-turn prompt
+List<Message> messages = List.of(
+    new SystemMessage("You are a helpful assistant"),
+    new UserMessage("What's the capital of France?")
+);
+
+Prompt singleTurnPrompt = new Prompt(messages);
+
+// Multi-turn conversation prompt
+List<Message> conversation = List.of(
+    new SystemMessage("You are a Java tutor"),
+    new UserMessage("What is dependency injection?"),
+    new AssistantMessage("Dependency injection is a design pattern..."),
+    new UserMessage("Can you show me an example?")
+);
+
+Prompt multiTurnPrompt = new Prompt(conversation);
+
+// Prompt with options
+Prompt promptWithOptions = new Prompt(
+    messages,
+    OpenAiChatOptions.builder()
+        .model("gpt-4")
+        .temperature(0.7)
+        .build()
+);
+
+// Using Prompt with ChatModel directly
+@Autowired
+private ChatModel chatModel;
+
+ChatResponse response = chatModel.call(promptWithOptions);
+```
+
+---
+
+## 5. PromptTemplate Deep Dive
+
+**PromptTemplate** provides first-class prompt management with variable substitution, custom delimiters, and resource loading.
+
+### 5.1 Basic Template Usage
+
+```java
+// Create template with placeholders
+PromptTemplate template = PromptTemplate.builder()
+    .template("""
+        Translate the following text to {language}.
+        Maintain the original tone and style.
+
+        Text: {text}
+
+        Translation:
+        """)
+    .build();
+
+// Render template with variables
+Map<String, Object> variables = Map.of(
+    "language", "Spanish",
+    "text", "Hello, world!"
+);
+
+String renderedPrompt = template.render(variables);
+// Output: "Translate the following text to Spanish. ..."
+
+// Create Prompt directly
+Prompt prompt = template.create(variables);
+
+// Create Prompt with ChatOptions
+Prompt promptWithOptions = template.create(
+    variables,
+    ChatOptions.builder()
+        .temperature(0.3)
+        .build()
+);
+```
+
+### 5.2 TemplateRenderer Interface
+
+Spring AI uses the `TemplateRenderer` interface for variable substitution:
+
+```java
+@FunctionalInterface
+public interface TemplateRenderer
+        extends BiFunction<String, Map<String, Object>, String> {
+
+    String apply(String template, Map<String, Object> variables);
+}
+```
+
+**Built-in Renderers**:
+
+#### 5.2.1 StTemplateRenderer (Default)
+
+Based on StringTemplate engine by Terence Parr:
+
+```java
+// Default {variable} syntax
+PromptTemplate defaultTemplate = PromptTemplate.builder()
+    .template("Hello {name}, welcome to {company}")
+    .build();
+```
+
+#### 5.2.2 NoOpTemplateRenderer
+
+For scenarios with no template processing:
+
+```java
+PromptTemplate staticTemplate = PromptTemplate.builder()
+    .renderer(new NoOpTemplateRenderer())
+    .template("This is a static prompt with no variables")
+    .build();
+```
+
+### 5.3 Custom Delimiters
+
+```java
+// Custom delimiters for JSON prompts
+PromptTemplate jsonTemplate = PromptTemplate.builder()
+    .renderer(StTemplateRenderer.builder()
+        .startDelimiterToken("{{")
+        .endDelimiterToken("}}")
+        .build())
+    .template("""
+        Generate JSON response with schema:
+        {{schema}}
+
+        User query: {{query}}
+        """)
+    .build();
+
+String rendered = jsonTemplate.render(Map.of(
+    "schema", "{name: string, age: number}",
+    "query", "List all users"
+));
+
+// XML-style delimiters
+PromptTemplate xmlTemplate = PromptTemplate.builder()
+    .renderer(StTemplateRenderer.builder()
+        .startDelimiterToken("<%")
+        .endDelimiterToken("%>")
+        .build())
+    .template("User: <%userName%>, Action: <%action%>")
+    .build();
+
+// Double braces for Mustache-like syntax
+PromptTemplate mustacheTemplate = PromptTemplate.builder()
+    .renderer(StTemplateRenderer.builder()
+        .startDelimiterToken("{{")
+        .endDelimiterToken("}}")
+        .build())
+    .template("Dear {{name}}, your order {{orderId}} is ready")
+    .build();
+```
+
+### 5.4 Template from External Resources
+
+```java
+// Template from classpath resource
+PromptTemplate externalTemplate = PromptTemplate.builder()
+    .resource(new ClassPathResource("prompts/code-review.st"))
+    .build();
+
+// Template from file system
+PromptTemplate fileTemplate = PromptTemplate.builder()
+    .resource(new FileSystemResource("src/main/resources/prompts/qa-system.st"))
+    .build();
+
+// Template from URL
+PromptTemplate urlTemplate = PromptTemplate.builder()
+    .resource(new UrlResource("https://example.com/prompts/chatbot.st"))
+    .build();
+```
+
+**External template file** (`prompts/code-review.st`):
+
+```text
+You are a senior code reviewer with expertise in \{language\}.
+
+Review the following code for:
+1. Security vulnerabilities
+2. Performance issues
+3. Code style and readability
+4. Best practices adherence
+
+Code to review:
+```\{language\}
+\{code\}
+```
+
+Focus areas: \{focus_areas\}
+
+Provide your review in the following format:
+- Overall Rating: [1-10]
+- Issues Found: [list]
+- Recommendations: [list]
+```
+
+**Usage**:
+
+```java
+String rendered = externalTemplate.render(Map.of(
+    "language", "Java",
+    "code", codeSnippet,
+    "focus_areas", "security, performance, readability"
+));
+```
+
+### 5.5 Template Composition
+
+```java
+// Define system and user templates
+PromptTemplate systemTemplate = PromptTemplate.builder()
+    .template("""
+        You are a {role} with expertise in {expertise}.
+        Guidelines:
+        - Be concise and professional
+        - Provide examples when helpful
+        - Focus on {focus_area}
+        """)
+    .build();
+
+PromptTemplate userTemplate = PromptTemplate.builder()
+    .template("""
+        Task: {task}
+
+        Context:
+        {context}
+
+        Please provide a detailed response.
+        """)
+    .build();
+
+// Compose into complete Prompt
+String systemPrompt = systemTemplate.render(Map.of(
+    "role", "senior developer",
+    "expertise", "Spring Boot",
+    "focus_area", "best practices"
+));
+
+String userPrompt = userTemplate.render(Map.of(
+    "task", "Explain dependency injection",
+    "context", "I'm new to Spring and learning the framework"
+));
+
+Prompt composedPrompt = new Prompt(List.of(
+    new SystemMessage(systemPrompt),
+    new UserMessage(userPrompt)
+));
+
+// Use with ChatClient
+ChatResponse response = chatClient.prompt()
+    .system(systemPrompt)
+    .user(userPrompt)
+    .call()
+    .chatResponse();
+```
+
+### 5.6 PromptTemplate Interfaces
+
+The `PromptTemplate` class implements multiple interfaces for flexibility:
+
+```java
+// PromptTemplateStringActions - Render to String
+String rendered = template.render();
+String withVars = template.render(Map.of("key", "value"));
+
+// PromptTemplateMessageActions - Create Message
+Message message = template.createMessage();
+Message messageWithVars = template.createMessage(Map.of("key", "value"));
+Message messageWithMedia = template.createMessage(List.of(media));
+
+// PromptTemplateActions - Create Prompt
+Prompt prompt = template.create();
+Prompt promptWithVars = template.create(Map.of("key", "value"));
+Prompt promptWithOptions = template.create(
+    Map.of("key", "value"),
+    ChatOptions.builder().temperature(0.7).build()
+);
+```
+
+---
+
+## 6. System Prompts: Configuration & Best Practices
+
+System prompts define the AI's behavior, personality, and constraints. Spring AI provides multiple ways to configure them.
+
+### 6.1 Global Default System Prompt
+
+```java
+@Configuration
+public class ChatClientConfig {
+
+    @Bean
+    public ChatClient chatClient(ChatClient.Builder builder) {
+        return builder
+            .defaultSystem("""
+                You are a helpful assistant for TechCorp.
+
+                Guidelines:
+                - Be concise and professional
+                - When uncertain, ask for clarification
+                - Provide code examples when discussing technical topics
+                - Format responses with clear headings and bullet points
+                """)
+            .build();
+    }
+}
+```
+
+### 6.2 Parameterized System Prompts
+
+```java
+@Configuration
+public class ChatClientConfig {
+
+    @Bean
+    public ChatClient chatClient(ChatClient.Builder builder) {
+        return builder
+            .defaultSystem(s -> s
+                .text("""
+                    You are a {role} for {company}.
+
+                    Expertise: {expertise}
+                    Tone: {tone}
+                    Language: {language}
+
+                    Guidelines:
+                    {guidelines}
+                    """)
+                .param("role", "technical consultant")
+                .param("company", "TechCorp")
+                .param("expertise", "software architecture")
+                .param("tone", "professional and approachable")
+                .param("language", "English")
+                .param("guidelines", loadGuidelines()))
+            .build();
+    }
+
+    private String loadGuidelines() {
+        return """
+            - Provide clear, actionable advice
+            - Use diagrams when explaining architecture
+            - Reference official documentation when available
+            - Consider trade-offs and alternatives
+            """;
+    }
+}
+```
+
+### 6.3 Runtime Parameter Binding
+
+```java
+@RestController
+@RequiredArgsConstructor
+public class ChatController {
+
+    private final ChatClient chatClient;
+
+    @GetMapping("/chat")
+    public String chat(
+            @RequestParam String message,
+            @RequestParam(defaultValue = "helpful") String voice) {
+
+        return chatClient.prompt()
+            .system(s -> s
+                .param("voice", voice)  // Override voice parameter
+                .param("timestamp", Instant.now().toString()))
+            .user(message)
+            .call()
+            .content();
+    }
+}
+```
+
+### 6.4 Multiple ChatClients for Different Use Cases
+
+```java
+@Configuration
+public class MultiChatClientConfig {
+
+    // Customer support chatbot
+    @Bean
+    public ChatClient customerSupportChat(ChatClient.Builder builder) {
+        return builder
+            .defaultSystem("""
+                You are a customer support agent for TechCorp.
+
+                Personality:
+                - Empathetic and patient
+                - Solution-oriented
+                - Knowledgeable about products
+
+                Guidelines:
+                - Always greet customers warmly
+                - Listen actively to understand issues
+                - Provide step-by-step solutions
+                - Escalate complex issues gracefully
+                """)
+            .defaultOptions(OpenAiChatOptions.builder()
+                .temperature(0.8)  // Higher for more conversational tone
+                .build())
+            .build();
+    }
+
+    // Code review assistant
+    @Bean
+    public ChatClient codeReviewChat(ChatClient.Builder builder) {
+        return builder
+            .defaultSystem("""
+                You are a senior code reviewer with 15 years of experience.
+
+                Focus Areas:
+                - Security vulnerabilities (SQL injection, XSS, etc.)
+                - Performance bottlenecks
+                - Code readability and maintainability
+                - Adherence to SOLID principles
+                - Test coverage
+
+                Response Format:
+                1. Summary of findings
+                2. Critical issues (must fix)
+                3. Suggestions (should fix)
+                4. Positive observations
+                5. Overall rating (1-10)
+                """)
+            .defaultOptions(OpenAiChatOptions.builder()
+                .temperature(0.3)  // Lower for consistent, analytical responses
+                .build())
+            .build();
+    }
+
+    // Technical documentation writer
+    @Bean
+    public ChatClient documentationChat(ChatClient.Builder builder) {
+        return builder
+            .defaultSystem("""
+                You are a technical writer specializing in developer documentation.
+
+                Style Guide:
+                - Write in clear, concise language
+                - Use active voice
+                - Provide code examples for every concept
+                - Include diagrams for complex flows
+                - Follow DITA principles
+                """)
+            .defaultOptions(OpenAiChatOptions.builder()
+                .temperature(0.5)
+                .build())
+            .build();
+    }
+}
+```
+
+### 6.5 Dynamic System Prompts
+
+```java
+@Service
+@RequiredArgsConstructor
+public class AdaptiveChatService {
+
+    private final ChatClient.Builder builder;
+    private final UserService userService;
+
+    public String chat(String userId, String message) {
+        User user = userService.findById(userId);
+
+        // Build system prompt based on user context
+        String systemPrompt = buildSystemPrompt(user);
+
+        ChatClient personalizedClient = builder
+            .defaultSystem(systemPrompt)
+            .build();
+
+        return personalizedClient.prompt()
+            .user(message)
+            .call()
+            .content();
+    }
+
+    private String buildSystemPrompt(User user) {
+        return String.format("""
+            You are a personalized assistant for %s.
+
+            User Profile:
+            - Role: %s
+            - Experience Level: %s
+            - Preferred Communication Style: %s
+            - Learning Goals: %s
+
+            Adapt your explanations to match their experience level.
+            Use examples relevant to their role and goals.
+            """,
+            user.getName(),
+            user.getRole(),
+            user.getExperienceLevel(),
+            user.getCommunicationStyle(),
+            user.getLearningGoals()
+        );
+    }
+}
+```
+
+---
+
+## 7. User Prompts: Patterns & Techniques
+
+User prompts represent the actual input and questions from users. Spring AI provides flexible ways to construct them.
+
+### 7.1 Simple User Prompts
+
+```java
+// Direct string user prompt
+String response = chatClient.prompt()
+    .user("What's the capital of France?")
+    .call()
+    .content();
+
+// Multi-line user prompt
+String response = chatClient.prompt()
+    .user("""
+        Explain the concept of microservices architecture.
+
+        Cover:
+        1. Definition and principles
+        2. Benefits and drawbacks
+        3. When to use (and when not to)
+        """)
+    .call()
+    .content();
+```
+
+### 7.2 Parameterized User Prompts
+
+```java
+// User prompt with single parameter
+String response = chatClient.prompt()
+    .user(u -> u
+        .text("Translate '{text}' to Spanish")
+        .param("text", "Hello, world!"))
+    .call()
+    .content();
+
+// User prompt with multiple parameters
+String response = chatClient.prompt()
+    .user(u -> u
+        .text("""
+            Analyze the following {contentType} for {focusAreas}.
+
+            Content:
+            {content}
+
+            Length limit: {maxLength} words
+            """)
+        .param("contentType", "blog post")
+        .param("focusAreas", "SEO, readability, engagement")
+        .param("content", blogPostContent)
+        .param("maxLength", "500"))
+    .call()
+    .content();
+```
+
+### 7.3 Multimodal User Prompts
+
+```java
+// Text + Image
+Resource image = new ClassPathResource("images/dashboard.png");
+
+String response = chatClient.prompt()
+    .user(u -> u
+        .text("What data insights can you extract from this dashboard?")
+        .media(MimeTypeUtils.IMAGE_PNG, image))
+    .call()
+    .content();
+
+// Text + Multiple Images
+Resource img1 = new ClassPathResource("images/page1.png");
+Resource img2 = new ClassPathResource("images/page2.png");
+
+String response = chatClient.prompt()
+    .user(u -> u
+        .text("Compare these two UI designs and recommend the better one")
+        .media(MimeTypeUtils.IMAGE_PNG, img1)
+        .media(MimeTypeUtils.IMAGE_PNG, img2))
+    .call()
+    .content();
+
+// Text + Code file
+Resource codeFile = new FileSystemResource("src/main/java/Service.java");
+
+String response = chatClient.prompt()
+    .user(u -> u
+        .text("Review this Java code for security issues")
+        .media(MimeTypeUtils.TEXT_PLAIN, codeFile))
+    .call()
+    .content();
+```
+
+### 7.4 Dynamic User Prompts from Templates
+
+```java
+@Service
+@RequiredArgsConstructor
+public class TemplatePromptService {
+
+    private final ChatClient chatClient;
+
+    // Load template at startup
+    private final PromptTemplate queryTemplate;
+
+    @PostConstruct
+    public void init() {
+        queryTemplate = PromptTemplate.builder()
+            .resource(new ClassPathResource("prompts/query-analysis.st"))
+            .build();
+    }
+
+    public String analyzeQuery(String userQuery) {
+        // Render template with user input
+        String renderedPrompt = queryTemplate.render(Map.of(
+            "query", userQuery,
+            "timestamp", Instant.now().toString()
+        ));
+
+        return chatClient.prompt()
+            .user(renderedPrompt)
+            .call()
+            .content();
+    }
+}
+```
+
+**Template file** (`prompts/query-analysis.st`):
+
+```text
+Analyze the following user query:
+
+Query: "{query}"
+Received at: {timestamp}
+
+Analysis:
+1. Intent classification (information, transaction, support, other)
+2. Key entities mentioned
+3. Suggested response strategy
+4. Additional information needed
+```
+
+### 7.5 User Prompt Patterns
+
+```java
+// Pattern 1: Chain-of-Thought prompting
+String cotPrompt = """
+    Let's think step by step to solve this problem.
+
+    Problem: {problem}
+
+    Steps:
+    1. Understand the problem
+    2. Identify the constraints
+    3. Explore possible solutions
+    4. Evaluate trade-offs
+    5. Recommend the best approach
+
+    Provide your reasoning for each step.
+    """;
+
+// Pattern 2: Few-shot prompting
+String fewShotPrompt = """
+    Examples:
+
+    Q: What is 2 + 2?
+    A: 4
+
+    Q: What is 5 * 3?
+    A: 15
+
+    Q: What is 10 / 2?
+    A: 5
+
+    Now solve:
+    Q: {question}
+    A:
+    """;
+
+// Pattern 3: Role-playing
+String rolePlayPrompt = """
+    You are a {role} at {company}.
+
+    Scenario: {scenario}
+
+    Task: {task}
+
+    Respond in character, maintaining the persona throughout.
+    """;
+```
+
+---
+
+## 8. Prompt Options: Controlling Model Behavior
+
+ChatOptions allow you to control model parameters like temperature, max tokens, and provider-specific settings.
+
+### 8.1 Common ChatOptions
+
+```java
+// Basic options
+ChatOptions options = ChatOptions.builder()
+    .model("gpt-4")
+    .temperature(0.7)
+    .maxTokens(2000)
+    .topP(0.9)
+    .topK(40)
+    .stopSequences(List.of("END", "DONE"))
+    .presencePenalty(0.5)
+    .frequencyPenalty(0.3)
+    .build();
+```
+
+| Option | Type | Range | Description |
+|--------|------|-------|-------------|
+| `model` | String | - | Model identifier (e.g., "gpt-4", "claude-3-opus") |
+| `temperature` | Float | 0.0 - 2.0 | Randomness in responses (lower = more focused) |
+| `maxTokens` | Integer | 1 - ∞ | Maximum tokens in response |
+| `topP` | Float | 0.0 - 1.0 | Nucleus sampling threshold |
+| `topK` | Integer | 1 - ∞ | Top-k sampling parameter |
+| `stopSequences` | List&lt;String&gt; | - | Sequences that stop generation |
+| `presencePenalty` | Float | -2.0 - 2.0 | Penalize new topics |
+| `frequencyPenalty` | Float | -2.0 - 2.0 | Penalize repetition |
+
+### 8.2 Default Options
+
+```java
+@Configuration
+public class ChatOptionsConfig {
+
+    @Bean
+    public ChatClient chatClientWithOptions(ChatClient.Builder builder) {
+        return builder
+            .defaultOptions(ChatOptions.builder()
+                .model("gpt-4-turbo")
+                .temperature(0.7)
+                .maxTokens(1500)
+                .build())
+            .build();
+    }
+}
+```
+
+### 8.3 Runtime Option Override
+
+```java
+@Service
+@RequiredArgsConstructor
+public class AdaptiveOptionsService {
+
+    private final ChatClient chatClient;
+
+    // Creative task - higher temperature
+    public String brainstormIdeas(String topic) {
+        return chatClient.prompt()
+            .user("Generate creative ideas for: " + topic)
+            .options(ChatOptions.builder()
+                .temperature(0.9)  // High creativity
+                .maxTokens(1000)
+                .build())
+            .call()
+            .content();
+    }
+
+    // Code generation - lower temperature
+    public String generateCode(String specification) {
+        return chatClient.prompt()
+            .user("Write code to: " + specification)
+            .options(ChatOptions.builder()
+                .temperature(0.2)  // Low for consistency
+                .maxTokens(2000)
+                .build())
+            .call()
+            .content();
+    }
+
+    // Concise answers
+    public String answerQuickly(String question) {
+        return chatClient.prompt()
+            .user(question)
+            .options(ChatOptions.builder()
+                .temperature(0.3)
+                .maxTokens(300)
+                .build())
+            .call()
+            .content();
+    }
+}
+```
+
+### 8.4 Provider-Specific Options
+
+```java
+// OpenAI-specific options
+OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
+    .model("gpt-4-turbo")
+    .temperature(0.7)
+    .maxTokens(2000)
+    .presencePenalty(0.5)
+    .frequencyPenalty(0.3)
+    .seed(42)                    // For reproducible outputs
+    .user("user-123")             // User identifier
+    .logitBias(Map.of(
+        "9517", -20.0             // Token ID bias
+    ))
+    .build();
+
+// Anthropic-specific options
+AnthropicChatOptions anthropicOptions = AnthropicChatOptions.builder()
+    .model("claude-3-opus-20240229")
+    .temperature(0.7)
+    .maxTokens(4096)
+    .topK(40)
+    .topP(0.9)
+    .anthropicVersion("vertex-2023-10-16")
+    .build();
+
+// Using with ChatClient
+ChatClient openAiClient = ChatClient.builder(openAiChatModel)
+    .defaultOptions(openAiOptions)
+    .build();
+
+String response = openAiClient.prompt()
+    .user("Hello!")
+    .call()
+    .content();
+```
+
+### 8.5 Option Inheritance and Precedence
+
+```java
+// 1. Global default options
+ChatClient clientWithDefaults = ChatClient.builder(chatModel)
+    .defaultOptions(ChatOptions.builder()
+        .temperature(0.7)
+        .maxTokens(1000)
+        .build())
+    .build();
+
+// 2. Runtime override - takes precedence
+String response = clientWithDefaults.prompt()
+    .user("Generate a story")
+    .options(ChatOptions.builder()
+        .temperature(0.9)  // Overrides default
+        // maxTokens inherited from default (1000)
+        .build())
+    .call()
+    .content();
+
+// 3. Prompt-level options - highest precedence
+Prompt promptWithOptions = new Prompt(
+    List.of(new UserMessage("Tell me a joke")),
+    ChatOptions.builder()
+        .temperature(0.5)
+        .maxTokens(500)
+        .build()
+);
+
+ChatResponse response = chatModel.call(promptWithOptions);
+```
+
+---
+
+## 9. Advanced Prompt Patterns
+
+### 9.1 Few-Shot Prompting
+
+```java
+@Service
+public class FewShotService {
+
+    private final ChatClient chatClient;
+
+    // Classification with examples
+    public String classifyEmail(String emailContent) {
+        String fewShotPrompt = """
+            Classify the following email into one of these categories:
+            - INQUIRY: Customer asking for information
+            - SUPPORT: Customer reporting an issue
+            - SALES: Customer interested in purchasing
+            - OTHER: Everything else
+
+            Examples:
+
+            Email: "How much does your premium plan cost?"
+            Category: SALES
+
+            Email: "I can't log into my account. Help!"
+            Category: SUPPORT
+
+            Email: "What features do you offer?"
+            Category: INQUIRY
+
+            Email: "Thanks for the great service!"
+            Category: OTHER
+
+            Now classify:
+            Email: "{email}"
+            Category:
+            """;
+
+        return chatClient.prompt()
+            .user(u -> u.text(fewShotPrompt).param("email", emailContent))
+            .call()
+            .content();
+    }
+
+    // Code translation with examples
+    public String translateCode(String sourceCode, String sourceLang, String targetLang) {
+        String examples = """
+            Translate Java to Python:
+
+            Java:
+            public class HelloWorld {
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                }
+            }
+
+            Python:
+            class HelloWorld:
+                @staticmethod
+                def main():
+                    print("Hello, World!")
+
+            ======
+
+            Translate JavaScript to TypeScript:
+
+            JavaScript:
+            function add(a, b) {
+                return a + b;
+            }
+
+            TypeScript:
+            function add(a: number, b: number): number {
+                return a + b;
+            }
+
+            ======
+
+            Translate {sourceLang} to {targetLang}:
+
+            {sourceLang}:
+            {sourceCode}
+
+            {targetLang}:
+            """;
+
+        return chatClient.prompt()
+            .user(u -> u.text(examples)
+                .param("sourceLang", sourceLang)
+                .param("targetLang", targetLang)
+                .param("sourceCode", sourceCode))
+            .call()
+            .content();
+    }
+}
+```
+
+### 9.2 Chain-of-Thought Prompting
+
+```java
+@Service
+public class ChainOfThoughtService {
+
+    private final ChatClient chatClient;
+
+    // Mathematical reasoning
+    public String solveMathProblem(String problem) {
+        String cotPrompt = """
+            Let's think step by step to solve this problem.
+
+            Problem: {problem}
+
+            Step-by-step reasoning:
+            1. Understand what the problem is asking
+            2. Identify the key information given
+            3. Determine what formula or approach to use
+            4. Apply the formula step by step
+            5. Calculate the final answer
+
+            Please show your work for each step.
+            """;
+
+        return chatClient.prompt()
+            .user(u -> u.text(cotPrompt).param("problem", problem))
+            .options(ChatOptions.builder()
+                .temperature(0.2)  // Low for consistency
+                .build())
+            .call()
+            .content();
+    }
+
+    // Debugging with reasoning
+    public String debugCode(String code, String errorDescription) {
+        String debugPrompt = """
+            Let's systematically debug this code.
+
+            Code:
+            {code}
+
+            Error:
+            {error}
+
+            Debugging process:
+            1. Analyze the error message
+            2. Identify the line causing the error
+            3. Understand why the error occurs
+            4. Propose a fix
+            5. Explain why the fix works
+
+            Go through each step carefully.
+            """;
+
+        return chatClient.prompt()
+            .user(u -> u.text(debugPrompt)
+                .param("code", code)
+                .param("error", errorDescription))
+            .call()
+            .content();
+    }
+}
+```
+
+### 9.3 Prompt Chaining
+
+```java
+@Service
+public class PromptChainingService {
+
+    private final ChatClient chatClient;
+
+    // Multi-step content processing
+    public String summarizeAndExtract(String longDocument) {
+        // Step 1: Summarize
+        String summary = chatClient.prompt()
+            .user("Summarize this document in 3 bullet points:\n" + longDocument)
+            .call()
+            .content();
+
+        // Step 2: Extract key entities from summary
+        String entities = chatClient.prompt()
+            .user("Extract all named entities (people, places, organizations) from:\n" + summary)
+            .call()
+            .content();
+
+        // Step 3: Generate action items
+        String actionItems = chatClient.prompt()
+            .user("Based on this summary, generate a list of action items:\n" + summary)
+            .call()
+            .content();
+
+        // Combine results
+        return String.format("""
+            Summary:
+            %s
+
+            Key Entities:
+            %s
+
+            Action Items:
+            %s
+            """, summary, entities, actionItems);
+    }
+
+    // Refinement chain
+    public String refineAnswer(String question) {
+        // Initial answer
+        String draft = chatClient.prompt()
+            .user(question)
+            .call()
+            .content();
+
+        // Improve clarity
+        String refined = chatClient.prompt()
+            .user("Rewrite this answer to be clearer and more concise:\n" + draft)
+            .call()
+            .content();
+
+        // Add examples
+        String finalAnswer = chatClient.prompt()
+            .user("Add practical code examples to this explanation:\n" + refined)
+            .call()
+            .content();
+
+        return finalAnswer;
+    }
+}
+```
+
+### 9.4 Structured Output Prompts
+
+```java
+@Service
+public class StructuredPromptService {
+
+    private final ChatClient chatClient;
+
+    // Sentiment analysis with output format
+    public SentimentResult analyzeSentiment(String text) {
+        BeanOutputConverter<SentimentResult> converter =
+            new BeanOutputConverter<>(SentimentResult.class);
+
+        String prompt = String.format("""
+            Analyze the sentiment of the following text.
+
+            Text: %s
+
+            Provide your analysis in the following JSON format:
+            %s
+            """, text, converter.getFormat());
+
+        String response = chatClient.prompt()
+            .user(prompt)
+            .call()
+            .content();
+
+        return converter.convert(response);
+    }
+
+    // Entity extraction
+    public List<Entity> extractEntities(String text) {
+        return chatClient.prompt()
+            .user(u -> u.text("""
+                Extract all named entities from the following text.
+
+                Text: {text}
+
+                Return entities in JSON format with these fields:
+                - text: the entity text
+                - type: PERSON, ORGANIZATION, LOCATION, or OTHER
+                - confidence: score from 0.0 to 1.0
+                """)
+                .param("text", text))
+            .call()
+            .entity(new ParameterizedTypeReference<List<Entity>>() {});
+    }
+
+    // Record definitions
+    record SentimentResult(
+        String sentiment,  // POSITIVE, NEGATIVE, NEUTRAL
+        double confidence,
+        String explanation
+    ) {}
+
+    record Entity(
+        String text,
+        String type,
+        double confidence
+    ) {}
+}
+```
+
+### 9.5 Prompt Composition Patterns
+
+```java
+@Service
+public class PromptCompositionService {
+
+    private final ChatClient chatClient;
+    private final PromptTemplate systemTemplate;
+    private final PromptTemplate contextTemplate;
+    private final PromptTemplate taskTemplate;
+
+    @PostConstruct
+    public void init() {
+        // Layer 1: Role and expertise
+        systemTemplate = PromptTemplate.builder()
+            .template("""
+                You are a {role} specializing in {domain}.
+
+                Your expertise includes:
+                {expertise_areas}
+
+                Communication style: {style}
+                """)
+            .build();
+
+        // Layer 2: Context and constraints
+        contextTemplate = PromptTemplate.builder()
+            .template("""
+                Project Context:
+                - Project: {project_name}
+                - Tech Stack: {tech_stack}
+                - Team Size: {team_size}
+                - Timeline: {timeline}
+
+                Constraints:
+                {constraints}
+                """)
+            .build();
+
+        // Layer 3: Specific task
+        taskTemplate = PromptTemplate.builder()
+            .template("""
+                Task: {task}
+
+                Requirements:
+                {requirements}
+
+                Expected Output Format:
+                {output_format}
+                """)
+            .build();
+    }
+
+    public String executeArchitecturalTask(String taskDescription) {
+        // Compose layers
+        String systemPrompt = systemTemplate.render(Map.of(
+            "role", "solution architect",
+            "domain", "microservices",
+            "expertise_areas", "system design, scalability, cloud-native patterns",
+            "style", "technical but approachable"
+        ));
+
+        String contextPrompt = contextTemplate.render(Map.of(
+            "project_name", "E-commerce Platform",
+            "tech_stack", "Spring Boot, Kubernetes, Redis",
+            "team_size", "8 developers",
+            "timeline", "6 months",
+            "constraints", """
+                - Must handle 10,000 concurrent users
+                - 99.9% uptime requirement
+                - GDPR compliance
+                - Budget: $500k/year infrastructure
+                """
+        ));
+
+        String taskPrompt = taskTemplate.render(Map.of(
+            "task", taskDescription,
+            "requirements", "Design the service architecture",
+            "output_format", """
+                1. Architecture diagram description
+                2. Service list with responsibilities
+                3. Data flow between services
+                4. Technology recommendations
+                5. Potential risks and mitigations
+                """
+        ));
+
+        // Execute composed prompt
+        return chatClient.prompt()
+            .system(systemPrompt)
+            .user(contextPrompt + "\n\n" + taskPrompt)
+            .call()
+            .content();
+    }
+}
+```
+
+---
+
+## 10. Prompt Advisors for Enhancement
+
+The **Advisor API** provides a powerful chain-of-responsibility pattern for modifying prompts and responses. Advisors can enhance prompts, add context, log interactions, and implement cross-cutting concerns.
+
+### 10.1 Built-in Prompt Advisors
+
+```java
+@Component
+public class PromptAdvisorConfig {
+
+    // Simple Logger Advisor - logs all prompts and responses
+    @Bean
+    public SimpleLoggerAdvisor simpleLoggerAdvisor() {
+        return new SimpleLoggerAdvisor();
+    }
+
+    // Prompt Enhancement Advisor - adds instructions to all prompts
+    @Component
+    public static class PromptEnhancementAdvisor implements CallAroundAdvisor {
+
+        private static final String ENHANCEMENT = """
+
+            Additional Instructions:
+            - Be concise and direct
+            - Use examples when explaining concepts
+            - Format code blocks with appropriate language tags
+            - Structure responses with clear headings
+            """;
+
+        @Override
+        public AdvisedResponse aroundCall(
+                AdvisedRequest request,
+                CallAroundAdvisorChain chain) {
+
+            // Modify the request
+            AdvisedRequest enhanced = AdvisedRequest.from(request)
+                .userText(request.userText() + ENHANCEMENT)
+                .build();
+
+            // Continue the chain
+            return chain.nextAroundCall(enhanced);
+        }
+
+        @Override
+        public int getOrder() {
+            return Ordered.HIGHEST_PRECEDENCE;
+        }
+
+        @Override
+        public String getName() {
+            return "PromptEnhancementAdvisor";
+        }
+    }
+}
+```
+
+### 10.2 Custom Prompt Enhancement Advisor
+
+```java
+@Component
+@RequiredArgsConstructor
+public class ContextEnrichmentAdvisor implements CallAroundAdvisor {
+
+    private final UserService userService;
+    private final DocumentService documentService;
+
+    @Override
+    public AdvisedResponse aroundCall(
+            AdvisedRequest request,
+            CallAroundAdvisorChain chain) {
+
+        // Extract user ID from advise context
+        String userId = (String) request.adviseContext()
+            .getOrDefault("userId", "anonymous");
+
+        if (!"anonymous".equals(userId)) {
+            // Fetch user context
+            User user = userService.findById(userId);
+
+            // Build context enhancement
+            String contextEnhancement = String.format("""
+
+                User Context:
+                - Name: %s
+                - Role: %s
+                - Department: %s
+                - Expertise Level: %s
+                - Recent Activity: %s
+                """,
+                user.getName(),
+                user.getRole(),
+                user.getDepartment(),
+                user.getExpertiseLevel(),
+                user.getRecentActivity()
+            );
+
+            // Add context to system prompt
+            AdvisedRequest enriched = AdvisedRequest.from(request)
+                .systemText(request.systemText() + contextEnhancement)
+                .build();
+
+            return chain.nextAroundCall(enriched);
+        }
+
+        return chain.nextAroundCall(request);
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE + 100;
+    }
+
+    @Override
+    public String getName() {
+        return "ContextEnrichmentAdvisor";
+    }
+}
+```
+
+### 10.3 Response Formatting Advisor
+
+```java
+@Component
+public class ResponseFormattingAdvisor implements CallAroundAdvisor {
+
+    @Override
+    public AdvisedResponse aroundCall(
+            AdvisedRequest request,
+            CallAroundAdvisorChain chain) {
+
+        // Execute the request
+        AdvisedResponse response = chain.nextAroundCall(request);
+
+        // Format the response
+        String originalContent = response.response()
+            .getResult()
+            .getOutput()
+            .getText();
+
+        String formattedContent = formatResponse(originalContent);
+
+        // Create new response with formatted content
+        ChatResponse formattedResponse = ChatResponse.builder()
+            .from(response.response())
+            .addGeneration(ChatGeneration.builder()
+                .from(response.response().getResult())
+                .build(GenericAssistantMessage.from(formattedContent))
+                .build())
+            .build();
+
+        return AdvisedResponse.from(response)
+            .response(formattedResponse)
+            .build();
+    }
+
+    private String formatResponse(String content) {
+        // Add markdown formatting if missing
+        if (!content.contains("#") && !content.contains("##")) {
+            content = "## Response\n\n" + content;
+        }
+
+        // Ensure code blocks have language tags
+        content = content.replaceAll("```\\s*\\n", "```text\n");
+
+        return content;
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.LOWEST_PRECEDENCE;  // Execute last
+    }
+
+    @Override
+    public String getName() {
+        return "ResponseFormattingAdvisor";
+    }
+}
+```
+
+### 10.4 Dynamic Prompt Advisor
+
+```java
+@Component
+@RequiredArgsConstructor
+public class DynamicPromptAdvisor implements CallAroundAdvisor {
+
+    private final PromptRepository promptRepository;
+
+    @Override
+    public AdvisedResponse aroundCall(
+            AdvisedRequest request,
+            CallAroundAdvisorChain chain) {
+
+        // Determine prompt type from request
+        String promptType = classifyPrompt(request);
+
+        // Load dynamic enhancements
+        List<PromptEnhancement> enhancements =
+            promptRepository.findByType(promptType);
+
+        // Build dynamic enhancement text
+        String dynamicEnhancement = enhancements.stream()
+            .filter(PromptEnhancement::isActive)
+            .map(PromptEnhancement::getContent)
+            .collect(Collectors.joining("\n"));
+
+        // Apply enhancements
+        if (!dynamicEnhancement.isEmpty()) {
+            AdvisedRequest enhanced = AdvisedRequest.from(request)
+                .userText(request.userText() + "\n\n" + dynamicEnhancement)
+                .build();
+
+            return chain.nextAroundCall(enhanced);
+        }
+
+        return chain.nextAroundCall(request);
+    }
+
+    private String classifyPrompt(AdvisedRequest request) {
+        String userText = request.userText().toLowerCase();
+
+        if (userText.contains("code") || userText.contains("function")) {
+            return "code_generation";
+        } else if (userText.contains("explain") || userText.contains("what is")) {
+            return "explanation";
+        } else if (userText.contains("review") || userText.contains("analyze")) {
+            return "analysis";
+        } else {
+            return "general";
+        }
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE + 50;
+    }
+
+    @Override
+    public String getName() {
+        return "DynamicPromptAdvisor";
+    }
+}
+```
+
+### 10.5 Using Advisors with ChatClient
+
+```java
+@Configuration
+public class AdvisorConfiguration {
+
+    @Bean
+    public ChatClient enhancedChatClient(
+            ChatClient.Builder builder,
+            List<CallAroundAdvisor> advisors) {
+
+        return builder
+            .defaultAdvisors(advisors)  // Auto-register all advisors
+            .build();
+    }
+
+    // Or selectively register advisors
+    @Bean
+    public ChatClient selectiveChatClient(ChatClient.Builder builder) {
+        return builder
+            .defaultAdvisors(
+                new SimpleLoggerAdvisor(),
+                new PromptEnhancementAdvisor(),
+                new ContextEnrichmentAdvisor(null, null)
+            )
+            .build();
+    }
+
+    // Or add advisors per-request
+    @RestController
+    @RequiredArgsConstructor
+    public class ChatController {
+
+        private final ChatClient chatClient;
+
+        @PostMapping("/chat")
+        public String chat(@RequestBody ChatRequest request) {
+            return chatClient.prompt()
+                .user(request.message())
+                .advisors(
+                    new SimpleLoggerAdvisor(),
+                    new ResponseFormattingAdvisor()
+                )
+                .call()
+                .content();
+        }
+    }
+}
+```
+
+---
+
+## 11. Practical Examples & Use Cases
+
+### 11.1 Code Generation Service
+
+```java
+@Service
+@RequiredArgsConstructor
+public class CodeGenerationService {
+
+    private final ChatClient codeClient;
+
+    @PostConstruct
+    public void init() {
+        // Specialized client for code generation
+        this.codeClient = ChatClient.builder(chatModel)
+            .defaultSystem("""
+                You are an expert software developer with 15 years of experience.
+
+                Coding Standards:
+                - Write clean, idiomatic code following best practices
+                - Include comprehensive error handling
+                - Add meaningful comments for complex logic
+                - Use type annotations where applicable
+                - Follow SOLID principles
+                - Include input validation
+                - Add logging for debugging
+
+                Response Format:
+                1. Brief explanation of the approach
+                2. Complete, production-ready code
+                3. Usage examples
+                4. Key considerations and edge cases
+                """)
+            .defaultOptions(OpenAiChatOptions.builder()
+                .temperature(0.2)  // Low for consistent code
+                .build())
+            .build();
+    }
+
+    public String generateController(String endpointSpec) {
+        return codeClient.prompt()
+            .user(u -> u
+                .text("Generate a Spring Boot REST controller: {spec}")
+                .param("spec", endpointSpec))
+            .call()
+            .content();
+    }
+
+    public String generateRepository(String entityDescription) {
+        return codeClient.prompt()
+            .user(u -> u
+                .text("""
+                    Create a Spring Data JPA repository with:
+                    - Basic CRUD operations
+                    - Custom query methods
+                    - Pagination support
+                    - Entity: {entity}
+                    """)
+                .param("entity", entityDescription))
+            .call()
+            .content();
+    }
+
+    public String generateUnitTest(String classCode) {
+        return codeClient.prompt()
+            .user(u -> u
+                .text("""
+                    Write comprehensive unit tests using JUnit 5 and Mockito.
+
+                    Class to test:
+                    {code}
+
+                    Include:
+                    - Happy path tests
+                    - Edge cases
+                    - Error scenarios
+                    - Mock setup
+                    """)
+                .param("code", classCode))
+            .call()
+            .content();
+    }
+
+    public String refactorCode(String originalCode, String requirements) {
+        return codeClient.prompt()
+            .user(u -> u
+                .text("""
+                    Refactor this code to improve it.
+
+                    Original Code:
+                    {original}
+
+                    Refactoring Requirements:
+                    {requirements}
+
+                    Provide:
+                    1. Explanation of changes
+                    2. Refactored code
+                    3. Benefits of refactoring
+                    """)
+                .param("original", originalCode)
+                .param("requirements", requirements))
+            .call()
+            .content();
+    }
+}
+```
+
+### 11.2 Document Summarization Service
+
+```java
+@Service
+@RequiredArgsConstructor
+public class SummarizationService {
+
+    private final ChatClient summarizationClient;
+
+    public enum SummaryStyle {
+        BULLET,      // Bullet points
+        PARAGRAPH,   // Concise paragraph
+        EXECUTIVE,   // Executive summary
+        TECHNICAL    // Technical deep-dive
+    }
+
+    public String summarize(
+            String document,
+            SummaryStyle style,
+            int maxLength) {
+
+        String promptTemplate = switch (style) {
+            case BULLET -> """
+                Summarize the following document in bullet points.
+
+                Document:
+                {document}
+
+                Requirements:
+                - Maximum {length} words
+                - Focus on key points and main ideas
+                - Group related points together
+                - Use concise bullet points
+
+                Summary:
+                """;
+
+            case PARAGRAPH -> """
+                Summarize the following document in a concise paragraph.
+
+                Document:
+                {document}
+
+                Requirements:
+                - Maximum {length} words
+                - Capture the main message
+                - Be clear and direct
+
+                Summary:
+                """;
+
+            case EXECUTIVE -> """
+                Provide an executive summary of the following document.
+
+                Document:
+                {document}
+
+                Requirements:
+                - Maximum {length} words
+                - Focus on: key insights, decisions, action items, impact
+                - Executive-friendly format
+                - No technical jargon
+
+                Executive Summary:
+                """;
+
+            case TECHNICAL -> """
+                Provide a technical summary of the following document.
+
+                Document:
+                {document}
+
+                Requirements:
+                - Maximum {length} words
+                - Focus on: architecture, technologies, APIs, data structures
+                - Preserve technical details
+                - Use appropriate terminology
+
+                Technical Summary:
+                """;
+        };
+
+        return summarizationClient.prompt()
+            .user(u -> u.text(promptTemplate)
+                .param("document", document)
+                .param("length", String.valueOf(maxLength)))
+            .call()
+            .content();
+    }
+
+    public String extractKeyPoints(String document) {
+        return summarizationClient.prompt()
+            .user("""
+                Extract the 5-7 most important points from this document.
+
+                Document:
+                {document}
+
+                Format each point as:
+                - [Point]: [Brief explanation]
+
+                Key Points:
+                """
+                .replace("{document}", document))
+            .call()
+            .content();
+    }
+}
+```
+
+### 11.3 Translation Service
+
+```java
+@Service
+@RequiredArgsConstructor
+public class TranslationService {
+
+    private final ChatClient translationClient;
+
+    public String translate(
+            String text,
+            String targetLanguage,
+            String context,
+            String tone) {
+
+        return translationClient.prompt()
+            .system(s -> s.text("""
+                You are a professional translator specializing in {domain}.
+
+                Translation Principles:
+                - Preserve the original meaning and nuance
+                - Use culturally appropriate expressions
+                - Maintain technical accuracy
+                - Adapt idioms when necessary
+                - Ensure natural flow in target language
+
+                Tone: {tone}
+                """)
+                .param("domain", determineDomain(context))
+                .param("tone", tone))
+            .user(u -> u.text("""
+                Translate the following text to {language}.
+
+                Context: {context}
+
+                Text:
+                {text}
+
+                Translation:
+                """)
+                .param("language", targetLanguage)
+                .param("context", context)
+                .param("text", text))
+            .options(ChatOptions.builder()
+                .temperature(0.3)  // Low for accuracy
+                .build())
+            .call()
+            .content();
+    }
+
+    public String translateBatch(
+            List<String> texts,
+            String targetLanguage,
+            String context) {
+
+        String batchPrompt = """
+            Translate the following texts to {language}.
+
+            Context: {context}
+
+            {texts}
+
+            Provide translations in the same order, numbered:
+            1.
+            2.
+            3.
+            ...
+            """;
+
+        String numberedTexts = IntStream.range(0, texts.size())
+            .mapToObj(i -> String.format("[%d] %s", i + 1, texts.get(i)))
+            .collect(Collectors.joining("\n"));
+
+        return translationClient.prompt()
+            .user(u -> u.text(batchPrompt)
+                .param("language", targetLanguage)
+                .param("context", context)
+                .param("texts", numberedTexts))
+            .call()
+            .content();
+    }
+
+    private String determineDomain(String context) {
+        if (context.toLowerCase().contains("medical") ||
+            context.toLowerCase().contains("health")) {
+            return "medical and healthcare";
+        } else if (context.toLowerCase().contains("legal")) {
+            return "legal and compliance";
+        } else if (context.toLowerCase().contains("technical") ||
+                   context.toLowerCase().contains("software")) {
+            return "software and technology";
+        } else {
+            return "general business";
+        }
+    }
+}
+```
+
+### 11.4 Question Answering Service
+
+```java
+@Service
+@RequiredArgsConstructor
+public class QuestionAnsweringService {
+
+    private final ChatClient qaClient;
+
+    public String answerQuestion(
+            String question,
+            String context,
+            AnswerStyle style) {
+
+        String promptTemplate = switch (style) {
+            case CONCISE -> """
+                Answer this question concisely based on the provided context.
+
+                Context:
+                {context}
+
+                Question: {question}
+
+                Answer (1-2 sentences):
+                """;
+
+            case DETAILED -> """
+                Answer this question in detail based on the provided context.
+
+                Context:
+                {context}
+
+                Question: {question}
+
+                Provide a comprehensive answer with:
+                - Direct answer
+                - Supporting details
+                - Examples if relevant
+                - Related information
+
+                Answer:
+                """;
+
+            case STEP_BY_STEP -> """
+                Answer this question step by step based on the provided context.
+
+                Context:
+                {context}
+
+                Question: {question}
+
+                Break down your answer into clear steps:
+                1.
+                2.
+                3.
+                ...
+
+                Answer:
+                """;
+        };
+
+        return qaClient.prompt()
+            .user(u -> u.text(promptTemplate)
+                .param("context", context)
+                .param("question", question))
+            .call()
+            .content();
+    }
+
+    public enum AnswerStyle {
+        CONCISE,      // Brief, direct answer
+        DETAILED,     // Comprehensive explanation
+        STEP_BY_STEP  // Structured approach
+    }
+
+    public List<FAQ> generateFAQ(String document) {
+        String response = qaClient.prompt()
+            .user("""
+                Generate 5-8 frequently asked questions (FAQs) from this document.
+
+                Document:
+                {document}
+
+                Format as:
+                Q: [Question]
+                A: [Concise answer]
+
+                FAQs:
+                """
+                .replace("{document}", document))
+            .call()
+            .content();
+
+        // Parse the response into FAQ objects
+        return parseFAQs(response);
+    }
+
+    private List<FAQ> parseFAQs(String response) {
+        // Implementation to parse Q&A pairs
+        // ...
+        return List.of();
+    }
+
+    record FAQ(String question, String answer) {}
+}
+```
+
+### 11.5 Content Creation Service
+
+```java
+@Service
+@RequiredArgsConstructor
+public class ContentCreationService {
+
+    private final ChatClient contentClient;
+
+    public String generateBlogPost(
+            String topic,
+            String targetAudience,
+            int wordCount) {
+
+        return contentClient.prompt()
+            .system(s -> s.text("""
+                You are a professional content writer and copywriter.
+
+                Writing Style:
+                - Engaging and conversational tone
+                - Clear structure with headings
+                - Actionable insights
+                - Examples and analogies
+                - SEO-friendly (natural keyword usage)
+
+                Target Audience: {audience}
+                """)
+                .param("audience", targetAudience))
+            .user(u -> u.text("""
+                Write a blog post about: {topic}
+
+                Requirements:
+                - Approximately {words} words
+                - Compelling title
+                - Introduction that hooks readers
+                - 3-5 main sections with subheadings
+                - Practical examples or tips
+                - Conclusion with call-to-action
+
+                Blog Post:
+                """)
+                .param("topic", topic)
+                .param("words", String.valueOf(wordCount)))
+            .options(ChatOptions.builder()
+                .temperature(0.8)  // Higher for creativity
+                .build())
+            .call()
+            .content();
+    }
+
+    public String generateSocialMediaPost(
+            String content,
+            String platform,
+            String tone) {
+
+        String platformSpecs = switch (platform.toLowerCase()) {
+            case "twitter" -> """
+                Platform: Twitter/X
+                - Maximum 280 characters
+                - Use relevant hashtags
+                - Engaging and concise
+                - Include call-to-action
+                """;
+            case "linkedin" -> """
+                Platform: LinkedIn
+                - Professional tone
+                - 1-3 paragraphs
+                - Industry-relevant hashtags
+                - Value-driven content
+                """;
+            case "instagram" -> """
+                Platform: Instagram
+                - Visual-first caption
+                - Emojis encouraged
+                - Storytelling approach
+                - Engagement-focused
+                """;
+            default -> "General social media platform";
+        };
+
+        return contentClient.prompt()
+            .user(u -> u.text("""
+                Create a social media post for this content.
+
+                {specs}
+
+                Tone: {tone}
+
+                Original Content:
+                {content}
+
+                Social Media Post:
+                """)
+                .param("specs", platformSpecs)
+                .param("tone", tone)
+                .param("content", content))
+            .call()
+            .content();
+    }
+
+    public String generateEmail(
+            EmailType type,
+            String recipient,
+            String purpose,
+            Map<String, String> details) {
+
+        String template = switch (type) {
+            case WELCOME -> """
+                Generate a welcome email for a new user.
+
+                Recipient: {recipient}
+                Purpose: {purpose}
+
+                Include:
+                - Warm greeting
+                - Next steps for getting started
+                - Key features to explore
+                - Support contact information
+                """;
+
+            case NEWSLETTER -> """
+                Generate a newsletter email.
+
+                Recipient: {recipient}
+                Purpose: {purpose}
+
+                Structure:
+                - Catchy subject line
+                - Personal greeting
+                - Main content (3-4 updates)
+                - Call-to-action
+                - Unsubscribe link
+                """;
+
+            case PROMOTIONAL -> """
+                Generate a promotional email.
+
+                Recipient: {recipient}
+                Purpose: {purpose}
+
+                Elements:
+                - Compelling offer
+                - Urgency/scarcity
+                - Benefits highlight
+                - Clear CTA
+                - Social proof if relevant
+                """;
+        };
+
+        String detailText = details.entrySet().stream()
+            .map(e -> "- %s: %s".formatted(e.getKey(), e.getValue()))
+            .collect(Collectors.joining("\n"));
+
+        return contentClient.prompt()
+            .user(u -> u.text(template + "\n\nDetails:\n{details}")
+                .param("recipient", recipient)
+                .param("purpose", purpose)
+                .param("details", detailText))
+            .call()
+            .content();
+    }
+
+    public enum EmailType {
+        WELCOME, NEWSLETTER, PROMOTIONAL
+    }
+}
+```
+
+### 11.6 Code Review Service
+
+```java
+@Service
+@RequiredArgsConstructor
+public class CodeReviewService {
+
+    private final ChatClient codeReviewClient;
+
+    public CodeReviewResult reviewCode(
+            String code,
+            String language,
+            List<String> focusAreas) {
+
+        String prompt = String.format("""
+            Review this %s code for quality and best practices.
+
+            Focus Areas:
+            %s
+
+            Code to Review:
+
+            %s
+
+            Provide a structured review with:
+            1. Overall Assessment (1-10 rating)
+            2. Critical Issues (must fix)
+            3. Improvements (should fix)
+            4. Suggestions (nice to have)
+            5. Positive Observations
+            6. Security Concerns (if any)
+            """,
+            language,
+            focusAreas.stream()
+                .map(area -> "- " + area)
+                .collect(Collectors.joining("\n")),
+            code
+        );
+
+        String review = codeReviewClient.prompt()
+            .user(prompt)
+            .options(ChatOptions.builder()
+                .temperature(0.3)
+                .build())
+            .call()
+            .content();
+
+        return parseCodeReview(review);
+    }
+
+    private CodeReviewResult parseCodeReview(String review) {
+        // Parse the structured review into a CodeReviewResult object
+        // Implementation depends on response format
+        return new CodeReviewResult(review);
+    }
+
+    public String suggestRefactoring(String code, String goal) {
+        String refactoringPrompt = """
+            Suggest refactoring improvements for this code.
+
+            Goal: {goal}
+
+            Current Code:
+
+            {code}
+
+            Provide:
+            1. Problems with current approach
+            2. Refactored code with improvements
+            3. Explanation of changes
+            4. Benefits of refactoring
+            5. Trade-offs (if any)
+            """;
+
+        return codeReviewClient.prompt()
+            .user(u -> u.text(refactoringPrompt)
+                .param("goal", goal)
+                .param("code", code))
+            .call()
+            .content();
+    }
+
+    public String generateDocumentation(String code) {
+        String docPrompt = String.format("""
+            Generate comprehensive documentation for this code.
+
+            Code:
+
+            %s
+
+            Include:
+            - Class/method purpose
+            - Parameter descriptions
+            - Return value explanation
+            - Usage examples
+            - Edge cases and error handling
+            - Dependencies and prerequisites
+            """, code);
+
+        return codeReviewClient.prompt()
+            .user(docPrompt)
+            .call()
+            .content();
+    }
+
+    record CodeReviewResult(
+        int overallRating,
+        List<String> criticalIssues,
+        List<String> improvements,
+        List<String> suggestions,
+        List<String> positiveObservations,
+        List<String> securityConcerns
+    ) {}
+}
+```
+
+---
+
+## References
+
+1. Spring AI. (2025). *Prompt API Reference*. [Spring.io](https://docs.spring.io/spring-ai/reference/api/prompt.html)
+2. Spring AI. (2025). *ChatClient API Reference*. [Spring.io](https://docs.spring.io/spring-ai/reference/api/chatclient.html)
+3. Spring AI. (2025). *Chat Model API Reference*. [Spring.io](https://docs.spring.io/spring-ai/reference/api/chatmodel.html)
+4. Terence Parr. (2025). *StringTemplate Template Engine*. [ANTLR.org](https://www.stringtemplate.org/)
+5. Spring AI GitHub. (2025). *Prompt Examples*. [GitHub](https://github.com/spring-projects/spring-ai)
+
+---
+
+**Previous**: [4. Structured Output](./04-structured-output.mdx) ←
+**Next**: [6. Evaluation & Version Control](./06-evaluation-versioning.mdx) →

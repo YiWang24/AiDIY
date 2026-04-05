@@ -1,11 +1,15 @@
 import Layout from "@theme/Layout";
 import Heading from "@theme/Heading";
 import Link from "@docusaurus/Link";
+import Translate, { translate } from "@docusaurus/Translate";
 import { JSX } from "react";
 
 export default function Home(): JSX.Element {
   return (
-    <Layout title="AI Engineering Knowledge Base" description="Building AI Agents in Public • Computer Science & Engineering Documentation">
+    <Layout
+      title={translate({ message: "AI Engineering Knowledge Base" })}
+      description={translate({ message: "Building AI Agents in Public • Computer Science & Engineering Documentation" })}
+    >
       <main>
         {/* Hero Section - Builder Card */}
         <section className="builderCard">
@@ -37,20 +41,22 @@ export default function Home(): JSX.Element {
                     Yi Wang
                   </Heading>
                   <div className="builderCard__tags">
-                    <span className="tag">🎓 CS Student @ York University</span>
+                    <span className="tag"><Translate id="homepage.tag.student">🎓 CS Student @ York University</Translate></span>
                     <span className="tag">🇨🇦 Toronto</span>
-                    <span className="tag">🤖 AI Agent Builder</span>
+                    <span className="tag"><Translate id="homepage.tag.agentBuilder">🤖 AI Agent Builder</Translate></span>
                   </div>
                 </div>
 
                 <div className="builderCard__bio">
                   <p>
-                    👋 Hi, I'm Yi. I'm building this digital garden to document my engineering journey from CS fundamentals to production-grade AI Agents.
-                    Passionate about self-hosting, local LLM deployment, and making AI engineering accessible.
+                    <Translate id="homepage.bio" description="The homepage bio paragraph">
+                      👋 Hi, I'm Yi. I'm building this digital garden to document my engineering journey from CS fundamentals to production-grade AI Agents.
+                      Passionate about self-hosting, local LLM deployment, and making AI engineering accessible.
+                    </Translate>
                   </p>
                   <p className="builderCard__status">
                     <span className="status__indicator">🟢</span>
-                    <span className="status__text">Building in Public • Open to Opportunities</span>
+                    <span className="status__text"><Translate id="homepage.status">Building in Public • Open to Opportunities</Translate></span>
                   </p>
                 </div>
 
@@ -108,8 +114,8 @@ export default function Home(): JSX.Element {
         <section className="knowledgeGrid">
           <div className="container">
             <div className="section__header">
-              <Heading as="h2" className="section__title">Knowledge Base</Heading>
-              <p className="section__subtitle">Curated engineering notes from fundamentals to production</p>
+              <Heading as="h2" className="section__title"><Translate id="homepage.knowledgeBase">Knowledge Base</Translate></Heading>
+              <p className="section__subtitle"><Translate id="homepage.knowledgeBase.subtitle">Curated engineering notes from fundamentals to production</Translate></p>
             </div>
 
             <div className="knowledge__grid">
@@ -120,8 +126,8 @@ export default function Home(): JSX.Element {
               >
                 <div className="card__overlay"></div>
                 <div className="card__content">
-                  <h3 className="card__title">CS Fundamentals</h3>
-                  <p className="card__description">Data structures, algorithms, complexity analysis, and core computer science concepts</p>
+                  <h3 className="card__title"><Translate id="homepage.card.cs">CS Fundamentals</Translate></h3>
+                  <p className="card__description"><Translate id="homepage.card.cs.desc">Data structures, algorithms, complexity analysis, and core computer science concepts</Translate></p>
                   <div className="card__meta">
                     <span className="meta__badge">Algorithms</span>
                     <span className="meta__badge">DSA</span>
@@ -136,8 +142,8 @@ export default function Home(): JSX.Element {
               >
                 <div className="card__overlay"></div>
                 <div className="card__content">
-                  <h3 className="card__title">Frontend Frameworks</h3>
-                  <p className="card__description">React, Next.js, Vue, Angular - modern UI libraries and component architecture</p>
+                  <h3 className="card__title"><Translate id="homepage.card.frontend">Frontend Frameworks</Translate></h3>
+                  <p className="card__description"><Translate id="homepage.card.frontend.desc">React, Next.js, Vue, Angular - modern UI libraries and component architecture</Translate></p>
                   <div className="card__meta">
                     <span className="meta__badge">React</span>
                     <span className="meta__badge">UI/UX</span>
@@ -152,8 +158,8 @@ export default function Home(): JSX.Element {
               >
                 <div className="card__overlay"></div>
                 <div className="card__content">
-                  <h3 className="card__title">Backend Frameworks</h3>
-                  <p className="card__description">Spring Boot, Node.js, Django, FastAPI - server-side development and APIs</p>
+                  <h3 className="card__title"><Translate id="homepage.card.backend">Backend Frameworks</Translate></h3>
+                  <p className="card__description"><Translate id="homepage.card.backend.desc">Spring Boot, Node.js, Django, FastAPI - server-side development and APIs</Translate></p>
                   <div className="card__meta">
                     <span className="meta__badge">Spring</span>
                     <span className="meta__badge">APIs</span>
@@ -168,8 +174,8 @@ export default function Home(): JSX.Element {
               >
                 <div className="card__overlay"></div>
                 <div className="card__content">
-                  <h3 className="card__title">AI Engineering</h3>
-                  <p className="card__description">LLM integration, RAG systems, vector databases, AI agent development</p>
+                  <h3 className="card__title"><Translate id="homepage.card.ai">AI Engineering</Translate></h3>
+                  <p className="card__description"><Translate id="homepage.card.ai.desc">LLM integration, RAG systems, vector databases, AI agent development</Translate></p>
                   <div className="card__meta">
                     <span className="meta__badge">LLM</span>
                     <span className="meta__badge">RAG</span>
@@ -184,8 +190,8 @@ export default function Home(): JSX.Element {
               >
                 <div className="card__overlay"></div>
                 <div className="card__content">
-                  <h3 className="card__title">System Design</h3>
-                  <p className="card__description">Architecture patterns, scalability, distributed systems, and design trade-offs</p>
+                  <h3 className="card__title"><Translate id="homepage.card.sysDesign">System Design</Translate></h3>
+                  <p className="card__description"><Translate id="homepage.card.sysDesign.desc">Architecture patterns, scalability, distributed systems, and design trade-offs</Translate></p>
                   <div className="card__meta">
                     <span className="meta__badge">Architecture</span>
                     <span className="meta__badge">Scalability</span>
@@ -200,8 +206,8 @@ export default function Home(): JSX.Element {
               >
                 <div className="card__overlay"></div>
                 <div className="card__content">
-                  <h3 className="card__title">DevOps & Cloud</h3>
-                  <p className="card__description">CI/CD, containerization, Kubernetes, infrastructure as code, cloud platforms</p>
+                  <h3 className="card__title"><Translate id="homepage.card.devops">DevOps & Cloud</Translate></h3>
+                  <p className="card__description"><Translate id="homepage.card.devops.desc">CI/CD, containerization, Kubernetes, infrastructure as code, cloud platforms</Translate></p>
                   <div className="card__meta">
                     <span className="meta__badge">Docker</span>
                     <span className="meta__badge">K8s</span>
@@ -215,13 +221,13 @@ export default function Home(): JSX.Element {
         {/* Tech Stack */}
         <section className="techStack">
           <div className="container">
-            <Heading as="h2" className="section__title">Tech Stack</Heading>
-            <p className="section__subtitle">Technologies powering this knowledge base and my projects</p>
+            <Heading as="h2" className="section__title"><Translate id="homepage.techStack">Tech Stack</Translate></Heading>
+            <p className="section__subtitle"><Translate id="homepage.techStack.subtitle">Technologies powering this knowledge base and my projects</Translate></p>
 
             <div className="techStack__categories">
               {/* AI & Backend */}
               <div className="techStack__category">
-                <h3 className="category__title">AI & Backend</h3>
+                <h3 className="category__title"><Translate id="homepage.category.aiBackend">AI & Backend</Translate></h3>
                 <div className="tech__list">
                   <span className="tech__item">Spring AI</span>
                   <span className="tech__item">LangChain</span>
@@ -234,7 +240,7 @@ export default function Home(): JSX.Element {
 
               {/* Frontend */}
               <div className="techStack__category">
-                <h3 className="category__title">Frontend</h3>
+                <h3 className="category__title"><Translate id="homepage.techStack.frontend">Frontend</Translate></h3>
                 <div className="tech__list">
                   <span className="tech__item">React</span>
                   <span className="tech__item">Next.js</span>
@@ -246,7 +252,7 @@ export default function Home(): JSX.Element {
 
               {/* DevOps & Tools */}
               <div className="techStack__category">
-                <h3 className="category__title">DevOps & Tools</h3>
+                <h3 className="category__title"><Translate id="homepage.category.devops">DevOps & Tools</Translate></h3>
                 <div className="tech__list">
                   <span className="tech__item">Docker</span>
                   <span className="tech__item">Kubernetes</span>
@@ -263,27 +269,27 @@ export default function Home(): JSX.Element {
         {/* Quick Features Highlight */}
         <section className="features">
           <div className="container">
-            <Heading as="h2" className="section__title">Interactive Features</Heading>
+            <Heading as="h2" className="section__title"><Translate id="homepage.features">Interactive Features</Translate></Heading>
             <div className="features__grid">
               <div className="feature__card">
                 <div className="feature__icon">⚡</div>
-                <h3>Live Code Editor</h3>
-                <p>Edit React code in-browser with instant preview</p>
+                <h3><Translate id="homepage.feature.liveCode">Live Code Editor</Translate></h3>
+                <p><Translate id="homepage.feature.liveCode.desc">Edit React code in-browser with instant preview</Translate></p>
               </div>
               <div className="feature__card">
                 <div className="feature__icon">📊</div>
-                <h3>Mermaid Diagrams</h3>
-                <p>Interactive flowcharts and architecture diagrams</p>
+                <h3><Translate id="homepage.feature.mermaid">Mermaid Diagrams</Translate></h3>
+                <p><Translate id="homepage.feature.mermaid.desc">Interactive flowcharts and architecture diagrams</Translate></p>
               </div>
               <div className="feature__card">
                 <div className="feature__icon">🤖</div>
-                <h3>AI Chat Assistant</h3>
-                <p>Ask questions about the documentation</p>
+                <h3><Translate id="homepage.feature.aiChat">AI Chat Assistant</Translate></h3>
+                <p><Translate id="homepage.feature.aiChat.desc">Ask questions about the documentation</Translate></p>
               </div>
               <div className="feature__card">
                 <div className="feature__icon">🌙</div>
-                <h3>Dark Mode</h3>
-                <p>Eye-care optimized for long reading sessions</p>
+                <h3><Translate id="homepage.feature.darkMode">Dark Mode</Translate></h3>
+                <p><Translate id="homepage.feature.darkMode.desc">Eye-care optimized for long reading sessions</Translate></p>
               </div>
             </div>
           </div>

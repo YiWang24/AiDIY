@@ -1,0 +1,27 @@
+---
+id: providers
+title: Providers and Credentials
+sidebar_label: Providers
+description: "在 Spring AI 中配置多个 AI 提供商并安全管理凭证。"
+---
+
+# Providers and Credentials
+
+本页介绍如何在 Spring AI 中管理提供商配置：选择提供商、管理凭证，以及处理提供商特有的能力，同时避免将其泄漏到核心业务逻辑中。
+
+## 你需要配置的内容
+
+- 提供商选择（OpenAI、Anthropic、Azure OpenAI、Ollama 等）。
+- 模型选择及各模型约束（上下文长度、工具调用支持、定价）。
+- 运行时选项（temperature、top-p、max tokens）作为产品默认值，而非临时常量。
+- 凭证管理（环境变量、密钥管理器、轮换、最小权限）。
+
+## 权衡
+
+- 单一提供商更简单，但增加供应商锁定风险。
+- 多提供商提高弹性和成本控制能力，但增加测试和兼容性工作量。
+
+## 即将推出
+
+- 提供商能力矩阵和"可移植基线"配置策略。
+- 提供商故障转移和优雅降级模式。

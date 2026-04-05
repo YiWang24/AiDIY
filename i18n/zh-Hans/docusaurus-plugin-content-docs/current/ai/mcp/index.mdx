@@ -1,0 +1,207 @@
+---
+id: index
+title: MCP 深度指南
+sidebar_label: MCP 概览
+description: Model Context Protocol 架构、设计原理和实现指南的全面深度解析
+---
+
+# MCP 深度指南
+
+> **"MCP 是 AI 应用的 USB-C 标准——一个通用的连接器，让工具和数据源能被任何模型使用。"**
+
+## 1. 问题定义：N×M 集成地狱
+
+现代 AI 应用需要连接到 N 个数据源（GitHub、数据库、API）和 M 个模型提供商（Claude、GPT、Gemini）。如果没有标准化协议，每个提供商 × 数据源组合都需要定制集成——总计 **N × M 个连接器**。
+
+Model Context Protocol (MCP) 通过一个通用标准解决了这个问题：
+
+1. 数据源提供商构建 **一个 MCP Server** 来暴露其数据
+2. AI 应用实现 **一个 MCP Client** 来消费任何兼容 Server 的数据
+3. 结果：**N + M 个连接器** 而非 N × M 个
+
+Anthropic 于 2024 年 11 月开源了 MCP 规范。截至 2025 年初，主要采用者包括 Claude Desktop、Cursor、Zed IDE、Sourcegraph 和 Replit。
+
+这种 **"一次编写，到处运行"** 的理念将模型提供商与工具构建者解耦，创建了一个标准化生态系统，开发者构建一个 "Postgres MCP Server" 就能立即接入所有 MCP 兼容 AI 应用的用户群。
+
+---
+
+## 2. 架构拓扑与系统设计
+
+MCP 的架构不同于传统 RESTful API 范式，采用专为对话 AI 的有状态、会话式特性设计的 **Client-Host-Server 拓扑**。
+
+### 2.1 MCP 三角：Host、Client 和 Server 的动态关系
+
+MCP 生态系统由三个不同角色定义，通常称为 **"MCP 三角"**：
+
+| 组件 | 角色 | 职责与描述 |
+|------|------|-----------|
+| **MCP Host** | 编排器 | 用户面对的应用程序，LLM 运行其中（Claude Desktop、Cursor、Zed IDE）。管理 UI、上下文聚合、安全策略和决策。 |
+| **MCP Client** | 连接器 | Host 内部的协议实现。将 LLM 输出转换为 JSON-RPC 消息，管理与 Server 的 1:1 持久连接。 |
+| **MCP Server** | 提供者 | 封装特定数据源的独立进程。暴露 Resources、Tools 和 Prompts；执行实际 API 调用。 |
+
+### 2.2 传输层：通信与逻辑解耦
+
+MCP 是**传输无关的**——协议语义与传输层解耦。
+
+#### Stdio（标准输入/输出）传输
+
+- **机制**：Host 将 Server 作为子进程启动；通过 stdin/stdout 通信
+- **优势**：零配置、本地安全、极低延迟
+- **限制**：Server 随 Host 会话结束而终止；难以在用户间共享
+
+#### SSE（Server-Sent Events）/ HTTP 传输
+
+- **机制**：HTTP POST 用于客户端到服务端；SSE 用于服务端到客户端
+- **优势**：可扩展（服务数千客户端）、持久化、与标准基础设施兼容
+- **安全**：需要 OAuth/Bearer Token 和 TLS 加密
+
+### 2.3 JSON-RPC 2.0：语言基础
+
+MCP 的传输协议基于 **JSON-RPC 2.0**，一个无状态、轻量的远程过程调用协议。
+
+MCP 中的每次交互都封装在 JSON-RPC 消息中：
+
+- **请求**：method、params 和唯一 id
+- **响应**：result 或 error，带有匹配的 id
+- **通知**：method 和 params，无 id（即发即弃）
+
+---
+
+## 3. 功能原语：能力剖析
+
+MCP 将 AI 交互标准化为三种主要能力类型，或称 **"原语"**：
+
+### 3.1 Resources：被动上下文层
+
+Resources 代表 Server 暴露的**"只读"**知识。
+
+- **定义**：提供上下文的被动数据
+- **标识**：每个 resource 有唯一 URI（如 `file:///logs/app.log`、`postgres://users/schema`）
+- **动态发现**：Server 可暴露 "Resource Templates"（如 `git://{repo}/pull/{pr_number}`）
+- **订阅**：Client 可通过 `notifications/resources/updated` 订阅实时更新
+
+### 3.2 Tools：智能体行动层
+
+Tools 是 Server 的**可执行能力**。
+
+- **定义**：接受参数并返回结果的可执行函数
+- **结构**：name、description 和 inputSchema（JSON Schema）
+- **执行**：Host 暂停生成，Client 发送 `tools/call` 请求，Server 执行，结果返回给模型
+- **副作用**：Tools 假定有副作用，通常触发 Human-in-the-Loop 确认
+
+### 3.3 Prompts：模板层
+
+Prompts 允许 Server 导出**"最佳实践"**交互模板。
+
+- **定义**：预配置模板，定义 LLM 应如何与 Server 数据交互
+- **用例**：Git MCP Server 可能暴露 `generate-commit-message` prompt
+- **价值**：标准化工作流并编码专家策略
+
+### 3.4 Sampling：递归智能与服务端 RAG
+
+**Sampling** 是一种高级原语，控制方向**反转**——Server 请求 Host 使用 LLM 处理数据。
+
+- **场景**：Server 遇到无法解析的代码；发送 `sampling/createMessage` 请求让 Host 的 LLM 进行摘要
+- **意义**：实现 "Server 端 RAG" 而无需在 Server 中嵌入 LLM
+
+---
+
+## 4. 运行动态与交互模式
+
+### 4.1 初始化（握手）
+
+在任何上下文交换之前，Client 和 Server 必须建立契约：
+
+1. **Initialize 请求**（Client → Server）：protocolVersion、capabilities、clientInfo
+2. **Initialize 响应**（Server → Client）：protocolVersion、capabilities、serverInfo
+3. **Initialized 通知**（Client → Server）：确认，正常操作开始
+
+### 4.2 发现与注册
+
+Host 通过以下命令"绘制领土"：
+
+- `tools/list`：获取可用函数和 schema
+- `resources/list`：获取可用数据上下文
+- `prompts/list`：获取可用模板
+
+### 4.3 执行（循环）
+
+**场景**：用户问"查看东京天气并保存到日志文件。"
+
+1. LLM 推理需要 `get_weather(city="Tokyo")`
+2. Client 发送 `tools/call` 请求到 Weather MCP Server
+3. Server 执行逻辑（调用天气 API）
+4. Server 返回结果给 Client
+5. Host 将结果注入 LLM 上下文
+6. LLM 决定调用 File System MCP Server 的 `write_file(...)`
+7. 过程重复直到任务完成
+
+---
+
+## 5. 安全架构与企业治理
+
+### 5.1 传输安全：隔离 vs 加密
+
+| 特性 | Stdio（本地） | SSE / HTTP（远程） |
+|------|---------------|-------------------|
+| **信任边界** | 进程隔离 | 网络边界 |
+| **攻击面** | 限于本地机器 | 暴露于网络 |
+| **缓解措施** | 沙箱（Docker、microVM）| TLS（HTTPS）、VPN/VPC |
+
+### 5.2 授权与 "Human-in-the-Loop"（HITL）
+
+**Confused Deputy 问题** 是智能体 AI 中最重大的风险。恶意 Prompt 注入可能欺骗 LLM 执行破坏性操作。
+
+**通过 HITL 缓解**：
+- 审批对话框：Host 必须为敏感 Tools 展示 UI 确认
+- 细粒度授权：协议支持不同许可级别的 "Elicitation"
+- Sampling 治理：Host 作为 `sampling/createMessage` 请求的防火墙
+
+### 5.3 认证框架
+
+- **HTTP Headers**：标准 `Authorization: Bearer <token>` 用于 SSE/HTTP
+- **OAuth 2.1**：企业集成的首选标准
+- **连接初始化**：Token 可在 initialize 握手期间传递
+
+---
+
+## 6. 实现策略与生态
+
+### 6.1 SDK 概览
+
+| 特性 | TypeScript SDK | Python SDK | Java SDK |
+|------|----------------|------------|----------|
+| **主要用例** | Web 端 Host、Node.js Server | 数据科学、AI 工程 | 企业后端系统 |
+| **设计模式** | 函数式/事件驱动（zod）| 装饰器模式（FastMCP）| 面向对象（Spring AI）|
+| **异步模型** | 原生 Promise | asyncio | Reactive Streams（Project Reactor）|
+| **生态** | Vercel AI SDK、LangChain.js | LangChain、LlamaIndex | Spring Boot 生态 |
+
+### 6.2 开发体验：MCP Inspector 调试
+
+Anthropic 提供了 **MCP Inspector**，专用开发工具：
+
+- **交互式测试**：UI 手动调用 Tools 并查看 Resources
+- **流量分析**：实时显示所有 JSON-RPC 消息
+- **Schema 验证**：即时标记规范违规
+
+### 6.3 生产部署最佳实践
+
+| 实践 | 描述 |
+|------|------|
+| **无状态** | 设计 Server 为无状态以支持水平扩展 |
+| **优雅降级** | 实现健壮的错误处理和结构化错误消息 |
+| **可观测性** | 使用 `notifications/message` 进行服务端日志记录 |
+
+---
+
+## 结论
+
+Model Context Protocol 代表了生成式 AI 行业的成熟点。它标志着从"野蛮西部"式的定制脆弱 API 集成向标准化、可互操作的工业基础设施的转变。
+
+通过解决 N×M 连接性问题，MCP 大幅降低了构建智能体系统的成本和复杂度。协议架构——建立在 Host、Client 和 Server 之间安全、有状态的交互之上——为企业采用提供了必要的抽象层。
+
+对于开发者和企业架构师，战略方向很明确：**从构建专有 "AI Connector" 转向构建标准 "MCP Server"** 是面向未来 AI 基础设施的正确路径。
+
+:::info 核心要点
+MCP 将自身定位为智能体 Web 的 TCP/IP 等价物——让组织能够在保持数据原地不动（隔离）的同时，使其对未来的推理引擎可用（连接）。
+:::

@@ -1,0 +1,897 @@
+---
+id: observability
+title: 5. 可观测性
+sidebar_label: 5. 可观测性
+description: 生产环境代理的监控、追踪、日志记录和调试工具
+---
+
+# 5. 可观测性
+
+> **"无法修复看不见的问题。可观测性是可靠代理系统的基础。"**
+
+可观测性使您能够理解代理系统内部的运行情况。它不仅仅是关于日志记录——而是追踪每一个决策、测量每一个操作以及调试复杂的工作流。
+
+---
+
+## 5.1 监控
+
+### 关键指标
+
+```mermaid
+flowchart TB
+    subgraph Metrics["代理指标"]
+        direction TB
+        Perf[性能]
+        Rel[可靠性]
+        Cost[成本]
+        Qual[质量]
+    end
+
+    subgraph Performance["性能指标"]
+        Lat[延迟]
+        Through[吞吐量]
+        Util[资源利用率]
+    end
+
+    subgraph Reliability["可靠性指标"]
+        Success[成功率]
+        Error[错误率]
+        Avail[可用性]
+    end
+
+    subgraph Cost["成本指标"]
+        Token[Token 使用量]
+        Api[API 调用]
+        Infra[基础设施]
+    end
+
+    subgraph Quality["质量指标"]
+        Acc[准确性]
+        Sat[用户满意度]
+        Halluc[幻觉率]
+    end
+
+    Perf --> Lat
+    Perf --> Through
+    Perf --> Util
+
+    Rel --> Success
+    Rel --> Error
+    Rel --> Avail
+
+    Cost --> Token
+    Cost --> Api
+    Cost --> Infra
+
+    Qual --> Acc
+    Qual --> Sat
+    Qual --> Halluc
+
+    style Perf fill:#e1f5fe
+    style Rel fill:#f3e5f5
+    style Cost fill:#e8f5e9
+    style Qual fill:#fff3e0
+```
+
+### 指标收集
+
+```java
+@Service
+public class AgentMetricsService {
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    // 性能指标
+    public void recordLatency(String operation, Duration latency) {
+        meterRegistry.timer(
+            "agent.latency",
+            "operation", operation
+        ).record(latency);
+    }
+
+    public void recordThroughput(String operation, int count) {
+        meterRegistry.counter(
+            "agent.throughput",
+            "operation", operation
+        ).increment(count);
+    }
+
+    // 可靠性指标
+    public void recordSuccess(String operation) {
+        meterRegistry.counter(
+            "agent.success",
+            "operation", operation
+        ).increment();
+    }
+
+    public void recordError(String operation, String errorType) {
+        meterRegistry.counter(
+            "agent.errors",
+            "operation", operation,
+            "error_type", errorType
+        ).increment();
+    }
+
+    // 成本指标
+    public void recordTokenUsage(
+        String model,
+        int promptTokens,
+        int completionTokens
+    ) {
+        meterRegistry.counter(
+            "agent.tokens.prompt",
+            "model", model
+        ).increment(promptTokens);
+
+        meterRegistry.counter(
+            "agent.tokens.completion",
+            "model", model
+        ).increment(completionTokens);
+    }
+
+    public void recordApiCall(String service) {
+        meterRegistry.counter(
+            "agent.api.calls",
+            "service", service
+        ).increment();
+    }
+
+    // 质量指标
+    public void recordAccuracy(String operation, double accuracy) {
+        meterRegistry.gauge(
+            "agent.quality.accuracy",
+            Tags.of("operation", operation),
+            accuracy
+        );
+    }
+
+    public void recordUserSatisfaction(
+        String agentId,
+        double score
+    ) {
+        meterRegistry.gauge(
+            "agent.quality.satisfaction",
+            Tags.of("agent_id", agentId),
+            score
+        );
+    }
+}
+```
+
+### 指标仪表板（Grafana）
+
+```json
+{
+  "dashboard": {
+    "title": "代理可观测性",
+    "panels": [
+      {
+        "title": "成功率",
+        "targets": [
+          {
+            "expr": "rate(agent_success_total[5m]) / (rate(agent_success_total[5m]) + rate(agent_errors_total[5m]))"
+          }
+        ]
+      },
+      {
+        "title": "P95 延迟",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(agent_latency_seconds_bucket[5m]))"
+          }
+        ]
+      },
+      {
+        "title": "Token 使用量",
+        "targets": [
+          {
+            "expr": "rate(agent_tokens_prompt_total[1h])",
+            "legendFormat": "Prompt Tokens"
+          },
+          {
+            "expr": "rate(agent_tokens_completion_total[1h])",
+            "legendFormat": "Completion Tokens"
+          }
+        ]
+      },
+      {
+        "title": "每任务成本",
+        "targets": [
+          {
+            "expr": "agent_cost_total / agent_tasks_completed_total"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 5.2 追踪
+
+### 分布式追踪
+
+```java
+@Service
+public class AgentTracingService {
+
+    @Autowired
+    private Tracer tracer;
+
+    public <T> T trace(
+        String operationName,
+        Supplier<T> operation
+    ) {
+        Span span = tracer.nextSpan()
+            .name(operationName);
+
+        try (Tracer.SpanInScope ws = tracer.withSpanInScope(span)) {
+            return operation.get();
+
+        } catch (Exception e) {
+            span.recordException(e);
+            throw e;
+
+        } finally {
+            span.end();
+        }
+    }
+
+    public void traceToolCall(ToolCall call) {
+        Span span = tracer.nextSpan()
+            .name("tool." + call.getToolName());
+
+        span.tag("tool.name", call.getToolName());
+        span.tag("tool.input", truncate(call.getInput()));
+        span.tag("agent.id", call.getAgentId());
+
+        try (Tracer.SpanInScope ws = tracer.withSpanInScope(span)) {
+            ToolResult result = toolExecutor.execute(call);
+
+            span.tag("tool.status", result.getStatus());
+            span.tag("tool.output", truncate(result.getData()));
+
+            if (result.hasError()) {
+                span.tag("tool.error", result.getErrorMessage());
+            }
+
+        } finally {
+            span.end();
+        }
+    }
+
+    public void traceLLMCall(LLMRequest request) {
+        Span span = tracer.nextSpan()
+            .name("llm.call");
+
+        span.tag("llm.model", request.getModel());
+        span.tag("llm.prompt_tokens", String.valueOf(request.getPromptTokens()));
+        span.tag("llm.agent_id", request.getAgentId());
+
+        try (Tracer.SpanInScope ws = tracer.withSpanInScope(span)) {
+            LLMResponse response = llmClient.call(request);
+
+            span.tag("llm.status", "success");
+            span.tag("llm.completion_tokens",
+                String.valueOf(response.getCompletionTokens()));
+
+        } catch (Exception e) {
+            span.recordException(e);
+            throw e;
+
+        } finally {
+            span.end();
+        }
+    }
+
+    private String truncate(Object value) {
+        String str = String.valueOf(value);
+        return str.length() > 1000 ?
+            str.substring(0, 1000) + "..." :
+            str;
+    }
+}
+```
+
+### 追踪可视化
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent
+    participant LLM
+    participant Tool1 as Web Search
+    participant Tool2 as Database
+
+    User->>Agent: 查询
+    Agent->>LLM: 初始请求
+    Note over Agent,LLM: Span: llm.call
+
+    LLM->>Agent: 工具调用
+    Agent->>Tool1: 搜索
+    Note over Agent,Tool1: Span: tool.web_search
+
+    Tool1->>Agent: 结果
+    Agent->>Tool2: 查询
+    Note over Agent,Tool2: Span: tool.database_query
+
+    Tool2->>Agent: 数据
+    Agent->>LLM: 最终请求
+    Note over Agent,LLM: Span: llm.call
+
+    LLM->>Agent: 响应
+    Agent->>User: 答案
+```
+
+---
+
+## 5.3 日志记录
+
+### 结构化日志
+
+```java
+@Service
+public class AgentLoggingService {
+
+    private final Logger logger =
+        LoggerFactory.getLogger(AgentLoggingService.class);
+
+    private final ObjectMapper objectMapper;
+
+    public void logAgentEvent(
+        String agentId,
+        String eventType,
+        Map<String, Object> data
+    ) {
+        try {
+            Map<String, Object> logEntry = new HashMap<>();
+            logEntry.put("timestamp", Instant.now());
+            logEntry.put("agent_id", agentId);
+            logEntry.put("event_type", eventType);
+            logEntry.put("data", data);
+
+            String json = objectMapper.writeValueAsString(logEntry);
+
+            // 使用结构化日志
+            logger.info(json);
+
+        } catch (JsonProcessingException e) {
+            logger.error("Failed to create structured log", e);
+        }
+    }
+
+    public void logToolCall(ToolCall call, ToolResult result) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("tool_name", call.getToolName());
+        data.put("status", result.getStatus());
+        data.put("duration_ms", result.getDuration().toMillis());
+
+        if (result.hasError()) {
+            data.put("error", result.getErrorMessage());
+        }
+
+        logAgentEvent(
+            call.getAgentId(),
+            "tool_call",
+            data
+        );
+    }
+
+    public void logLLMCall(
+        String agentId,
+        String model,
+        int promptTokens,
+        int completionTokens,
+        Duration duration
+    ) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("model", model);
+        data.put("prompt_tokens", promptTokens);
+        data.put("completion_tokens", completionTokens);
+        data.put("total_tokens", promptTokens + completionTokens);
+        data.put("duration_ms", duration.toMillis());
+
+        // 计算成本（示例费率）
+        double cost = calculateCost(model, promptTokens, completionTokens);
+        data.put("estimated_cost_usd", cost);
+
+        logAgentEvent(agentId, "llm_call", data);
+    }
+
+    public void logAgentError(
+        String agentId,
+        String errorType,
+        String message,
+        Throwable throwable
+    ) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("error_type", errorType);
+        data.put("message", message);
+        data.put("stack_trace", getStackTrace(throwable));
+
+        logAgentEvent(agentId, "error", data);
+    }
+
+    private double calculateCost(
+        String model,
+        int promptTokens,
+        int completionTokens
+    ) {
+        // 示例定价（根据实际费率调整）
+        Map<String, Double> promptPrice = Map.of(
+            "gpt-4", 0.03 / 1000,
+            "gpt-3.5-turbo", 0.0015 / 1000,
+            "claude-3-opus", 0.015 / 1000
+        );
+
+        Map<String, Double> completionPrice = Map.of(
+            "gpt-4", 0.06 / 1000,
+            "gpt-3.5-turbo", 0.002 / 1000,
+            "claude-3-opus", 0.075 / 1000
+        );
+
+        double promptCost = promptPrice.getOrDefault(model, 0.0) * promptTokens;
+        double completionCost = completionPrice.getOrDefault(model, 0.0) * completionTokens;
+
+        return promptCost + completionCost;
+    }
+
+    private String getStackTrace(Throwable throwable) {
+        StringWriter sw = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
+    }
+}
+```
+
+### 日志级别和记录内容
+
+| 级别 | 使用场景 | 示例 |
+|-------|-------------|----------|
+| **ERROR** | 系统故障 | 工具故障、LLM 错误、异常 |
+| **WARN** | 潜在问题 | 高延迟、接近限制 |
+| **INFO** | 重要事件 | 任务开始、任务完成 |
+| **DEBUG** | 详细流程 | 工具调用、LLM 请求 |
+| **TRACE** | 非常详细 | 内部状态变化 |
+
+```java
+@Service
+public class LogLevelExample {
+
+    private final Logger logger =
+        LoggerFactory.getLogger(LogLevelExample.class);
+
+    public void demonstrateLogLevels() {
+        // ERROR: 系统故障
+        logger.error("Tool execution failed: {}", toolName, exception);
+
+        // WARN: 潜在问题
+        logger.warn("Token usage approaching limit: {}/{}",
+            used, limit);
+
+        // INFO: 重要事件
+        logger.info("Task completed: {} in {}ms",
+            taskId, duration);
+
+        // DEBUG: 详细流程
+        logger.debug("Executing tool call: {}", toolCall);
+
+        // TRACE: 非常详细
+        logger.trace("State updated: {} -> {}",
+            oldState, newState);
+    }
+}
+```
+
+### PII 考虑因素
+
+```java
+@Service
+public class PIISanitizationService {
+
+    private final List<Pattern> piiPatterns = List.of(
+        // 电子邮件地址
+        Pattern.compile("\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b"),
+
+        // 电话号码
+        Pattern.compile("\\b\\d{3}[-.]?\\d{3}[-.]?\\d{4}\\b"),
+
+        // 信用卡号
+        Pattern.compile("\\b\\d{4}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b"),
+
+        // SSN
+        Pattern.compile("\\b\\d{3}-\\d{2}-\\d{4}\\b")
+    );
+
+    public String sanitize(String input) {
+        String sanitized = input;
+
+        for (Pattern pattern : piiPatterns) {
+            sanitized = pattern.matcher(sanitized)
+                .replaceAll("[REDACTED]");
+        }
+
+        return sanitized;
+    }
+
+    public Map<String, Object> sanitizeMap(
+        Map<String, Object> data
+    ) {
+        Map<String, Object> sanitized = new HashMap<>();
+
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            Object value = entry.getValue();
+
+            if (value instanceof String) {
+                sanitized.put(
+                    entry.getKey(),
+                    sanitize((String) value)
+                );
+            } else if (value instanceof Map) {
+                sanitized.put(
+                    entry.getKey(),
+                    sanitizeMap((Map<String, Object>) value)
+                );
+            } else {
+                sanitized.put(entry.getKey(), value);
+            }
+        }
+
+        return sanitized;
+    }
+}
+```
+
+---
+
+## 5.4 调试工具
+
+### LangSmith 集成
+
+```java
+@Service
+public class LangSmithTracingService {
+
+    @Value("${langsmith.api-key}")
+    private String apiKey;
+
+    @Value("${langsmith.project-name}")
+    private String projectName;
+
+    private final LangSmithClient client;
+
+    @PostConstruct
+    public void init() {
+        this.client = LangSmithClient.builder()
+            .apiKey(apiKey)
+            .projectName(projectName)
+            .build();
+    }
+
+    public void traceRun(
+        String runId,
+        String agentId,
+        String input,
+        String output,
+        List<ToolCall> toolCalls,
+        Duration duration
+    ) {
+        Run run = Run.builder()
+            .id(runId)
+            .name(agentId)
+            .input(input)
+            .output(output)
+            .startTime(Instant.now().minus(duration))
+            .endTime(Instant.now())
+            .executionDuration(duration)
+            .build();
+
+        // 添加工具调用作为子运行
+        for (ToolCall toolCall : toolCalls) {
+            Run childRun = Run.builder()
+                .name(toolCall.getToolName())
+                .input(toolCall.getInput())
+                .output(toolCall.getOutput())
+                .build();
+
+            run.addChildRun(childRun);
+        }
+
+        client.createRun(run);
+    }
+}
+```
+
+### 自定义调试界面
+
+```typescript
+// Next.js: 调试界面
+interface AgentTrace {
+  runId: string;
+  agentId: string;
+  startTime: string;
+  duration: number;
+  steps: TraceStep[];
+}
+
+interface TraceStep {
+  stepId: string;
+  type: "llm_call" | "tool_call" | "error";
+  timestamp: string;
+  duration: number;
+  input: any;
+  output: any;
+  error?: string;
+}
+
+export function AgentDebugPanel({ runId }: { runId: string }) {
+  const [trace, setTrace] = useState<AgentTrace | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/agent/debug/${runId}`)
+      .then(res => res.json())
+      .then(data => {
+        setTrace(data);
+        setLoading(false);
+      });
+  }, [runId]);
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div className="debug-panel">
+      <h3>代理追踪: {trace.runId}</h3>
+
+      <div className="trace-summary">
+        <div>代理: {trace.agentId}</div>
+        <div>持续时间: {trace.duration}ms</div>
+        <div>步骤: {trace.steps.length}</div>
+      </div>
+
+      <div className="trace-steps">
+        {trace.steps.map((step, index) => (
+          <TraceStepComponent key={step.stepId} step={step} />
+        ))}
+      </div>
+
+      <div className="trace-actions">
+        <button onClick={() => exportTrace(trace)}>
+          导出追踪
+        </button>
+        <button onClick={() => replayTrace(trace)}>
+          重播
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TraceStepComponent({ step }: { step: TraceStep }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className={`trace-step trace-step-${step.type}`}>
+      <div className="step-header" onClick={() => setExpanded(!expanded)}>
+        <span className="step-type">{step.type}</span>
+        <span className="step-time">{step.timestamp}</span>
+        <span className="step-duration">{step.duration}ms</span>
+      </div>
+
+      {expanded && (
+        <div className="step-details">
+          <div className="step-input">
+            <h4>输入</h4>
+            <pre>{JSON.stringify(step.input, null, 2)}</pre>
+          </div>
+
+          <div className="step-output">
+            <h4>输出</h4>
+            <pre>{JSON.stringify(step.output, null, 2)}</pre>
+          </div>
+
+          {step.error && (
+            <div className="step-error">
+              <h4>错误</h4>
+              <pre>{step.error}</pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## 5.5 告警
+
+### 告警配置
+
+```java
+@Service
+public class AlertingService {
+
+    @Autowired
+    private AlertNotifier alertNotifier;
+
+    public void checkAlerts(MetricsSnapshot metrics) {
+        // 成功率告警
+        if (metrics.getSuccessRate() < 0.95) {
+            alertNotifier.send(
+                AlertSeverity.WARNING,
+                "低成功率",
+                String.format(
+                    "成功率降至 %.2f%% (阈值: 95%%)",
+                    metrics.getSuccessRate() * 100
+                )
+            );
+        }
+
+        // 延迟告警
+        if (metrics.getP95Latency() > Duration.ofSeconds(15)) {
+            alertNotifier.send(
+                AlertSeverity.WARNING,
+                "高延迟",
+                String.format(
+                    "P95 延迟为 %dms (阈值: 15000ms)",
+                    metrics.getP95Latency().toMillis()
+                )
+            );
+        }
+
+        // 错误率告警
+        if (metrics.getErrorRate() > 0.05) {
+            alertNotifier.send(
+                AlertSeverity.CRITICAL,
+                "高错误率",
+                String.format(
+                    "错误率为 %.2f%% (阈值: 5%%)",
+                    metrics.getErrorRate() * 100
+                )
+            );
+        }
+
+        // 成本告警
+        if (metrics.getCostPerTask() > 0.10) {
+            alertNotifier.send(
+                AlertSeverity.INFO,
+                "每任务成本过高",
+                String.format(
+                    "每任务成本为 $%.4f (阈值: $0.10)",
+                    metrics.getCostPerTask()
+                )
+            );
+        }
+    }
+}
+```
+
+### 告警渠道
+
+```java
+@Service
+public class AlertNotifier {
+
+    @Value("${alert.slack.webhook}")
+    private String slackWebhook;
+
+    @Value("${alert.email.to}")
+    private String emailTo;
+
+    public void send(
+        AlertSeverity severity,
+        String title,
+        String message
+    ) {
+        // 发送到 Slack
+        sendToSlack(severity, title, message);
+
+        // 发送邮件用于严重告警
+        if (severity == AlertSeverity.CRITICAL) {
+            sendEmail(title, message);
+        }
+    }
+
+    private void sendToSlack(
+        AlertSeverity severity,
+        String title,
+        String message
+    ) {
+        SlackMessage slackMessage = SlackMessage.builder()
+            .text(formatMessage(severity, title, message))
+            .color(getColor(severity))
+            .build();
+
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.postForObject(slackWebhook, slackMessage, String.class);
+    }
+
+    private void sendEmail(String title, String message) {
+        // 邮件实现
+    }
+
+    private String formatMessage(
+        AlertSeverity severity,
+        String title,
+        String message
+    ) {
+        return String.format(
+            "*[%s]* %s\n%s",
+            severity,
+            title,
+            message
+        );
+    }
+
+    private String getColor(AlertSeverity severity) {
+        return switch (severity) {
+            case CRITICAL -> "danger";
+            case WARNING -> "warning";
+            case INFO -> "good";
+        };
+    }
+}
+```
+
+---
+
+## 5.6 关键要点
+
+### 可观测性的三大支柱
+
+| 支柱 | 目的 | 工具 |
+|--------|---------|-------|
+| **指标** | 定量数据 | Prometheus、Grafana |
+| **追踪** | 请求流 | OpenTelemetry、Jaeger |
+| **日志** | 事件记录 | ELK、Loki |
+
+### 关键监控指标
+
+- **性能**：延迟、吞吐量、资源使用率
+- **可靠性**：成功率、错误率、可用性
+- **成本**：Token 使用量、API 调用、基础设施
+- **质量**：准确性、满意度、幻觉率
+
+### 调试策略
+
+1. **追踪**：遵循执行路径
+2. **测量**：识别瓶颈
+3. **日志**：理解上下文
+4. **重播**：重现问题
+
+### 生产环境检查清单
+
+- [ ] 所有操作的指标收集
+- [ ] 分布式追踪已启用
+- [ ] 结构化日志记录，适当的级别
+- [ ] PII 清洗
+- [ ] 追踪检查的调试界面
+- [ ] 告警已配置
+- [ ] 监控仪表板
+
+---
+
+## 5.7 下一步
+
+**继续您的旅程：**
+- → **[6. 安全与防护措施](../safety-guards)** - 约束和验证
+- → **[7. 生产模式](../patterns)** - 真实世界实现
+
+---
+
+:::tip 从指标开始
+先实现指标。它们是所有可观测性的基础。根据需要添加追踪和日志。
+:::
+
+:::warning 保护 PII
+存储前始终清洗日志和追踪。日志中的 PII 是安全风险。
+:::
+
+:::info 调试界面节省时间
+良好的调试界面可以将调试时间从小时减少到分钟。投资构建一个。
+:::

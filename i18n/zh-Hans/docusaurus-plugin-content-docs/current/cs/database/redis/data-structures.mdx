@@ -1,0 +1,552 @@
+---
+sidebar_position: 2
+title: Data Structures
+sidebar_label: 数据结构
+description: Redis 数据结构——String、Hash、List、Set、Sorted Set 的使用示例和场景
+---
+
+# 数据结构
+
+Redis 提供丰富的数据结构，能用最少的代码实现强大的操作。
+
+## 为什么数据结构很重要
+
+选择正确的数据结构对以下方面至关重要：
+- **性能**：O(1) vs O(N) 操作
+- **代码简洁**：使用内置操作而非应用逻辑
+- **内存效率**：紧凑存储
+
+**示例**：用 Sorted Set vs 在应用层维护排序列表实现排行榜
+- **Sorted Set**：`ZINCRBY leaderboard 50 "alice"`（O(log N)）
+- **应用层**：读取所有分数、排序、递增、写回（O(N log N)）
+
+## String（字符串）
+
+### 概述
+
+**二进制安全字符串**：可以存储任何数据（文本、JSON、二进制、序列化对象）
+
+**最大大小**：512 MB
+
+### 常用命令
+
+```bash
+# 设置和获取
+SET key value
+GET key
+
+# 设置带过期时间（秒）
+SETEX key 3600 value
+
+# 不存在时设置（用于分布式锁）
+SETNX lock:resource 1  # 设置成功返回 1，已存在返回 0
+
+# 原子递增（用于计数器）
+INCR counter  # 加 1
+INCRBY counter 10  # 加 10
+DECR counter  # 减 1
+
+# 批量操作
+MSET key1 value1 key2 value2
+MGET key1 key2
+
+# 追加字符串
+APPEND key "suffix"
+
+# 获取子串
+GETRANGE key 0 4  # 字符 0-4（5 个字符）
+
+# 设置子串
+SETRANGE key 5 "hello"  # 从位置 5 开始覆盖
+```
+
+### 使用场景
+
+#### 1. 缓存
+
+```bash
+# 缓存 API 响应
+SETEX api:user:123 3600 '{"name":"Alice","age":25}'
+
+# 获取缓存
+GET api:user:123  # 返回 JSON 字符串
+```
+
+#### 2. 计数器
+
+```bash
+# 页面浏览计数
+INCR page:home:views
+
+# 限流
+INCR ratelimit:user:123:2024-02-14
+EXPIRE ratelimit:user:123:2024-02-14 86400
+GET ratelimit:user:123:2024-02-14  # 查看计数
+```
+
+#### 3. 分布式锁
+
+```bash
+# 获取锁（Redis 2.6.12+ 支持 SETNX + 过期时间）
+SET lock:order:123 "unique_value" NX EX 10  # 不存在时设置，10 秒过期
+
+# 释放锁（仅当值匹配时）
+GET lock:order:123
+if value == "unique_value":
+    DEL lock:order:123
+
+# 更好：使用 Lua 脚本原子检查并删除
+EVAL "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end" 1 lock:order:123 "unique_value"
+```
+
+#### 4. 会话存储
+
+```bash
+# 存储会话数据
+HSET session:abc123 user_id 123 login_time "2024-02-14T10:00:00Z"
+EXPIRE session:abc123 3600
+
+# 检查会话
+EXISTS session:abc123  # 存在返回 1
+```
+
+## Hash（哈希）
+
+### 概述
+
+**字段-值对**：类似 Map/字典（类似 JSON 对象或 HashMap）
+
+**最大字段数**：每个哈希 40 亿
+
+### 常用命令
+
+```bash
+# 设置字段
+HSET key field value
+HMSET key field1 value1 field2 value2  # 多个字段
+
+# 获取字段
+HGET key field
+HMGET key field1 field2  # 多个字段
+HGETALL key  # 所有字段和值
+
+# 检查存在性
+HEXISTS key field
+
+# 递增字段（用于哈希内的计数器）
+HINCRBY key field 1
+
+# 删除字段
+HDEL key field
+
+# 获取所有字段名或值
+HKEYS key  # 所有字段名
+HVALS key  # 所有值
+
+# 字段数量
+HLEN key
+```
+
+### 使用场景
+
+#### 1. 对象存储（用户资料）
+
+```bash
+# 存储用户资料
+HSET user:123 name "Alice" email "alice@example.com" age 25
+
+# 获取特定字段
+HGET user:123 name  # 返回 "Alice"
+
+# 更新单个字段
+HSET user:123 age 26
+
+# 获取所有字段
+HGETALL user:123
+# 返回: name "Alice" email "alice@example.com" age 26
+```
+
+#### 2. 购物车
+
+```bash
+# 添加商品到购物车
+HSET cart:user:123 product:456 2  # 2 件商品 456
+
+# 获取购物车内容
+HGETALL cart:user:123
+
+# 更新数量
+HINCRBY cart:user:123 product:456 1  # 再加 1 件
+
+# 移除商品
+HDEL cart:user:123 product:456
+```
+
+#### 3. 计数器
+
+```bash
+# 按 URL 统计页面浏览量
+HINCRBY page:views:/home 1
+
+# 每日统计
+HINCRBY stats:2024-02-14 page_views 1
+HINCRBY stats:2024-02-14 unique_visitors 1
+```
+
+## List（列表）
+
+### 概述
+
+**链表**：有序的字符串集合（允许重复值）
+
+**最大元素数**：每个列表 40 亿
+
+**操作复杂度**：头部/尾部操作 O(1)，索引操作 O(N)
+
+### 常用命令
+
+```bash
+# 推入头部（左）或尾部（右）
+LPUSH key value1 value2  # 推入头部（左）
+RPUSH key value1 value2  # 推入尾部（右）
+
+# 从头部或尾部弹出
+LPOP key  # 从头部弹出
+RPOP key  # 从尾部弹出
+
+# 阻塞弹出（列表为空时等待）
+BLPOP key timeout  # 阻塞左弹出
+BRPOP key timeout  # 阻塞右弹出
+
+# 获取范围
+LRANGE key 0 -1  # 所有元素（0 到 -1）
+LRANGE key 0 9  # 前 10 个元素
+
+# 获取长度
+LLEN key
+
+# 裁剪列表（只保留指定范围）
+LTRIM key 0 99  # 只保留前 100 个元素
+
+# 按索引获取
+LINDEX key 0  # 第一个元素
+
+# 按索引设置
+LSET key 0 "new_value"
+```
+
+### 使用场景
+
+#### 1. 队列（FIFO）
+
+```bash
+# 生产者（入队）
+RPUSH queue:tasks "task1"
+RPUSH queue:tasks "task2"
+
+# 消费者（出队）
+RPOP queue:tasks  # 返回 "task1"
+
+# 阻塞队列（为空时等待）
+BRPOP queue:tasks 30  # 最多等待 30 秒
+```
+
+#### 2. 栈（LIFO）
+
+```bash
+# 入栈
+LPUSH stack:items "item1"
+
+# 出栈
+LPOP stack:items  # 返回 "item1"
+```
+
+#### 3. 时间线（动态流）
+
+```bash
+# 添加动态（最新的在前）
+LPUSH timeline:user:123 "Post: Hello world"
+
+# 获取最近 20 条动态
+LRANGE timeline:user:123 0 19
+
+# 裁剪，只保留最新 100 条
+LTRIM timeline:user:123 0 99
+```
+
+#### 4. 消息队列
+
+```bash
+# 生产者
+LPUSH queue:emails '{"to":"alice@example.com","subject":"Welcome"}'
+
+# 消费者（阻塞）
+BRPOP queue:emails 0  # 无限期阻塞
+```
+
+## Set（集合）
+
+### 概述
+
+**无序的唯一字符串集合**：不允许重复，无序
+
+**最大元素数**：每个集合 40 亿
+
+**操作复杂度**：添加/删除/检查成员 O(1)
+
+### 常用命令
+
+```bash
+# 添加成员
+SADD key member1 member2
+
+# 移除成员
+SREM key member1
+
+# 检查成员
+SISMEMBER key member  # 存在返回 1
+
+# 获取所有成员
+SMEMBERS key
+
+# 获取基数（大小）
+SCARD key
+
+# 随机成员
+SRANDMEMBER key  # 返回随机成员（不删除）
+SPOP key  # 移除并返回随机成员
+
+# 集合运算
+SINTER key1 key2  # 交集（两个集合共有的成员）
+SUNION key1 key2  # 并集（所有成员）
+SDIFF key1 key2  # 差集（在 key1 但不在 key2 的成员）
+
+# 存储运算结果
+SINTERSTORE dest key1 key2
+SUNIONSTORE dest key1 key2
+SDIFFSTORE dest key1 key2
+```
+
+### 使用场景
+
+#### 1. 标签
+
+```bash
+# 为文章添加标签
+SADD article:123:tags "redis" "database" "nosql"
+
+# 获取所有标签
+SMEMBERS article:123:tags
+
+# 按标签查找文章（倒排索引）
+SADD tag:redis:articles 123
+SADD tag:database:articles 123
+
+# 同时有 "redis" 和 "database" 标签的文章
+SINTER tag:redis:articles tag:database:articles
+```
+
+#### 2. 关注/粉丝
+
+```bash
+# 用户关注其他人
+SADD user:123:following 456 789
+
+# 用户的粉丝
+SADD user:123:followers 456 789
+
+# 检查是否关注
+SISMEMBER user:123:following 456
+
+# 共同粉丝（同时关注用户 123 和 456 的人）
+SINTER user:123:followers user:456:followers
+
+# 关注数
+SCARD user:123:following
+```
+
+#### 3. 独立访客
+
+```bash
+# 按天跟踪独立访客
+SADD visitors:2024-02-14 "ip:1.2.3.4" "ip:5.6.7.8"
+
+# 独立访客数
+SCARD visitors:2024-02-14
+
+# 检查是否访问过
+SISMEMBER visitors:2024-02-14 "ip:1.2.3.4"
+```
+
+#### 4. 推荐引擎
+
+```bash
+# 用户喜欢的商品
+SADD user:123:likes item:1 item:2 item:3
+
+# 与 item:1 相似的商品
+SADD item:1:similar item:4 item:5
+
+# 推荐喜欢 item:1 的用户也喜欢的商品（排除用户已喜欢的）
+SUNIONSTORE temp item:1:similar
+SDIFF temp user:123:likes
+```
+
+## Sorted Set（有序集合 / ZSet）
+
+### 概述
+
+**有序的唯一成员集合**：每个成员关联一个分数（浮点数）
+
+**排序**：按分数升序排列（默认）
+
+**最大元素数**：每个有序集合 40 亿
+
+**操作复杂度**：插入/删除/排名 O(log N)
+
+### 常用命令
+
+```bash
+# 添加带分数的成员
+ZADD key score member
+ZADD key 100 "alice" 95 "bob" 120 "charlie"
+
+# 获取分数
+ZSCORE key member
+
+# 递增分数
+ZINCRBY key 10 "alice"  # alice 的分数变为 110
+
+# 按排名（索引）获取范围
+ZRANGE key 0 -1  # 所有成员（按分数升序）
+ZRANGE key 0 9 WITHSCORES  # 前 10 名（最低分数）
+ZREVRANGE key 0 9 WITHSCORES  # 前 10 名（最高分数）
+
+# 按分数获取范围
+ZRANGEBYSCORE key 0 100  # 分数 0-100 的成员
+ZREVRANGEBYSCORE key 100 0  # 反向（100 到 0）
+
+# 获取排名（0 开始）
+ZRANK key member  # 升序排名
+ZREVRANK key member  # 降序排名
+
+# 统计分数范围内的成员数
+ZCOUNT key 0 100
+
+# 移除成员
+ZREM key member
+
+# 按排名弹出（移除并返回）
+ZPOPMAX key  # 移除并返回最高分的成员
+ZPOPMIN key  # 移除并返回最低分的成员
+```
+
+### 使用场景
+
+#### 1. 排行榜
+
+```bash
+# 添加分数
+ZADD leaderboard 1000 "alice" 950 "bob" 1200 "charlie"
+
+# 获取前 10 名
+ZREVRANGE leaderboard 0 9 WITHSCORES
+
+# 获取用户排名
+ZREVRANK leaderboard "alice"  # 返回 2（从 0 开始）
+
+# 递增分数
+ZINCRBY leaderboard 50 "alice"  # Alice 的分数: 1000 → 1050
+
+# 获取用户分数
+ZSCORE leaderboard "alice"  # 返回 1050
+```
+
+#### 2. 优先队列
+
+```bash
+# 添加带优先级的任务（分数 = 优先级，越高越重要）
+ZADD queue:tasks 10 "task1" 5 "task2" 8 "task3"
+
+# 获取最高优先级任务
+ZPOPMAX queue:tasks  # 返回 "task1"（优先级 10）
+
+# 获取前 N 个任务
+ZREVRANGE queue:tasks 0 4 WITHSCORES  # 前 5 个任务
+```
+
+#### 3. 限流（滑动窗口）
+
+```bash
+# 添加请求，以时间戳作为分数
+ZADD ratelimit:user:123 1707880000 "req1" 1707880001 "req2"
+
+# 移除旧请求（超过 60 秒的）
+ZREMRANGEBYSCORE ratelimit:user:123 0 (1707880000 - 60000)
+
+# 统计最近 60 秒内的请求数
+ZCARD ratelimit:user:123
+
+# 如果计数 > 100，则限流
+```
+
+#### 4. 时间序列
+
+```bash
+# 添加数据点（时间戳作为分数）
+ZADD temperature:sensor:1 1707880000 "25.3" 1707880060 "25.5"
+
+# 获取最近 10 条读数
+ZREVRANGE temperature:sensor:1 0 9 WITHSCORES
+
+# 获取时间范围内的数据
+ZRANGEBYSCORE temperature:sensor:1 1707880000 1707883600
+```
+
+#### 5. 多维度排序
+
+```bash
+# 复合分数：如 (评分 * 10) + (评论数 / 100)
+ZADD products:ranked 95.23 "product:1" 87.45 "product:2"
+
+# 按分数范围搜索
+ZRANGEBYSCORE products:ranked 90 100 WITHSCORES
+```
+
+## 数据结构对比
+
+| 结构 | 有序 | 唯一 | 操作复杂度 | 使用场景 |
+|------|------|------|-----------|---------|
+| **String** | 不适用 | 不适用 | O(1) | 缓存、计数器、锁 |
+| **Hash** | 否 | 字段唯一 | O(1) | 对象、用户资料 |
+| **List** | 是 | 否 | 头/尾 O(1) | 队列、栈、时间线 |
+| **Set** | 否 | 成员唯一 | O(1) | 标签、粉丝、去重 |
+| **ZSet** | 是（按分数） | 成员唯一 | O(log N) | 排行榜、排名 |
+
+## 面试题
+
+### Q1：如何在 Redis 中实现排行榜？
+
+**答案**：使用 Sorted Set（ZSet）。用 `ZADD` 添加分数，用 `ZREVRANGE` 获取前 N 名，用 `ZREVRANK` 获取排名，用 `ZINCRBY` 递增分数。
+
+### Q2：List 和 Set 有什么区别？
+
+**答案**：List 有序且允许重复，Set 无序且保证唯一性。List 适用于队列/时间线，Set 适用于标签/粉丝。
+
+### Q3：如何在 Redis 中存储用户资料？
+
+**答案**：使用 Hash。每个字段是资料属性（name、email、age）。可以用 `HSET` 部分更新，用 `HGET` 获取特定字段。
+
+### Q4：如何实现限流？
+
+**答案**：使用 `INCR` 和 `EXPIRE` 实现固定窗口限流，或使用 Sorted Set 配合时间戳实现滑动窗口限流。检查计数，根据限制允许/拒绝。
+
+### Q5：ZADD 的时间复杂度是多少？
+
+**答案**：O(log N)，其中 N 是有序集合中的元素数。内部使用跳表实现。
+
+## 延伸阅读
+
+- **[持久化](../persistence)** - 数据如何持久化到磁盘
+- **[缓存模式](../caching-patterns)** - 缓存策略和失效机制
+- **[Cluster](../cluster)** - Redis 集群扩展

@@ -1,0 +1,546 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.csSidebar.category.Algorithms & DS": {
+    "message": "Algorithms & DS",
+    "description": "The label for category 'Algorithms & DS' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.category.Data Structures": {
+    "message": "Data Structures",
+    "description": "The label for category 'Data Structures' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.category.Algorithm Patterns": {
+    "message": "Algorithm Patterns",
+    "description": "The label for category 'Algorithm Patterns' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.category.System Design": {
+    "message": "System Design",
+    "description": "The label for category 'System Design' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.category.Database": {
+    "message": "Database",
+    "description": "The label for category 'Database' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.category.MySQL": {
+    "message": "MySQL",
+    "description": "The label for category 'MySQL' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.category.Redis": {
+    "message": "Redis",
+    "description": "The label for category 'Redis' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.category.Advanced Topics": {
+    "message": "Advanced Topics",
+    "description": "The label for category 'Advanced Topics' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.category.Network & OS": {
+    "message": "Network & OS",
+    "description": "The label for category 'Network & OS' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.category.TCP/IP Five-Layer Model": {
+    "message": "TCP/IP Five-Layer Model",
+    "description": "The label for category 'TCP/IP Five-Layer Model' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.category.Troubleshooting": {
+    "message": "Troubleshooting",
+    "description": "The label for category 'Troubleshooting' in sidebar 'csSidebar'"
+  },
+  "sidebar.csSidebar.doc.CS Core Overview": {
+    "message": "CS Core Overview",
+    "description": "The label for the doc item 'CS Core Overview' in sidebar 'csSidebar', linking to the doc cs/index"
+  },
+  "sidebar.csSidebar.doc.cs-algorithms-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'csSidebar', linking to the doc cs/algorithms/index"
+  },
+  "sidebar.csSidebar.doc.1. Arrays & Strings": {
+    "message": "1. Arrays & Strings",
+    "description": "The label for the doc item '1. Arrays & Strings' in sidebar 'csSidebar', linking to the doc cs/algorithms/arrays-strings"
+  },
+  "sidebar.csSidebar.doc.2. Linked Lists": {
+    "message": "2. Linked Lists",
+    "description": "The label for the doc item '2. Linked Lists' in sidebar 'csSidebar', linking to the doc cs/algorithms/linked-lists"
+  },
+  "sidebar.csSidebar.doc.3. Stacks & Queues": {
+    "message": "3. Stacks & Queues",
+    "description": "The label for the doc item '3. Stacks & Queues' in sidebar 'csSidebar', linking to the doc cs/algorithms/stacks-queues"
+  },
+  "sidebar.csSidebar.doc.4. HashMaps & HashSets": {
+    "message": "4. HashMaps & HashSets",
+    "description": "The label for the doc item '4. HashMaps & HashSets' in sidebar 'csSidebar', linking to the doc cs/algorithms/hash-maps"
+  },
+  "sidebar.csSidebar.doc.5. Trees": {
+    "message": "5. Trees",
+    "description": "The label for the doc item '5. Trees' in sidebar 'csSidebar', linking to the doc cs/algorithms/trees"
+  },
+  "sidebar.csSidebar.doc.6. Heaps": {
+    "message": "6. Heaps",
+    "description": "The label for the doc item '6. Heaps' in sidebar 'csSidebar', linking to the doc cs/algorithms/heaps"
+  },
+  "sidebar.csSidebar.doc.7. Graphs": {
+    "message": "7. Graphs",
+    "description": "The label for the doc item '7. Graphs' in sidebar 'csSidebar', linking to the doc cs/algorithms/graphs"
+  },
+  "sidebar.csSidebar.doc.8. Tries": {
+    "message": "8. Tries",
+    "description": "The label for the doc item '8. Tries' in sidebar 'csSidebar', linking to the doc cs/algorithms/tries"
+  },
+  "sidebar.csSidebar.doc.9. Sorting": {
+    "message": "9. Sorting",
+    "description": "The label for the doc item '9. Sorting' in sidebar 'csSidebar', linking to the doc cs/algorithms/sorting"
+  },
+  "sidebar.csSidebar.doc.10. Two Pointers": {
+    "message": "10. Two Pointers",
+    "description": "The label for the doc item '10. Two Pointers' in sidebar 'csSidebar', linking to the doc cs/algorithms/two-pointers"
+  },
+  "sidebar.csSidebar.doc.11. Sliding Window": {
+    "message": "11. Sliding Window",
+    "description": "The label for the doc item '11. Sliding Window' in sidebar 'csSidebar', linking to the doc cs/algorithms/sliding-window"
+  },
+  "sidebar.csSidebar.doc.12. Binary Search": {
+    "message": "12. Binary Search",
+    "description": "The label for the doc item '12. Binary Search' in sidebar 'csSidebar', linking to the doc cs/algorithms/binary-search"
+  },
+  "sidebar.csSidebar.doc.13. Greedy": {
+    "message": "13. Greedy",
+    "description": "The label for the doc item '13. Greedy' in sidebar 'csSidebar', linking to the doc cs/algorithms/greedy"
+  },
+  "sidebar.csSidebar.doc.14. Backtracking": {
+    "message": "14. Backtracking",
+    "description": "The label for the doc item '14. Backtracking' in sidebar 'csSidebar', linking to the doc cs/algorithms/backtracking"
+  },
+  "sidebar.csSidebar.doc.15. Dynamic Programming": {
+    "message": "15. Dynamic Programming",
+    "description": "The label for the doc item '15. Dynamic Programming' in sidebar 'csSidebar', linking to the doc cs/algorithms/dynamic-programming"
+  },
+  "sidebar.csSidebar.doc.16. Search Strategies": {
+    "message": "16. Search Strategies",
+    "description": "The label for the doc item '16. Search Strategies' in sidebar 'csSidebar', linking to the doc cs/algorithms/searching"
+  },
+  "sidebar.csSidebar.doc.Index": {
+    "message": "Index",
+    "description": "The label for the doc item 'Index' in sidebar 'csSidebar', linking to the doc cs/system-design/index"
+  },
+  "sidebar.csSidebar.doc.1. Entry Layer": {
+    "message": "1. Entry Layer",
+    "description": "The label for the doc item '1. Entry Layer' in sidebar 'csSidebar', linking to the doc cs/system-design/entry-layer"
+  },
+  "sidebar.csSidebar.doc.2. Service Layer": {
+    "message": "2. Service Layer",
+    "description": "The label for the doc item '2. Service Layer' in sidebar 'csSidebar', linking to the doc cs/system-design/service-layer"
+  },
+  "sidebar.csSidebar.doc.3. Storage Layer": {
+    "message": "3. Storage Layer",
+    "description": "The label for the doc item '3. Storage Layer' in sidebar 'csSidebar', linking to the doc cs/system-design/storage-layer"
+  },
+  "sidebar.csSidebar.doc.4. Caching Layer": {
+    "message": "4. Caching Layer",
+    "description": "The label for the doc item '4. Caching Layer' in sidebar 'csSidebar', linking to the doc cs/system-design/caching-layer"
+  },
+  "sidebar.csSidebar.doc.5. Messaging & Analytics": {
+    "message": "5. Messaging & Analytics",
+    "description": "The label for the doc item '5. Messaging & Analytics' in sidebar 'csSidebar', linking to the doc cs/system-design/messaging-analytics-layer"
+  },
+  "sidebar.csSidebar.doc.6. Back-of-the-Envelope Estimation": {
+    "message": "6. Back-of-the-Envelope Estimation",
+    "description": "The label for the doc item '6. Back-of-the-Envelope Estimation' in sidebar 'csSidebar', linking to the doc cs/system-design/back-of-envelope-estimation"
+  },
+  "sidebar.csSidebar.doc.7. Consistent Hashing": {
+    "message": "7. Consistent Hashing",
+    "description": "The label for the doc item '7. Consistent Hashing' in sidebar 'csSidebar', linking to the doc cs/system-design/consistent-hashing"
+  },
+  "sidebar.csSidebar.doc.8. Notification System": {
+    "message": "8. Notification System",
+    "description": "The label for the doc item '8. Notification System' in sidebar 'csSidebar', linking to the doc cs/system-design/notification-system"
+  },
+  "sidebar.csSidebar.doc.cs-database-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'csSidebar', linking to the doc cs/database/index"
+  },
+  "sidebar.csSidebar.doc.cs-mysql-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'csSidebar', linking to the doc cs/database/mysql/index"
+  },
+  "sidebar.csSidebar.doc.Architecture & Storage Engines": {
+    "message": "Architecture & Storage Engines",
+    "description": "The label for the doc item 'Architecture & Storage Engines' in sidebar 'csSidebar', linking to the doc cs/database/mysql/architecture"
+  },
+  "sidebar.csSidebar.doc.Indexes": {
+    "message": "Indexes",
+    "description": "The label for the doc item 'Indexes' in sidebar 'csSidebar', linking to the doc cs/database/mysql/indexes"
+  },
+  "sidebar.csSidebar.doc.Transactions": {
+    "message": "Transactions",
+    "description": "The label for the doc item 'Transactions' in sidebar 'csSidebar', linking to the doc cs/database/mysql/transactions"
+  },
+  "sidebar.csSidebar.doc.Locking": {
+    "message": "Locking",
+    "description": "The label for the doc item 'Locking' in sidebar 'csSidebar', linking to the doc cs/database/mysql/locking"
+  },
+  "sidebar.csSidebar.doc.Logging & Replication": {
+    "message": "Logging & Replication",
+    "description": "The label for the doc item 'Logging & Replication' in sidebar 'csSidebar', linking to the doc cs/database/mysql/logging-replication"
+  },
+  "sidebar.csSidebar.doc.SQL Optimization": {
+    "message": "SQL Optimization",
+    "description": "The label for the doc item 'SQL Optimization' in sidebar 'csSidebar', linking to the doc cs/database/mysql/optimization"
+  },
+  "sidebar.csSidebar.doc.cs-redis-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'csSidebar', linking to the doc cs/database/redis/index"
+  },
+  "sidebar.csSidebar.doc.Data Structures": {
+    "message": "Data Structures",
+    "description": "The label for the doc item 'Data Structures' in sidebar 'csSidebar', linking to the doc cs/database/redis/data-structures"
+  },
+  "sidebar.csSidebar.doc.Persistence (RDB & AOF)": {
+    "message": "Persistence (RDB & AOF)",
+    "description": "The label for the doc item 'Persistence (RDB & AOF)' in sidebar 'csSidebar', linking to the doc cs/database/redis/persistence"
+  },
+  "sidebar.csSidebar.doc.Cluster & Sentinel": {
+    "message": "Cluster & Sentinel",
+    "description": "The label for the doc item 'Cluster & Sentinel' in sidebar 'csSidebar', linking to the doc cs/database/redis/cluster"
+  },
+  "sidebar.csSidebar.doc.Caching Patterns": {
+    "message": "Caching Patterns",
+    "description": "The label for the doc item 'Caching Patterns' in sidebar 'csSidebar', linking to the doc cs/database/redis/caching-patterns"
+  },
+  "sidebar.csSidebar.doc.Deadlock Prevention": {
+    "message": "Deadlock Prevention",
+    "description": "The label for the doc item 'Deadlock Prevention' in sidebar 'csSidebar', linking to the doc cs/database/advanced/deadlocks"
+  },
+  "sidebar.csSidebar.doc.Connection Pooling": {
+    "message": "Connection Pooling",
+    "description": "The label for the doc item 'Connection Pooling' in sidebar 'csSidebar', linking to the doc cs/database/advanced/connection-pooling"
+  },
+  "sidebar.csSidebar.doc.NoSQL Comparison": {
+    "message": "NoSQL Comparison",
+    "description": "The label for the doc item 'NoSQL Comparison' in sidebar 'csSidebar', linking to the doc cs/database/advanced/nosql-comparison"
+  },
+  "sidebar.csSidebar.doc.cs-network-os-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'csSidebar', linking to the doc cs/network-os/index"
+  },
+  "sidebar.csSidebar.doc.1. Physical Layer": {
+    "message": "1. Physical Layer",
+    "description": "The label for the doc item '1. Physical Layer' in sidebar 'csSidebar', linking to the doc cs/network-os/physical-layer"
+  },
+  "sidebar.csSidebar.doc.2. Data Link Layer": {
+    "message": "2. Data Link Layer",
+    "description": "The label for the doc item '2. Data Link Layer' in sidebar 'csSidebar', linking to the doc cs/network-os/data-link-layer"
+  },
+  "sidebar.csSidebar.doc.3. Network Layer": {
+    "message": "3. Network Layer",
+    "description": "The label for the doc item '3. Network Layer' in sidebar 'csSidebar', linking to the doc cs/network-os/network-layer"
+  },
+  "sidebar.csSidebar.doc.4. Transport Layer": {
+    "message": "4. Transport Layer",
+    "description": "The label for the doc item '4. Transport Layer' in sidebar 'csSidebar', linking to the doc cs/network-os/transport-layer"
+  },
+  "sidebar.csSidebar.doc.5. Application Layer": {
+    "message": "5. Application Layer",
+    "description": "The label for the doc item '5. Application Layer' in sidebar 'csSidebar', linking to the doc cs/network-os/application-layer"
+  },
+  "sidebar.csSidebar.doc.cs-network-os-troubleshooting-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'csSidebar', linking to the doc cs/network-os/troubleshooting/index"
+  },
+  "sidebar.aiSidebar.category.LLM Fundamentals": {
+    "message": "LLM Fundamentals",
+    "description": "The label for category 'LLM Fundamentals' in sidebar 'aiSidebar'"
+  },
+  "sidebar.aiSidebar.category.Prompt Engineering": {
+    "message": "Prompt Engineering",
+    "description": "The label for category 'Prompt Engineering' in sidebar 'aiSidebar'"
+  },
+  "sidebar.aiSidebar.category.RAG": {
+    "message": "RAG",
+    "description": "The label for category 'RAG' in sidebar 'aiSidebar'"
+  },
+  "sidebar.aiSidebar.category.Agents": {
+    "message": "Agents",
+    "description": "The label for category 'Agents' in sidebar 'aiSidebar'"
+  },
+  "sidebar.aiSidebar.category.Harness Engineering": {
+    "message": "Harness Engineering",
+    "description": "The label for category 'Harness Engineering' in sidebar 'aiSidebar'"
+  },
+  "sidebar.aiSidebar.category.MCP": {
+    "message": "MCP",
+    "description": "The label for category 'MCP' in sidebar 'aiSidebar'"
+  },
+  "sidebar.aiSidebar.category.Context Engineering": {
+    "message": "Context Engineering",
+    "description": "The label for category 'Context Engineering' in sidebar 'aiSidebar'"
+  },
+  "sidebar.aiSidebar.category.AgentOps & Security": {
+    "message": "AgentOps & Security",
+    "description": "The label for category 'AgentOps & Security' in sidebar 'aiSidebar'"
+  },
+  "sidebar.aiSidebar.category.Java & AI Internship": {
+    "message": "Java & AI Internship",
+    "description": "The label for category 'Java & AI Internship' in sidebar 'aiSidebar'"
+  },
+  "sidebar.aiSidebar.doc.AI & Agents Overview": {
+    "message": "AI & Agents Overview",
+    "description": "The label for the doc item 'AI & Agents Overview' in sidebar 'aiSidebar', linking to the doc ai/index"
+  },
+  "sidebar.aiSidebar.doc.ai-llm-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'aiSidebar', linking to the doc ai/llm-fundamentals/index"
+  },
+  "sidebar.aiSidebar.doc.ai-llm-intro": {
+    "message": "1. Introduction",
+    "description": "The label for the doc item '1. Introduction' in sidebar 'aiSidebar', linking to the doc ai/llm-fundamentals/introduction"
+  },
+  "sidebar.aiSidebar.doc.2. Tokenization": {
+    "message": "2. Tokenization",
+    "description": "The label for the doc item '2. Tokenization' in sidebar 'aiSidebar', linking to the doc ai/llm-fundamentals/tokenization"
+  },
+  "sidebar.aiSidebar.doc.3. Embeddings": {
+    "message": "3. Embeddings",
+    "description": "The label for the doc item '3. Embeddings' in sidebar 'aiSidebar', linking to the doc ai/llm-fundamentals/embeddings"
+  },
+  "sidebar.aiSidebar.doc.4. Transformer Architecture": {
+    "message": "4. Transformer Architecture",
+    "description": "The label for the doc item '4. Transformer Architecture' in sidebar 'aiSidebar', linking to the doc ai/llm-fundamentals/transformer-architecture"
+  },
+  "sidebar.aiSidebar.doc.5. Inference": {
+    "message": "5. Inference",
+    "description": "The label for the doc item '5. Inference' in sidebar 'aiSidebar', linking to the doc ai/llm-fundamentals/inference"
+  },
+  "sidebar.aiSidebar.doc.7. Limitations": {
+    "message": "7. Limitations",
+    "description": "The label for the doc item '7. Limitations' in sidebar 'aiSidebar', linking to the doc ai/llm-fundamentals/limitations"
+  },
+  "sidebar.aiSidebar.doc.6. Training Pipeline": {
+    "message": "6. Training Pipeline",
+    "description": "The label for the doc item '6. Training Pipeline' in sidebar 'aiSidebar', linking to the doc ai/llm-fundamentals/training-pipeline"
+  },
+  "sidebar.aiSidebar.doc.ai-prompt-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'aiSidebar', linking to the doc ai/prompt-engineering/index"
+  },
+  "sidebar.aiSidebar.doc.ai-prompt-intro": {
+    "message": "1. Introduction",
+    "description": "The label for the doc item '1. Introduction' in sidebar 'aiSidebar', linking to the doc ai/prompt-engineering/introduction"
+  },
+  "sidebar.aiSidebar.doc.2.1 Prompt Anatomy": {
+    "message": "2.1 Prompt Anatomy",
+    "description": "The label for the doc item '2.1 Prompt Anatomy' in sidebar 'aiSidebar', linking to the doc ai/prompt-engineering/prompt-anatomy"
+  },
+  "sidebar.aiSidebar.doc.2.2 Core Reasoning Patterns": {
+    "message": "2.2 Core Reasoning Patterns",
+    "description": "The label for the doc item '2.2 Core Reasoning Patterns' in sidebar 'aiSidebar', linking to the doc ai/prompt-engineering/reasoning-patterns"
+  },
+  "sidebar.aiSidebar.doc.2.3 Structured Output": {
+    "message": "2.3 Structured Output",
+    "description": "The label for the doc item '2.3 Structured Output' in sidebar 'aiSidebar', linking to the doc ai/prompt-engineering/structured-output"
+  },
+  "sidebar.aiSidebar.doc.2.4 Spring AI Implementation": {
+    "message": "2.4 Spring AI Implementation",
+    "description": "The label for the doc item '2.4 Spring AI Implementation' in sidebar 'aiSidebar', linking to the doc ai/prompt-engineering/spring-ai"
+  },
+  "sidebar.aiSidebar.doc.2.5 Evaluation & Versioning": {
+    "message": "2.5 Evaluation & Versioning",
+    "description": "The label for the doc item '2.5 Evaluation & Versioning' in sidebar 'aiSidebar', linking to the doc ai/prompt-engineering/evaluation-versioning"
+  },
+  "sidebar.aiSidebar.doc.2.6 Advanced Techniques": {
+    "message": "2.6 Advanced Techniques",
+    "description": "The label for the doc item '2.6 Advanced Techniques' in sidebar 'aiSidebar', linking to the doc ai/prompt-engineering/advanced-techniques"
+  },
+  "sidebar.aiSidebar.doc.2.7 Agent Orchestration": {
+    "message": "2.7 Agent Orchestration",
+    "description": "The label for the doc item '2.7 Agent Orchestration' in sidebar 'aiSidebar', linking to the doc ai/prompt-engineering/agent-orchestration"
+  },
+  "sidebar.aiSidebar.doc.2.8 Multimodal": {
+    "message": "2.8 Multimodal",
+    "description": "The label for the doc item '2.8 Multimodal' in sidebar 'aiSidebar', linking to the doc ai/prompt-engineering/multimodal"
+  },
+  "sidebar.aiSidebar.doc.ai-rag-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'aiSidebar', linking to the doc ai/rag/index"
+  },
+  "sidebar.aiSidebar.doc.1. RAG Fundamentals": {
+    "message": "1. RAG Fundamentals",
+    "description": "The label for the doc item '1. RAG Fundamentals' in sidebar 'aiSidebar', linking to the doc ai/rag/introduction"
+  },
+  "sidebar.aiSidebar.doc.2. Data Processing": {
+    "message": "2. Data Processing",
+    "description": "The label for the doc item '2. Data Processing' in sidebar 'aiSidebar', linking to the doc ai/rag/data-processing"
+  },
+  "sidebar.aiSidebar.doc.3. Retrieval": {
+    "message": "3. Retrieval",
+    "description": "The label for the doc item '3. Retrieval' in sidebar 'aiSidebar', linking to the doc ai/rag/retrieval"
+  },
+  "sidebar.aiSidebar.doc.5. Generation": {
+    "message": "5. Generation",
+    "description": "The label for the doc item '5. Generation' in sidebar 'aiSidebar', linking to the doc ai/rag/generation"
+  },
+  "sidebar.aiSidebar.doc.6. Evaluation": {
+    "message": "6. Evaluation",
+    "description": "The label for the doc item '6. Evaluation' in sidebar 'aiSidebar', linking to the doc ai/rag/evaluation"
+  },
+  "sidebar.aiSidebar.doc.7. Advanced RAG": {
+    "message": "7. Advanced RAG",
+    "description": "The label for the doc item '7. Advanced RAG' in sidebar 'aiSidebar', linking to the doc ai/rag/advanced-rag"
+  },
+  "sidebar.aiSidebar.doc.8. Production": {
+    "message": "8. Production",
+    "description": "The label for the doc item '8. Production' in sidebar 'aiSidebar', linking to the doc ai/rag/production"
+  },
+  "sidebar.aiSidebar.doc.9. Best Practices": {
+    "message": "9. Best Practices",
+    "description": "The label for the doc item '9. Best Practices' in sidebar 'aiSidebar', linking to the doc ai/rag/best-practices"
+  },
+  "sidebar.aiSidebar.doc.ai-agents-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'aiSidebar', linking to the doc ai/agents/index"
+  },
+  "sidebar.aiSidebar.doc.1. Core Concepts & Definition": {
+    "message": "1. Core Concepts & Definition",
+    "description": "The label for the doc item '1. Core Concepts & Definition' in sidebar 'aiSidebar', linking to the doc ai/agents/introduction"
+  },
+  "sidebar.aiSidebar.doc.2. Architecture Components": {
+    "message": "2. Architecture Components",
+    "description": "The label for the doc item '2. Architecture Components' in sidebar 'aiSidebar', linking to the doc ai/agents/architecture"
+  },
+  "sidebar.aiSidebar.doc.3. Design Patterns": {
+    "message": "3. Design Patterns",
+    "description": "The label for the doc item '3. Design Patterns' in sidebar 'aiSidebar', linking to the doc ai/agents/design-patterns"
+  },
+  "sidebar.aiSidebar.doc.4. Frameworks & Tech Stack": {
+    "message": "4. Frameworks & Tech Stack",
+    "description": "The label for the doc item '4. Frameworks & Tech Stack' in sidebar 'aiSidebar', linking to the doc ai/agents/frameworks"
+  },
+  "sidebar.aiSidebar.doc.5. Engineering & Production": {
+    "message": "5. Engineering & Production",
+    "description": "The label for the doc item '5. Engineering & Production' in sidebar 'aiSidebar', linking to the doc ai/agents/engineering"
+  },
+  "sidebar.aiSidebar.doc.6. Frontier Trends": {
+    "message": "6. Frontier Trends",
+    "description": "The label for the doc item '6. Frontier Trends' in sidebar 'aiSidebar', linking to the doc ai/agents/frontier"
+  },
+  "sidebar.aiSidebar.doc.ai-harness-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'aiSidebar', linking to the doc ai/harness-engineering/index"
+  },
+  "sidebar.aiSidebar.doc.1. Core Concepts": {
+    "message": "1. Core Concepts",
+    "description": "The label for the doc item '1. Core Concepts' in sidebar 'aiSidebar', linking to the doc ai/harness-engineering/core-concepts"
+  },
+  "sidebar.aiSidebar.doc.2. Tool Orchestration": {
+    "message": "2. Tool Orchestration",
+    "description": "The label for the doc item '2. Tool Orchestration' in sidebar 'aiSidebar', linking to the doc ai/harness-engineering/orchestration"
+  },
+  "sidebar.aiSidebar.doc.3. State Management": {
+    "message": "3. State Management",
+    "description": "The label for the doc item '3. State Management' in sidebar 'aiSidebar', linking to the doc ai/harness-engineering/state-management"
+  },
+  "sidebar.aiSidebar.doc.4. Error Handling & Recovery": {
+    "message": "4. Error Handling & Recovery",
+    "description": "The label for the doc item '4. Error Handling & Recovery' in sidebar 'aiSidebar', linking to the doc ai/harness-engineering/error-handling"
+  },
+  "sidebar.aiSidebar.doc.5. Observability": {
+    "message": "5. Observability",
+    "description": "The label for the doc item '5. Observability' in sidebar 'aiSidebar', linking to the doc ai/harness-engineering/observability"
+  },
+  "sidebar.aiSidebar.doc.6. Safety & Guardrails": {
+    "message": "6. Safety & Guardrails",
+    "description": "The label for the doc item '6. Safety & Guardrails' in sidebar 'aiSidebar', linking to the doc ai/harness-engineering/safety-guards"
+  },
+  "sidebar.aiSidebar.doc.7. Production Patterns": {
+    "message": "7. Production Patterns",
+    "description": "The label for the doc item '7. Production Patterns' in sidebar 'aiSidebar', linking to the doc ai/harness-engineering/patterns"
+  },
+  "sidebar.aiSidebar.doc.ai-mcp-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'aiSidebar', linking to the doc ai/mcp/index"
+  },
+  "sidebar.aiSidebar.doc.Interview Q&A": {
+    "message": "Interview Q&A",
+    "description": "The label for the doc item 'Interview Q&A' in sidebar 'aiSidebar', linking to the doc ai/mcp/interview-qa"
+  },
+  "sidebar.aiSidebar.doc.ai-context-eng-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'aiSidebar', linking to the doc ai/context-engineering/index"
+  },
+  "sidebar.aiSidebar.doc.ai-agentops-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'aiSidebar', linking to the doc ai/agentops-security/index"
+  },
+  "sidebar.aiSidebar.doc.Java & AI Internship Guide": {
+    "message": "Java & AI Internship Guide",
+    "description": "The label for the doc item 'Java & AI Internship Guide' in sidebar 'aiSidebar', linking to the doc ai/internship/internship"
+  },
+  "sidebar.engineeringSidebar.category.Backend (Java)": {
+    "message": "Backend (Java)",
+    "description": "The label for category 'Backend (Java)' in sidebar 'engineeringSidebar'"
+  },
+  "sidebar.engineeringSidebar.category.Frontend": {
+    "message": "Frontend",
+    "description": "The label for category 'Frontend' in sidebar 'engineeringSidebar'"
+  },
+  "sidebar.engineeringSidebar.category.DevOps & Cloud": {
+    "message": "DevOps & Cloud",
+    "description": "The label for category 'DevOps & Cloud' in sidebar 'engineeringSidebar'"
+  },
+  "sidebar.engineeringSidebar.category.Dev Tools": {
+    "message": "Dev Tools",
+    "description": "The label for category 'Dev Tools' in sidebar 'engineeringSidebar'"
+  },
+  "sidebar.engineeringSidebar.doc.Engineering Overview": {
+    "message": "Engineering Overview",
+    "description": "The label for the doc item 'Engineering Overview' in sidebar 'engineeringSidebar', linking to the doc engineering/index"
+  },
+  "sidebar.engineeringSidebar.doc.eng-backend-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'engineeringSidebar', linking to the doc engineering/backend/index"
+  },
+  "sidebar.engineeringSidebar.doc.Concurrency Programming": {
+    "message": "Concurrency Programming",
+    "description": "The label for the doc item 'Concurrency Programming' in sidebar 'engineeringSidebar', linking to the doc engineering/backend/concurrency"
+  },
+  "sidebar.engineeringSidebar.doc.eng-frontend-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'engineeringSidebar', linking to the doc engineering/frontend/index"
+  },
+  "sidebar.engineeringSidebar.doc.eng-devops-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'engineeringSidebar', linking to the doc engineering/devops/index"
+  },
+  "sidebar.engineeringSidebar.doc.eng-tools-overview": {
+    "message": "Overview",
+    "description": "The label for the doc item 'Overview' in sidebar 'engineeringSidebar', linking to the doc engineering/tools/index"
+  },
+  "sidebar.projectsSidebar.category.RAG Knowledge Base": {
+    "message": "RAG Knowledge Base",
+    "description": "The label for category 'RAG Knowledge Base' in sidebar 'projectsSidebar'"
+  },
+  "sidebar.projectsSidebar.category.E-commerce Refactor": {
+    "message": "E-commerce Refactor",
+    "description": "The label for category 'E-commerce Refactor' in sidebar 'projectsSidebar'"
+  },
+  "sidebar.projectsSidebar.category.Open SWE": {
+    "message": "Open SWE",
+    "description": "The label for category 'Open SWE' in sidebar 'projectsSidebar'"
+  },
+  "sidebar.projectsSidebar.doc.Case Studies Overview": {
+    "message": "Case Studies Overview",
+    "description": "The label for the doc item 'Case Studies Overview' in sidebar 'projectsSidebar', linking to the doc projects/index"
+  },
+  "sidebar.projectsSidebar.doc.RAG Knowledge Base": {
+    "message": "RAG Knowledge Base",
+    "description": "The label for the doc item 'RAG Knowledge Base' in sidebar 'projectsSidebar', linking to the doc projects/rag-knowledge-base"
+  },
+  "sidebar.projectsSidebar.doc.E-commerce Refactor": {
+    "message": "E-commerce Refactor",
+    "description": "The label for the doc item 'E-commerce Refactor' in sidebar 'projectsSidebar', linking to the doc projects/ecommerce-refactor"
+  },
+  "sidebar.projectsSidebar.doc.Open SWE Agent": {
+    "message": "Open SWE Agent",
+    "description": "The label for the doc item 'Open SWE Agent' in sidebar 'projectsSidebar', linking to the doc projects/open-swe"
+  }
+}

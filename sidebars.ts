@@ -17,6 +17,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "cs/algorithms/index",
           label: "Overview",
+          key: "cs-algorithms-overview",
         },
         {
           type: "category",
@@ -111,6 +112,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "cs/database/index",
           label: "Overview",
+          key: "cs-database-overview",
         },
         {
           type: "category",
@@ -121,6 +123,7 @@ const sidebars: SidebarsConfig = {
               type: "doc",
               id: "cs/database/mysql/index",
               label: "Overview",
+              key: "cs-mysql-overview",
             },
             {
               type: "doc",
@@ -163,6 +166,7 @@ const sidebars: SidebarsConfig = {
               type: "doc",
               id: "cs/database/redis/index",
               label: "Overview",
+              key: "cs-redis-overview",
             },
             {
               type: "doc",
@@ -219,6 +223,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "cs/network-os/index",
           label: "Overview",
+          key: "cs-network-os-overview",
         },
         {
           type: "category",
@@ -261,6 +266,7 @@ const sidebars: SidebarsConfig = {
               type: "doc",
               id: "cs/network-os/troubleshooting/index",
               label: "Overview",
+              key: "cs-network-os-troubleshooting-overview",
             },
           ],
         },
@@ -284,11 +290,13 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "ai/llm-fundamentals/index",
           label: "Overview",
+          key: "ai-llm-overview",
         },
         {
           type: "doc",
           id: "ai/llm-fundamentals/introduction",
           label: "1. Introduction",
+          key: "ai-llm-intro",
         },
         {
           type: "doc",
@@ -331,11 +339,13 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "ai/prompt-engineering/index",
           label: "Overview",
+          key: "ai-prompt-overview",
         },
         {
           type: "doc",
           id: "ai/prompt-engineering/introduction",
           label: "1. Introduction",
+          key: "ai-prompt-intro",
         },
         {
           type: "doc",
@@ -388,6 +398,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "ai/rag/index",
           label: "Overview",
+          key: "ai-rag-overview",
         },
         {
           type: "doc",
@@ -440,6 +451,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "ai/agents/index",
           label: "Overview",
+          key: "ai-agents-overview",
         },
         {
           type: "doc",
@@ -482,6 +494,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "ai/harness-engineering/index",
           label: "Overview",
+          key: "ai-harness-overview",
         },
         {
           type: "doc",
@@ -529,6 +542,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "ai/mcp/index",
           label: "Overview",
+          key: "ai-mcp-overview",
         },
         {
           type: "doc",
@@ -546,6 +560,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "ai/context-engineering/index",
           label: "Overview",
+          key: "ai-context-eng-overview",
         },
       ],
     },
@@ -558,6 +573,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "ai/agentops-security/index",
           label: "Overview",
+          key: "ai-agentops-overview",
         },
       ],
     },
@@ -591,6 +607,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "engineering/backend/index",
           label: "Overview",
+          key: "eng-backend-overview",
         },
         {
           type: "doc",
@@ -608,6 +625,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "engineering/frontend/index",
           label: "Overview",
+          key: "eng-frontend-overview",
         },
       ],
     },
@@ -620,6 +638,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "engineering/devops/index",
           label: "Overview",
+          key: "eng-devops-overview",
         },
       ],
     },
@@ -632,6 +651,7 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "engineering/tools/index",
           label: "Overview",
+          key: "eng-tools-overview",
         },
       ],
     },

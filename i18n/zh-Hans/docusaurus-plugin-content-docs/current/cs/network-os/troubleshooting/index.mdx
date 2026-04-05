@@ -1,0 +1,85 @@
+---
+title: 故障排查概览
+description: 结构化的网络故障排查工作流程和命令参考
+---
+
+# 故障排查概览
+
+使用分层排查流程，避免盲目猜测。
+
+## 标准工作流程
+
+1. 精确定义症状（超时、重置、DNS 失败、丢包）
+2. 用最简单的命令复现问题
+3. 定位故障所在层（DNS、TCP、TLS、应用）
+4. 收集证据（`ss`、`tcpdump`、`dig`、日志）
+5. 每次只改变一个变量，重新测试
+
+## 快速诊断矩阵
+
+| 症状 | 可能层级 | 首选命令 |
+| --- | --- | --- |
+| 名称无法解析 | DNS/应用层 | `dig`、`nslookup` |
+| 连接前超时 | 网络/传输层 | `traceroute`、`nc`、`ss` |
+| TLS 握手失败 | 应用层/TLS | `openssl s_client`、`curl -v` |
+| 慢但成功 | 传输层/应用层 | `ss -ti`、请求追踪 |
+
+## 核心命令
+
+### 连通性
+
+```bash
+ping -c 4 <host>
+traceroute <host>
+mtr -rw <host>
+```
+
+### DNS
+
+```bash
+dig <host>
+nslookup <host>
+```
+
+### TCP 和端口可达性
+
+```bash
+ss -tulpen
+nc -vz <host> <port>
+```
+
+### 抓包
+
+```bash
+tcpdump -i any host <host> -nn
+tcpdump -i any tcp port 443 -nn
+```
+
+## 决策树
+
+### 无法连接到服务
+
+1. DNS 能解析吗？
+2. 端口可达吗？
+3. TLS 握手成功吗？
+4. 应用返回预期响应吗？
+
+### 间歇性故障
+
+1. 按可用区/区域/路径对比
+2. 检查 MTU 和重传
+3. 与部署和流量高峰关联分析
+
+## 专题指南
+
+- [TCP 问题](./tcp-issues)
+- [DNS 问题](./dns-issues)
+- [TLS 问题](./tls-issues)
+- [MTU 问题](./mtu-issues)
+
+## 相关阅读
+
+- [网络层](../network-layer)
+- [传输层](../transport-layer)
+- [应用层 - DNS](../application-layer#dns)
+- [应用层 - TLS](../application-layer#tls-ssl)

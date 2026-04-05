@@ -1,0 +1,86 @@
+{
+  "link.title.CS Core": {
+    "message": "CS 基础",
+    "description": "The title of the footer links column with title=CS Core in the footer"
+  },
+  "link.title.AI & Agents": {
+    "message": "AI 与智能体",
+    "description": "The title of the footer links column with title=AI & Agents in the footer"
+  },
+  "link.title.Engineering": {
+    "message": "工程实践",
+    "description": "The title of the footer links column with title=Engineering in the footer"
+  },
+  "link.title.More": {
+    "message": "更多",
+    "description": "The title of the footer links column with title=More in the footer"
+  },
+  "link.item.label.Algorithms & DS": {
+    "message": "算法与数据结构",
+    "description": "The label of footer link with label=Algorithms & DS linking to /docs/cs/algorithms"
+  },
+  "link.item.label.System Design": {
+    "message": "系统设计",
+    "description": "The label of footer link with label=System Design linking to /docs/cs/system-design"
+  },
+  "link.item.label.Database Internals": {
+    "message": "数据库内核",
+    "description": "The label of footer link with label=Database Internals linking to /docs/cs/database"
+  },
+  "link.item.label.Network & OS": {
+    "message": "网络与操作系统",
+    "description": "The label of footer link with label=Network & OS linking to /docs/cs/network-os"
+  },
+  "link.item.label.LLM Fundamentals": {
+    "message": "LLM 基础",
+    "description": "The label of footer link with label=LLM Fundamentals linking to /docs/ai/llm-fundamentals"
+  },
+  "link.item.label.RAG Systems": {
+    "message": "RAG 系统",
+    "description": "The label of footer link with label=RAG Systems linking to /docs/ai/rag"
+  },
+  "link.item.label.Agentic Workflows": {
+    "message": "智能体工作流",
+    "description": "The label of footer link with label=Agentic Workflows linking to /docs/ai/agents"
+  },
+  "link.item.label.Spring AI": {
+    "message": "Spring AI",
+    "description": "The label of footer link with label=Spring AI linking to /docs/ai/spring-ai"
+  },
+  "link.item.label.Backend (Java)": {
+    "message": "后端 (Java)",
+    "description": "The label of footer link with label=Backend (Java) linking to /docs/engineering/backend"
+  },
+  "link.item.label.Frontend": {
+    "message": "前端",
+    "description": "The label of footer link with label=Frontend linking to /docs/engineering/frontend"
+  },
+  "link.item.label.DevOps & Cloud": {
+    "message": "DevOps 与云",
+    "description": "The label of footer link with label=DevOps & Cloud linking to /docs/engineering/devops"
+  },
+  "link.item.label.Dev Tools": {
+    "message": "开发工具",
+    "description": "The label of footer link with label=Dev Tools linking to /docs/engineering/tools"
+  },
+  "link.item.label.Case Studies": {
+    "message": "案例分析",
+    "description": "The label of footer link with label=Case Studies linking to /docs/projects"
+  },
+  "link.item.label.Blog": {
+    "message": "博客",
+    "description": "The label of footer link with label=Blog linking to /blog"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "The label of footer link with label=GitHub linking to https://github.com/YiWang24/portfolio"
+  },
+  "link.item.label.Main Site": {
+    "message": "主站",
+    "description": "The label of footer link with label=Main Site linking to https://www.yiw.me"
+  },
+  "copyright": {
+    "message": "Copyright © 2026 Yi Wang. Built with Docusaurus.",
+    "description": "The footer copyright"
+  }
+}

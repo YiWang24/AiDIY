@@ -1,0 +1,247 @@
+---
+id: searching
+title: Search Strategies
+sidebar_label: "16. 搜索策略"
+description: 线性搜索优化、插值搜索、指数搜索和有序矩阵搜索
+---
+
+# Search Strategies
+
+## 为什么搜索很重要
+
+搜索是数据访问和检索的基础：
+
+- **数据库查询**：查找匹配条件的记录
+- **文件系统**：按名称或内容定位文件
+- **Web 搜索**：查找相关页面
+- **API**：过滤和搜索集合
+
+**实际影响**：
+- 10 亿个元素的二分搜索：约 30 次比较
+- 线性搜索：约 5 亿次比较
+- **快 1600 万倍**
+
+## 核心概念
+
+### 搜索算法对比
+
+| 算法 | 时间复杂度 | 前提条件 | 最佳适用场景 |
+|------|-----------|---------|-------------|
+| **线性搜索** | O(n) | 无 | 无序数据、小数组 |
+| **二分搜索** | O(log n) | 有序数组 | 大型有序数据集 |
+| **插值搜索** | O(log log n) 平均 | 均匀分布的有序数据 | 数值数据、均匀分布 |
+| **指数搜索** | O(log n) | 无限/无界有序数组 | 未知大小、无限数组 |
+
+### 二分搜索回顾
+
+```java
+public int binarySearch(int[] arr, int target) {
+    int left = 0, right = arr.length - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (arr[mid] == target) return mid;
+        if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+
+    return -1;
+}
+```
+
+## 深入理解
+
+### 插值搜索
+
+利用值分布估计位置：
+
+```java
+public int interpolationSearch(int[] arr, int target) {
+    int left = 0, right = arr.length - 1;
+
+    while (left <= right && target >= arr[left] && target <= arr[right]) {
+        if (left == right) {
+            return arr[left] == target ? left : -1;
+        }
+
+        // 估计位置
+        int pos = left + ((target - arr[left]) * (right - left)) /
+                          (arr[right] - arr[left]);
+
+        if (arr[pos] == target) return pos;
+        if (arr[pos] < target) left = pos + 1;
+        else right = pos - 1;
+    }
+
+    return -1;
+}
+```
+
+**最优情况**：均匀分布时 O(1)
+**最差情况**：偏斜分布时 O(n)
+
+### 指数搜索
+
+适用于未知或无限大小的数组：
+
+```java
+public int exponentialSearch(int[] arr, int target) {
+    if (arr[0] == target) return 0;
+
+    // 找到目标可能存在的范围
+    int i = 1;
+    while (i < arr.length && arr[i] <= target) {
+        i = i * 2;
+    }
+
+    // 在找到的范围内进行二分搜索
+    return binarySearch(arr, i / 2, Math.min(i, arr.length - 1), target);
+}
+
+private int binarySearch(int[] arr, int left, int right, int target) {
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (arr[mid] == target) return mid;
+        if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+
+    return -1;
+}
+```
+
+### 有序矩阵搜索
+
+行和列均已排序的矩阵：
+
+```java
+public boolean searchMatrix(int[][] matrix, int target) {
+    if (matrix == null || matrix.length == 0) return false;
+
+    int row = 0, col = matrix[0].length - 1;  // 从右上角开始
+
+    while (row < matrix.length && col >= 0) {
+        if (matrix[row][col] == target) return true;
+        if (matrix[row][col] > target) {
+            col--;  // 向左移动
+        } else {
+            row++;  // 向下移动
+        }
+    }
+
+    return false;
+}
+```
+
+**时间复杂度**：O(m + n)，其中 m = 行数，n = 列数
+
+## 实际应用
+
+### 旋转有序数组搜索
+
+```java
+public int search(int[] nums, int target) {
+    int left = 0, right = nums.length - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (nums[mid] == target) return mid;
+
+        if (nums[left] <= nums[mid]) {  // 左半部分有序
+            if (target >= nums[left] && target < nums[mid]) {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        } else {  // 右半部分有序
+            if (target > nums[mid] && target <= nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+    }
+
+    return -1;
+}
+```
+
+### 搜索插入位置
+
+```java
+public int searchInsert(int[] nums, int target) {
+    int left = 0, right = nums.length;
+
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+
+        if (nums[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+
+    return left;
+}
+```
+
+## 面试题
+
+### Q1：二分搜索（简单）
+
+**问题**：经典二分搜索实现。
+
+**方法**：标准二分搜索
+
+**复杂度**：O(log n) 时间
+
+```java
+public int search(int[] nums, int target) {
+    int left = 0, right = nums.length - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (nums[mid] == target) return mid;
+        if (nums[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+
+    return -1;
+}
+```
+
+### Q2：搜索二维矩阵 II（中等）
+
+**问题**：在行和列均已排序的矩阵中搜索。
+
+**方法**：从右上角或左下角开始
+
+**复杂度**：O(m + n) 时间
+
+```java
+public boolean searchMatrix(int[][] matrix, int target) {
+    if (matrix == null || matrix.length == 0) return false;
+
+    int row = 0, col = matrix[0].length - 1;
+
+    while (row < matrix.length && col >= 0) {
+        if (matrix[row][col] == target) return true;
+        if (matrix[row][col] > target) col--;
+        else row++;
+    }
+
+    return false;
+}
+```
+
+## 延伸阅读
+
+- **二分搜索**：专门的搜索技术
+- **双指针**：搜索中经常使用
+- **树**：BST 搜索
+- **LeetCode**：[搜索问题](https://leetcode.com/tag/search/)
