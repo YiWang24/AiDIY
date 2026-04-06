@@ -19,7 +19,8 @@ const config = {
   projectName: "portfolio",
   deploymentBranch: "main",
 
-  onBrokenMarkdownLinks: "warn",
+  onBrokenLinks: "warn",
+
 
   // Custom fields accessible via useDocusaurusContext
   customFields: {
@@ -55,6 +56,11 @@ const config = {
           // npm2yarn: auto-generate npm/yarn/pnpm tabs for install commands
           remarkPlugins: [[npm2yarn, { sync: true }], [math, { strict: false }]],
           rehypePlugins: [require('rehype-katex')],
+          markdown: {
+            hooks: {
+              onBrokenMarkdownLinks: "warn",
+            },
+          },
         },
         blog: {
           showReadingTime: true,
