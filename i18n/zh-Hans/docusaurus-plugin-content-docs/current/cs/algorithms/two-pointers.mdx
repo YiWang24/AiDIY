@@ -1,693 +1,90 @@
 ---
 id: two-pointers
-title: Two Pointers
+title: 双指针模式
 sidebar_label: "10. 双指针"
-description: 对向指针、快慢指针、碰撞检测和链表模式
+description: 对撞指针、快慢指针、碰撞检测及链表常用模式
 ---
 
-# 双指针模式
+# 双指针模式 (Two Pointers)
 
 ## 为什么双指针很重要
 
-双指针技术以 O(n) 时间和 O(1) 空间解决问题——消除嵌套循环：
+双指针技术能以 $O(n)$ 的时间复杂度和 $O(1)$ 的空间复杂度解决许多复杂问题，从而消除不必要的嵌套循环：
 
-- **数组/字符串问题**：找数对、反转、分区
-- **链表**：检测环、找中点
-- **滑动窗口**：通常用双指针实现
-- **回文检测**：前后指针
+- **数组与字符串**：寻找对子、反转序列、区间划分。
+- **链表操作**：环检测（寻找入口）、寻找中点。
+- **滑动窗口**：许多窗口问题的底层实现即为双指针。
+- **回文检测**：首尾指针向中间逼近。
 
-**实际影响**：在数组中找所有和为给定值的数对：
-- 暴力法：O(n²) 两层嵌套循环
-- 双指针：排序后 O(n)——**对 10,000 个元素快 1000 倍**
+**实际影响**：在数组中寻找和为特定值的两个数：
+- 暴力搜索：$O(n^2)$（两层嵌套循环）。
+- 双指针：排序后仅需 $O(n)$ —— **在万级数据量下，比暴力法快 1000 倍**。
 
-## 核心概念
+---
 
-### 双指针模式
+## 核心模式
 
-#### 1. 对向指针
-
-从两端开始，向中间移动：
-
-```java
-int left = 0, right = arr.length - 1;
-
-while (left < right) {
-    // 处理 arr[left] 和 arr[right]
-    left++;
-    right--;
-}
-```
+### 1. 对撞指针 (Opposite Direction)
+指针分别从两端开始，向中间靠拢。
+- **应用**：两数之和（有序数组）、反转数组、盛最多水的容器。
 
 ```mermaid
 graph LR
     subgraph Array["数组"]
-        A["left →"] --> B[...]
-        C[...] --> D["← right"]
+        A[左指针 →] --> B[...]
+        C[...] --> D[← 右指针]
     end
-
-    style A fill:#e1f5ff
-    style D fill:#ffe1e1
 ```
 
-**使用场景**：
-- 两数之和（有序数组）
-- 回文检查
-- 盛最多水的容器
-- 反转数组/字符串
+### 2. 快慢指针 (Same Direction / Fast-Slow)
+两个指针从同一端开始，以不同步长移动。
+- **应用**：移除元素、去重、链表找环、寻找链表倒数第 K 个节点。
 
-#### 2. 同向指针（快慢指针）
+### 3. 固定间距指针
+两个指针保持固定的距离同步移动。
+- **应用**：固定窗口大小的滑动、寻找特定长度的子串特征。
 
-都从起点开始，快指针先行：
-
-```java
-int slow = 0, fast = 0;
-
-while (fast < arr.length) {
-    // 处理
-    fast++;
-    if (condition) slow++;
-}
-```
-
-**使用场景**：
-- 删除重复元素
-- 移除元素
-- 链表环检测
-- 找中间元素
-
-#### 3. 固定距离指针
-
-保持指针间固定距离：
-
-```java
-int left = 0, right = k;  // k 是窗口大小或固定距离
-
-while (right < arr.length) {
-    // 比较 arr[left] 和 arr[right]
-    left++;
-    right++;
-}
-```
-
-**使用场景**：
-- 查找具有特定属性的子数组
-- 固定大小滑动窗口
-- 比较距离为 k 的元素
+---
 
 ## 深入理解
 
-### 两数之和 II - 有序数组
+### 盛最多水的容器 (Container With Most Water)
+**核心逻辑**：面积由“短板”决定。为了寻找更大面积，必须尝试移动较短的那根线（向内移），因为移动长线只会让宽度变小且高度依然受限于短线。
 
-给定有序数组，找出和为目标值的两个数：
+### 移除有序数组中的重复项
+**核心逻辑**：使用 `slow` 指针记录“下一个唯一元素应存放的位置”，用 `fast` 指针遍历。当发现新元素时，将其复制到 `slow` 位置并推进。
 
-```java
-public int[] twoSum(int[] numbers, int target) {
-    int left = 0, right = numbers.length - 1;
+---
 
-    while (left < right) {
-        int sum = numbers[left] + numbers[right];
+## 进阶模式
 
-        if (sum == target) {
-            return new int[]{left + 1, right + 1};  // 1-indexed
-        } else if (sum < target) {
-            left++;  // 需要更大的和
-        } else {
-            right--;  // 需要更小的和
-        }
-    }
+### 三数之和 (3Sum)
+**思路**：先对数组排序，然后固定一个数 $i$，在剩余区间 $[i+1, n-1]$ 内利用双指针寻找和为 $-i$ 的两数。注意在遍历和移动指针时跳过重复元素。
 
-    return new int[]{-1, -1};  // 未找到
-}
-```
+### 荷兰国旗问题 (Dutch National Flag)
+**思路**：使用三个指针（`low`, `mid`, `high`）将数组划分为三块区域。这是解决“按颜色/类别排序”问题的最优方案，时间复杂度 $O(n)$。
 
-```mermaid
-graph TD
-    A["开始: left=0, right=4"] --> B{"和: 2+9=11"}
-    B -->|"11 < 15"| C["left++: left=1"]
-    B -->|"11 > 15"| D["right--: right=3"]
-    B -->|"11 = 15"| E["找到了！"]
+---
 
-    C --> F{"和: 7+9=16"}
-    F -->|"16 > 15"| G["right--: right=2"]
-    F -->|"16 < 15"| H["left++: left=2"]
-    F -->|"16 = 15"| E
+## 面试高频题
 
-    G --> I{"和: 7+6=13"}
-    I -->|"13 < 15"| J["left++: left=2"]
-    I -->|"13 = 15"| E
-```
+### Q1: 两数之和 II - 有序数组 (简单)
+**思路**：对撞指针。若 `sum < target`，左指针右移；若 `sum > target`，右指针左移。
 
-**为什么有效**：数组有序，所以：
-- 如果和 < 目标值：需要更大的元素 → 左指针右移
-- 如果和 > 目标值：需要更小的元素 → 右指针左移
+### Q2: 验证回文串 (简单)
+**思路**：首尾指针。跳过非字母数字字符，比较对应字符是否相等。
 
-### 验证回文串
+### Q3: 三数之和 (中等)
+**思路**：排序 + 循环固定首元素 + 内部对撞指针。
 
-检查字符串是否是回文（忽略非字母数字字符）：
+### Q4: 接雨水 (困难)
+**思路**：这是双指针的巅峰应用。通过左右两个指针维护当前的“左侧最大高度”和“右侧最大高度”，哪边小就处理哪边并计算当前位的积水，时间复杂度 $O(n)$，空间复杂度 $O(1)$。
 
-```java
-public boolean isPalindrome(String s) {
-    int left = 0, right = s.length() - 1;
-
-    while (left < right) {
-        // 跳过非字母数字字符
-        while (left < right && !Character.isLetterOrDigit(s.charAt(left))) {
-            left++;
-        }
-        while (left < right && !Character.isLetterOrDigit(s.charAt(right))) {
-            right--;
-        }
-
-        // 比较字符
-        char c1 = Character.toLowerCase(s.charAt(left));
-        char c2 = Character.toLowerCase(s.charAt(right));
-
-        if (c1 != c2) return false;
-
-        left++;
-        right--;
-    }
-
-    return true;
-}
-```
-
-### 盛最多水的容器
-
-找出两条垂直线构成的最大面积：
-
-```java
-public int maxArea(int[] height) {
-    int left = 0, right = height.length - 1;
-    int maxArea = 0;
-
-    while (left < right) {
-        int width = right - left;
-        int containerHeight = Math.min(height[left], height[right]);
-        int area = width * containerHeight;
-
-        maxArea = Math.max(maxArea, area);
-
-        // 将较短的线向内移动
-        if (height[left] < height[right]) {
-            left++;
-        } else {
-            right--;
-        }
-    }
-
-    return maxArea;
-}
-```
-
-**关键洞察**：将较长的线向内移动不可能增加面积（高度受限于较短的线，宽度在减少）。始终移动较短的线。
-
-### 快慢指针
-
-#### 删除有序数组中的重复项
-
-```java
-public int removeDuplicates(int[] nums) {
-    if (nums.length == 0) return 0;
-
-    int slow = 0;  // 放置下一个唯一元素的位置
-
-    for (int fast = 1; fast < nums.length; fast++) {
-        if (nums[fast] != nums[slow]) {
-            slow++;
-            nums[slow] = nums[fast];
-        }
-    }
-
-    return slow + 1;  // 唯一部分的长度
-}
-```
-
-```mermaid
-graph TD
-    A["数组: [1,1,2,2,3]"] --> B["slow=0, fast=1"]
-    B --> C{"nums[1]=1 == nums[0]=1?"}
-    C -->|"是"| D["fast++: fast=2"]
-    C -->|"否"| E["slow++, 复制, fast++"]
-
-    D --> F{"nums[2]=2 == nums[0]=1?"}
-    F -->|"否"| G["slow=1, nums[1]=2, fast=3"]
-
-    G --> H{"nums[3]=2 == nums[1]=2?"}
-    H -->|"是"| I["fast++: fast=4"]
-
-    I --> J{"nums[4]=3 == nums[1]=2?"}
-    J -->|"否"| K["slow=2, nums[2]=3, fast=5"]
-
-    K --> L["返回 slow+1=3<br/>数组: [1,2,3,2,3]"]
-```
-
-### 常见陷阱
-
-#### ❌ 未处理边界情况
-
-```java
-public boolean badPalindrome(String s) {
-    int left = 0, right = s.length() - 1;
-
-    while (left < right) {  // 如果 s 为空会 NPE
-        if (s.charAt(left) != s.charAt(right)) {
-            return false;
-        }
-        left++;
-        right--;
-    }
-    return true;
-}
-```
-
-#### ✅ 处理空输入
-
-```java
-public boolean goodPalindrome(String s) {
-    if (s == null || s.isEmpty()) return true;
-
-    int left = 0, right = s.length() - 1;
-
-    while (left < right) {
-        if (s.charAt(left) != s.charAt(right)) {
-            return false;
-        }
-        left++;
-        right--;
-    }
-    return true;
-}
-```
-
-#### ❌ 指针更新错误导致无限循环
-
-```java
-while (left < right) {
-    int sum = nums[left] + nums[right];
-    if (sum == target) return true;
-    if (sum < target) left = left;  // BUG：没有移动！
-    else right = right;  // BUG：没有移动！
-}
-```
-
-#### ✅ 始终更新指针
-
-```java
-while (left < right) {
-    int sum = nums[left] + nums[right];
-    if (sum == target) return true;
-    if (sum < target) left++;  // 左指针前进
-    else right--;  // 右指针后退
-}
-```
-
-#### ❌ 乘法溢出
-
-```java
-int area = height[left] * height[right] * (right - left);
-// 大值时可能溢出！
-```
-
-#### ✅ 使用 long 或 min
-
-```java
-int width = right - left;
-int containerHeight = Math.min(height[left], height[right]);
-int area = width * containerHeight;  // 不太可能溢出
-// 或使用 long 更安全
-```
-
-### 进阶模式
-
-#### 三数之和
-
-找出所有和为零的唯一三元组：
-
-```java
-public List<List<Integer>> threeSum(int[] nums) {
-    List<List<Integer>> result = new ArrayList<>();
-    Arrays.sort(nums);
-
-    for (int i = 0; i < nums.length - 2; i++) {
-        // 跳过重复
-        if (i > 0 && nums[i] == nums[i - 1]) continue;
-
-        int left = i + 1, right = nums.length - 1;
-
-        while (left < right) {
-            int sum = nums[i] + nums[left] + nums[right];
-
-            if (sum == 0) {
-                result.add(Arrays.asList(nums[i], nums[left], nums[right]));
-
-                // 跳过重复
-                while (left < right && nums[left] == nums[left + 1]) left++;
-                while (left < right && nums[right] == nums[right - 1]) right--;
-
-                left++;
-                right--;
-            } else if (sum < 0) {
-                left++;
-            } else {
-                right--;
-            }
-        }
-    }
-
-    return result;
-}
-```
-
-#### 数组分区（荷兰国旗问题）
-
-```java
-public void sortColors(int[] nums) {
-    int low = 0, mid = 0, high = nums.length - 1;
-
-    while (mid <= high) {
-        if (nums[mid] == 0) {
-            swap(nums, low++, mid++);
-        } else if (nums[mid] == 1) {
-            mid++;
-        } else {  // nums[mid] == 2
-            swap(nums, mid, high--);
-        }
-    }
-}
-
-private void swap(int[] nums, int i, int j) {
-    int temp = nums[i];
-    nums[i] = nums[j];
-    nums[j] = temp;
-}
-```
-
-**三个指针**：
-- `low`：0 的边界（low 之前的元素都是 0）
-- `mid`：当前元素
-- `high`：2 的边界（high 之后的元素都是 2）
-
-## 实际应用
-
-### 合并两个有序数组
-
-```java
-public void merge(int[] nums1, int m, int[] nums2, int n) {
-    int p1 = m - 1;  // nums1 的指针
-    int p2 = n - 1;  // nums2 的指针
-    int p = m + n - 1;  // 合并后数组的指针
-
-    while (p1 >= 0 && p2 >= 0) {
-        if (nums1[p1] > nums2[p2]) {
-            nums1[p--] = nums1[p1--];
-        } else {
-            nums1[p--] = nums2[p2--];
-        }
-    }
-
-    // 复制 nums2 剩余元素
-    while (p2 >= 0) {
-        nums1[p--] = nums2[p2--];
-    }
-}
-```
-
-**从末尾合并**以避免覆盖 nums1 的元素
-
-### 移动零
-
-```java
-public void moveZeroes(int[] nums) {
-    int slow = 0;  // 下一个非零元素的位置
-
-    for (int fast = 0; fast < nums.length; fast++) {
-        if (nums[fast] != 0) {
-            nums[slow] = nums[fast];
-            if (slow != fast) {
-                nums[fast] = 0;
-            }
-            slow++;
-        }
-    }
-}
-```
-
-### 有序数组的平方
-
-```java
-public int[] sortedSquares(int[] nums) {
-    int n = nums.length;
-    int[] result = new int[n];
-    int left = 0, right = n - 1;
-    int pos = n - 1;  // 从末尾填充
-
-    while (left <= right) {
-        int leftSquare = nums[left] * nums[left];
-        int rightSquare = nums[right] * nums[right];
-
-        if (leftSquare > rightSquare) {
-            result[pos--] = leftSquare;
-            left++;
-        } else {
-            result[pos--] = rightSquare;
-            right--;
-        }
-    }
-
-    return result;
-}
-```
-
-**最大平方值**来自最负或最正的数
-
-## 面试题
-
-### Q1：两数之和 II - 输入有序数组（简单）
-
-**题目**：在有序数组中找出和为目标值的两个数。
-
-**方法**：对向指针
-
-**复杂度**：O(n) 时间，O(1) 空间
-
-```java
-public int[] twoSum(int[] numbers, int target) {
-    int left = 0, right = numbers.length - 1;
-
-    while (left < right) {
-        int sum = numbers[left] + numbers[right];
-
-        if (sum == target) {
-            return new int[]{left + 1, right + 1};
-        } else if (sum < target) {
-            left++;
-        } else {
-            right--;
-        }
-    }
-
-    return new int[]{-1, -1};
-}
-```
-
-### Q2：验证回文串（简单）
-
-**题目**：检查字符串是否是回文（忽略大小写和非字母数字字符）。
-
-**方法**：双指针从两端开始
-
-**复杂度**：O(n) 时间，O(1) 空间
-
-```java
-public boolean isPalindrome(String s) {
-    int left = 0, right = s.length() - 1;
-
-    while (left < right) {
-        while (left < right && !Character.isLetterOrDigit(s.charAt(left))) {
-            left++;
-        }
-        while (left < right && !Character.isLetterOrDigit(s.charAt(right))) {
-            right--;
-        }
-
-        if (Character.toLowerCase(s.charAt(left)) !=
-            Character.toLowerCase(s.charAt(right))) {
-            return false;
-        }
-
-        left++;
-        right--;
-    }
-
-    return true;
-}
-```
-
-### Q3：移除元素（简单）
-
-**题目**：原地移除数组中所有等于给定值的元素。
-
-**方法**：快慢指针
-
-**复杂度**：O(n) 时间，O(1) 空间
-
-```java
-public int removeElement(int[] nums, int val) {
-    int slow = 0;
-
-    for (int fast = 0; fast < nums.length; fast++) {
-        if (nums[fast] != val) {
-            nums[slow] = nums[fast];
-            slow++;
-        }
-    }
-
-    return slow;
-}
-```
-
-### Q4：K 和数对的最大数量（中等）
-
-**题目**：找出和为 k 的数对的最大数量。
-
-**方法**：排序 + 双指针
-
-**复杂度**：O(n log n) 时间，O(1) 空间
-
-```java
-public int maxOperations(int[] nums, int k) {
-    Arrays.sort(nums);
-    int left = 0, right = nums.length - 1;
-    int operations = 0;
-
-    while (left < right) {
-        int sum = nums[left] + nums[right];
-
-        if (sum == k) {
-            operations++;
-            left++;
-            right--;
-        } else if (sum < k) {
-            left++;
-        } else {
-            right--;
-        }
-    }
-
-    return operations;
-}
-```
-
-### Q5：三数之和（中等）
-
-**题目**：找出所有和为零的唯一三元组。
-
-**方法**：排序 + 每个元素配双指针
-
-**复杂度**：O(n²) 时间，O(1) 空间（不含输出）
-
-```java
-public List<List<Integer>> threeSum(int[] nums) {
-    List<List<Integer>> result = new ArrayList<>();
-    Arrays.sort(nums);
-
-    for (int i = 0; i < nums.length - 2; i++) {
-        if (i > 0 && nums[i] == nums[i - 1]) continue;
-
-        int left = i + 1, right = nums.length - 1;
-
-        while (left < right) {
-            int sum = nums[i] + nums[left] + nums[right];
-
-            if (sum == 0) {
-                result.add(Arrays.asList(nums[i], nums[left], nums[right]));
-
-                while (left < right && nums[left] == nums[left + 1]) left++;
-                while (left < right && nums[right] == nums[right - 1]) right--;
-
-                left++;
-                right--;
-            } else if (sum < 0) {
-                left++;
-            } else {
-                right--;
-            }
-        }
-    }
-
-    return result;
-}
-```
-
-### Q6：盛最多水的容器（中等）
-
-**题目**：找出构成最大面积的容器。
-
-**方法**：对向指针，移动较短的线
-
-**复杂度**：O(n) 时间，O(1) 空间
-
-```java
-public int maxArea(int[] height) {
-    int left = 0, right = height.length - 1;
-    int maxArea = 0;
-
-    while (left < right) {
-        int width = right - left;
-        int containerHeight = Math.min(height[left], height[right]);
-        maxArea = Math.max(maxArea, width * containerHeight);
-
-        if (height[left] < height[right]) {
-            left++;
-        } else {
-            right--;
-        }
-    }
-
-    return maxArea;
-}
-```
-
-### Q7：接雨水（困难）
-
-**题目**：计算柱子之间能接住的雨水量。
-
-**方法**：双指针追踪最大高度
-
-**复杂度**：O(n) 时间，O(1) 空间
-
-```java
-public int trap(int[] height) {
-    int left = 0, right = height.length - 1;
-    int leftMax = 0, rightMax = 0;
-    int water = 0;
-
-    while (left < right) {
-        if (height[left] < height[right]) {
-            if (height[left] >= leftMax) {
-                leftMax = height[left];
-            } else {
-                water += leftMax - height[left];
-            }
-            left++;
-        } else {
-            if (height[right] >= rightMax) {
-                rightMax = height[right];
-            } else {
-                water += rightMax - height[right];
-            }
-            right--;
-        }
-    }
-
-    return water;
-}
-```
+---
 
 ## 延伸阅读
 
-- **滑动窗口**：通常用双指针实现
-- **二分查找**：另一种分治技术
-- **链表**：快慢指针用于环检测
-- **LeetCode**：[双指针题目](https://leetcode.com/tag/two-pointers/)
+- **滑动窗口进阶**：了解如何将双指针扩展为变长窗口。
+- **二分查找**：另一种特殊的“双指针”分治技术。
+- **链表技巧**：深入理解快慢指针在空间复杂度优化中的妙用。
+- **LeetCode**：[双指针标签题目](https://leetcode.com/tag/two-pointers/)

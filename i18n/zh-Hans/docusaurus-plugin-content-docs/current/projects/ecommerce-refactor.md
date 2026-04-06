@@ -1,488 +1,108 @@
 ---
 id: ecommerce-refactor
-title: "案例研究：电商微服务重构"
-sidebar_label: 🛒 电商重构
-description: 在应对秒杀活动的同时，将单体应用迁移到微服务架构
+title: "案例研究：电商微服务架构重构"
+sidebar_label: 🛒 电商重构案例
+description: 记录如何将单体架构迁移至微服务，并成功应对高并发秒杀挑战
 ---
 
-# 🛒 电商微服务重构
+# 🛒 电商微服务架构重构实战
 
-> **在不宕机的情况下，将单体应用转型为可扩展的微服务架构。**
+> **“在不停机的前提下，将臃肿的单体应用转化为可扩展的微服务架构。”**
 
 ---
 
-## 1. 问题陈述
+## 1. 问题背景
 
-### 业务背景
-电商平台在秒杀活动期间出现严重的性能问题。单体应用无法独立扩展特定组件，高峰期的数据库锁导致级联故障。
+### 业务现状
+随着用户量激增，原有单体平台在双十一等秒杀活动中频繁崩溃。系统组件无法独立扩缩容，且数据库在高并发下的行级锁导致了严重的级联故障。
 
 ### 技术挑战
-- **流量峰值**：秒杀期间 100 倍正常负载
-- **超卖问题**：竞态条件导致库存超卖
-- **数据库瓶颈**：高峰期单个 PostgreSQL 实例 CPU 100%
-- **单体复杂性**：50 万+ 行代码，3 年以上技术债
+- **流量洪峰**：秒杀期间负载激增 100 倍。
+- **超卖问题**：竞态条件导致实际售出商品超过库存。
+- **数据库瓶颈**：单一 PostgreSQL 实例 CPU 长期处于 100% 满载。
+- **代码腐化**：50 万行代码，技术债堆积，交付效率低下。
 
 ### 成功标准
-- **零超卖** 在秒杀活动期间
-- **亚秒级结算** 响应时间 (p99)
-- **99.9% 可用性** 在高峰事件期间
-- **关键服务独立部署**
+- 秒杀期间 **零超卖**。
+- 核心下单流程 p99 延迟控制在 **400ms** 以内。
+- 活动期间可用性达到 **99.9%**。
+- 实现关键服务的独立部署与扩容。
 
 ---
 
-## 2. 研究与分析
+## 2. 策略分析
 
-### 拆分策略
+### 拆解策略
+基于 **领域驱动设计 (DDD)** 原则，我们将单体划分为以下限界上下文：
+- 用户与认证、产品目录、库存中心、订单管理、支付网关、通知服务。
 
-我们使用领域驱动设计（DDD）原则分析单体应用：
-
-```mermaid
-flowchart TB
-    subgraph "已识别的限界上下文"
-        A[用户与认证]
-        B[商品目录]
-        C[库存]
-        D[订单管理]
-        E[支付]
-        F[通知]
-    end
-
-    A --> D
-    B --> D
-    C --> D
-    D --> E
-    D --> F
-    E --> F
-```
-
-### 迁移方案
-
-| 策略 | 优势 | 劣势 | 我们的选择 |
-|----------|------|------|------------|
-| **大爆炸式** | 干净利落 | 高风险、长时间冻结 | ❌ |
-| **绞杀者模式** | 渐进式、低风险 | 周期较长 | ✅ |
-| **并行运行** | 安全验证 | 双倍基础设施 | 部分采用 ✅ |
-
-**决策**：绞杀者模式，关键路径（库存、结算）采用并行运行。
+### 迁移方法
+- **方案选择**：放弃“大爆炸”式重写，采用 **绞杀者模式 (Strangler Fig)**。
+- **核心路径优先**：针对最痛的库存和秒杀路径优先进行剥离。
 
 ---
 
 ## 3. 架构设计
 
-### 目标架构
-
-```mermaid
-flowchart TB
-    subgraph "客户端层"
-        A[Web 应用]
-        B[移动应用]
-    end
-
-    subgraph "网关层"
-        C[API 网关]
-        D[限流器]
-    end
-
-    subgraph "服务层"
-        E[用户服务]
-        F[商品服务]
-        G[库存服务]
-        H[订单服务]
-        I[支付服务]
-        J[通知服务]
-    end
-
-    subgraph "数据层"
-        K[(用户 DB)]
-        L[(商品 DB)]
-        M[(Redis 集群)]
-        N[(订单 DB)]
-        O[消息队列]
-    end
-
-    A --> C
-    B --> C
-    C --> D
-    D --> E
-    D --> F
-    D --> G
-    D --> H
-
-    E --> K
-    F --> L
-    G --> M
-    H --> N
-    H --> I
-    I --> J
-    H --> O
-    O --> J
-```
-
-### 服务边界
-
-| 服务 | 职责 | 数据库 | 通信方式 |
-|---------|---------------|----------|---------------|
-| **用户** | 认证、用户资料 | PostgreSQL | 同步 (REST) |
-| **商品** | 目录、搜索 | PostgreSQL + ES | 同步 (REST) |
-| **库存** | 库存管理 | Redis | 同步 (REST) |
-| **订单** | 订单生命周期 | PostgreSQL | 异步 (MQ) |
-| **支付** | 支付处理 | PostgreSQL | 异步 (MQ) |
-| **通知** | 邮件、短信、推送 | - | 异步 (MQ) |
+### 目标拓扑图
+1. **网关层**：入口限流、鉴权、动态路由。
+2. **服务层**：各领域微服务，彼此通过 REST (同步) 或 MQ (异步) 通信。
+3. **数据层**：数据库分库分表，核心库存使用 Redis 集群加速。
 
 ---
 
-## 4. 实现要点
+## 4. 实现亮点
 
-### 秒杀库存：防止超卖
+### 秒杀库存：彻底解决超卖
+我们构建了三层防护体系：
 
-这是最关键的挑战。我们实现了多层解决方案：
+#### 第一层：Redis + Lua 原子扣减
+利用 Lua 脚本将“查询库存”与“扣减库存”封装为单个原子操作，杜绝并发导致的读写不一致。
 
-#### 第一层：Redis + Lua 原子操作
+#### 第二层：分布式滑动窗口限流
+基于 Redis ZSet 实现针对单个用户和单个活动的精准频控，在边缘侧拦截恶意刷单。
 
-```java
-@Service
-public class InventoryService {
+#### 第三层：带背压的消息队列
+订单创建请求先入 RocketMQ，后端消费者根据自身处理能力稳健处理，实现流量削峰填谷。
 
-    private static final String DEDUCT_STOCK_SCRIPT = """
-        local stock = redis.call('GET', KEYS[1])
-        if not stock then
-            return -1  -- 商品未找到
-        end
-
-        local current = tonumber(stock)
-        local quantity = tonumber(ARGV[1])
-
-        if current < quantity then
-            return 0  -- 库存不足
-        end
-
-        redis.call('DECRBY', KEYS[1], quantity)
-        return 1  -- 成功
-        """;
-
-    public DeductResult deductStock(String productId, int quantity) {
-        // Redis 中的原子操作 - 无竞态条件
-        Long result = redisTemplate.execute(
-            RedisScript.of(DEDUCT_STOCK_SCRIPT, Long.class),
-            List.of("stock:" + productId),
-            String.valueOf(quantity)
-        );
-
-        return switch (result.intValue()) {
-            case 1 -> DeductResult.SUCCESS;
-            case 0 -> DeductResult.INSUFFICIENT_STOCK;
-            case -1 -> DeductResult.PRODUCT_NOT_FOUND;
-            default -> DeductResult.ERROR;
-        };
-    }
-}
-```
-
-#### 第二层：分布式限流
-
-```java
-@Component
-public class FlashSaleRateLimiter {
-
-    // 滑动窗口限流器
-    private static final String RATE_LIMIT_SCRIPT = """
-        local key = KEYS[1]
-        local limit = tonumber(ARGV[1])
-        local window = tonumber(ARGV[2])
-        local now = tonumber(ARGV[3])
-
-        -- 移除过期条目
-        redis.call('ZREMRANGEBYSCORE', key, 0, now - window)
-
-        -- 统计当前窗口数量
-        local count = redis.call('ZCARD', key)
-
-        if count >= limit then
-            return 0  -- 被限流
-        end
-
-        -- 添加当前请求
-        redis.call('ZADD', key, now, now .. ':' .. math.random())
-        redis.call('EXPIRE', key, window / 1000)
-
-        return 1  -- 允许
-        """;
-
-    public boolean allowRequest(String userId, String saleId) {
-        String key = String.format("rate:%s:%s", saleId, userId);
-        Long now = System.currentTimeMillis();
-
-        Long result = redisTemplate.execute(
-            RedisScript.of(RATE_LIMIT_SCRIPT, Long.class),
-            List.of(key),
-            "5",      // 5 次请求
-            "1000",   // 每 1 秒窗口
-            String.valueOf(now)
-        );
-
-        return result == 1;
-    }
-}
-```
-
-#### 第三层：带背压的请求队列
-
-```java
-@Service
-public class FlashSaleOrderService {
-
-    private final RocketMQTemplate rocketMQTemplate;
-    private final RedissonClient redisson;
-
-    public OrderResult placeOrder(OrderRequest request) {
-        // 1. 限流检查
-        if (!rateLimiter.allowRequest(request.userId(), request.saleId())) {
-            return OrderResult.rateLimited();
-        }
-
-        // 2. 扣减库存 (Redis)
-        DeductResult deductResult = inventoryService.deductStock(
-            request.productId(),
-            request.quantity()
-        );
-
-        if (deductResult != DeductResult.SUCCESS) {
-            return OrderResult.fromDeductResult(deductResult);
-        }
-
-        // 3. 生成订单号
-        String orderId = generateOrderId();
-
-        // 4. 发送到异步处理队列
-        rocketMQTemplate.asyncSend(
-            "flash-sale-orders",
-            new FlashSaleOrderMessage(orderId, request),
-            new SendCallback() {
-                @Override
-                public void onSuccess(SendResult result) {
-                    // 订单已入队等待处理
-                }
-
-                @Override
-                public void onException(Throwable e) {
-                    // 回滚库存
-                    inventoryService.restoreStock(
-                        request.productId(),
-                        request.quantity()
-                    );
-                }
-            }
-        );
-
-        return OrderResult.queued(orderId);
-    }
-}
-```
-
-### 数据库拆分
-
-从单一数据库迁移到每服务独立数据库：
-
-```java
-// 分布式事务的 Saga 模式
-@Service
-public class OrderSagaOrchestrator {
-
-    public OrderResult createOrder(CreateOrderCommand command) {
-        Saga<OrderContext> saga = Saga.<OrderContext>builder()
-            .step("reserve-inventory")
-                .action(ctx -> inventoryClient.reserve(ctx.items()))
-                .compensation(ctx -> inventoryClient.release(ctx.reservationId()))
-            .step("create-payment")
-                .action(ctx -> paymentClient.createPayment(ctx.amount()))
-                .compensation(ctx -> paymentClient.cancelPayment(ctx.paymentId()))
-            .step("confirm-order")
-                .action(ctx -> orderRepository.confirm(ctx.orderId()))
-                .compensation(ctx -> orderRepository.cancel(ctx.orderId()))
-            .build();
-
-        return saga.execute(new OrderContext(command));
-    }
-}
-```
+### 分布式事务处理
+- 采用 **Saga 模式 (Orchestration-based)** 处理跨服务的长事务，通过补偿机制保证最终一致性。
 
 ---
 
 ## 5. 挑战与解决方案
 
 ### 挑战 1：跨服务数据一致性
+**对策**：引入 **本地消息表 (Outbox Pattern)**。将业务操作与消息发送放在同一个本地事务中，确保消息“一定能发出去”且“只发一次”。
 
-**问题**：分布式事务很难。跨服务的 ACID 是不可能的。
+### 挑战 2：服务治理与灰度发布
+**对策**：基于 Kubernetes + Istio 实现。通过 VirtualService 定义权重，实现 1%、5%、20% 到 100% 的平滑金丝雀发布。
 
-**解决方案**：通过发件箱模式实现最终一致性
-
-```java
-@Transactional
-public void completeOrder(Order order) {
-    // 1. 更新订单状态
-    orderRepository.save(order.complete());
-
-    // 2. 写入发件箱（同一事务）
-    outboxRepository.save(new OutboxEvent(
-        "order.completed",
-        order.getId(),
-        objectMapper.writeValueAsString(order)
-    ));
-}
-
-// 独立进程轮询发件箱并发布事件
-@Scheduled(fixedDelay = 100)
-public void publishOutboxEvents() {
-    List<OutboxEvent> pending = outboxRepository.findPending(100);
-    for (OutboxEvent event : pending) {
-        try {
-            messageQueue.publish(event.getTopic(), event.getPayload());
-            outboxRepository.markPublished(event.getId());
-        } catch (Exception e) {
-            outboxRepository.incrementRetry(event.getId());
-        }
-    }
-}
-```
-
-### 挑战 2：服务发现与负载均衡
-
-**解决方案**：Kubernetes 原生服务发现 + Istio 流量管理
-
-```yaml
-# Istio VirtualService 用于金丝雀发布
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
-metadata:
-  name: order-service
-spec:
-  hosts:
-  - order-service
-  http:
-  - match:
-    - headers:
-        canary:
-          exact: "true"
-    route:
-    - destination:
-        host: order-service
-        subset: v2
-      weight: 100
-  - route:
-    - destination:
-        host: order-service
-        subset: v1
-      weight: 90
-    - destination:
-        host: order-service
-        subset: v2
-      weight: 10
-```
-
-### 挑战 3：分布式系统监控
-
-**解决方案**：OpenTelemetry 分布式追踪
-
-```java
-@RestController
-public class OrderController {
-
-    private final Tracer tracer;
-
-    @PostMapping("/orders")
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody CreateOrderRequest request) {
-        Span span = tracer.spanBuilder("createOrder")
-            .setAttribute("order.user_id", request.getUserId())
-            .setAttribute("order.total", request.getTotal())
-            .startSpan();
-
-        try (Scope scope = span.makeCurrent()) {
-            // 业务逻辑
-            OrderResult result = orderService.createOrder(request);
-
-            span.setAttribute("order.id", result.getOrderId());
-            span.setStatus(StatusCode.OK);
-
-            return ResponseEntity.ok(result.toResponse());
-        } catch (Exception e) {
-            span.recordException(e);
-            span.setStatus(StatusCode.ERROR, e.getMessage());
-            throw e;
-        } finally {
-            span.end();
-        }
-    }
-}
-```
+### 挑战 3：全链路可观测性
+**对策**：集成 **OpenTelemetry**。为每一笔订单分配唯一的 TraceID，跨越网关、多个服务及数据库，实现故障的秒级定位。
 
 ---
 
-## 6. 结果与指标
+## 6. 核心成果
 
-### 秒杀活动性能（双十一事件）
-
-| 指标 | 优化前 | 优化后 | 提升 |
+| 指标 | 重构前 | 重构后 | 提升幅度 |
 |--------|--------|-------|-------------|
-| **峰值 QPS** | 5,000 | 50,000+ | 10 倍 |
-| **超卖事故** | 12 起 | 0 起 | -100% |
-| **结算 p99** | 8.2s | 0.4s | -95% |
-| **系统可用性** | 94% | 99.95% | +6% |
-
-### 基础设施影响
-
-| 资源 | 优化前（单体） | 优化后（微服务） |
-|----------|-------------------|----------------------|
-| **CPU 成本** | $5,000/月 | $3,200/月 |
-| **扩容时间** | 5-10 分钟 | 30 秒 |
-| **部署频率** | 每周 | 每日 20+ 次 |
-| **MTTR** | 45 分钟 | 8 分钟 |
+| **峰值 QPS** | 5,000 | 50,000+ | **10x** |
+| **超卖事故** | 12 次 | 0 次 | **100% 消除** |
+| **响应延迟 (p99)** | 8.2s | 0.4s | **-95%** |
+| **部署频率** | 每周 1 次 | 每日 20+ 次 | **极速迭代** |
 
 ---
 
-## 7. 经验教训
+## 7. 核心启示
 
-### 做得好的方面
-- ✅ 绞杀者模式有效降低了风险
-- ✅ Redis 用于库存是正确的选择
-- ✅ 异步处理优雅应对了流量峰值
-- ✅ 每服务独立数据库消除了锁竞争
-
-### 可以改进的方面
-- ⚠️ 应该更早投资分布式追踪
-- ⚠️ 最初的服务边界划分过于细粒度（后来合并了一些）
-- ⚠️ 团队需要更多分布式系统概念的培训
-
-### 核心要点
-
-1. **Redis Lua 脚本非常强大** - 原子操作可以解决很多竞态条件
-2. **最终一致性是可以接受的** - 用户关心正确的结果，而不是即时更新
-3. **队列是你的朋友** - 解耦以增强韧性
-4. **可观测性至关重要** - 无法修复你看不到的问题
-5. **从最热的路径开始** - 把迁移重点放在最大的痛点上
+1. **原子性是并发之基**：Redis Lua 脚本是处理高竞争资源的利器。
+2. **异步化是伸缩之本**：解耦掉不需要即时反馈的逻辑，系统才能真正“弹”起来。
+3. **观测胜过调试**：在微服务架构中，没有全链路追踪就是在盲跑。
+4. **小步快跑**：绞杀者模式虽然时间长，但它能保证业务不中断，是风险最低的选择。
 
 ---
 
-## 架构演进时间线
-
-```mermaid
-gantt
-    title 迁移时间线
-    dateFormat  YYYY-MM
-    section 第一阶段
-    用户服务拆分    :done, 2023-01, 2023-03
-    商品服务拆分 :done, 2023-02, 2023-04
-    section 第二阶段
-    库存服务 (Redis)  :done, 2023-04, 2023-06
-    秒杀优化    :done, 2023-05, 2023-07
-    section 第三阶段
-    订单服务拆分   :done, 2023-07, 2023-10
-    支付服务拆分 :done, 2023-09, 2023-11
-    section 第四阶段
-    遗留单体下线     :active, 2023-11, 2024-02
-```
-
----
-
-:::info 核心要点
-微服务本身并不解决问题——它们只是让解决方案成为可能。真正的工作在于理解系统的瓶颈，并应用正确的模式（如 Redis + Lua 实现原子性、消息队列实现解耦）。
+:::info 最终总结
+微服务本身不创造价值，它通过解耦为复杂性提供了“分而治之”的土壤。重构的真谛在于精准识别系统瓶颈，并应用正确的模式（如原子化、异步化、可观测性）去各个击破。
 :::

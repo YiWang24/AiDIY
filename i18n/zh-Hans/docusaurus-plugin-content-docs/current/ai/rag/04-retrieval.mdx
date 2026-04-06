@@ -1,39 +1,39 @@
 ---
 id: retrieval
-title: Retrieval Strategies
+title: 检索策略
 sidebar_label: 4. 检索
-description: 向量搜索、查询变换、路由和重排序技术
+description: RAG 系统的向量搜索、查询转换、路由和重排序技术
 slug: /ai/rag/retrieval
 ---
 
-# 4. Retrieval Strategies
+# 4. 检索策略
 
-> **"Retrieval is the bridge between LLM knowledge and your private data."** — RAG Fundamental Principle
+> **“检索是 LLM 知识与私有数据之间的桥梁。”** —— RAG 基础原则
 
-This chapter covers retrieval fundamentals, query transformation, routing strategies, and post-retrieval optimization techniques that transform raw vector search into production-ready RAG systems.
+本章涵盖检索基础知识、查询转换、路由策略以及后检索优化技术，这些技术将原始向量搜索转变为生产级 RAG 系统。
 
 ---
 
-## 4.1 Background & Fundamentals
+## 4.1 背景与基础
 
-### 4.1.1 What is Retrieval?
+### 4.1.1 什么是检索？
 
-**Retrieval** is the process of efficiently filtering relevant information from a large corpus based on a query's semantic intent. In RAG systems, retrieval serves as the critical bridge between the LLM's static training knowledge and your dynamic, private data.
+**检索 (Retrieval)** 是根据查询的语义意图，从海量语料库中高效筛选相关信息的过程。在 RAG 系统中，检索充当了 LLM 静态训练知识与动态私有数据之间的关键桥梁。
 
 ```mermaid
 flowchart LR
-    subgraph WithoutRetrieval["Without Retrieval"]
-        LLM1["Frozen LLM<br/>Training data cutoff<br/>No private data access"]
-        Q1["User Question: How do I configure<br/>our internal deployment system"]
-        LLM1 -.->|Cannot answer| Q1
+    subgraph WithoutRetrieval["无检索"]
+        LLM1["静态 LLM<br/>训练数据截止<br/>无法访问私有数据"]
+        Q1["用户问题：如何配置<br/>我们的内部部署系统？"]
+        LLM1 -.->|无法回答| Q1
     end
 
-    subgraph WithRetrieval["With RAG Retrieval"]
-        Q2["User Question"]
-        R["Retriever:<br/>Search 100K+ docs<br/>Find top 5 relevant"]
-        KB["Private Knowledge Base<br/>Internal docs, configs, runbooks"]
-        LLM2["LLM + Retrieved Context"]
-        A2["Accurate Answer<br/>Grounded in private data"]
+    subgraph WithRetrieval["有 RAG 检索"]
+        Q2["用户问题"]
+        R["检索器：<br/>搜索 10 万+ 文档<br/>找到前 5 个相关项"]
+        KB["私有知识库<br/>内部文档、配置、手册"]
+        LLM2["LLM + 检索到的上下文"]
+        A2["准确回答<br/>基于私有数据落地"]
     end
 
     Q2 --> R
@@ -44,63 +44,63 @@ flowchart LR
     style R fill:#4caf50,stroke:#1b5e20,color:#fff
 ```
 
-**Key Insight**: Think of retrieval as an "external hard drive reader" for the LLM. The LLM generates the final answer, but retrieval supplies the relevant raw materials. Without retrieval, the LLM is limited to:
-- Knowledge from its training cutoff date
-- No access to private/internal information
-- Hallucinations when answering beyond its knowledge
+**核心洞察**：可以将检索视为 LLM 的“外部硬盘读取器”。LLM 负责生成最终答案，而检索则提供相关的原材料。没有检索，LLM 将受限于：
+- 训练截止日期前的知识
+- 无法访问私有/内部信息
+- 回答超出其知识范围时产生幻觉
 
-### 4.1.2 Why Do We Need Retrieval? The Context Window Problem
+### 4.1.2 为什么需要检索？上下文窗口问题
 
-Even with modern LLMs supporting 128K+ token context windows, retrieval remains essential due to three fundamental constraints:
+即使现代 LLM 支持 128K+ token 的上下文窗口，检索仍然必不可少，原因在于三个根本限制：
 
-#### Constraint 1: Context Window Limits
+#### 限制 1：上下文窗口总量有限
 
-While 128K tokens sounds large, enterprise knowledge bases often contain millions of documents:
+虽然 128K token 听起来很多，但企业知识库通常包含数百万份文档：
 
 ```
-Typical Enterprise Knowledge Base:
-- 10,000 technical documents × 2,000 tokens each = 20M tokens
-- Even 128K context < 1% of total knowledge
-- Need retrieval to find that 1% relevant to current query
+典型企业知识库：
+- 10,000 份技术文档 × 每份 2,000 tokens = 2,000 万 tokens
+- 即使是 128K 的上下文也 < 总知识量的 1%
+- 需要检索来找到与当前查询相关的那 1%
 ```
 
-#### Constraint 2: Cost and Latency
+#### 限制 2：成本与延迟
 
 ```mermaid
 flowchart TB
-    subgraph NoRetrieval["No Retrieval (All Context)"]
-        A1["Send 100K tokens<br/>to LLM every query"] --> C1["$2-5 per query<br/>5-10 second latency"]
+    subgraph NoRetrieval["无检索（全量上下文）"]
+        A1["每次查询发送 10 万 tokens<br/>给 LLM"] --> C1["每次查询 $2-5<br/>5-10 秒延迟"]
     end
 
-    subgraph SmartRetrieval["Smart Retrieval (Top-10)"]
-        A2["Send 2K tokens<br/>(10 relevant chunks)"] --> C2["$0.05 per query<br/>1 second latency"]
+    subgraph SmartRetrieval["智能检索 (Top-10)"]
+        A2["发送 2000 tokens<br/>(10 个相关分块)"] --> C2["每次查询 $0.05<br/>1 秒延迟"]
     end
 
     style C2 fill:#4caf50,stroke:#1b5e20,color:#fff
     style C1 fill:#f44336,stroke:#b71c1c,color:#fff
 ```
 
-**Economics**:
-- GPT-4: ~$10-15 per 1M input tokens
-- Sending 100K tokens per query = $1-1.50 per query
-- Retrieval reduces to ~2K tokens = $0.02 per query
-- **50-75x cost reduction**
+**经济账**：
+- GPT-4：每百万输入 token 约为 $10-15
+- 每次查询发送 10 万 token ≈ 1.5 美元
+- 检索将其减少到 ~2000 token ≈ 0.02 美元
+- **成本降低 50-75 倍**
 
-#### Constraint 3: Signal-to-Noise Ratio (Lost in the Middle)
+#### 限制 3：信噪比（迷失在中间）
 
-Research shows that LLMs struggle to use information buried in long contexts, a phenomenon called **"Lost in the Middle"**:
+研究表明，LLM 很难利用埋藏在长上下文中间的信息，这种现象被称为 **“迷失在中间” (Lost in the Middle)**：
 
 ```mermaid
 flowchart LR
-    subgraph Prompt["Prompt Structure"]
+    subgraph Prompt["Prompt 结构"]
         S1["System Prompt"]
         S2["Query"]
-        D1["Doc 1 (high relevance)"]
-        D2["Doc 2 (medium)"]
-        D3["Doc 50 (irrelevant)"]
-        D4["Doc 51 (irrelevant)"]
-        D5["Doc 100 (HIGH relevance)"]
-        S3["Answer starts here..."]
+        D1["文档 1 (高度相关)"]
+        D2["文档 2 (中度相关)"]
+        D3["文档 50 (不相关)"]
+        D4["文档 51 (不相关)"]
+        D5["文档 100 (高度相关)"]
+        S3["答案从这里开始..."]
     end
 
     style D1 fill:#4caf50,stroke:#1b5e20,color:#fff
@@ -109,291 +109,183 @@ flowchart LR
     style D4 fill:#f44336,stroke:#b71c1c,color:#fff
 ```
 
-**Finding**: LLMs pay most attention to information at the **beginning and end** of context, with degraded performance in the middle.
+**结论**：LLM 对上下文**开头和结尾**的信息关注度最高，中间部分的性能会显著下降。
 
-**Solution**: Retrieval ensures only highly relevant documents (top 5-10) are included, maintaining high signal-to-noise ratio throughout the context.
+**解决方案**：检索确保只包含高度相关的文档（Top 5-10），从而在整个上下文中维持极高的信噪比。
 
-### 4.1.3 Vector Space Model
+### 4.1.3 向量空间模型
 
-The foundation of modern retrieval is the **Vector Space Model**, which maps all text to a high-dimensional geometric space.
+现代检索的基础是**向量空间模型 (Vector Space Model)**，它将所有文本映射到高维几何空间中。
 
-#### Core Principle
+#### 核心原理
 
 ```
-Distance in vector space = Semantic similarity
+向量空间中的距离 = 语义相似度
 
-If vector(A) is close to vector(B):
-→ A and B have similar meanings
-→ LLM embeddings learned this from training
-→ Supports "analogical reasoning"
+如果 向量(A) 接近 向量(B)：
+→ A 和 B 具有相似的含义
+→ LLM Embedding 在训练中习得了这种关联
+→ 支持“类比推理”
 ```
 
-#### Mathematical Foundation
+#### 数学基础
 
-Given a query $q$ and documents $d_1, d_2, ..., d_n$:
+给定查询 $q$ 和文档 $d_1, d_2, ..., d_n$：
 
-1. **Embed**: Convert all text to vectors
+1. **Embedding (嵌入)**：将所有文本转换为向量
    - $v_q = \text{embed}(q)$
    - $v_i = \text{embed}(d_i)$
 
-2. **Compare**: Calculate similarity scores
+2. **比较**：计算相似度分数
    - $\text{sim}(q, d_i) = \text{cosine}(v_q, v_i)$
 
-3. **Rank**: Sort by similarity, return top-K
+3. **排序**：按相似度排序，返回前 K 个结果
 
 ```mermaid
 flowchart TB
-    subgraph VectorSpace["High-Dimensional Vector Space (simplified to 2D)"]
-        Q["Query: machine learning<br/>[0.82, 0.45]"]
+    subgraph VectorSpace["高维向量空间 (简化为 2D)"]
+        Q["查询：机器学习<br/>[0.82, 0.45]"]
 
-        D1["Doc 1: Neural networks<br/>[0.85, 0.42]"]
-        D2["Doc 2: Deep learning<br/>[0.79, 0.48]"]
-        D3["Doc 3: Recipe chocolate cake<br/>[-0.65, 0.72]"]
-        D4["Doc 4: Football scores<br/>[0.12, -0.88]"]
+        D1["文档 1：神经网络<br/>[0.85, 0.42]"]
+        D2["文档 2：深度学习<br/>[0.79, 0.48]"]
+        D3["文档 3：巧克力蛋糕配方<br/>[-0.65, 0.72]"]
+        D4["文档 4：足球比分<br/>[0.12, -0.88]"]
     end
 
-    Q -->|0.98 similarity| D1
-    Q -->|0.95 similarity| D2
-    Q -.->|0.15 similarity| D3
-    Q -.->|0.08 similarity| D4
+    Q -->|0.98 相似度| D1
+    Q -->|0.95 相似度| D2
+    Q -.->|0.15 相似度| D3
+    Q -.->|0.08 相似度| D4
 
     style Q fill:#ff9800,stroke:#e65100,color:#fff
     style D1 fill:#4caf50,stroke:#1b5e20,color:#fff
     style D2 fill:#4caf50,stroke:#1b5e20,color:#fff
 ```
 
-**Key Property**: Vector distances capture semantic relationships that keyword search misses:
-- "machine learning" ≈ "neural networks" (close vectors)
-- "machine learning" ≈ "ML" (close vectors)
-- "machine learning" ≈ "recipe" (distant vectors)
+**关键特性**：向量距离捕捉到了关键词搜索无法识别的语义关系：
+- “机器学习” ≈ “神经网络”（向量接近）
+- “机器学习” ≈ “ML”（向量接近）
+- “机器学习” ≈ “配方”（向量遥远）
 
-### 4.1.4 Dense vs Sparse Vectors
+### 4.1.4 稠密向量 vs 稀疏向量
 
-Retrieval systems use two fundamentally different vector representations:
+检索系统使用两种根本不同的向量表示：
 
-#### Dense Vectors (Embeddings)
+#### 稠密向量 (Dense Vectors / Embeddings)
 
-**Form**: Fixed-length arrays where **most dimensions are non-zero**
+**形式**：固定长度的数组，其中**大多数维度非零**。
 
 ```python
-# Example: 1024-dimensional embedding
+# 示例：1024 维稠密向量
 dense_vector = [
-    0.12, -0.98, 0.05, 0.33, -0.44,  # All positions have values
+    0.12, -0.98, 0.05, 0.33, -0.44,  # 所有位置都有数值
     0.67, -0.21, 0.88, 0.03, -0.56,
-    # ... 1014 more dimensions
+    # ... 还有 1014 个维度
 ]
 ```
 
-**Characteristics**:
+**特点**：
 
-| Aspect | Description |
+| 维度 | 描述 |
 |--------|-------------|
-| **Dimensionality** | Fixed: 384-3072 dimensions |
-| **Values** | All positions non-zero (dense) |
-| **Meaning** | Each dimension = latent semantic feature |
-| **Example** | Dimension 156 might encode "technical complexity" |
-| **Storage** | 4 bytes per dimension (float32) |
+| **维度数** | 固定：384-3072 维 |
+| **数值** | 所有位置均非零（稠密） |
+| **含义** | 每个维度 = 潜在语义特征 |
+| **示例** | 第 156 维可能编码了“技术复杂度” |
+| **存储** | 每维度 4 字节 (float32) |
 
-**Advantages**:
-- ✅ **Semantic understanding**: "苹果手机" matches "iPhone"
-- ✅ **Cross-language**: English query finds Chinese docs
-- ✅ **Conceptual matching**: "error" finds "issue", "bug", "problem"
+**优点**：
+- ✅ **语义理解**：“苹果手机”匹配“iPhone”
+- ✅ **跨语言**：英文查询能找到中文文档
+- ✅ **概念匹配**：“错误”匹配“异常”、“Bug”、“问题”
 
-**Disadvantages**:
-- ❌ **Exact matching weakness**: Model numbers like "X1000" may not match precisely
-- ❌ **Opaque**: Cannot explain why two documents are similar
-- ❌ **Computation**: Requires expensive forward pass through embedding model
+**缺点**：
+- ❌ **精确匹配弱**：像 “X1000” 这样的型号可能无法精确匹配
+- ❌ **黑盒化**：无法解释为什么两份文档相似
+- ❌ **计算开销**：需要经过 Embedding 模型的推理计算
 
-#### Sparse Vectors (Lexical)
+#### 稀疏向量 (Sparse Vectors / Lexical)
 
-**Form**: Very long arrays (vocabulary size) where **most dimensions are zero**
+**形式**：极长的数组（等于词汇表大小），其中**大多数维度为零**。
 
 ```python
-# Example: 100K-dimensional sparse vector (vocabulary size)
+# 示例：10 万维稀疏向量 (词汇表大小)
 sparse_vector = [
-    0, 0, 0, 1, 0, ..., 0,  # Only "error" appears
-    0, ..., 5, 0, ..., 0,  # "code" appears 5 times
-    0, ..., 0, 2, 0        # "exception" appears 2 times
+    0, 0, 0, 1, 0, ..., 0,  # 仅 “error” 出现
+    0, ..., 5, 0, ..., 0,  # “code” 出现了 5 次
+    0, ..., 0, 2, 0        # “exception” 出现了 2 次
 ]
 ```
 
-**Characteristics**:
+**特点**：
 
-| Aspect | Description |
+| 维度 | 描述 |
 |--------|-------------|
-| **Dimensionality** | Vocabulary size: 50K-500K |
-| **Values** | Mostly zero (sparse) |
-| **Meaning** | Each dimension = specific word/token |
-| **Storage** | Efficient sparse representation |
+| **维度数** | 词汇表大小：5万-50万 |
+| **数值** | 大多数为零（稀疏） |
+| **含义** | 每个维度 = 特定的单词/Token |
+| **存储** | 高效的稀疏矩阵存储 |
 
-**Advantages**:
-- ✅ **Exact matching**: "Error code E5001" matches precisely
-- ✅ **Efficient**: TF-IDF/BM25 are fast to compute
-- ✅ **Explainable**: Know exactly which terms caused the match
+**优点**：
+- ✅ **精确匹配**：“错误码 E5001” 能精准匹配
+- ✅ **高效**：TF-IDF/BM25 计算速度极快
+- ✅ **可解释**：确切知道是哪些词导致了匹配
 
-**Disadvantages**:
-- ❌ **No synonym understanding**: "dog" won't find "puppy"
-- ❌ **Language-specific**: English queries only find English docs
-- ❌ **Vocabulary dependence**: Out-of-vocabulary terms not found
+**缺点**：
+- ❌ **无同义词理解**：“狗”找不到“小狗”
+- ❌ **语言限制**：英文查询只能找到英文文档
+- ❌ **词汇依赖**：无法找到词汇表以外的术语
 
-#### Dense vs Sparse Comparison
+#### 稠密与稀疏对比
 
-| Technique | Use Case | Example Match | Example Miss |
+| 技术 | 适用场景 | 匹配示例 | 未能匹配示例 |
 |-----------|----------|---------------|--------------|
-| **Dense (Embedding)** | Semantic search | "car" → "automobile" | "X1000" → "X1000" |
-| **Sparse (BM25)** | Keyword search | "E5001" → "Error E5001" | "car" → "automobile" |
-| **Hybrid** | Production systems | Both semantic + exact | Neither works |
+| **稠密 (Embedding)** | 语义搜索 | “轿车” → “汽车” | “X1000” → “X1000” |
+| **稀疏 (BM25)** | 关键词搜索 | “E5001” → “错误 E5001” | “轿车” → “汽车” |
+| **混合检索** | 生产环境系统 | 语义 + 精确匹配均可 | 两者均失效 |
 
-**Best Practice**: Production systems use **hybrid retrieval** (Dense + Sparse + Reranker) to combine strengths of both approaches.
-
-### 4.1.5 The Evolution of Retrieval
-
-Retrieval technology has evolved through three distinct generations:
-
-```mermaid
-timeline
-    title Evolution of Information Retrieval
-    1990s : First Generation<br/>Keyword Search (Lexical)<br/>Inverted Index + BM25<br/>Exact term matching
-    2010s : Second Generation<br/>Semantic Search (Dense)<br/>BERT Embeddings + Vector DB<br/>Semantic similarity
-    2024+ : Third Generation<br/>Hybrid Search (Best Practice)<br/>Dense + Sparse + Reranker<br/>High recall + precision
-```
-
-#### First Generation: Keyword Search (Lexical)
-
-**Technology**: Inverted index + BM25 ranking
-
-```python
-# Pseudocode: BM25 scoring
-def bm25_score(query, document):
-    score = 0
-    for term in query:
-        # Term frequency in document
-        tf = count(term, document)
-
-        # Inverse document frequency
-        idf = log(total_docs / docs_containing(term))
-
-        # Document length normalization
-        length_norm = 1 + doc_length / avg_doc_length
-
-        score += (tf * idf * (k1 + 1)) / (tf + k1 * length_norm)
-
-    return score
-```
-
-**Strengths**:
-- Fast, well-understood
-- Excellent for exact term matching
-- Explainable (know which terms matched)
-
-**Weaknesses**:
-- Vocabulary mismatch problem
-- No semantic understanding
-- Poor performance on synonyms
-
-#### Second Generation: Semantic Search (Dense)
-
-**Technology**: BERT/RoBERTa embeddings + Vector databases
-
-```python
-# Pseudocode: Dense retrieval
-def semantic_search(query, documents, embedding_model):
-    # 1. Embed query (expensive forward pass)
-    query_vector = embedding_model.encode(query)
-
-    # 2. Compare with pre-embedded documents
-    similarities = {}
-    for doc_id, doc_vector in documents.items():
-        # Cosine similarity
-        similarities[doc_id] = cosine(query_vector, doc_vector)
-
-    # 3. Return top-K
-    return sorted(similarities.items(), key=lambda x: x[1], reverse=True)[:top_k]
-```
-
-**Strengths**:
-- Semantic understanding
-- Cross-lingual capabilities
-- Synonym matching
-
-**Weaknesses**:
-- Expensive embedding computation
-- Poor exact term matching
-- "Black box" similarity
-
-#### Third Generation: Hybrid Search (Current Best Practice)
-
-**Technology**: Dense + Sparse + Cross-Encoder reranker
-
-```python
-# Pseudocode: Hybrid retrieval pipeline
-def hybrid_search(query, vector_db, keyword_index, reranker):
-    # Stage 1: Parallel retrieval (high recall)
-    vector_results = vector_db.search(query, top_k=20)  # Semantic
-    keyword_results = keyword_index.search(query, top_k=20)  # Exact
-
-    # Stage 2: Reciprocal Rank Fusion (RRF)
-    combined = rrf_fusion([vector_results, keyword_results], k=60)
-
-    # Stage 3: Cross-Encoder reranking (high precision)
-    final_results = reranker.rerank(query, combined[:50], top_k=10)
-
-    return final_results
-```
-
-**Strengths**:
-- Combines semantic + exact matching
-- High recall (Stage 1) + High precision (Stage 2)
-- Handles diverse query types
-
-**Why Hybrid?** Each technique covers the other's blind spots:
-
-| Query Type | Dense Works? | Sparse Works? | Hybrid Works? |
-|------------|--------------|---------------|---------------|
-| "How do I fix error 5001?" | ❌ (exact code) | ✅ | ✅ |
-| "troubleshooting guide" | ✅ (semantic) | ❌ (not exact) | ✅ |
-| "iPhone配置指南" (Chinese) | ✅ (cross-lingual) | ❌ | ✅ |
+**最佳实践**：生产系统应使用**混合检索 (Hybrid Retrieval)**（稠密 + 稀疏 + 重排序），以结合两者的优势。
 
 ---
 
-## 4.2 Query Translation & Enhancement
+## 4.2 查询转换与增强
 
-**Goal**: Bridge the semantic gap between "how users express questions" and "how knowledge is written in documents."
+**目标**：弥合“用户表达问题的方式”与“文档中知识编写的方式”之间的语义鸿沟。
 
-Real-world problem: User queries are often:
-- Too vague ("it doesn't work")
-- Wrong terminology ("bug" vs "feature")
-- Missing context ("the config file")
-- Specific ("AdGuard Home v0.107.3 port 53 bind failed")
+现实中的问题：用户查询通常表现为：
+- 过于模糊（“它不工作”）
+- 术语错误（混淆“Bug”与“功能”）
+- 缺乏上下文（“那个配置文件”）
+- 过于具体（“AdGuard Home v0.107.3 53 端口绑定失败”）
 
-Query translation techniques transform raw queries into optimized search requests.
+查询转换技术将原始查询转化为优化后的搜索请求。
 
-### 4.2.1 Multi-Query & RAG-Fusion
+### 4.2.1 多查询 (Multi-Query) 与 RAG-Fusion
 
-#### Concept
+#### 概念
 
-A single query is often insufficient to capture all relevant information. Multi-query generates multiple search variants and merges results.
+单一查询往往不足以捕获所有相关信息。多查询技术生成多个搜索变体并合并结果。
 
 ```mermaid
 flowchart TB
-    subgraph Query["Query Processing"]
-        Q["User Query:<br/>'AdGuard DNS issues'"]
+    subgraph Query["查询处理"]
+        Q["用户查询：<br/>'AdGuard DNS 问题'"]
     end
 
-    subgraph LLM["Query Expansion (LLM)"]
-        Q1["Q1: AdGuard DNS<br/>not resolving"]
-        Q2["Q2: AdGuard upstream<br/>DNS configuration"]
-        Q3["Q3: AdGuard port 53<br/>bind errors"]
+    subgraph LLM["查询扩展 (LLM)"]
+        Q1["Q1: AdGuard DNS<br/>无法解析"]
+        Q2["Q2: AdGuard 上游<br/>DNS 配置"]
+        Q3["Q3: AdGuard 53 端口<br/>绑定错误"]
     end
 
-    subgraph Search["Parallel Vector Search"]
-        S1["Search Q1 → 5 docs"]
-        S2["Search Q2 → 5 docs"]
-        S3["Search Q3 → 5 docs"]
+    subgraph Search["并行向量搜索"]
+        S1["搜索 Q1 → 5 份文档"]
+        S2["搜索 Q2 → 5 份文档"]
+        S3["搜索 Q3 → 5 份文档"]
     end
 
-    subgraph Fusion["RRF Fusion"]
-        F["Merge & Re-rank<br/>Boost repeated docs<br/>Final Top-10"]
+    subgraph Fusion["RRF 融合"]
+        F["合并与重排序<br/>提升重复出现的文档<br/>最终 Top-10"]
     end
 
     Q --> LLM
@@ -403,1997 +295,254 @@ flowchart TB
     style Fusion fill:#4caf50,stroke:#1b5e20,color:#fff
 ```
 
-#### RRF (Reciprocal Rank Fusion) Algorithm
+#### RRF (倒数排名融合) 算法
 
-The key innovation in RAG-Fusion is **RRF**, which combines multiple ranked lists:
+RAG-Fusion 的关键创新在于 **RRF**，它能合并多个排序列表：
 
 ```python
-# Pseudocode: RRF Fusion Algorithm
+# 伪代码：RRF 融合算法
 def rrf_fusion(query, result_lists, k=60):
     """
-    Combine multiple search result lists using Reciprocal Rank Fusion
+    使用倒数排名融合合并多个搜索结果列表
 
-    Args:
-        query: Original user query
-        result_lists: List of search result lists from different queries
-        k: Constant (typically 60-100) to prevent high-ranking docs from dominating
+    参数：
+        query: 原始用户查询
+        result_lists: 来自不同查询的搜索结果列表集合
+        k: 常数（通常为 60-100），防止高排名文档占据过大主导地位
 
-    Returns:
-        Re-ranked and combined results
+    返回：
+        重新排序并合并后的结果
     """
     scores = {}
 
-    # Process each result list
+    # 处理每个结果列表
     for results in result_lists:
         for rank, doc in enumerate(results):
-            # RRF score: 1 / (k + rank)
-            # Rank 0: score = 1/60 ≈ 0.0167
-            # Rank 1: score = 1/61 ≈ 0.0164
+            # RRF 评分公式：1 / (k + rank)
             score = 1 / (k + rank + 1)
 
-            # Accumulate scores for same doc
+            # 为同一文档累加分数
             scores[doc.id] = scores.get(doc.id, 0) + score
 
-    # Sort by combined score (highest first)
+    # 按合并分数排序（从高到低）
     sorted_results = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
     return sorted_results
 ```
 
-**Why RRF Works**:
+### 4.2.2 查询分解 (Decomposition)
 
-```mermaid
-flowchart LR
-    subgraph Example["Example RRF Calculation"]
-        Q1["Query 1 Results:<br/>1. Doc A<br/>2. Doc B<br/>3. Doc C"]
-        Q2["Query 2 Results:<br/>1. Doc D<br/>2. Doc A<br/>3. Doc E"]
-        Fused["Final Rankings:<br/>1. Doc A (appears in both)<br/>2. Doc D<br/>3. Doc B<br/>4. Doc C<br/>5. Doc E"]
-    end
+#### 概念
 
-    Q1 --> Fused
-    Q2 --> Fused
-
-    style Fused fill:#4caf50,stroke:#1b5e20,color:#fff
-```
-
-**Key Properties**:
-- Document appearing in **multiple lists gets boosted** (Doc A: rank 1)
-- Different ranking scales can be combined (vector + keyword)
-- Robust to outliers (one bad query doesn't ruin results)
-
-#### Implementation Considerations
-
-**Prompt Template for Query Generation**:
-
-```
-Generate 3-4 different search queries to answer this question.
-Original question: {user_query}
-
-Requirements:
-1. Each query should explore a different angle (technical, configuration, errors, troubleshooting)
-2. Use relevant terminology from the domain
-3. Keep queries concise (5-10 words)
-4. Output as JSON array of strings
-
-Output format:
-["query 1", "query 2", "query 3", "query 4"]
-```
-
-**When to Use Multi-Query**:
-
-| Scenario | Multi-Query Value |
-|----------|-------------------|
-| Vague user questions | ⭐⭐⭐⭐⭐ High - covers multiple interpretations |
-| Exploratory queries | ⭐⭐⭐⭐⭐ High - discover related topics |
-| Specific error codes | ⭐⭐ Low - single query sufficient |
-| Simple factual queries | ⭐ Low - adds latency without benefit |
-
-### 4.2.2 Decomposition
-
-#### Concept
-
-Break complex, multi-part questions into simple sub-queries, execute sequentially, and combine results.
+将复杂的、包含多个部分的问题分解为简单的子查询，顺序执行并合并结果。
 
 ```mermaid
 flowchart TB
-    subgraph Original["Original Query"]
-        Q["Compare X and Y<br/>in terms of performance,<br/>cost, and scalability"]
+    subgraph Original["原始查询"]
+        Q["从性能、成本和<br/>可扩展性方面对比 X 和 Y"]
     end
 
-    subgraph Decompose["Decomposition"]
-        D1["Sub-query 1:<br/>What is X performance"]
-        D2["Sub-query 2:<br/>What is Y performance"]
-        D3["Sub-query 3:<br/>Compare X vs Y costs"]
-    end
-
-    subgraph Sequential["Sequential Execution"]
-        R1["Retrieve for Q1"]
-        A1["Answer 1"]
-        R2["Retrieve for Q2<br/>(using context from Q1)"]
-        A2["Answer 2"]
-        R3["Retrieve for Q3"]
-        A3["Answer 3"]
-    end
-
-    subgraph Synthesize["Synthesis"]
-        Final["Combined answer<br/>addressing all aspects"]
+    subgraph Decompose["分解"]
+        D1["子查询 1：<br/>X 的性能如何"]
+        D2["子查询 2：<br/>Y 的性能如何"]
+        D3["子查询 3：<br/>对比 X 与 Y 的成本"]
     end
 
     Original --> Decompose
-    Decompose --> Sequential
-    Sequential --> Synthesize
-
-    style Synthesize fill:#4caf50,stroke:#1b5e20,color:#fff
 ```
 
-#### Least-to-Most Prompting Strategy
+### 4.2.3 后退一步 (Step-Back) 提示词
 
-Decomposition follows the **Least-to-Most** principle:
+#### 概念
 
-```python
-# Pseudocode: Least-to-Most decomposition
-def least_to_most_retrieval(complex_query):
-    # Stage 1: Decompose
-    sub_queries = decompose_query(complex_query)
-    # Example: "Compare Kafka vs RabbitMQ"
-    # → ["What is Kafka's architecture?",
-    #     "What is RabbitMQ's architecture?",
-    #     "Compare their performance"]
-
-    context_accumulator = []
-
-    # Stage 2: Sequential execution
-    for i, sub_query in enumerate(sub_queries):
-        # Retrieve with previous context
-        docs = retrieve(sub_query, context=context_accumulator)
-
-        # Generate intermediate answer
-        answer = generate(sub_query, docs)
-
-        # Accumulate context for next sub-query
-        context_accumulator.append({
-            "query": sub_query,
-            "answer": answer,
-            "docs": docs
-        })
-
-    # Stage 3: Synthesize final answer
-    final_answer = synthesize(complex_query, context_accumulator)
-
-    return final_answer
-```
-
-**Example: Multi-Hop Question**
-
-```
-User Query: "Who won the Nobel Prize in Physics in 2024 and what university are they from?"
-
-Naive RAG:
-- Search: "Nobel Prize Physics 2024"
-- Result: John Hopfield and Geoffrey Hinton
-- Missing: Which university?
-
-Decomposition:
-1. Q1: "Who won Nobel Prize Physics 2024?"
-   → Answer: John Hopfield, Geoffrey Hinton
-
-2. Q2: "What university is John Hopfield affiliated with?"
-   → Answer: Princeton University
-
-3. Q3: "What university is Geoffrey Hinton affiliated with?"
-   → Answer: University of Toronto
-
-4. Final: "John Hopfield (Princeton) and Geoffrey Hinton (University of Toronto) won the 2024 Nobel Prize in Physics."
-```
-
-**When to Use Decomposition**:
-
-| Scenario | Decomposition Value |
-|----------|---------------------|
-| Multi-hop reasoning | ⭐⭐⭐⭐⭐ Required - answer depends on previous answers |
-| "Compare X and Y" | ⭐⭐⭐⭐ High - need separate retrieval for each |
-| Simple fact queries | ⭐ Low - unnecessary overhead |
-
-### 4.2.3 Step-Back Prompting
-
-#### Concept
-
-Sometimes user questions are **too specific** and don't find good matches. Step-back prompting generates a more abstract question to retrieve broader context.
+有时用户的提问**过于具体**，导致无法匹配到好的结果。后退一步提示词生成一个更抽象的问题，以检索更广泛的背景。
 
 ```mermaid
 flowchart TB
-    subgraph Original["Original Query (Too Specific)"]
-        Q1["My AdGuard Home v0.107.3<br/>port 53 bind failed<br/>with error EADDRINUSE"]
+    subgraph Original["原始查询 (过于具体)"]
+        Q1["我的 AdGuard Home v0.107.3<br/>53 端口绑定失败，<br/>错误码 EADDRINUSE"]
     end
 
-    subgraph StepBack["Step-Back (Abstract)"]
-        Q2["General approach to<br/>port conflicts in<br/>DNS servers"]
+    subgraph StepBack["后退一步 (抽象)"]
+        Q2["DNS 服务器中<br/>端口冲突的通用<br/>处理方法"]
     end
 
-    subgraph Search["Dual Search"]
-        S1["Search specific<br/>→ Few results"]
-        S2["Search abstract<br/>→ Many results<br/>with principles"]
-    end
-
-    subgraph Combine["Context Combination"]
-        C["Specific + Abstract<br/>→ Comprehensive answer"]
-    end
-
-    Original --> Search
-    StepBack --> Search
-    Search --> Combine
-
-    style StepBack fill:#ff9800,stroke:#e65100,color:#fff
-```
-
-#### Before vs After Step-Back
-
-| Aspect | Specific Query | Step-Back Query |
-|--------|----------------|-----------------|
-| **Query** | "AdGuard Home v0.107 port 53 bind failed" | "How to resolve DNS server port conflicts?" |
-| **Matches** | Only exact version-specific docs | General troubleshooting principles |
-| **Risk** | No exact match → zero results | Always finds relevant principles |
-| **Use Case** | When specific docs exist | When specific information unavailable |
-
-#### Implementation
-
-```python
-# Pseudocode: Step-Back prompting
-def step_back_retrieval(specific_query):
-    # Generate abstract question
-    abstract_query = generate_abstract_question(specific_query)
-
-    # Example transformation:
-    # "AdGuard Home v0.107.3 port 53 bind failed"
-    # → "Common causes and solutions for DNS server port binding issues"
-
-    # Search both
-    specific_docs = retrieve(specific_query, top_k=5)
-    abstract_docs = retrieve(abstract_query, top_k=5)
-
-    # Combine: prioritize specific, fallback to abstract
-    combined_docs = specific_docs + abstract_docs
-
-    return generate_answer(specific_query, combined_docs)
-```
-
-**When to Use Step-Back Prompting**:
-
-| Scenario | Step-Back Value |
-|----------|-----------------|
-| Specific error messages | ⭐⭐⭐⭐ High - exact errors may not be documented |
-| Version-specific questions | ⭐⭐⭐⭐ High - principles apply across versions |
-| General concepts | ⭐ Low - abstraction unnecessary |
-
-### 4.2.4 HyDE (Hypothetical Document Embeddings)
-
-#### Concept
-
-HyDE uses a **"fake answer"** to search for the **"real answer."** Counterintuitively, searching with a hypothetical answer vector yields better results than searching with the original query.
-
-```mermaid
-flowchart LR
-    subgraph Traditional["Traditional Retrieval"]
-        Q1["Query: How do I fix<br/>AdGuard DNS"] --> E1["Embed Query<br/>short, vague"]
-        E1 --> S1["Search<br/>poor matches"]
-    end
-
-    subgraph HyDE["HyDE Retrieval"]
-        Q2["Query: How do I fix<br/>AdGuard DNS"] --> G["LLM Generate<br/>Hypothetical Answer"]
-        G --> H["Hypothetical:<br/>To fix AdGuard DNS,<br/>check upstream DNS<br/>configuration in<br/>/etc/adguard/config.yaml"]
-        H --> E2["Embed Fake Answer<br/>long, detailed"]
-        E2 --> S2["Search<br/>better matches"]
-    end
-
-    style H fill:#ff9800,stroke:#e65100,color:#fff
-```
-
-#### Why HyDE Works: Vector Space Intuition
-
-```mermaid
-flowchart TB
-    subgraph Space["Vector Space"]
-        QV["Query Vector<br/>(short, abstract)"]
-        HV["Hypothetical Answer Vector<br/>(long, concrete)"]
-        DV["Real Document Vectors<br/>(long, concrete)"]
-    end
-
-    QV -.->|Far from docs| DV
-    HV -->|Close to docs| DV
-
-    style HV fill:#4caf50,stroke:#1b5e20,color:#fff
-    style QV fill:#f44336,stroke:#b71c1c,color:#fff
-```
-
-**Key Insight**: Documents are long and detailed. A hypothetical answer is also long and detailed. Their vectors occupy similar regions of the embedding space.
-
-#### Implementation
-
-```python
-# Pseudocode: HyDE retrieval
-def hyde_retrieval(query, llm, embedding_model, vector_db):
-    # Stage 1: Generate hypothetical document
-    hypothetical = llm.generate(
-        prompt=f"Write a detailed answer to: {query}\n\nInclude technical specifics, configurations, and examples.",
-        max_tokens=256
-    )
-
-    # Example output:
-    # "To fix AdGuard DNS issues, first check the upstream DNS configuration
-    #  in /etc/adguard/config.yaml. Ensure the upstream_dns setting points to
-    #  valid DNS servers like 1.1.1.1 or 8.8.8.8. If port 53 is already in use..."
-
-    # Stage 2: Embed the hypothetical answer (not the original query)
-    hypothetical_vector = embedding_model.embed(hypothetical)
-
-    # Stage 3: Search with hypothetical vector
-    results = vector_db.search(vector=hypothetical_vector, top_k=10)
-
-    # Stage 4: Generate real answer using retrieved docs
-    final_answer = llm.generate(
-        prompt=f"Question: {query}\n\nContext: {results}\n\nAnswer:"
-    )
-
-    return final_answer
-```
-
-#### Use Cases
-
-| Scenario | HyDE Value | Reason |
-|----------|------------|--------|
-| Cross-lingual retrieval | ⭐⭐⭐⭐⭐ | Hypothetical in same language as docs |
-| Short queries | ⭐⭐⭐⭐ | Expands to detailed representation |
-| Long-answer queries | ⭐⭐ | Already detailed, minimal benefit |
-
-**Example: Cross-Lingual**
-
-```
-User Query (English): "How to configure DNS upstream?"
-
-Hypothetical (English, LLM-generated):
-"To configure DNS upstream in AdGuard Home, edit the config.yaml file
-and set the upstream_dns parameter to your preferred DNS servers..."
-
-Search (Chinese docs):
-- Docs about "配置上游DNS" (configure upstream DNS)
-- Match because hypothetical answer vectors similar to Chinese doc vectors
+    Original --> StepBack
 ```
 
 ---
 
-## 4.3 Routing & Construction
+## 4.3 路由与构建 (Routing & Construction)
 
-**Goal**: Precisely control "where to search" (which data sources) and "how to search" (query structure and filters).
+**目标**：精准控制“去哪里搜索”（哪些数据源）以及“如何搜索”（查询结构与过滤器）。
 
-### 4.3.1 Logical Routing
+### 4.3.1 逻辑路由 (Logical Routing)
 
-#### Concept
+#### 概念
 
-Not all queries should search the same data. A question about code should search the codebase, a question about pricing should search documentation. Routing directs queries to appropriate specialized indices.
+并非所有查询都应搜索相同的数据。关于代码的问题应搜索代码库，关于价格的问题应搜索产品文档。路由将查询导向合适的专门索引。
 
 ```mermaid
 flowchart TB
-    subgraph Input["User Query"]
-        Q["How do I implement<br/>authentication in Spring Boot"]
+    subgraph Input["用户查询"]
+        Q["如何在 Spring Boot 中<br/>实现认证"]
     end
 
-    subgraph Router["LLM Router"]
-        R{Analyze Query<br/>Select Data Source}
+    subgraph Router["LLM 路由选择器"]
+        R{分析查询<br/>选择数据源}
     end
 
-    subgraph Sources["Specialized Indices"]
-        CodeDB["Code Database<br/>Functions, classes,<br/>algorithms"]
-        DocsDB["Documentation DB<br/>Guides, tutorials,<br/>API reference"]
-        ConfigDB["Config DB<br/>YAML files,<br/>properties"]
-    end
-
-    subgraph Output["Retrieval"]
-        Ret["Search in CodeDB<br/>→ Relevant code<br/>examples"]
+    subgraph Sources["专门索引"]
+        CodeDB["代码库<br/>函数、类、算法"]
+        DocsDB["文档库<br/>指南、教程、API 参考"]
+        ConfigDB["配置库<br/>YAML 文件、属性配置"]
     end
 
     Q --> Router
-    Router -->|Code question| CodeDB
-    Router -->|Docs question| DocsDB
-    Router -->|Config question| ConfigDB
-
-    CodeDB --> Ret
-    DocsDB --> Ret
-    ConfigDB --> Ret
-
-    style Router fill:#ff9800,stroke:#e65100,color:#fff
-    style CodeDB fill:#4caf50,stroke:#1b5e20,color:#fff
+    Router -->|代码问题| CodeDB
+    Router -->|文档问题| DocsDB
+    Router -->|配置问题| ConfigDB
 ```
 
-#### Implementation
+### 4.3.2 语义路由 (Semantic Routing)
 
-```python
-# Pseudocode: Logical routing with LLM
-def route_query(query, available_sources):
-    """
-    Use LLM to classify query and select appropriate data source
+#### 概念
 
-    Returns: Selected source name
-    """
-    # Build source descriptions for LLM
-    source_descriptions = []
-    for source in available_sources:
-        source_descriptions.append(f"- {source['name']}: {source['description']}")
+**语义路由**利用 **查询嵌入向量的相似度** 来进行路由，而非依赖 LLM 文本分类。它将查询向量与预先计算好的“路由描述”向量进行对比，找到最佳匹配项。
 
-    prompt = f"""
-    Given the following user query, select the most appropriate data source to search.
+### 4.3.3 查询构建与元数据过滤
 
-    Query: {query}
+#### 概念：自查询 (Self-Querying)
 
-    Available sources:
-    {chr(10).join(source_descriptions)}
+向量搜索是**语义化**的，而非**精确**的。它在处理以下内容时较弱：
+- 数字：“2024” 可能会匹配到 “2023”（语义上接近的年份）
+- 布尔值：“enabled” ≈ “disabled”（两者都是配置状态）
+- 日期：“上周” 是模糊的
 
-    Output only the source name.
-    """
-
-    selected_source = llm.generate(prompt)
-
-    return selected_source.strip()
-
-
-# Example usage
-available_sources = [
-    {"name": "code_db", "description": "Code implementations, algorithms, functions"},
-    {"name": "docs_db", "description": "Documentation, guides, tutorials"},
-    {"name": "config_db", "description": "Configuration files, YAML examples"}
-]
-
-query = "How do I implement JWT authentication in Spring Boot?"
-source = route_query(query, available_sources)
-# LLM output: "code_db"
-
-# Now search only in code_db
-results = vector_stores[source].search(query, top_k=10)
-```
-
-#### Advanced: Multi-Source Routing
-
-```mermaid
-flowchart TB
-    Q["Complex Query:<br/>'Compare authentication<br/>approaches across our services'"] --> Router
-
-    Router --> S1["Code DB"]
-    Router --> S2["Docs DB"]
-    Router --> S3["Architecture DB"]
-
-    S1 --> R1["Search Code"]
-    S2 --> R2["Search Docs"]
-    S3 --> R3["Search Architecture"]
-
-    R1 --> Fuse
-    R2 --> Fuse
-    R3 --> Fuse["Multi-Source Fusion"]
-
-    Fuse --> A["Comprehensive<br/>Answer"]
-
-    style Router fill:#ff9800,stroke:#e65100,color:#fff
-    style Fuse fill:#4caf50,stroke:#1b5e20,color:#fff
-```
-
-**When to Use Routing**:
-
-| Scenario | Routing Value |
-|----------|---------------|
-| Multiple specialized knowledge bases | ⭐⭐⭐⭐⭐ Required - avoids searching irrelevant sources |
-| Single monolithic index | ⭐ Low - no routing benefit |
-| Performance-critical applications | ⭐⭐⭐⭐ High - reduce search scope |
-
-### 4.3.2 Semantic Routing
-
-#### Concept
-
-**Semantic Routing** uses **query embedding similarity** to route queries, rather than LLM-based classification. It compares the query vector against pre-computed "route description" vectors to find the best match.
-
-```mermaid
-flowchart TB
-    subgraph Input["User Query"]
-        Q["How do I fix<br/>port 53 binding error"]
-    end
-
-    subgraph Embed["Embedding"]
-        E["Convert query to vector<br/>[0.82, -0.15, 0.44, ...]"]
-    end
-
-    subgraph Routes["Pre-computed Route Embeddings"]
-        R1["Route: Troubleshooting<br/>Vector: [0.79, -0.12, 0.41, ...]"]
-        R2["Route: Configuration<br/>Vector: [0.31, 0.67, -0.22, ...]"]
-        R3["Route: Development<br/>Vector: [-0.55, 0.38, 0.71, ...]"]
-    end
-
-    subgraph Compare["Similarity Comparison"]
-        S1["similarity Q, R1 = 0.94"]
-        S2["similarity Q, R2 = 0.67"]
-        S3["similarity Q, R3 = 0.23"]
-    end
-
-    subgraph Output["Selected Route"]
-        Selected["Troubleshooting Index<br/>highest similarity"]
-    end
-
-    Q --> E
-    E --> Compare
-    Routes --> Compare
-    Compare --> Selected
-
-    style Selected fill:#4caf50,stroke:#1b5e20,color:#fff
-    style S1 fill:#4caf50,stroke:#1b5e20,color:#fff
-```
-
-#### Logical vs Semantic Routing
-
-| Aspect | Logical Routing | Semantic Routing |
-|--------|----------------|------------------|
-| **Mechanism** | LLM classifies query intent | Vector similarity to route descriptions |
-| **Speed** | 🐌 Slower (requires LLM forward pass) | ⚡ Faster (just cosine similarity) |
-| **Flexibility** | ✅ High - can use complex reasoning | 🟡 Medium - limited by route descriptions |
-| **Accuracy** | ✅ High for complex queries | ✅ High for well-defined routes |
-| **Cost** | 💰 Higher (LLM API calls) | 🆓 Lower (pre-computed vectors) |
-| **Best For** | Multi-step reasoning, edge cases | High-volume, well-defined categories |
-
-#### Implementation
-
-```python
-# Pseudocode: Semantic routing
-class SemanticRouter:
-    def __init__(self, embedding_model):
-        self.embedding_model = embedding_model
-        self.routes = []  # List of (name, description, vector) tuples
-
-    def add_route(self, name, description):
-        """
-        Add a route with semantic description
-
-        Args:
-            name: Route identifier (e.g., "troubleshooting")
-            description: Natural language description of what this route handles
-        """
-        vector = self.embedding_model.embed(description)
-        self.routes.append({
-            "name": name,
-            "description": description,
-            "vector": vector
-        })
-
-    def route(self, query, threshold=0.75):
-        """
-        Route query to best matching route
-
-        Returns: Route name or None if below threshold
-        """
-        query_vector = self.embedding_model.embed(query)
-
-        best_score = 0
-        best_route = None
-
-        for route in self.routes:
-            # Calculate cosine similarity
-            score = cosine_similarity(query_vector, route["vector"])
-
-            if score > best_score:
-                best_score = score
-                best_route = route["name"]
-
-        # Only route if confidence above threshold
-        if best_score >= threshold:
-            return best_route
-
-        return None  # Fallback to default route
-
-
-# Example usage
-router = SemanticRouter(embedding_model)
-
-# Define routes with semantic descriptions
-router.add_route(
-    name="troubleshooting",
-    description="Errors, bugs, failures, crashes, exceptions, issues, problems, not working, broken"
-)
-
-router.add_route(
-    name="configuration",
-    description="Settings, config, setup, install, configure, YAML, properties, environment"
-)
-
-router.add_route(
-    name="development",
-    description="Code, programming, API, implementation, function, class, method, algorithm"
-)
-
-router.add_route(
-    name="pricing",
-    description="Cost, price, billing, payment, subscription, plan, free, tier"
-)
-
-# Route queries
-query1 = "How do I fix port 53 binding error?"
-route1 = router.route(query1)
-# Returns: "troubleshooting" (similarity ≈ 0.92)
-
-query2 = "What's the price for enterprise plan?"
-route2 = router.route(query2)
-# Returns: "pricing" (similarity ≈ 0.89)
-
-query3 = "How do I implement JWT auth?"
-route3 = router.route(query3)
-# Returns: "development" (similarity ≈ 0.85)
-```
-
-#### Advanced: Hierarchical Semantic Routing
-
-For complex systems, use **multi-level routing**:
-
-```python
-# Pseudocode: Hierarchical semantic routing
-class HierarchicalRouter:
-    def __init__(self):
-        # Level 1: High-level categories
-        self.primary_router = SemanticRouter(embedding_model)
-        self.primary_router.add_route("technical", "Code, config, development, engineering")
-        self.primary_router.add_route("business", "Pricing, sales, enterprise, support")
-        self.primary_router.add_route("general", "Documentation, tutorials, guides")
-
-        # Level 2: Technical sub-routes
-        self.technical_router = SemanticRouter(embedding_model)
-        self.technical_router.add_route("troubleshooting", "Errors, bugs, crashes")
-        self.technical_router.add_route("configuration", "Setup, settings, install")
-        self.technical_router.add_route("development", "API, implementation, code")
-
-        # Level 2: Business sub-routes
-        self.business_router = SemanticRouter(embedding_model)
-        self.business_router.add_route("pricing", "Cost, price, billing")
-        self.business_router.add_route("sales", "Enterprise, demo, trial")
-        self.business_router.add_route("support", "Help, ticket, contact")
-
-    def route(self, query):
-        # Level 1: Primary category
-        primary = self.primary_router.route(query)
-
-        # Level 2: Sub-category
-        if primary == "technical":
-            return self.technical_router.route(query)
-        elif primary == "business":
-            return self.business_router.route(query)
-        else:
-            return "general"
-
-# Example
-query = "How much does enterprise support cost?"
-# Level 1: "business"
-# Level 2: "pricing"
-# Final route: "business_pricing"
-```
-
-#### Hybrid Routing: Logical + Semantic
-
-Combine both approaches for optimal results:
-
-```python
-# Pseudocode: Hybrid routing
-class HybridRouter:
-    def __init__(self, semantic_router, llm_client):
-        self.semantic_router = semantic_router
-        self.llm_client = llm_client
-
-    def route(self, query):
-        # Stage 1: Fast semantic routing
-        semantic_route = self.semantic_router.route(query, threshold=0.85)
-
-        if semantic_route:
-            # High confidence: Use semantic route
-            return semantic_route
-
-        # Stage 2: Fallback to logical routing for ambiguous queries
-        logical_route = self.llm_route(query)
-        return logical_route
-
-    def llm_route(self, query):
-        prompt = f"""
-        Classify this query into one of: troubleshooting, configuration, development, pricing
-
-        Query: {query}
-
-        Output only the category name.
-        """
-        return self.llm_client.generate(prompt).strip()
-
-
-# Usage
-hybrid_router = HybridRouter(semantic_router, llm_client)
-
-# High confidence: Uses semantic routing (fast)
-query1 = "Port 53 error"
-route1 = hybrid_router.route(query1)  # "troubleshooting" via semantic
-
-# Low confidence: Falls back to LLM (slower but accurate)
-query2 = "I'm having issues with the system"
-route2 = hybrid_router.route(query2)  # "troubleshooting" via LLM
-```
-
-#### Route Description Best Practices
-
-Effective semantic routing requires well-crafted route descriptions:
-
-| Do | Don't | Reason |
-|----|-------|--------|
-| **Use multiple synonyms** | Single term | Captures query variations |
-| **Include common typos** | Perfect spelling only | Handles real-world queries |
-| **Add related concepts** | Literal terms only | Semantic matching needs breadth |
-| **Use domain language** | Generic terms | Aligns with user vocabulary |
-
-**Example Route Descriptions**:
-
-```python
-# Good route descriptions
-routes = {
-    "troubleshooting": [
-        "errors, bugs, issues, problems",
-        "crash, failure, exception, not working",
-        "broken, fix, repair, resolve, debug",
-        "error code, exception message, stack trace"
-    ],
-
-    "configuration": [
-        "settings, config, configuration",
-        "setup, install, deployment",
-        "YAML, JSON, properties, environment variables",
-        "configure, customize, personalize"
-    ],
-
-    "authentication": [
-        "login, logout, signin, signout",
-        "auth, authentication, authorization",
-        "JWT, OAuth, SAML, SSO",
-        "password, credentials, token, session"
-    ]
-}
-```
-
-#### When to Use Semantic Routing
-
-| Scenario | Semantic Routing Value |
-|----------|------------------------|
-| High-volume queries | ⭐⭐⭐⭐⭐ Excellent - fast, low cost |
-| Well-defined categories | ⭐⭐⭐⭐⭐ High - clear route boundaries |
-| Complex reasoning required | ⭐⭐ Low - use logical routing |
-| Dynamic route addition | ⭐⭐⭐⭐ Good - just add new embeddings |
-| Edge cases handling | ⭐⭐⭐ Medium - may miss nuanced queries |
-
-### 4.3.3 Query Construction & Metadata Filtering
-
-#### Concept: Self-Querying
-
-Vector search is **semantic**, not **exact**. It struggles with:
-- Numbers: "2024" might match "2023" (semantically similar years)
-- Booleans: "enabled" ≈ "disabled" (both are config states)
-- Dates: "last week" is fuzzy
-
-**Solution**: Use **metadata filtering** to apply exact constraints before vector search.
-
-```mermaid
-flowchart TB
-    subgraph Query["Natural Language Query"]
-        Q["Find my Linux notes<br/>from 2024"]
-    end
-
-    subgraph Parse["LLM Parsing"]
-        P{Extract<br/>Metadata Filters}
-    end
-
-    subgraph Filters["Structured Filters"]
-        F1["tag: Linux"]
-        F2["year: 2024"]
-    end
-
-    subgraph Search["Filtered Vector Search"]
-        Step1["1. Apply Metadata Filter<br/>(exact match)"]
-        Step2["2. Vector Search<br/>(within filtered subset)"]
-        Step3["3. Return results<br/>(exact + semantic)"]
-    end
-
-    Q --> Parse
-    Parse --> Filters
-    Filters --> Search
-
-    style P fill:#ff9800,stroke:#e65100,color:#fff
-    style Step2 fill:#4caf50,stroke:#1b5e20,color:#fff
-```
-
-#### Metadata Filtering Examples
-
-**Example 1: Tag-based filtering**
-
-```python
-# Pseudocode: Metadata filtering
-def search_with_filters(query, vector_store):
-    # Step 1: Extract metadata using LLM
-    metadata = extract_metadata(query)
-
-    # Query: "Find my Linux notes from 2024"
-    # Extracted: {"tag": "Linux", "year": 2024}
-
-    # Step 2: Build filter expression (Milvus/PgVector syntax)
-    filter_expression = "tag == 'Linux' && year == 2024"
-
-    # Step 3: Search with filter
-    results = vector_store.search(
-        query_vector=embed(query),
-        filter=filter_expression,  # Apply exact filter
-        top_k=10
-    )
-
-    return results
-```
-
-**Example 2: Range queries**
-
-```python
-# Query: "Find errors with status code >= 500"
-filter_expression = "status_code >= 500"
-
-# Query: "Find documents created after 2024-01-01"
-filter_expression = "created_at > '2024-01-01'"
-
-# Query: "Find high-priority bugs"
-filter_expression = "priority in ['P0', 'P1']"
-```
-
-#### Metadata Schema Design
-
-Effective metadata filtering requires **careful schema design**:
-
-```python
-# Recommended metadata schema
-metadata_schema = {
-    # Temporal
-    "created_at": "datetime",      # Range queries: after/before
-    "updated_at": "datetime",
-    "year": "integer",              # Exact match: 2024
-
-    # Categorical
-    "category": "string",           # Exact match: "tech", "business"
-    "tags": "string[]",             # Array membership: "Linux"
-    "author": "string",
-
-    # Numerical
-    "version": "float",             # Range: >= 2.0
-    "priority": "integer",          # Comparison: >= 500
-
-    # Boolean
-    "is_public": "boolean",         # Exact: true/false
-    "is_deleted": "boolean",
-
-    # Identifiers
-    "doc_id": "string",
-    "file_path": "string"
-}
-```
-
-#### Best Practices
-
-| Practice | Do | Don't |
-|----------|-----|-------|
-| **Filter types** | Use exact matches for numbers, dates, booleans | Use vector search for "2024" (will match 2023) |
-| **Filter before search** | Apply metadata filter first, then vector search | Vector search entire corpus, then filter |
-| **Index filters** | Create inverted indexes on filter fields | Scan all documents to apply filters |
-
-**Implementation Example (Milvus)**:
-
-```python
-# Pseudocode: Milvus metadata filtering
-def milvus_filtered_search(query, filters):
-    # Embed query
-    query_vector = embedding_model.embed(query)
-
-    # Build filter expression
-    expr = build_filter_expression(filters)
-    # Example: "tag in ['Linux', 'DevOps'] && year >= 2024"
-
-    # Search
-    results = milvus_client.search(
-        data=[query_vector],
-        anns_field="embedding",
-        param={"metric_type": "COSINE", "params": {"nprobe": 10}},
-        limit=10,
-        expr=expr  # Metadata filter
-    )
-
-    return results
-```
+**解决方案**：使用**元数据过滤**，在进行向量搜索前应用精确的约束条件。
 
 ---
 
-## 4.4 Post-Retrieval Optimization
+## 4.4 后检索优化 (Post-Retrieval)
 
-**Goal**: Extract the most relevant information from coarse-ranked retrieval results and fix "semantic drift" issues.
+**目标**：从粗略排序的检索结果中提取最相关的信息，并修复“语义偏移”问题。
 
-### 4.4.1 Reranking Strategies
+### 4.4.1 重排序策略 (Reranking)
 
-Reranking is the **precision optimization layer** of RAG systems. After initial retrieval produces a candidate set (50-100 documents), reranking refines the ranking to ensure the top-K results are truly relevant.
+重排序是 RAG 系统的**精度优化层**。在初始检索产生候选集（50-100 份文档）后，重排序会对这些文档进行精细化的二次排序。
 
-```mermaid
-flowchart TB
-    subgraph Stage0["Query Processing"]
-        Q[User Query] --> QT[Query Translation]
-    end
+#### 重排序方法概览
 
-    subgraph Stage1["Initial Retrieval (High Recall)"]
-        QT --> VS[Vector Search<br/>Bi-Encoder]
-        VS --> K100[Top-100 Candidates<br/>~50ms, nDCG@10=0.65]
-    end
-
-    subgraph Stage2["Reranking (High Precision)"]
-        K100 --> RS{Reranking Strategy}
-        RS --> K10[Top-10 Results<br/>~500ms, nDCG@10=0.82]
-    end
-
-    style K10 fill:#4caf50,stroke:#1b5e20,color:#fff
-    style K100 fill:#ff9800,stroke:#e65100,color:#fff
-```
-
-**Key Insight**: Reranking trades latency for accuracy. The two-stage approach (fast retrieval → accurate reranking) achieves both high recall and high precision.
-
-#### Reranking Methods Overview
-
-| Method | Type | Latency | Accuracy | Cost | Best For |
+| 方法 | 类型 | 延迟 | 准确度 | 成本 | 最佳场景 |
 |--------|------|---------|----------|------|----------|
-| **RRF** | Fusion | ~5ms | 🟡 Medium | 🆓 Low | Hybrid search, merging multiple lists |
-| **RankLLM** | LLM-based | ~2-5s | 🟢 Very High | 💰💰 High | Complex queries, reasoning |
-| **Cross-Encoder** | Neural | ~500ms | 🟢 High | 🟡 Medium | Production, balanced quality |
-| **ColBERT** | Late Interaction | ~200ms | 🟢 Very High | 🟢 Low | Maximizing relevance |
-| **FlashRank** | Neural (optimized) | ~50ms | 🟢 High | 🆓 Low | Edge deployment, real-time |
+| **RRF** | 融合 | ~5ms | 🟡 中 | 🆓 低 | 混合检索，合并多路列表 |
+| **RankLLM** | 基于 LLM | ~2-5s | 🟢 极高 | 💰💰 高 | 复杂查询、深度推理 |
+| **Cross-Encoder**| 神经模型 | ~500ms | 🟢 高 | 🟡 中 | 生产环境，平衡质量与性能 |
+| **FlashRank** | 轻量化 | ~50ms | 🟢 高 | 🆓 低 | 边缘部署，实时响应 |
 
-#### Method 1: Reciprocal Rank Fusion (RRF)
+#### Cross-Encoder 重排序原理
 
-**Concept**: RRF is a **result fusion technique**, not a traditional reranker. It merges multiple ranked lists (e.g., from vector search and keyword search) without requiring document content.
+Cross-Encoder 同时接收 **(查询, 文档) 对** 作为输入，并输出一个相关性分数。与 Bi-Encoder（向量检索）不同，它能看到查询与文档之间的细微交互。
+
+### 4.4.2 上下文选择与压缩
+
+#### 问题：上下文窗口预算
+
+检索完成后，你可能会得到 N 份相关文档，但 LLM 的上下文窗口是有限的：
 
 ```mermaid
 flowchart LR
-    subgraph Input["Multiple Ranked Lists"]
-        L1["Vector Search<br/>1. Doc A<br/>2. Doc B<br/>3. Doc C"]
-        L2["Keyword Search<br/>1. Doc D<br/>2. Doc A<br/>3. Doc E"]
+    subgraph Budget["上下文窗口预算"]
+        B["剩余 3000 tokens"]
     end
 
-    subgraph RRF["RRF Fusion"]
-        F["Calculate RRF scores:<br/>Doc A: 1/61 + 1/62 = 0.033<br/>Doc B: 1/62 + 0 = 0.016<br/>..."]
+    subgraph Selection["选择策略"]
+        S["选择符合预算<br/>的文档 (D1, D2, D4, D5)"]
     end
 
-    subgraph Output["Final Ranking"]
-        R["1. Doc A (appears in both)<br/>2. Doc D<br/>3. Doc B<br/>4. Doc C<br/>5. Doc E"]
-    end
-
-    L1 --> F
-    L2 --> F
-    F --> R
-
-    style R fill:#4caf50,stroke:#1b5e20,color:#fff
-```
-
-**RRF Algorithm**:
-
-```python
-def rrf_fusion(result_lists, k=60):
-    """
-    Reciprocal Rank Fusion algorithm
-
-    Formula: score(doc) = Σ 1 / (k + rank(doc))
-
-    Args:
-        result_lists: List of ranked document lists
-        k: Constant (default 60) prevents high ranks from dominating
-
-    Returns:
-        Fused and re-ranked results
-    """
-    scores = {}
-
-    for results in result_lists:
-        for rank, doc in enumerate(results):
-            # RRF scoring: 1 / (k + rank + 1)
-            score = 1 / (k + rank + 1)
-
-            if doc.id in scores:
-                scores[doc.id] += score
-            else:
-                scores[doc.id] = score
-
-    # Sort by combined score (highest first)
-    return sorted(scores.items(), key=lambda x: x[1], reverse=True)
-
-
-# Usage example: Merging vector and keyword search
-vector_results = vector_store.search(query, top_k=20)
-keyword_results = keyword_index.search(query, top_k=20)
-
-# Fuse using RRF
-fused = rrf_fusion([vector_results, keyword_results], k=60)
-final_results = fused[:10]  # Keep top 10
-```
-
-**Key Properties**:
-- ✅ **Scale-invariant**: Combines rankings regardless of absolute score values
-- ✅ **Robust**: Different ranking scales can be merged
-- ✅ **Fast**: O(N) complexity, no model inference required
-- ✅ **Document boosting**: Documents appearing in multiple lists naturally boosted
-
-**Use Cases**:
-- Hybrid retrieval (vector + keyword)
-- Multi-query retrieval (merge multiple query variants)
-- Temporal fusion (merge results from different time periods)
-
----
-
-#### Method 2: RankLLM
-
-**Concept**: Use an LLM to **directly rank documents** by generating relevance scores. The LLM "reads" each document and assigns a relevance score to the query.
-
-```mermaid
-flowchart TB
-    subgraph Input["Candidate Documents"]
-        D1[Doc 1]
-        D2[Doc 2]
-        D3[Doc 3]
-        D4[Doc 4]
-        D5[Doc 5]
-    end
-
-    subgraph LLM["LLM Scoring"]
-        Q[Query]
-        Q --> P1["Rank Doc 1"]
-        Q --> P2["Rank Doc 2"]
-        Q --> P3["Rank Doc 3"]
-        Q --> P4["Rank Doc 4"]
-        Q --> P5["Rank Doc 5"]
-    end
-
-    subgraph Output["Ranked Results"]
-        R["Final ranked documents"]
-    end
-
-    D1 --> P1
-    D2 --> P2
-    D3 --> P3
-    D4 --> P4
-    D5 --> P5
-
-    P1 --> R
-    P2 --> R
-    P3 --> R
-    P4 --> R
-    P5 --> R
-
-    style LLM fill:#ff9800,stroke:#e65100,color:#fff
-```
-
-**Implementation**:
-
-```python
-def rankllm_rerank(query, documents, llm, top_k=10):
-    """
-    Rank documents using LLM
-
-    Advantages:
-    - Understands complex query-document relationships
-    - Can handle multi-hop reasoning
-    - No training required (zero-shot)
-
-    Disadvantages:
-    - Slow (2-5 seconds for 50 candidates)
-    - Expensive (LLM API costs)
-    - Non-deterministic (scores vary by run)
-    """
-    # Build ranking prompt
-    prompt = f"""
-    Rank the following documents by relevance to the query.
-
-    Query: {query}
-
-    Documents:
-    {format_documents(documents)}
-
-    Return a JSON array of relevance scores (0-10) for each document.
-    Format: [score_1, score_2, score_3, ...]
-
-    Focus on:
-    - Direct answer relevance
-    - Information completeness
-    - Trustworthiness of source
-    """
-
-    # Generate scores (requires LLM with JSON output)
-    response = llm.generate(prompt)
-    scores = parse_json(response)
-
-    # Pair documents with scores
-    doc_scores = list(zip(documents, scores))
-
-    # Sort by score (descending)
-    doc_scores.sort(key=lambda x: x[1], reverse=True)
-
-    # Return top-K
-    return [doc for doc, score in doc_scores[:top_k]]
-
-
-def format_documents(documents):
-    """Format documents for LLM consumption"""
-    formatted = []
-    for i, doc in enumerate(documents):
-        formatted.append(f"Doc {i+1}: {doc.content[:500]}...")  # Truncate long content
-    return "\n".join(formatted)
-```
-
-**Strengths**:
-- ✅ **Reasoning capability**: Can understand "Compare A vs B" type queries
-- ✅ **Multi-hop**: Can trace relationships across documents
-- ✅ **Zero-shot**: No model training required
-- ✅ **Explainable**: LLM can provide ranking rationale
-
-**Weaknesses**:
-- ❌ **Slow**: 2-5 seconds vs 50-500ms for other methods
-- ❌ **Expensive**: $0.10-0.50 per query vs ~$0.001 for neural
-- ❌ **Inconsistent**: Scores vary between runs
-- ❌ **Context limit**: Limited to ~10-20 documents per ranking
-
-**Best For**:
-- Complex reasoning queries ("What are the trade-offs between X and Y?")
-- Low-volume, high-value applications (legal research, medical diagnosis)
-- When accuracy is more important than latency
-
----
-
-#### Method 3: Cross-Encoder Reranking
-
-**Concept**: Cross-encoders take **(query, document) pairs** as input and output a relevance score. Unlike bi-encoders, they see both query and document together.
-
-```mermaid
-flowchart TB
-    subgraph BiEncoder["Bi-Encoder (Initial Retrieval)"]
-        Q[Query] --> BE1[Embed]
-        D1[Doc 1] --> BE2[Embed]
-        D2[Doc 2] --> BE3[Embed]
-
-        BE1 --> V1[Query Vector]
-        BE2 --> V2[Doc 1 Vector]
-        BE3 --> V3[Doc 2 Vector]
-
-        V1 --> S1[Cosine Similarity]
-        V2 --> S1
-        V3 --> S1
-
-        S1 --> R1[Initial Scores]
-    end
-
-    subgraph CrossEncoder["Cross-Encoder (Reranking)"]
-        Q2[Query] --> CE[Encode Pair]
-        D1 --> CE
-        D2 --> CE
-
-        CE --> S2[Cross-Encoder Score]
-        CE --> S3[Cross-Encoder Score]
-
-        S2 --> R2[Reranked Scores]
-        S3 --> R2
-    end
-
-    R1 --> Sort[Sort by Score]
-    R2 --> Sort
-
-    style BiEncoder fill:#2196f3,stroke:#0d47a1,color:#fff
-    style CrossEncoder fill:#ff9800,stroke:#e65100,color:#fff
-```
-
-**Architecture Difference**:
-
-```python
-# Bi-Encoder (independent encoding)
-query_vector = bi_encoder.encode(query)  # Shape: [dim]
-doc_vectors = bi_encoder.encode(docs)     # Shape: [N, dim]
-
-# Similarity via cosine
-scores = cosine(query_vector, doc_vectors)  # Fast, cached
-
-
-# Cross-Encoder (joint encoding)
-pairs = [(query, doc1), (query, doc2), ...]  # N pairs
-scores = cross_encoder.score(pairs)  # Shape: [N]
-
-# Each score considers query-document interaction
-# Slower, but more accurate
-```
-
-**Implementation**:
-
-```python
-def cross_encoder_rerank(query, candidates, cross_encoder, top_k=10):
-    """
-    Rerank using cross-encoder model
-
-    Process:
-    1. Take top 50-100 candidates from bi-encoder retrieval
-    2. Score each (query, document) pair
-    3. Re-sort by cross-encoder scores
-    4. Return top-K
-
-    Args:
-        query: User query
-        candidates: List of documents from initial retrieval
-        cross_encoder: Trained cross-encoder model
-        top_k: Number of final results to return
-
-    Returns:
-        Re-ranked top-K documents
-    """
-    # Prepare (query, doc) pairs
-    pairs = [(query, doc.content) for doc in candidates]
-
-    # Score all pairs
-    # Cross-encoder processes (query, doc) jointly
-    scores = cross_encoder.score(pairs)  # Shape: [N]
-
-    # Pair with documents
-    doc_scores = list(zip(candidates, scores))
-
-    # Sort by cross-encoder score (descending)
-    doc_scores.sort(key=lambda x: x[1], reverse=True)
-
-    # Return top-K
-    return [doc for doc, score in doc_scores[:top_k]]
-```
-
-**Model Comparison**:
-
-| Model | Dimensions | Training Data | Strength | Deployment |
-|-------|------------|---------------|----------|------------|
-| **BGE Reranker v2-m3** | 1024 | MS MARCO | Multilingual, cross-lingual | CPU/GPU |
-| **Cohere Rerank 3** | 1024 | Web search | High accuracy | API |
-| **BGE Reranker Large** | 1024 | English | English-optimized | CPU/GPU |
-| **MiniLM-L6-v2** | 384 | MS MARCO | Very fast, decent quality | CPU/GPU |
-
-**Strengths**:
-- ✅ **High accuracy**: 20-30% nDCG improvement over bi-encoder
-- ✅ **Fast**: ~500ms for 100 documents
-- ✅ **Deterministic**: Consistent scores across runs
-- ✅ **Production-ready**: Well-established technique
-
-**Weaknesses**:
-- ❌ **Two-stage**: Requires initial retrieval first
-- ❌ **Limited context**: Usually sees only query + doc (no other docs for comparison)
-- ❌ **Training required**: Must be trained on labeled relevance data
-
-**Best For**:
-- Production systems (balanced latency and accuracy)
-- High-volume queries
-- General domain relevance ranking
-
----
-
-#### Method 4: ColBERT (Late Interaction)
-
-**Concept**: ColBERT uses **contextualized embeddings** with **late interaction**. Instead of comparing single query and document vectors, it compares query tokens with all document tokens interactively.
-
-```mermaid
-flowchart TB
-    subgraph Tokenization["Tokenization"]
-        Q[Query: How to fix DNS]
-        D[Doc: DNS configuration]
-
-        Q --> QT["Query tokens:<br/>How, to, fix, DNS"]
-        D --> DT["Doc tokens:<br/>DNS, config, bind, error"]
-    end
-
-    subgraph ColBERT["ColBERT Model"]
-        QT --> E1[Token Embeddings]
-        DT --> E2[Token Embeddings]
-
-        E1 --> QL[Query Representations]
-        E2 --> DL[Doc Representations]
-
-        QL --> LI[Multi-Head Attention<br/>Late Interaction]
-        DL --> LI
-
-        LI --> S[Relevance Score]
-    end
-
-    Tokenization --> ColBERT
-    ColBERT --> S
-
-    style ColBERT fill:#4caf50,stroke:#1b5e20,color:#fff
-```
-
-**Key Innovation**: **Late Interaction**
-
-Traditional bi-encoders compute similarity once at the document level. ColBERT computes token-level interactions and aggregates them.
-
-**Algorithm**:
-
-```python
-def colbert_score(query, document):
-    """
-    ColBERT late interaction scoring
-
-    Process:
-    1. Embed all tokens (query and document)
-    2. Compute contextualized embeddings (BERT-based)
-    3. Compute token-to-token interactions
-    4. Aggregate with MaxSim operator
-
-    Returns:
-    Relevance score (higher = more relevant)
-    """
-    # Tokenize
-    q_tokens = tokenize(query)   # [T_q tokens]
-    d_tokens = tokenize(document) # [T_d tokens]
-
-    # Get contextualized embeddings (BERT)
-    q_embeds = colbert_model(q_tokens)  # [T_q, dim]
-    d_embeds = colbert_model(d_tokens)  # [T_d, dim]
-
-    # Late interaction: Compute token-to-token similarity
-    # Shape: [T_q, T_d]
-    similarity_matrix = q_embeds @ d_embeds.T  # Matrix multiplication
-
-    # MaxSim aggregation: For each query token, take max similarity
-    # Shape: [T_q]
-    max_sim_per_q_token = similarity_matrix.max(dim=1)
-
-    # Average over all query tokens
-    score = max_sim_per_q_token.mean()
-
-    return score
-
-
-# Usage: Rerank with ColBERT
-def colbert_rerank(query, candidates, colbert_model, top_k=10):
-    """
-    Rerank using ColBERT late interaction
-    """
-    # Score each candidate
-    scores = []
-    for doc in candidates:
-        score = colbert_score(query, doc.content)
-        scores.append((doc, score))
-
-    # Sort by score
-    scores.sort(key=lambda x: x[1], reverse=True)
-
-    return [doc for doc, score in scores[:top_k]]
-```
-
-**Strengths**:
-- ✅ **Token-level precision**: Captures fine-grained relevance
-- ✅ **Contextual understanding": Each token sees full document context
-- ✅ **State-of-the-art accuracy**: Often outperforms cross-encoders
-- ✅ **No training needed for specific domains**: Pre-trained models work well
-
-**Weaknesses**:
-- ❌ **Computationally expensive**: O(T_q × T_d) per document
-- ❌ **Slower than cross-encoder**: ~200ms vs 50ms for 10 documents
-- ❌ **Memory intensive**: Stores all token embeddings
-
-**Best For**:
-- Maximizing accuracy (latency acceptable)
-- Short queries with long documents
-- Precision-critical applications
-
----
-
-#### Method 5: FlashRank (2024 State-of-the-Art)
-
-**Concept**: FlashRank is a **lightweight, ultra-fast** reranker optimized for edge deployment. Uses distilled models with 4-bit quantization.
-
-```python
-# FlashRank implementation (conceptual)
-def flashrank_rerank(query, candidates, top_k=10):
-    """
-    Ultra-fast reranking using FlashRank
-
-    Key innovations:
-    1. Model distillation: Compress large reranker to small model
-    2. Quantization: 4-bit weights (4x smaller, 4x faster)
-    3. ONNX optimization: Cross-platform deployment
-    4. Batch processing: Score multiple docs in parallel
-
-    Performance:
-    - Latency: ~50ms for 100 documents
-    - Model size: ~50MB (vs ~500MB for BGE reranker)
-    - Accuracy: 95% of full BGE reranker
-    """
-    # Load quantized model
-    model = FlashRankModel.load("flashrank-turbo.onnx")
-
-    # Prepare batch (query + all candidates)
-    queries = [query] * len(candidates)
-    docs = [doc.content for doc in candidates]
-
-    # Batch scoring (parallel)
-    scores = model.score(queries, docs)  # ~50ms
-
-    # Sort and return top-K
-    ranked = sorted(zip(candidates, scores), key=lambda x: x[1], reverse=True)
-    return [doc for doc, score in ranked[:top_k]]
-```
-
-**Strengths**:
-- ✅ **Ultra-fast**: 10x faster than standard cross-encoder
-- ✅ **Edge deployment**: Runs on CPU, quantized models
-- ✅ **Low memory**: 50MB model fits in edge devices
-- ✅ **Batch processing**: Score all documents in one pass
-
-**Weaknesses**:
-- ❌ **Newer technique**: Less battle-tested than BGE/Cohere
-- ❌ **Fixed to training distribution**: Domain mismatch can hurt performance
-- ❌ **Less accurate**: ~95% of full model quality
-
-**Best For**:
-- Edge deployment (mobile, IoT devices)
-- Real-time applications (sub-100ms latency)
-- High-volume queries with cost constraints
-
----
-
-**Comparison: Reranking Methods**
-
-| Method | Latency (100 docs) | Accuracy (nDCG@10) | Cost | Complexity | Production Readiness |
-|--------|---------------------|-------------------|------|------------|---------------------|
-| **RRF** | ~5ms | 🟡 Medium | 🆓 Low | 🟢 Low | ⭐⭐⭐⭐⭐ Production-ready |
-| **RankLLM** | ~2-5s | 🟢 Very High | 💰💰💰 High | 🟡 Medium | ⭐⭐⭐ Experimental |
-| **Cross-Encoder** | ~500ms | 🟢 High | 🟡 Medium | 🟡 Medium | ⭐⭐⭐⭐⭐ Industry standard |
-| **ColBERT** | ~200ms | 🟢 Very High | 🟢 Low | 🔴 High | ⭐⭐⭐⭐ Cutting-edge |
-| **FlashRank** | ~50ms | 🟢 High | 🆓 Low | 🟢 Low | ⭐⭐⭐ Emerging |
-
----
-
-**Decision Guide: Choosing the Right Reranking Method**
-
-```mermaid
-flowchart TB
-    Start{Reranking Decision}
-
-    Q1{Query complexity?}
-
-    Q1 -->|Simple, factual| Simple[Simple Strategy]
-    Q1 -->|Complex, reasoning| Complex{Multi-hop?}
-
-    Simple --> Q2{Volume?}
-    Complex -->|No| Rank[RankLLM]
-    Complex -->|Yes| Advanced[Advanced Strategy]
-
-    Q2 -->|High volume| RRF_Hybrid[RRF + Lightweight Reranker]
-    Q2 -->|Low volume| Choice{Accuracy critical?}
-
-    Choice -->|Yes| CE[Cross-Encoder]
-    Choice -->|No| Simple[No Reranking]
-
-    RankLLM --> Final[RankLLM]
-
-    Advanced --> Q3{Latency constraint?}
-
-    Q3 -->|Fast| Flash[FlashRank]
-    Q3 -->|Medium| CE[Cross-Encoder]
-    Q3 -->|Slow| ColBERT[ColBERT]
-
-    RRF_Hybrid --> Hybrid[Hybrid RRF + Reranker]
-    CE --> Final[Cross-Encoder]
-    Flash --> Final[FlashRank]
-    ColBERT --> Final[ColBERT]
-
-    Simple --> Final[No Reranking]
-
-    style Start fill:#e3f2fd,stroke:#2196f3
-    style Final fill:#4caf50,stroke:#1b5e20,color:#fff
-    style RRF fill:#ff9800,stroke:#e65100,color:#fff
-    style Hybrid fill:#ff5722,stroke:#c62828,color:#fff
-
-    classDef choiceStyle fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    class Simple choiceStyle
-    class Complex choiceStyle
-```
-
-**Decision Flow Explained**:
-
-1. **Query Complexity**
-   - Simple factual queries → Fast methods (RRF, Cross-Encoder)
-   - Complex reasoning → RankLLM
-
-2. **Query Volume**
-   - High volume (>1000 QPS) → RRF + lightweight reranker
-   - Low volume → Can afford expensive methods
-
-3. **Latency Constraints**
-   - < 100ms → FlashRank (edge deployment)
-   - 100-500ms → Cross-Encoder (sweet spot)
-   - > 500ms → ColBERT (batch processing)
-
-4. **Accuracy Requirements**
-   - Critical → RankLLM or ColBERT
-   - Standard → Cross-Encoder or FlashRank
-
----
-
-**Production Implementation: Hybrid Reranker Pipeline**
-
-```python
-class HybridReranker:
-    """
-    Production-ready hybrid reranking system
-
-    Combines multiple methods for optimal performance
-    """
-
-    def __init__(self, config):
-        # Initialize rerankers
-        self.cross_encoder = CrossEncoderModel("BAAI/bge-reranker-v2-m3")
-        self.flashrank = FlashRankModel("flashrank-turbo")
-        self.rankllm = LLM(model="gpt-4")  # Fallback
-
-        # Select method based on query characteristics
-        self.method_selector = QueryAnalyzer()
-
-    def rerank(self, query, candidates, top_k=10):
-        """
-        Rerank candidates using optimal method
-
-        Args:
-            query: User query
-            candidates: List of 50-100 documents from initial retrieval
-            top_k: Number of final results
-
-        Returns:
-            Re-ranked top-K documents
-        """
-        # Step 1: Analyze query characteristics
-        query_type = self.method_selector.analyze(query)
-        # Output: "factual", "complex", "multi-hop", etc.
-
-        # Step 2: Select reranking method
-        if query_type == "factual" and len(candidates) > 50:
-            return self._cross_encoder_rerank(query, candidates, top_k)
-
-        elif query_type == "complex":
-            return self._rankllm_rerank(query, candidates, top_k)
-
-        elif query_type == "multi-hop":
-            return self._colbert_rerank(query, candidates, top_k)
-
-        elif query_type == "low_latency":
-            return self._flashrank_rerank(query, candidates, top_k)
-
-        else:  # Default
-            return self._cross_encoder_rerank(query, candidates, top_k)
-
-    def _cross_encoder_rerank(self, query, candidates, top_k):
-        """Standard cross-encoder reranking"""
-        return cross_encoder_rerank(query, candidates, self.cross_encoder, top_k)
-
-    def _rankllm_rerank(self, query, candidates, top_k):
-        """LLM-based reranking for complex queries"""
-        return rankllm_rerank(query, candidates, self.rankllm, top_k)
-
-    def _colbert_rerank(self, query, candidates, top_k):
-        """ColBERT late interaction for multi-hop queries"""
-        return colbert_rerank(query, candidates, self.colbert, top_k)
-
-    def _flashrank_rerank(self, query, candidates, top_k):
-        """FlashRank for low-latency applications"""
-        return flashrank_rerank(query, candidates, self.flashrank, top_k)
-```
-
-### 4.4.2 Context Selection & Compression
-
-#### Problem: Context Window Budget
-
-After retrieval, you have N relevant documents, but limited context window:
-
-```mermaid
-flowchart LR
-    subgraph Retrieved["Retrieved Documents"]
-        D1["Doc 1: 500 tokens"]
-        D2["Doc 2: 800 tokens"]
-        D3["Doc 3: 1200 tokens"]
-        D4["Doc 4: 400 tokens"]
-        D5["Doc 5: 600 tokens"]
-    end
-
-    subgraph Budget["Context Window Budget"]
-        B["3000 tokens remaining"]
-    end
-
-    subgraph Selection["Selection Strategy"]
-        S["Select docs fitting<br/>budget<br/>(D1, D2, D4, D5)"]
-    end
-
-    Retrieved --> Selection
     Budget --> Selection
-
-    style S fill:#4caf50,stroke:#1b5e20,color:#fff
 ```
 
-#### Strategy 1: Token Limit Truncation
+#### 策略 1：Token 限制截断
 
-```python
-# Pseudocode: Token limit selection
-def select_by_token_limit(docs, max_tokens):
-    selected = []
-    total_tokens = 0
+**优点**：简单、确定性强。
+**缺点**：可能会切断关键信息。
 
-    for doc in docs:
-        doc_tokens = count_tokens(doc.content)
+#### 策略 2：基于 LLM 的过滤
 
-        if total_tokens + doc_tokens <= max_tokens:
-            selected.append(doc)
-            total_tokens += doc_tokens
-        else:
-            # Try to fit remaining space with truncated content
-            remaining = max_tokens - total_tokens
-            if remaining > 100:  # Minimum threshold
-                truncated = truncate_tokens(doc.content, remaining)
-                selected.append(doc.copy(content=truncated))
-            break
+利用 LLM 智能筛选最相关的文档片段。
 
-    return selected
-```
+#### 策略 3：MMR (最大边界相关性)
 
-**Advantage**: Simple, deterministic
-**Disadvantage**: May cut off important information
-
-#### Strategy 2: LLM-Based Filtering
-
-Use LLM to select most relevant documents:
-
-```python
-# Pseudocode: LLM-based context selection
-def select_by_llm(query, docs, max_tokens):
-    """
-    Use LLM to intelligently select and rank documents
-    """
-    # Build document summaries
-    summaries = [
-        f"Doc {i+1}: {doc.metadata['title']}\n{doc.content[:200]}..."
-        for i, doc in enumerate(docs)
-    ]
-
-    prompt = f"""
-    Given the user query and available documents, select the most relevant documents.
-
-    Query: {query}
-
-    Available documents:
-    {chr(10).join(summaries)}
-
-    Select up to 5 most relevant documents. Output as JSON array of indices.
-    Ensure total token count <= {max_tokens}.
-
-    Output format: [0, 2, 4, 7, 9]
-    """
-
-    selected_indices = llm.generate_json(prompt)
-
-    selected = [docs[i] for i in selected_indices]
-
-    # Verify token budget
-    if sum(count_tokens(d.content) for d in selected) > max_tokens:
-        # Fallback to truncation
-        return select_by_token_limit(selected, max_tokens)
-
-    return selected
-```
-
-**Advantage**: Highest quality selection
-**Disadvantage**: Slower, non-deterministic
-
-#### Strategy 3: Win-Max (Maximum Marginal Relevance)
-
-Balance **relevance** and **diversity**:
-
-```python
-# Pseudocode: Maximum Marginal Relevance (MMR)
-def win_max_selection(query, docs, top_k, lambda_param=0.5):
-    """
-    Select documents maximizing:
-    - Relevance to query
-    - Diversity from already selected documents
-    """
-    selected = []
-    remaining = docs.copy()
-
-    query_vector = embed(query)
-
-    for _ in range(min(top_k, len(docs))):
-        best_score = -float('inf')
-        best_doc = None
-        best_idx = -1
-
-        for i, doc in enumerate(remaining):
-            doc_vector = doc.vector
-
-            # Relevance: similarity to query
-            relevance = cosine(query_vector, doc_vector)
-
-            # Diversity: 1 - max similarity to selected
-            if selected:
-                max_sim_to_selected = max(
-                    cosine(doc_vector, s.vector) for s in selected
-                )
-                diversity = 1 - max_sim_to_selected
-            else:
-                diversity = 0
-
-            # MMR score
-            score = lambda_param * relevance + (1 - lambda_param) * diversity
-
-            if score > best_score:
-                best_score = score
-                best_doc = doc
-                best_idx = i
-
-        selected.append(best_doc)
-        remaining.pop(best_idx)
-
-    return selected
-```
-
-**Advantage**: Diverse, non-redundant context
-**Disadvantage**: Higher computation
+平衡**相关性**与**多样性**，避免引入重复内容。
 
 ---
 
-## 4.5 Hybrid Retrieval Architecture
+## 4.5 混合检索架构
 
-### End-to-End Pipeline
+### 端到端流水线
 
-Combining all techniques into a production-ready retrieval system:
+将所有技术整合为一个生产级的检索系统：
 
 ```mermaid
 flowchart TB
-    subgraph Input["User Input"]
-        Q["User Query:<br/>'AdGuard DNS issues<br/>in Docker'"]
+    subgraph Input["用户输入"]
+        Q["用户查询：<br/>'Docker 中的 AdGuard<br/>DNS 问题'"]
     end
 
-    subgraph Stage1["Stage 1: Query Translation"]
+    subgraph Stage1["阶段 1：查询转换"]
         direction TB
-        MQ["Multi-Query Generation<br/>→ 3 query variants"]
-        HYDE["HyDE<br/>→ Hypothetical answer"]
+        MQ["多查询生成"]
+        HYDE["HyDE 假设性回答"]
     end
 
-    subgraph Stage2["Stage 2: Logical Routing"]
-        R["Router<br/>→ Select data sources"]
+    subgraph Stage2["阶段 2：逻辑路由"]
+        R["路由选择器<br/>→ 选择数据源"]
     end
 
-    subgraph Stage3["Stage 3: Parallel Retrieval"]
-        VS["Vector Search<br/>(Dense)"]
-        KS["Keyword Search<br/>(Sparse)"]
-        MF["Metadata Filter<br/>tag: Docker"]
+    subgraph Stage3["阶段 3：并行检索"]
+        VS["向量搜索 (稠密)"]
+        KS["关键词搜索 (稀疏)"]
+        MF["元数据过滤"]
     end
 
-    subgraph Stage4["Stage 4: Fusion & Rerank"]
-        RRF["RRF Fusion<br/>Merge VS + KS"]
-        CE["Cross-Encoder<br/>Rerank top 50"]
+    subgraph Stage4["阶段 4：融合与重排序"]
+        RRF["RRF 融合"]
+        CE["重排序"]
     end
 
-    subgraph Stage5["Stage 5: Context Selection"]
-        CS["Context Selection<br/>(Token budget)"]
+    subgraph Stage5["阶段 5：上下文选择"]
+        CS["上下文压缩与筛选"]
     end
 
-    subgraph Output["Final Output"]
-        F["Top 5 documents<br/>Ready for LLM generation"]
-    end
+    Q --> Stage1 --> Stage2 --> Stage3 --> Stage4 --> Stage5 --> F["输出 Top-5 文档"]
 
-    Q --> Stage1
-    Stage1 --> Stage2
-    Stage2 --> Stage3
-    Stage3 --> Stage4
-    Stage4 --> Stage5
-    Stage5 --> Output
-
-    style Stage1 fill:#e3f2fd,stroke:#2196f3
-    style Stage2 fill:#fff3e0,stroke:#ff9800
-    style Stage3 fill:#f3e5f5,stroke:#9c27b0
     style Stage4 fill:#e8f5e9,stroke:#4caf50
-    style Stage5 fill:#fce4ec,stroke:#e91e63
-    style Output fill:#c8e6c9,stroke:#1b5e20,color:#fff
-```
-
-### Complete Implementation (Pseudocode)
-
-```python
-# Pseudocode: Complete hybrid retrieval system
-class HybridRetrievalSystem:
-    def __init__(self,
-                 vector_store,
-                 keyword_index,
-                 reranker,
-                 llm):
-        self.vector_store = vector_store
-        self.keyword_index = keyword_index
-        self.reranker = reranker
-        self.llm = llm
-
-    def retrieve(self, query, top_k=10):
-        """
-        End-to-end retrieval pipeline
-        """
-        # Stage 1: Query Translation
-        query_variants = self.multi_query_expansion(query)
-        hypothetical_answer = self.hyde_expansion(query)
-
-        all_queries = query_variants + [hypothetical_answer]
-
-        # Stage 2: Logical Routing
-        data_sources = self.route_query(query)
-
-        # Stage 3: Parallel Retrieval (from each source)
-        all_results = []
-
-        for source in data_sources:
-            # Metadata filter
-            filters = self.extract_metadata(query)
-
-            # Parallel dense + sparse search
-            vector_results = self.vector_store.search(
-                queries=all_queries,
-                filters=filters,
-                top_k=20 * len(all_queries)
-            )
-
-            keyword_results = self.keyword_index.search(
-                query=query,
-                filters=filters,
-                top_k=20
-            )
-
-            # Stage 4: RRF Fusion
-            fused = self.rrf_fusion([vector_results, keyword_results])
-
-            all_results.extend(fused)
-
-        # Stage 5: Cross-Encoder Reranking
-        reranked = self.reranker.rerank(
-            query=query,
-            candidates=all_results,
-            top_k=50
-        )
-
-        # Stage 6: Context Selection
-        final = self.context_selection(
-            docs=reranked,
-            max_tokens=4000
-        )
-
-        return final[:top_k]
-
-
-    def multi_query_expansion(self, query, n=3):
-        """Generate multiple query variants"""
-        prompt = f"""
-        Generate {n} different search queries for: {query}
-
-        Requirements:
-        - Each query explores different angles
-        - Use relevant terminology
-        - Output as JSON array
-        """
-        response = self.llm.generate(prompt)
-        return json.loads(response)
-
-
-    def hyde_expansion(self, query):
-        """Generate hypothetical document"""
-        prompt = f"""
-        Write a detailed technical answer to: {query}
-
-        Include:
-        - Specific configurations
-        - Code examples
-        - Common issues
-        - Troubleshooting steps
-        """
-        return self.llm.generate(prompt)
-
-
-    def route_query(self, query):
-        """Route to appropriate data sources"""
-        # Implement routing logic
-        # Returns: ["docs_db", "config_db"]
-        pass
-
-
-    def extract_metadata(self, query):
-        """Extract metadata filters from query"""
-        # Implement self-querying
-        # Returns: {"tag": "Docker", "year": 2024}
-        pass
-
-
-    def rrf_fusion(self, result_lists, k=60):
-        """Reciprocal Rank Fusion"""
-        scores = {}
-
-        for results in result_lists:
-            for rank, doc in enumerate(results):
-                doc_id = doc.id
-                score = 1 / (k + rank + 1)
-                scores[doc_id] = scores.get(doc_id, 0) + score
-
-        return sorted(scores.items(), key=lambda x: x[1], reverse=True)
-
-
-    def context_selection(self, docs, max_tokens):
-        """Select documents within token budget"""
-        selected = []
-        total = 0
-
-        for doc in docs:
-            tokens = count_tokens(doc.content)
-            if total + tokens <= max_tokens:
-                selected.append(doc)
-                total += tokens
-            else:
-                break
-
-        return selected
+    style F fill:#c8e6c9,stroke:#1b5e20,color:#fff
 ```
 
 ---
 
-## Summary
+## 总结
 
-### Key Takeaways
+### 核心要点
 
-**1. Retrieval Fundamentals**:
-- ✅ Retrieval bridges LLM knowledge and private data
-- ✅ Context window, cost, and signal-to-noise constraints necessitate smart retrieval
-- ✅ Vector space model enables semantic search (distance ≈ similarity)
-- ✅ Dense vectors (embeddings) capture semantics, sparse vectors (BM25) capture exact matches
-- ✅ Hybrid search (dense + sparse + reranker) is current best practice
-
-**2. Query Translation**:
-- ✅ **Multi-Query**: Generate variants, fuse with RRF (exploratory queries)
-- ✅ **Decomposition**: Break complex queries into sequential sub-queries (multi-hop reasoning)
-- ✅ **Step-Back**: Abstract over-specific queries (principles vs specifics)
-- ✅ **HyDE**: Search with hypothetical answer vector (better matches than query vector)
-
-**3. Routing & Construction**:
-- ✅ **Logical Routing**: Direct queries to specialized indices (code vs docs)
-- ✅ **Metadata Filtering**: Apply exact constraints before vector search (numbers, dates, booleans)
-- ✅ **Self-Querying**: LLM extracts structured filters from natural language
-
-**4. Post-Retrieval**:
-- ✅ **Reranking**: Cross-Encoder refines Bi-Encoder results (accuracy vs latency trade-off)
-- ✅ **Context Selection**: Manage token budget with truncation, LLM filtering, or MMR
-
-### Production Checklist
-
-| Component | Recommendation | Implementation Priority |
-|-----------|----------------|--------------------------|
-| **Vector Search** | Use dense embeddings (OpenAI/BGE) | ⭐⭐⭐⭐⭐ Required |
-| **Keyword Search** | Add sparse retrieval (BM25) | ⭐⭐⭐⭐⭐ High priority |
-| **Reranking** | Add Cross-Encoder (BGE Reranker) | ⭐⭐⭐⭐ High quality impact |
-| **Metadata Filtering** | Implement for all numerical/date fields | ⭐⭐⭐⭐⭐ Required for precision |
-| **Multi-Query** | Use for vague/exploratory queries | ⭐⭐⭐ Medium priority |
-| **Routing** | Implement if multiple data sources | ⭐⭐⭐ Use case dependent |
-| **HyDE** | Use for cross-lingual or short queries | ⭐⭐ Nice to have |
-| **Decomposition** | Use for multi-hop reasoning | ⭐⭐⭐ Complex queries |
-| **Step-Back** | Use for very specific queries | ⭐⭐ Low priority |
-
-### Further Reading
-
-**Research Papers**:
-- [Reciprocal Rank Fusion outperforms Condorcet and individual Rank Learning Methods](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf) (Cormack et al., 2009)
-- [Hypothetical Document Embeddings (HyDE)](https://arxiv.org/abs/2212.10496) (Gao et al., 2022)
-- [ConvEx: Conversational Search with Explanations](https://arxiv.org/abs/2203.16595) (Step-back prompting)
-
-**Tools & Frameworks**:
-- [BGE Reranker Models](https://github.com/FlagOpen/FlagEmbedding) - State-of-the-art rerankers
-- [Milvus Metadata Filtering](https://milvus.io/docs/boolean.md) - Vector database with advanced filtering
-- [LlamaIndex Routers](https://docs.llamaindex.ai/en/stable/module_guides/querying/router/) - Query routing implementations
+1. **检索基础**：检索桥接了 LLM 的知识与你的私有数据。混合搜索（稠密 + 稀疏 + 重排序）是当前的最优解。
+2. **查询转换**：
+    - **Multi-Query**: 生成变体，通过 RRF 融合。
+    - **Decomposition**: 将复杂问题分解为子任务。
+    - **Step-Back**: 将具体问题抽象化以寻找通用原理。
+    - **HyDE**: 使用假设性答案的向量进行搜索。
+3. **路由与构建**：
+    - **逻辑路由**: 将查询导向专门的数据库。
+    - **元数据过滤**: 处理数字、日期等精确匹配需求。
+4. **后检索优化**：
+    - **重排序**: 利用 Cross-Encoder 大幅提升 Top-K 的准确度。
+    - **上下文选择**: 在有限的 Token 预算内选择最有价值的信息。
 
 ---
 
-**Next Steps**:
-- 📖 Read [RAG Fundamentals](/docs/ai/rag/introduction) for vector space mathematics
-- 📖 Read [Data Processing](/docs/ai/rag/data-processing) for document indexing strategies
-- 💻 Implement hybrid retrieval: Start with vector + keyword, add reranker
-- 🔧 Experiment with query translation techniques on your specific use cases
+**下一步**：
+- 📖 阅读 [生成与合成策略](/docs/ai/rag/generation) 了解如何将检索到的信息转化为完美的答案。
+- 💻 实现混合检索：从向量 + 关键词开始，逐步引入重排序器。
+- 🔧 针对你的特定用例实验不同的查询转换技术。

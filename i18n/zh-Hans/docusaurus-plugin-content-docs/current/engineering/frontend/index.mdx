@@ -1,24 +1,24 @@
 ---
 id: index
-title: Frontend Development
-sidebar_label: 前端开发
-description: React、Next.js 和现代 Web 开发
+title: 前端开发
+sidebar_label: 概览
+description: React、Next.js 及现代 Web 开发
 ---
 
 # ⚛️ 前端开发
 
-> **"最好的界面是无形的——它们就是好用。"**
+> **“最佳的用户界面是隐形的 —— 它们只是自然而然地工作。”**
 
-使用 React 和 Next.js 构建现代、响应式、高性能的 Web 应用。
+本章节旨在指导您使用 React 和 Next.js 构建现代、响应式且高性能的 Web 应用程序。
 
 ---
 
 ## ⚛️ React 基础
 
-### 组件模式
+### 组件模式 (Component Patterns)
 
 ```jsx
-// 函数组件（推荐）
+// 函数式组件 (推荐)
 export function UserCard({ user, onSelect }) {
   const [isHovered, setIsHovered] = useState(false);
   
@@ -29,130 +29,281 @@ export function UserCard({ user, onSelect }) {
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onSelect(user.id)}
     >
-      <Avatar src={user.avatarUrl} />
+      <Avatar src={user.avatar} />
       <h3>{user.name}</h3>
-      {isHovered && <p>{user.email}</p>}
+      {isHovered && <UserDetails user={user} />}
     </div>
   );
 }
 ```
 
-### Hooks 核心模式
+### 常用 Hooks
+
+| Hook | 用途 | 示例用例 |
+|------|---------|-------------|
+| `useState` | 局部状态 | 表单输入、开关 |
+| `useEffect` | 副作用 | API 调用、订阅 |
+| `useContext` | 消费上下文 | 主题、认证状态 |
+| `useReducer` | 复杂状态逻辑 | 拥有多个字段的表单 |
+| `useMemo` | 记忆计算值 | 昂贵的计算 |
+| `useCallback` | 记忆函数 | 传递给子组件的事件处理函数 |
+| `useRef` | 可变引用 | DOM 访问、记录前一个值 |
+
+### 自定义 Hooks
 
 ```jsx
-// 自定义 Hook - 数据获取
-function useUserData(userId) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+// useDebounce - 延迟值更新
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  
   useEffect(() => {
-    let cancelled = false;
+    const timer = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
     
-    fetch(`/api/users/${userId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!cancelled) {
-          setUser(data);
-          setLoading(false);
-        }
-      })
-      .catch(err => {
-        if (!cancelled) {
-          setError(err.message);
-          setLoading(false);
-        }
-      });
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  
+  return debouncedValue;
+}
 
-    return () => { cancelled = true; };
-  }, [userId]);
-
-  return { user, loading, error };
+// 用法示例
+function SearchInput() {
+  const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 300);
+  
+  useEffect(() => {
+    if (debouncedQuery) {
+      searchAPI(debouncedQuery);
+    }
+  }, [debouncedQuery]);
+  
+  return <input value={query} onChange={e => setQuery(e.target.value)} />;
 }
 ```
 
-### 状态管理对比
-
-| 方案 | 适用场景 | 复杂度 |
-|------|----------|--------|
-| **useState** | 组件内部状态 | 低 |
-| **useContext** | 跨少量组件共享 | 低 |
-| **Zustand** | 中等复杂度全局状态 | 中 |
-| **Redux Toolkit** | 大型应用复杂状态 | 高 |
-| **Jotai/Recoil** | 原子化状态管理 | 中 |
-
 ---
 
-## ⚡ Next.js
+## 🔲 Next.js
 
-### App Router（推荐）
+### App Router (Next.js 14+)
+
+```
+app/
+├── layout.tsx          # 根布局
+├── page.tsx            # 首页 (/)
+├── loading.tsx         # 加载 UI
+├── error.tsx           # 错误 UI
+├── blog/
+│   ├── page.tsx        # /blog 页面
+│   └── [slug]/
+│       └── page.tsx    # /blog/:slug 动态路由
+└── api/
+    └── users/
+        └── route.ts    # API 路由
+```
+
+### Server Components vs Client Components
 
 ```jsx
-// app/layout.tsx
-export default function RootLayout({ children }) {
-  return (
-    <html lang="zh-CN">
-      <body>{children}</body>
-    </html>
-  );
+// Server Component (默认) - 在服务器端运行
+// 无 "use client" 指令
+export default async function UserPage({ params }) {
+  // 可以直接使用 async/await 获取数据
+  const user = await fetchUser(params.id);
+  
+  return <UserProfile user={user} />;
 }
 
-// app/page.tsx - 服务端组件（默认）
-export default async function HomePage() {
-  const data = await fetch('https://api.example.com/posts');
-  const posts = await data.json();
+// Client Component - 在浏览器端运行
+"use client";
+
+import { useState } from 'react';
+
+export function Counter() {
+  const [count, setCount] = useState(0);
   
   return (
-    <main>
-      {posts.map(post => (
-        <article key={post.id}>
-          <h2>{post.title}</h2>
-          <p>{post.excerpt}</p>
-        </article>
-      ))}
-    </main>
+    <button onClick={() => setCount(count + 1)}>
+      计数: {count}
+    </button>
   );
 }
 ```
 
-### 数据获取策略
+### 数据获取模式 (Data Fetching)
 
-| 策略 | 用途 | 示例 |
-|------|------|------|
-| **SSR** | 每次请求时渲染 | 动态页面、个性化内容 |
-| **SSG** | 构建时生成 | 博客、文档、营销页面 |
-| **ISR** | 增量静态再生成 | 经常更新的内容 |
-| **CSR** | 客户端渲染 | 仪表板、交互式工具 |
+```jsx
+// Server Component - 直接获取数据
+async function BlogPosts() {
+  const posts = await fetch('https://api.example.com/posts', {
+    cache: 'no-store',  // 或 'force-cache', revalidate: 3600
+  }).then(res => res.json());
+  
+  return (
+    <ul>
+      {posts.map(post => (
+        <li key={post.id}>{post.title}</li>
+      ))}
+    </ul>
+  );
+}
+
+// Client Component - 使用 SWR 或 React Query
+"use client";
+import useSWR from 'swr';
+
+function UserProfile({ userId }) {
+  const { data, error, isLoading } = useSWR(
+    `/api/users/${userId}`,
+    fetcher
+  );
+  
+  if (error) return <div>加载失败</div>;
+  if (isLoading) return <div>加载中...</div>;
+  
+  return <div>{data.name}</div>;
+}
+```
+
+### API 路由 (API Routes)
+
+```typescript
+// app/api/users/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  const users = await prisma.user.findMany();
+  return NextResponse.json(users);
+}
+
+export async function POST(request: NextRequest) {
+  const body = await request.json();
+  const user = await prisma.user.create({ data: body });
+  return NextResponse.json(user, { status: 201 });
+}
+```
 
 ---
 
-## 🎨 样式方案
+## 🎨 Tailwind CSS
 
-### 推荐方案
+### Utility-First 方法论
 
-| 方案 | 特点 | 适用场景 |
-|------|------|----------|
-| **Tailwind CSS** | 原子化 CSS | 快速开发、一致性设计 |
-| **CSS Modules** | 局部作用域 | 组件级别样式 |
-| **Styled Components** | CSS-in-JS | 动态样式、主题 |
-| **Vanilla Extract** | 类型安全 CSS | TypeScript 项目 |
+```jsx
+// 传统 CSS
+<div className="card">...</div>
+// .card { padding: 1rem; border-radius: 0.5rem; ... }
+
+// Tailwind CSS
+<div className="p-4 rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow">
+  ...
+</div>
+```
+
+### 常用模式
+
+```jsx
+// 响应式设计
+<div className="w-full md:w-1/2 lg:w-1/3">
+  {/* 移动端全宽，平板半宽，桌面端三分之一宽 */}
+</div>
+
+// 暗模式
+<div className="bg-white dark:bg-gray-800 text-black dark:text-white">
+  {/* 自动适应系统偏好或主题切换 */}
+</div>
+
+// 悬停与焦点状态
+<button className="bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-300">
+  点击我
+</button>
+
+// Flexbox 居中
+<div className="flex items-center justify-center h-screen">
+  <Content />
+</div>
+```
+
+### 使用 `clsx` 进行组件组合
+
+```jsx
+import { clsx } from 'clsx';
+
+function Button({ variant = 'primary', size = 'md', className, children }) {
+  return (
+    <button
+      className={clsx(
+        'rounded font-medium transition-colors',
+        {
+          'bg-blue-500 text-white hover:bg-blue-600': variant === 'primary',
+          'bg-gray-200 text-gray-800 hover:bg-gray-300': variant === 'secondary',
+          'px-2 py-1 text-sm': size === 'sm',
+          'px-4 py-2': size === 'md',
+          'px-6 py-3 text-lg': size === 'lg',
+        },
+        className
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+```
+
+---
+
+## 🔄 状态管理
+
+| 方案 | 复杂度 | 最适合 |
+|----------|-----------|----------|
+| `useState` | 低 | 组件局部状态 |
+| `useContext` | 低 | 简单全局状态（主题、认证） |
+| `useReducer` | 中 | 复杂组件内部状态 |
+| **Zustand** | 低 | 轻量级全局状态 |
+| **Jotai** | 低 | 原子化状态模型 |
+| **Redux Toolkit** | 高 | 大型企业应用 |
+
+### Zustand 示例
+
+```jsx
+import { create } from 'zustand';
+
+const useStore = create((set) => ({
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  decrement: () => set((state) => ({ count: state.count - 1 })),
+}));
+
+function Counter() {
+  const { count, increment, decrement } = useStore();
+  
+  return (
+    <div>
+      <span>{count}</span>
+      <button onClick={increment}>+</button>
+      <button onClick={decrement}>-</button>
+    </div>
+  );
+}
+```
 
 ---
 
 ## 📝 详细主题
 
-- [动画实现](/docs/engineering/frontend/animation)
-- [认证与授权](/docs/engineering/frontend/auth)
+- [React 性能优化](/docs/engineering/frontend/performance)
 - [表单处理](/docs/engineering/frontend/forms)
-- [性能优化](/docs/engineering/frontend/performance)
-- [前端测试](/docs/engineering/frontend/testing)
+- [认证模式](/docs/engineering/frontend/auth)
+- [使用 Framer Motion 进行动画](/docs/engineering/frontend/animation)
+- [测试（Jest, Testing Library）](/docs/engineering/frontend/testing)
 
 ---
 
-:::tip 前端性能建议
-1. **代码分割** - 按路由懒加载
-2. **图片优化** - 使用 WebP、懒加载
-3. **缓存策略** - 合理使用 SWR/React Query
-4. **Bundle 分析** - 监控包体积增长
-5. **Core Web Vitals** - 关注 LCP、FID、CLS
+:::tip 前端最佳实践
+1. **组件组合** - 优先使用小型、可复用的组件。
+2. **状态提升** - 在正确的层级共享状态。
+3. **合理记忆化** - 避免过度优化，按需使用 `useMemo`/`useCallback`。
+4. **可访问性** - 使用语义化的 HTML 和 ARIA 属性。
+5. **渐进增强** - 确保在禁用 JavaScript 时也能基本可用。
 :::

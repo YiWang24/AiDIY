@@ -1,25 +1,25 @@
 ---
 id: backtracking
-title: Backtracking
-sidebar_label: "14. 回溯"
-description: 递归回溯模板、剪枝策略、排列、组合和 N 皇后问题
+title: 回溯算法
+sidebar_label: "14. 回溯算法"
+description: 递归回溯模板、剪枝策略、全排列、组合及 N 皇后问题
 ---
 
 # 回溯算法
 
 ## 为什么回溯算法很重要
 
-回溯通过逐步构建解并放弃不可能产生有效解的部分解，系统地探索所有可能性：
+回溯算法通过递增地构建解，并放弃那些无法导向有效解的局部解，从而系统地探索所有可能性：
 
-- **组合问题**：生成所有排列/组合
-- **约束满足**：数独、N 皇后、填字游戏
-- **路径搜索**：迷宫求解、图遍历
-- **优化**：从众多可能性中找到最优解
+- **组合问题**：生成所有的排列或组合。
+- **约束满足问题**：数独、N 皇后问题、填字游戏。
+- **路径搜索**：迷宫求解、图遍历。
+- **最优化问题**：在众多可能性中寻找最优解。
 
 **实际影响**：
-- N 皇后用回溯：N=8 时 2 秒
-- 暴力检查所有位置：N=8 时 4 小时
-- **加速 7,200 倍**
+- 使用回溯法解决 N 皇后问题：N=8 时仅需 2 秒。
+- 暴力检查所有位置：N=8 时约需 4 小时。
+- **速度提升 7200 倍**。
 
 ## 核心概念
 
@@ -36,7 +36,7 @@ void backtrack(state, parameters) {
         if (isValid(choice)) {
             makeChoice(choice);
             backtrack(state, parameters);
-            undoChoice(choice);  // 回溯
+            undoChoice(choice);  // 回溯（撤销选择）
         }
     }
 }
@@ -46,27 +46,27 @@ void backtrack(state, parameters) {
 graph TD
     A[开始] --> B[做出选择 1]
     B --> C[递归调用]
-    C --> D{有效?}
-    D -->|"是"| E[记录解]
-    D -->|"否"| F[回溯]
+    C --> D{是否为有效解?}
+    D -->|"是"| E[记录结果]
+    D -->|"否"| F[撤销选择并回溯]
     F --> G[做出选择 2]
     G --> H[递归调用]
 ```
 
 ### 回溯 vs 递归
 
-| 方面 | 回溯 | 递归 |
-|------|------|------|
-| **搜索空间** | 系统性探索 | 分治法 |
-| **剪枝** | 激进（提前终止） | 通常无剪枝 |
-| **用例** | 约束满足 | 问题分解 |
-| **状态管理** | 做出/撤销选择 | 无需状态回滚 |
+| 维度 | 回溯 | 递归 |
+|--------|-------------|-----------|
+| **搜索空间** | 系统化探索所有可能 | 分而治之 |
+| **剪枝** | 激进（提前终止） | 通常不包含剪枝 |
+| **用例** | 约束满足问题 | 问题拆解/子问题求解 |
+| **状态管理** | 需要手动做出/撤销选择 | 通常不需要状态回滚 |
 
 ## 深入理解
 
-### 全排列
+### 全排列 (Permutations)
 
-生成所有可能的排列：
+生成所有可能的排列方案：
 
 ```java
 public List<List<Integer>> permute(int[] nums) {
@@ -96,9 +96,9 @@ private void backtrack(List<List<Integer>> result, List<Integer> current,
 }
 ```
 
-### 组合
+### 组合 (Combinations)
 
-生成所有 k 元素组合：
+生成所有包含 k 个元素的组合：
 
 ```java
 public List<List<Integer>> combine(int n, int k) {
@@ -116,7 +116,7 @@ private void backtrack(List<List<Integer>> result, List<Integer> current,
 
     for (int i = start; i <= n; i++) {
         current.add(i);
-        backtrack(result, current, i + 1, n, k);  // 注意：i + 1 而非 start
+        backtrack(result, current, i + 1, n, k);  // 注意：是 i + 1 而不是 start
         current.remove(current.size() - 1);  // 回溯
     }
 }
@@ -124,12 +124,12 @@ private void backtrack(List<List<Integer>> result, List<Integer> current,
 
 ### 剪枝策略
 
-#### 排列中去重
+#### 在排列中去除重复项
 
 ```java
 public List<List<Integer>> permuteUnique(int[] nums) {
     List<List<Integer>> result = new ArrayList<>();
-    Arrays.sort(nums);  // 排序以将重复元素分组
+    Arrays.sort(nums);  // 排序以便将重复项聚集在一起
     backtrack(result, new ArrayList<>(), new boolean[nums.length], nums);
     return result;
 }
@@ -144,7 +144,7 @@ private void backtrack(List<List<Integer>> result, List<Integer> current,
     for (int i = 0; i < nums.length; i++) {
         if (used[i]) continue;
 
-        // 跳过重复：只使用重复数字的第一次出现
+        // 跳过重复：仅使用重复数字中的第一个出现项
         if (i > 0 && nums[i] == nums[i - 1] && !used[i - 1]) continue;
 
         current.add(nums[i]);
@@ -158,13 +158,13 @@ private void backtrack(List<List<Integer>> result, List<Integer> current,
 }
 ```
 
-### 常见错误
+### 常见陷阱
 
-#### ❌ 添加前未复制解
+#### ❌ 添加结果时未进行深拷贝
 
 ```java
 if (current.size() == k) {
-    result.add(current);  // 错误：添加了引用！
+    result.add(current);  // 错误：添加的是引用！
 }
 ```
 
@@ -172,33 +172,33 @@ if (current.size() == k) {
 
 ```java
 if (current.size() == k) {
-    result.add(new ArrayList<>(current));  // 复制
+    result.add(new ArrayList<>(current));  // 进行拷贝
 }
 ```
 
-#### ❌ 未撤销选择
+#### ❌ 忘记撤销选择
 
 ```java
 for (int i = 0; i < n; i++) {
     current.add(i);
     backtrack(current);
-    // 忘记移除！
+    // 忘记移除元素！
 }
 ```
 
-#### ✅ 始终回溯
+#### ✅ 始终执行回溯
 
 ```java
 for (int i = 0; i < n; i++) {
     current.add(i);
     backtrack(current);
-    current.remove(current.size() - 1);  // 移除
+    current.remove(current.size() - 1);  // 撤销选择
 }
 ```
 
 ## 实际应用
 
-### N 皇后
+### N 皇后问题
 
 ```java
 public List<List<String>> solveNQueens(int n) {
@@ -233,7 +233,7 @@ private void backtrack(List<List<String>> result, char[][] board, int row) {
 private boolean isValid(char[][] board, int row, int col) {
     int n = board.length;
 
-    // 检查列
+    // 检查同一列
     for (int i = 0; i < row; i++) {
         if (board[i][col] == 'Q') return false;
     }
@@ -254,13 +254,13 @@ private boolean isValid(char[][] board, int row, int col) {
 
 ## 面试题
 
-### Q1：子集（中等）
+### Q1：子集 (中等)
 
-**问题**：生成所有子集。
+**题目**：生成集合的所有子集。
 
-**方法**：包含/排除每个元素
+**方法**：对每个元素决定包含或不包含。
 
-**复杂度**：O(2ⁿ) 时间
+**复杂度**：O(2ⁿ) 时间。
 
 ```java
 public List<List<Integer>> subsets(int[] nums) {
@@ -281,18 +281,18 @@ private void backtrack(List<List<Integer>> result, List<Integer> current,
 }
 ```
 
-### Q2：组合总和（中等）
+### Q2：组合总和 (中等)
 
-**问题**：找出所有和为目标的组合（允许重复使用）。
+**题目**：找出所有和为目标值的组合（允许元素重复使用）。
 
-**方法**：通过递减目标值回溯
+**方法**：回溯结合目标值递减。
 
-**复杂度**：O(N^(T/M+1)) 时间
+**复杂度**：O(N^(T/M+1)) 时间（N 为候选数，T 为目标值，M 为最小候选值）。
 
 ```java
 public List<List<Integer>> combinationSum(int[] candidates, int target) {
     List<List<Integer>> result = new ArrayList<>();
-    Arrays.sort(candidates);  // 启用提前终止
+    Arrays.sort(candidates);  // 排序以支持提前终止（剪枝）
     backtrack(result, new ArrayList<>(), candidates, target, 0);
     return result;
 }
@@ -305,10 +305,10 @@ private void backtrack(List<List<Integer>> result, List<Integer> current,
     }
 
     for (int i = start; i < nums.length; i++) {
-        if (nums[i] > remain) break;  // 提前终止
+        if (nums[i] > remain) break;  // 剪枝：提前停止
 
         current.add(nums[i]);
-        backtrack(result, current, nums, remain - nums[i], i);  // 非 i+1（允许重复使用）
+        backtrack(result, current, nums, remain - nums[i], i);  // 使用 i 而非 i+1 允许重复使用
         current.remove(current.size() - 1);
     }
 }
@@ -316,7 +316,7 @@ private void backtrack(List<List<Integer>> result, List<Integer> current,
 
 ## 延伸阅读
 
-- **动态规划**：用于优化子问题
-- **递归**：回溯的基础
-- **DFS**：图遍历使用回溯
-- **LeetCode**：[回溯问题](https://leetcode.com/tag/backtracking/)
+- **动态规划 (DP)**：用于解决最优化子问题，通常比纯回溯更高效。
+- **递归**：回溯算法的基础。
+- **深度优先搜索 (DFS)**：图探索过程本质上使用了回溯。
+- **LeetCode**：[回溯标签题目](https://leetcode.com/tag/backtracking/)

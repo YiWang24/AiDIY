@@ -2,34 +2,35 @@
 id: state-management
 title: 3. 状态管理
 sidebar_label: 3. 状态管理
-description: Agent 状态持久化和恢复 - Checkpointing（检查点）、Serialization（序列化）和 Distributed State（分布式状态）
+description: 智能体状态持久化与恢复 —— 检查点、序列化及分布式状态
 ---
+
 # 3. 状态管理
 
-> **"状态是 agent 的记忆。没有适当的状态管理，agents 无法学习、恢复或改进。"**
+> **“状态是智能体的记忆。没有完善的状态管理，智能体就无法学习、恢复或持续改进。”**
 
-状态管理是指捕获、持久化和恢复 agent 状态（State）跨执行的实践。它使 agents 能够从故障中恢复，在长时间运行的工作流中维护上下文，并在多个 agent 实例之间协调。
+状态管理是指在执行过程中捕获、持久化和恢复智能体状态的实践。它使智能体能够从故障中恢复，在长时运行的工作流中保持上下文，并在多个智能体实例之间进行协作。
 
 ---
 
-## 3.1 Agent 状态类型
+## 3.1 智能体状态类型
 
-### 状态分类
+### 状态分类法
 
 ```mermaid
 flowchart TB
-    subgraph AgentState["Agent State（Agent 状态）"]
+    subgraph AgentState["智能体状态"]
         direction TB
-        Conv[Conversation State（对话状态）]
-        Task[Task State（任务状态）]
-        Mem[Memory State（记忆状态）]
-        Env[Environment State（环境状态）]
+        Conv[对话状态]
+        Task[任务状态]
+        Mem[记忆状态]
+        Env[环境状态]
     end
 
-    subgraph Persistence["Persistence Strategy（持久化策略）"]
-        Ephemeral[Ephemeral<br/>In-memory（内存）]
-        Session[Session<br/>Redis]
-        Persistent[Persistent<br/>Database（数据库）]
+    subgraph Persistence["持久化策略"]
+        Ephemeral[易失性<br/>内存存储]
+        Session[会话级<br/>Redis]
+        Persistent[持久化<br/>数据库]
     end
 
     Conv --> Ephemeral
@@ -43,9 +44,9 @@ flowchart TB
     style Env fill:#fff3e0
 ```
 
-### 对话状态（Conversation State）
+### 对话状态 (Conversation State)
 
-对话历史和上下文。
+记录对话历史与上下文。
 
 ```java
 @Document(collection = "conversation_state")
@@ -73,55 +74,11 @@ public class ConversationState {
         private Map<String, Object> metadata;
     }
 }
-
-@Service
-public class ConversationStateManager {
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
-    public ConversationState save(ConversationState state) {
-        state.setUpdatedAt(Instant.now());
-        return mongoTemplate.save(state);
-    }
-
-    public Optional<ConversationState> load(String sessionId) {
-        return Optional.ofNullable(
-            mongoTemplate.findById(
-                sessionId,
-                ConversationState.class
-            )
-        );
-    }
-
-    public void addMessage(
-        String sessionId,
-        Message message
-    ) {
-        ConversationState state = load(sessionId)
-            .orElseGet(() -> createNew(sessionId));
-
-        state.getMessages().add(message);
-        save(state);
-    }
-
-    public List<Message> getRecentMessages(
-        String sessionId,
-        int limit
-    ) {
-        return load(sessionId)
-            .map(ConversationState::getMessages)
-            .map(messages -> messages.stream()
-                .skip(Math.max(0, messages.size() - limit))
-                .toList())
-            .orElse(List.of());
-    }
-}
 ```
 
-### 任务状态（Task State）
+### 任务状态 (Task State)
 
-当前任务的进度和状态。
+记录任务的当前进度与状态。
 
 ```java
 @Document(collection = "task_state")
@@ -144,94 +101,20 @@ public class TaskState {
     private ErrorInfo lastError;
     private int retryCount;
 
-    private Instant createdAt;
-    private Instant startedAt;
-    private Instant completedAt;
-
     public enum TaskStatus {
-        PENDING,
-        IN_PROGRESS,
-        BLOCKED,
-        COMPLETED,
-        FAILED,
-        CANCELLED
-    }
-
-    @Getter
-    @Setter
-    public static class ErrorInfo {
-        private String code;
-        private String message;
-        private String stackTrace;
-        private Instant timestamp;
-    }
-}
-
-@Service
-public class TaskStateManager {
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
-    public TaskState create(TaskState state) {
-        state.setCreatedAt(Instant.now());
-        state.setStatus(TaskStatus.PENDING);
-        return mongoTemplate.save(state);
-    }
-
-    public TaskState update(
-        String taskId,
-        Consumer<TaskState> updater
-    ) {
-        TaskState state = load(taskId);
-        updater.accept(state);
-        state.setUpdatedAt(Instant.now());
-        return mongoTemplate.save(state);
-    }
-
-    public void markInProgress(String taskId) {
-        update(taskId, state -> {
-            state.setStatus(TaskStatus.IN_PROGRESS);
-            if (state.getStartedAt() == null) {
-                state.setStartedAt(Instant.now());
-            }
-        });
-    }
-
-    public void markCompleted(
-        String taskId,
-        Map<String, Object> output
-    ) {
-        update(taskId, state -> {
-            state.setStatus(TaskStatus.COMPLETED);
-            state.setCompletedAt(Instant.now());
-            state.setOutputData(output);
-        });
-    }
-
-    public void markFailed(
-        String taskId,
-        String error,
-        String stackTrace
-    ) {
-        update(taskId, state -> {
-            state.setStatus(TaskStatus.FAILED);
-            state.setCompletedAt(Instant.now());
-
-            TaskState.ErrorInfo errorInfo = new TaskState.ErrorInfo();
-            errorInfo.setCode("TASK_FAILED");
-            errorInfo.setMessage(error);
-            errorInfo.setStackTrace(stackTrace);
-            errorInfo.setTimestamp(Instant.now());
-            state.setLastError(errorInfo);
-        });
+        PENDING,       // 待处理
+        IN_PROGRESS,   // 进行中
+        BLOCKED,       // 已阻塞
+        COMPLETED,     // 已完成
+        FAILED,        // 已失败
+        CANCELLED      // 已取消
     }
 }
 ```
 
-### 记忆状态（Memory State）
+### 记忆状态 (Memory State)
 
-学到的信息和知识。
+记录习得的信息与知识。
 
 ```java
 @Document(collection = "memory_state")
@@ -242,12 +125,9 @@ public class MemoryState {
     private String agentId;
     private String userId;
 
-    private Map<String, Object> facts;           // Entity memories（实体记忆）
-    private List<Memory> episodicMemories;       // Past experiences（过去经历）
-    private Map<String, Object> semanticMemory;  // Knowledge（知识）
-
-    private Instant createdAt;
-    private Instant updatedAt;
+    private Map<String, Object> facts;           // 实体记忆（事实）
+    private List<Memory> episodicMemories;       // 情节记忆（过往经历）
+    private Map<String, Object> semanticMemory;  // 语义记忆（知识）
 
     @Getter
     @Setter
@@ -257,89 +137,7 @@ public class MemoryState {
         private String content;
         private Map<String, Object> metadata;
         private Instant timestamp;
-        private double importance;  // 0-1
-    }
-}
-
-@Service
-public class MemoryStateManager {
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
-    public void storeFact(
-        String agentId,
-        String key,
-        Object value
-    ) {
-        Query query = Query.query(
-            Criteria.where("agentId").is(agentId)
-        );
-        Update update = new Update()
-            .set("facts." + key, value)
-            .set("updatedAt", Instant.now());
-
-        mongoTemplate.upsert(query, update, MemoryState.class);
-    }
-
-    public Optional<Object> getFact(
-        String agentId,
-        String key
-    ) {
-        return Optional.ofNullable(
-            mongoTemplate.findOne(
-                Query.query(
-                    Criteria.where("agentId").is(agentId)
-                ),
-                MemoryState.class
-            )
-        ).map(state -> state.getFacts().get(key));
-    }
-
-    public void addEpisodicMemory(
-        String agentId,
-        String content,
-        double importance
-    ) {
-        Memory memory = new Memory();
-        memory.setId(UUID.randomUUID().toString());
-        memory.setType("episodic");
-        memory.setContent(content);
-        memory.setTimestamp(Instant.now());
-        memory.setImportance(importance);
-
-        Query query = Query.query(
-            Criteria.where("agentId").is(agentId)
-        );
-        Update update = new Update()
-            .push("episodicMemories", memory)
-            .set("updatedAt", Instant.now());
-
-        mongoTemplate.upsert(query, update, MemoryState.class);
-    }
-
-    public List<Memory> getImportantMemories(
-        String agentId,
-        double minImportance,
-        int limit
-    ) {
-        return Optional.ofNullable(
-            mongoTemplate.findOne(
-                Query.query(
-                    Criteria.where("agentId").is(agentId)
-                ),
-                MemoryState.class
-            )
-        )
-            .map(MemoryState::getEpisodicMemories)
-            .map(memories -> memories.stream()
-                .filter(m -> m.getImportance() >= minImportance)
-                .sorted(Comparator
-                    .comparing(Memory::getTimestamp)
-                    .reversed())
-                .limit(limit)
-                .toList())
-            .orElse(List.of());
+        private double importance;  // 重要程度评分 0-1
     }
 }
 ```
@@ -348,22 +146,22 @@ public class MemoryStateManager {
 
 ## 3.2 持久化策略
 
-### 何时持久化
+### 何时进行持久化
 
 ```mermaid
 flowchart LR
-    subgraph Events["Persistence Events（持久化事件）"]
-        Start[Task Start（任务开始）]
-        Step[Step Complete（步骤完成）]
-        Error[Error Occurs（错误发生）]
-        Periodic[Periodic<br/>Checkpoint（定期检查点）]
-        Complete[Task Complete（任务完成）]
+    subgraph Events["持久化触发事件"]
+        Start[任务开始]
+        Step[步骤完成]
+        Error[发生错误]
+        Periodic[定期<br/>检查点]
+        Complete[任务完成]
     end
 
-    subgraph Storage["Storage Backend（存储后端）"]
-        Redis[Redis<br/>Fast, Ephemeral（快速，临时）]
-        PG[PostgreSQL<br/>Persistent（持久）]
-        S3[S3<br/>Archive（归档）]
+    subgraph Storage["存储后端"]
+        Redis[Redis<br/>快速，易失]
+        PG[PostgreSQL<br/>持久化]
+        S3[S3<br/>归档]
     end
 
     Start --> Redis
@@ -378,599 +176,114 @@ flowchart LR
     style S3 fill:#e8f5e9
 ```
 
-### Redis 会话存储
-
-用于活跃会话的快速、临时状态。
-
-```java
-@Service
-public class RedisStateStore {
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    private static final Duration SESSION_TTL = Duration.ofHours(24);
-
-    public void saveSession(
-        String sessionId,
-        AgentState state
-    ) {
-        String key = "session:" + sessionId;
-        redisTemplate.opsForValue().set(
-            key,
-            serialize(state),
-            SESSION_TTL
-        );
-    }
-
-    public Optional<AgentState> loadSession(String sessionId) {
-        String key = "session:" + sessionId;
-        Object data = redisTemplate.opsForValue().get(key);
-        return Optional.ofNullable(data)
-            .map(this::deserialize);
-    }
-
-    public void deleteSession(String sessionId) {
-        String key = "session:" + sessionId;
-        redisTemplate.delete(key);
-    }
-
-    public void updateSession(
-        String sessionId,
-        Consumer<AgentState> updater
-    ) {
-        AgentState state = loadSession(sessionId)
-            .orElse(new AgentState());
-        updater.accept(state);
-        saveSession(sessionId, state);
-    }
-
-    private byte[] serialize(AgentState state) {
-        // Serialize to JSON/MessagePack
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.writeValueAsBytes(state);
-        } catch (Exception e) {
-            throw new RuntimeException("Serialization failed", e);
-        }
-    }
-
-    private AgentState deserialize(byte[] data) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(data, AgentState.class);
-        } catch (Exception e) {
-            throw new RuntimeException("Deserialization failed", e);
-        }
-    }
-}
-```
-
-### PostgreSQL 持久化存储
-
-用于长期保留的持久状态。
-
-```java
-@Service
-public class PostgreSQLStateStore {
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    public void saveState(AgentState state) {
-        String sql = """
-            INSERT INTO agent_state (
-                id, agent_id, user_id, session_id,
-                state_data, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT (id) DO UPDATE SET
-                state_data = EXCLUDED.state_data,
-                updated_at = EXCLUDED.updated_at
-            """;
-
-        try {
-            String stateJson = objectMapper.writeValueAsString(state);
-
-            jdbcTemplate.update(sql,
-                state.getId(),
-                state.getAgentId(),
-                state.getUserId(),
-                state.getSessionId(),
-                stateJson,
-                state.getCreatedAt(),
-                Instant.now()
-            );
-
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON serialization failed", e);
-        }
-    }
-
-    public Optional<AgentState> loadState(String stateId) {
-        String sql = "SELECT state_data FROM agent_state WHERE id = ?";
-
-        return jdbcTemplate.query(sql,
-            rs -> rs.next() ?
-                Optional.of(deserializeState(rs.getString("state_data"))) :
-                Optional.empty(),
-            stateId
-        );
-    }
-
-    public List<AgentState> loadStatesByAgent(String agentId) {
-        String sql = """
-            SELECT state_data FROM agent_state
-            WHERE agent_id = ?
-            ORDER BY updated_at DESC
-            """;
-
-        return jdbcTemplate.query(sql,
-            (rs, rowNum) -> deserializeState(rs.getString("state_data")),
-            agentId
-        );
-    }
-
-    private AgentState deserializeState(String json) {
-        try {
-            return objectMapper.readValue(json, AgentState.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON deserialization failed", e);
-        }
-    }
-}
-```
-
 ---
 
-## 3.3 状态恢复
+## 3.3 状态恢复 (State Recovery)
 
-### 检查点（Checkpointing）
+### 检查点机制 (Checkpointing)
 
 在长时间运行的任务中定期保存状态。
 
 ```java
 @Service
 public class CheckpointService {
+    // 定期保存任务快照，以便在系统崩溃后能从最近的断点恢复，而不是从头开始
+    private static final Duration CHECKPOINT_INTERVAL = Duration.ofMinutes(5);
 
-    @Autowired
-    private RedisStateStore redisStore;
-
-    @Autowired
-    private PostgreSQLStateStore postgresStore;
-
-    private static final Duration CHECKPOINT_INTERVAL =
-        Duration.ofMinutes(5);
-
-    public void executeWithCheckpointing(
-        String taskId,
-        Consumer<CheckpointContext> task
-    ) {
-        CheckpointContext context = new CheckpointContext(taskId);
-
-        // Load last checkpoint if exists
-        loadCheckpoint(context).ifPresent(checkpoint -> {
-            context.restore(checkpoint);
-            log.info("Resumed from checkpoint: {}", taskId);
-        });
-
-        Instant lastCheckpoint = Instant.now();
-
-        try {
-            while (!context.isComplete()) {
-                // Execute task step
-                task.accept(context);
-
-                // Check if we should checkpoint
-                if (shouldCheckpoint(lastCheckpoint)) {
-                    saveCheckpoint(context);
-                    lastCheckpoint = Instant.now();
-                }
-            }
-
-            // Final checkpoint
-            saveCheckpoint(context);
-
-        } catch (Exception e) {
-            // Checkpoint on error
-            saveCheckpoint(context);
-            throw e;
-        }
-    }
-
-    private boolean shouldCheckpoint(Instant lastCheckpoint) {
-        return Duration.between(
-            lastCheckpoint,
-            Instant.now()
-        ).compareTo(CHECKPOINT_INTERVAL) > 0;
-    }
-
-    private void saveCheckpoint(CheckpointContext context) {
-        Checkpoint checkpoint = Checkpoint.builder()
-            .taskId(context.getTaskId())
-            .state(context.getState())
-            .progress(context.getProgress())
-            .timestamp(Instant.now())
-            .build();
-
-        // Save to Redis for fast recovery
-        redisStore.saveCheckpoint(checkpoint);
-
-        // Periodically save to PostgreSQL for durability
-        if (context.getCheckpointCount() % 5 == 0) {
-            postgresStore.saveCheckpoint(checkpoint);
-        }
-
-        context.incrementCheckpointCount();
-    }
-
-    private Optional<Checkpoint> loadCheckpoint(CheckpointContext context) {
-        // Try Redis first (fast)
-        Optional<Checkpoint> checkpoint =
-            redisStore.loadCheckpoint(context.getTaskId());
-
-        if (checkpoint.isEmpty()) {
-            // Fall back to PostgreSQL (durable)
-            checkpoint = postgresStore.loadCheckpoint(context.getTaskId());
-        }
-
-        return checkpoint;
+    public void saveCheckpoint(CheckpointContext context) {
+        // 将状态保存至 Redis 实现极速恢复，同时定期备份至 DB 保证持久性
     }
 }
 ```
 
-### 从故障恢复
+### 故障恢复 (Resume from Failure)
 
-在故障后恢复状态并继续执行。
+在发生错误后自动恢复状态并继续执行。
 
 ```java
 @Service
 public class StateRecoveryService {
-
-    @Autowired
-    private TaskStateManager taskStateManager;
-
-    @Autowired
-    private CheckpointService checkpointService;
-
-    public AgentResult resumeOrExecute(
-        String taskId,
-        Supplier<AgentResult> task
-    ) {
-        // Check if task exists
-        Optional<TaskState> existingTask =
-            taskStateManager.load(taskId);
-
-        if (existingTask.isEmpty()) {
-            // Execute new task
-            return task.get();
-        }
-
-        TaskState taskState = existingTask.get();
-
-        // Check status
-        if (taskState.getStatus() == TaskStatus.COMPLETED) {
-            log.info("Task already completed: {}", taskId);
-            return AgentResult.fromTaskState(taskState);
-        }
-
-        if (taskState.getStatus() == TaskStatus.FAILED) {
-            log.info("Resuming failed task: {}", taskId);
-
-            // Increment retry count
-            taskState.setRetryCount(
-                taskState.getRetryCount() + 1
-            );
-
-            // Check if exceeded max retries
-            if (taskState.getRetryCount() > 3) {
-                log.error("Max retries exceeded for task: {}", taskId);
-                return AgentResult.failed("Max retries exceeded");
-            }
-
-            // Restore checkpoint
-            restoreCheckpoint(taskId);
-
-            // Resume task
-            return task.get();
-        }
-
-        // Task is in progress, resume
-        log.info("Resuming in-progress task: {}", taskId);
-        return task.get();
-    }
-
-    private void restoreCheckpoint(String taskId) {
-        checkpointService.executeWithCheckpointing(taskId, context -> {
-            // Task execution logic here
-            // Context will be restored from checkpoint
-        });
+    // 检查任务状态，如果是 FAILED 且未超过最大重试次数，则加载最近的检查点并尝试重新启动
+    public AgentResult resumeOrExecute(String taskId, Supplier<AgentResult> task) {
+        // 恢复逻辑实现...
     }
 }
 ```
 
 ---
 
-## 3.4 分布式状态
+## 3.4 分布式状态 (Distributed State)
 
-### 多 Agent 协调
+### 多智能体协作
 
-在多个 agent 实例之间共享状态。
+在多个智能体实例之间共享状态。
 
 ```java
 @Service
 public class DistributedStateService {
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    public void publishStateUpdate(
-        String agentId,
-        String key,
-        Object value
-    ) {
-        String channel = "agent:" + agentId + ":state";
-
-        StateUpdate update = StateUpdate.builder()
-            .agentId(agentId)
-            .key(key)
-            .value(value)
-            .timestamp(Instant.now())
-            .build();
-
-        redisTemplate.convertAndSend(channel, update);
-
-        // Also store in shared state
-        String stateKey = "shared:agent:" + agentId + ":" + key;
-        redisTemplate.opsForValue().set(stateKey, value);
-    }
-
-    public void subscribeToStateUpdates(
-        String agentId,
-        Consumer<StateUpdate> handler
-    ) {
-        String channel = "agent:" + agentId + ":state";
-
-        redisTemplate.getConnectionFactory()
-            .getConnection()
-            .subscribe(new MessageListener() {
-                @Override
-                public void onMessage(
-                    Message message,
-                    byte[] pattern
-                ) {
-                    try {
-                        String body = new String(message.getBody());
-                        StateUpdate update = objectMapper.readValue(
-                            body,
-                            StateUpdate.class
-                        );
-                        handler.accept(update);
-
-                    } catch (Exception e) {
-                        log.error("Failed to process state update", e);
-                    }
-                }
-            }, channel);
-    }
-
-    public Object getSharedState(
-        String agentId,
-        String key
-    ) {
-        String stateKey = "shared:agent:" + agentId + ":" + key;
-        return redisTemplate.opsForValue().get(stateKey);
+    // 使用 Redis Pub/Sub 发布状态更新，确保所有相关智能体都能感知全局变化
+    public void publishStateUpdate(String agentId, String key, Object value) {
+        // 发布逻辑...
     }
 }
 ```
 
-### 分布式锁（Distributed Locks）
+### 分布式锁 (Distributed Locks)
 
-在多 Agent 场景中防止竞态条件。
+在多智能体竞争资源的场景下防止竞态条件。
 
 ```java
 @Service
 public class DistributedLockService {
-
-    @Autowired
-    private StringRedisTemplate redisTemplate;
-
-    private static final Duration LOCK_TTL = Duration.ofSeconds(30);
-
-    public Optional<Lock> acquireLock(
-        String resourceId,
-        Duration timeout
-    ) {
-        String lockKey = "lock:" + resourceId;
-        String lockValue = UUID.randomUUID().toString();
-
-        Boolean acquired = redisTemplate.opsForValue()
-            .setIfAbsent(
-                lockKey,
-                lockValue,
-                LOCK_TTL
-            );
-
-        if (Boolean.TRUE.equals(acquired)) {
-            return Optional.of(new Lock(lockKey, lockValue));
-        }
-
-        return Optional.empty();
-    }
-
-    public void releaseLock(Lock lock) {
-        // Lua script to ensure we only release our own lock
-        String script = """
-            if redis.call("get", KEYS[1]) == ARGV[1] then
-                return redis.call("del", KEYS[1])
-            else
-                return 0
-            end
-            """;
-
-        redisTemplate.execute(
-            new DefaultRedisScript<>(script, Long.class),
-            Collections.singletonList(lock.getKey()),
-            lock.getValue()
-        );
-    }
-
-    @Getter
-    public static class Lock implements AutoCloseable {
-        private final String key;
-        private final String value;
-
-        @Override
-        public void close() {
-            // Release lock automatically
-            distributedLockService.releaseLock(this);
-        }
-    }
-}
-
-// Usage
-@Service
-public class AgentCoordinator {
-
-    @Autowired
-    private DistributedLockService lockService;
-
-    public void executeWithLock(
-        String resourceId,
-        Runnable operation
-    ) {
-        Optional<Lock> lock = lockService.acquireLock(
-            resourceId,
-            Duration.ofSeconds(10)
-        );
-
-        if (lock.isEmpty()) {
-            throw new ConcurrentExecutionException(
-                "Resource is locked: " + resourceId
-            );
-        }
-
-        try (Lock acquired = lock.get()) {
-            operation.run();
-
-        } catch (Exception e) {
-            log.error("Operation failed", e);
-            throw e;
-        }
+    // 使用 Redis 实现分布式锁，确保同一时间只有一个智能体能操作特定的关键资源
+    public Optional<Lock> acquireLock(String resourceId, Duration timeout) {
+        // 加锁逻辑...
     }
 }
 ```
 
 ---
 
-## 3.5 状态迁移
+## 3.5 核心要点总结
 
-### 模式演进（Schema Evolution）
+### 状态类型对比
 
-处理随时间变化的模式。
+| 类型 | 用途 | 存储介质 | 存续时长 |
+|------|---------|---------|----------|
+| **对话状态** | 交流历史 | Redis | 数小时 |
+| **任务状态** | 任务进度 | PostgreSQL | 数天 |
+| **记忆状态** | 习得知识 | PostgreSQL | 永久 |
 
-```java
-@Service
-public class StateMigrationService {
+### 持久化建议
 
-    private final List<StateMigration> migrations = new ArrayList<>();
-
-    @PostConstruct
-    public void init() {
-        // Register migrations in order
-        registerMigration(new Migration_1_2());
-        registerMigration(new Migration_2_3());
-    }
-
-    public AgentState migrate(AgentState oldState) {
-        int currentVersion = oldState.getSchemaVersion();
-        AgentState state = oldState;
-
-        for (StateMigration migration : migrations) {
-            if (migration.getFromVersion() == currentVersion) {
-                state = migration.migrate(state);
-                currentVersion = migration.getToVersion();
-            }
-        }
-
-        return state;
-    }
-
-    private static class Migration_1_2 implements StateMigration {
-        @Override
-        public int getFromVersion() { return 1; }
-
-        @Override
-        public int getToVersion() { return 2; }
-
-        @Override
-        public AgentState migrate(AgentState state) {
-            // Add new fields
-            state.setMetadata(new HashMap<>());
-
-            // Rename fields
-            if (state.containsKey("old_field")) {
-                state.put("new_field", state.get("old_field"));
-                state.remove("old_field");
-            }
-
-            state.setSchemaVersion(2);
-            return state;
-        }
-    }
-}
-```
-
----
-
-## 3.6 关键要点
-
-### 状态类型
-
-| 类型 | 用途 | 存储 | 持续时间 |
-|------|------|------|----------|
-| **对话状态** | 对话历史 | Redis | 小时 |
-| **任务状态** | 任务进度 | PostgreSQL | 天 |
-| **记忆状态** | 学到的信息 | PostgreSQL | 永久 |
-
-### 持久化策略
-
-- **Redis**: 快速、临时、会话状态
-- **PostgreSQL**: 持久、长期状态
-- **S3**: 归档、冷存储
+- **Redis**: 适用于追求极速响应、会话级的易失性状态。
+- **PostgreSQL**: 适用于需要强一致性保证、长期留存的任务与记忆。
+- **S3**: 适用于已完成任务的日志归档与冷数据存储。
 
 ### 恢复模式
 
 ```
-执行 → 检查点 → 错误 → 恢复 → 继续
+执行 (Execute) → 设点 (Checkpoint) → 出错 (Error) → 还原 (Restore) → 续传 (Resume)
 ```
 
-### 分布式状态
+---
 
-- **发布/订阅**: 实时更新
-- **共享状态**: 共享数据
-- **分布式锁**: 防止冲突
+## 3.6 下一步行动
+
+**继续您的学习之旅：**
+- → **[4. 错误处理与恢复](../error-handling)** - 高级异常处理策略
+- → **[5. 可观测性](../observability)** - 监控与链路追踪
 
 ---
 
-## 3.7 下一步
-
-**继续您的旅程：**
-- → **[4. 错误处理与恢复](../error-handling)** - 高级错误策略
-- → **[5. 可观测性](../observability)** - 监控和追踪
-
----
-
-:::tip 频繁检查点
-越频繁地检查点，失败时丢失的工作就越少。平衡检查点频率和开销。
+:::tip 勤做检查点
+检查点做得越勤，故障时丢失的工作量就越少。请在检查点频率与系统开销之间寻找平衡。
 :::
 
-:::warning 测试恢复
-不要假设状态恢复有效。通过在执行中途终止进程定期测试。
+:::warning 务必测试恢复流程
+不要假设状态恢复机制一定是有效的。建议定期通过在执行中途杀掉进程的方式来实战测试。
 :::
 
-:::info 使用 TTL
-在临时状态上设置 TTL 以防止内存泄漏。并非所有状态都需要永远存在。
+:::info 善用过期时间 (TTL)
+为易失性状态设置 TTL，防止内存泄露。并非所有的状态都需要永久保存。
 :::

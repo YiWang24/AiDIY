@@ -1,105 +1,105 @@
 ---
 id: vector-indexing
-title: Vector Indexing & Storage
+title: 向量索引与存储
 sidebar_label: 3. 向量索引
 description: Embedding 生成、向量存储、索引算法、数据库架构和 RAG 系统优化策略
 slug: /ai/rag/vector-indexing
 ---
 
-# 3. Vector Indexing & Storage
+# 3. 向量索引与存储
 
-> **"Embeddings are the bridge between text and vector search. Storage optimization is the key to production RAG systems."** — RAG Infrastructure Principle
+> **“Embedding 是文本与向量搜索之间的桥梁。存储优化是生产级 RAG 系统的关键。”** —— RAG 基础设施原则
 
-This chapter covers embedding model selection, batch generation strategies, caching techniques, index algorithm principles, advanced indexing strategies, vector database architecture, and production optimization for RAG systems.
+本章涵盖 Embedding 模型选择、批量生成策略、缓存技术、索引算法原理、高级索引策略、向量数据库架构以及 RAG 系统的生产环境优化。
 
 ---
 
-## 3.1 Understanding Embeddings in RAG
+## 3.1 理解 RAG 中的 Embedding
 
-### The Role of Embeddings
+### Embedding 的角色
 
-**Embeddings** are the bridge between text and vector search. They convert semantic meaning into numerical vectors that can be compared mathematically.
+**Embedding (嵌入)** 是连接文本与向量搜索的桥梁。它们将语义含义转换为数值向量，从而可以进行数学上的比较。
 
-**Key concepts**:
+**核心概念**：
 
-1. **Vector Space**: Similar concepts are close together in high-dimensional space
-2. **Dimensionality**: Higher dimensions capture more nuance but cost more
-3. **Model Selection**: Different models optimized for different use cases
-4. **Batch Processing**: Generate embeddings in batches to reduce API calls
-5. **Caching**: Cache embeddings to avoid recomputation
+1. **向量空间**：相似的概念在高维空间中彼此接近
+2. **维度**：更高的维度能捕获更多细微差别，但成本更高
+3. **模型选择**：不同的模型针对不同的用例进行了优化
+4. **批量处理**：成批生成 Embedding 以减少 API 调用
+5. **缓存**：缓存 Embedding 以避免重复计算
 
-### Why Vector Indexing Matters
+### 为什么向量索引很重要
 
 ```mermaid
 flowchart TB
-    subgraph WithoutIndex["Without Vector Index"]
-        Q["Query: How to configure DNS?"]
-        V["100K Documents<br/>No Index"]
-        S["Linear Scan<br/>Compare with every document"]
-        T["Time: 10-30 seconds"]
+    subgraph WithoutIndex["无向量索引"]
+        Q["查询：如何配置 DNS？"]
+        V["10 万份文档<br/>无索引"]
+        S["线性扫描<br/>与每份文档对比"]
+        T["时间：10-30 秒"]
     end
 
-    subgraph WithIndex["With HNSW Index"]
-        Q2["Query: How to configure DNS?"]
-        I["HNSW Index<br/>Graph-based structure"]
-        S2["Approximate Search<br/>Navigate graph"]
-        T2["Time: 10-50 milliseconds"]
+    subgraph WithIndex["使用 HNSW 索引"]
+        Q2["查询：如何配置 DNS？"]
+        I["HNSW 索引<br/>基于图的结构"]
+        S2["近似搜索<br/>导航图结构"]
+        T2["时间：10-50 毫秒"]
     end
 
     style T fill:#f44336,stroke:#b71c1c,color:#fff
     style T2 fill:#4caf50,stroke:#1b5e20,color:#fff
 ```
 
-**The Indexing Advantage**:
+**索引的优势对比**：
 
-| Approach | Search Time | Accuracy | Memory | Use Case |
+| 方法 | 搜索时间 | 准确度 | 内存占用 | 适用场景 |
 |----------|-------------|----------|---------|----------|
-| **Linear Scan** | 10-30s | 100% | Low | < 1K documents |
-| **IVF (Inverted File)** | 100-500ms | 95% | Medium | 1K-100K docs |
-| **HNSW (Hierarchical Small World)** | 10-50ms | 98% | High | 100K-10M docs |
-| **Quantization** | 5-20ms | 90% | Very Low | 10M+ docs |
+| **线性扫描** | 10-30s | 100% | 低 | < 1K 文档 |
+| **IVF (倒排文件)** | 100-500ms | 95% | 中 | 1K-100K 文档 |
+| **HNSW (分层小世界)** | 10-50ms | 98% | 高 | 100K-10M 文档 |
+| **量化 (Quantization)** | 5-20ms | 90% | 极低 | 10M+ 文档 |
 
 ---
 
-## 3.2 Index Fundamentals
+## 3.2 索引基础
 
-### 3.2.1 What is an Index?
+### 3.2.1 什么是索引？
 
-An **index** is a data structure that accelerates data retrieval by avoiding full table scans.
+**索引 (Index)** 是一种通过避免全表扫描来加速数据检索的数据结构。
 
-**Book Index Analogy**:
-- **Without index**: Read every page to find "machine learning"
-- **With index**: Look up "machine learning" in index → jump to pages 42, 87, 134
-- **Result**: 100x faster lookup
+**书籍索引比喻**：
+- **无索引**：阅读每一页来寻找“机器学习”
+- **有索引**：在索引中查找“机器学习” → 直接跳转到第 42, 87, 134 页
+- **结果**：查询速度提升 100 倍
 
-**Database Index vs. Vector Index**:
+**数据库索引 vs. 向量索引**：
 
-| Aspect | Traditional Database (B-tree) | Vector Index (HNSW/IVF) |
+| 维度 | 传统数据库 (B-tree) | 向量索引 (HNSW/IVF) |
 |--------|------------------------------|-------------------------|
-| **Query type** | Exact match (WHERE id = 42) | Similarity (closest vectors) |
-| **Structure** | Balanced tree | Graph or clustering |
-| **Complexity** | O(log n) lookup | O(log n) approximate search |
-| **Use case** | Structured data | Unstructured semantic search |
+| **查询类型** | 精确匹配 (WHERE id = 42) | 相似度 (最近的向量) |
+| **结构** | 平衡树 | 图或聚类 |
+| **复杂度** | O(log n) 查找 | O(log n) 近似搜索 |
+| **用例** | 结构化数据 | 非结构化语义搜索 |
 
-### 3.2.2 The Vector Search Challenge
+### 3.2.2 向量搜索的挑战
 
-**The Curse of Dimensionality**:
+**维度灾难 (The Curse of Dimensionality)**：
 
-As dimensions increase, distance metrics lose meaning and search becomes computationally intractable.
+随着维度的增加，距离度量会失去意义，搜索在计算上变得难以处理。
 
 ```mermaid
 flowchart TB
-    subgraph DimensionProblem["Curse of Dimensionality"]
-        D2["2D Space<br/>Euclidean distance<br/>works well"]
-        D10["10D Space<br/>Distance becomes<br/>less meaningful"]
-        D100["100D Space<br/>Most points are<br/>equidistant"]
-        D1000["1000D Space<br/>All points are<br/>approximately equidistant"]
+    subgraph DimensionProblem["维度灾难"]
+        D2["2D 空间<br/>欧几里得距离<br/>效果很好"]
+        D10["10D 空间<br/>距离开始<br/>失去意义"]
+        D100["100D 空间<br/>大多数点<br/>等距"]
+        D1000["1000D 空间<br/>所有点几乎<br/>都是等距的"]
     end
 
-    subgraph Implication["Implication for Search"]
-        I1["Linear scan is only<br/>exact solution"]
-        I2["Tree-based indexes<br/>don't work"]
-        I3["Need approximate<br/>nearest neighbor (ANN)"]
+    subgraph Implication["对搜索的影响"]
+        I1["线性扫描是唯一的<br/>精确解决方案"]
+        I2["基于树的索引<br/>失效"]
+        I3["需要近似<br/>最近邻 (ANN)"]
     end
 
     DimensionProblem --> Implication
@@ -108,38 +108,38 @@ flowchart TB
     style D100 fill:#ff9800,stroke:#e65100,color:#fff
 ```
 
-**Why Traditional Indexes Fail for Vectors**:
+**为什么传统索引对向量失效**：
 
-1. **B-tree doesn't support similarity search**: B-tree organizes data by sorted keys, not spatial proximity
-2. **High-dimensional space is sparse**: Tree structures become inefficient as dimensionality increases
-3. **Distance computation is expensive**: Calculating cosine similarity across 1536 dimensions is costly
+1. **B-tree 不支持相似度搜索**：B-tree 按排序键组织数据，而非空间接近度
+2. **高维度空间是稀疏的**：随着维度增加，树状结构变得极低效
+3. **距离计算开销大**：在 1536 维上计算余弦相似度的成本很高
 
-**Solution**: Approximate Nearest Neighbor (ANN) algorithms trade small accuracy loss for massive speed improvement.
+**解决方案**：近似最近邻 (ANN) 算法通过牺牲极小的准确性来换取巨大的速度提升。
 
-### 3.2.3 Index Types for Vectors
+### 3.2.3 向量索引类型
 
-**Exact vs. Approximate Search**:
+**精确搜索 vs. 近似搜索**：
 
-| Index Type | Search Method | Time Complexity | Accuracy | When to Use |
+| 索引类型 | 搜索方法 | 时间复杂度 | 准确度 | 适用场景 |
 |------------|--------------|-----------------|----------|-------------|
-| **Flat (Linear Scan)** | Compare query with every vector | O(n × d) | 100% | < 1K documents |
-| **IVF (Inverted File)** | Search only relevant Voronoi cells | O(√n × d) | 92-95% | 1K-100K documents |
-| **HNSW (Small World Graph)** | Navigate probabilistic graph | O(log n × d) | 97-99% | 100K-10M documents |
-| **Quantized Index** | Compressed vectors + ANN | O(log n × d/4) | 90-95% | 10M+ documents |
+| **Flat (线性扫描)** | 将查询与每个向量对比 | O(n × d) | 100% | < 1K 文档 |
+| **IVF (倒排文件)** | 仅搜索相关的 Voronoi 单元 | O(√n × d) | 92-95% | 1K-100K 文档 |
+| **HNSW (小世界图)** | 在概率图中导航 | O(log n × d) | 97-99% | 100K-10M 文档 |
+| **量化索引** | 压缩向量 + ANN | O(log n × d/4) | 90-95% | 10M+ 文档 |
 
-**Accuracy vs. Speed Trade-offs**:
+**准确度与速度的权衡**：
 
 ```mermaid
 flowchart LR
-    subgraph Spectrum["Accuracy-Speed Spectrum"]
-        Exact["Exact Search<br/>Flat: 100% accuracy<br/>30 seconds"]
-        High["High Accuracy<br/>HNSW: 98% accuracy<br/>20 milliseconds"]
-        Balanced["Balanced<br/>IVF: 95% accuracy<br/>100 milliseconds"]
-        Fast["Fast Search<br/>PQ-HNSW: 92% accuracy<br/>5 milliseconds"]
+    subgraph Spectrum["准确度-速度谱系"]
+        Exact["精确搜索<br/>Flat: 100% 准确度<br/>30 秒"]
+        High["高准确度<br/>HNSW: 98% 准确度<br/>20 毫秒"]
+        Balanced["平衡<br/>IVF: 95% 准确度<br/>100 毫秒"]
+        Fast["极速搜索<br/>PQ-HNSW: 92% 准确度<br/>5 毫秒"]
     end
 
-    subgraph Decision["Which to Choose?"]
-        Q1{Dataset Size?}
+    subgraph Decision["如何选择？"]
+        Q1{数据集大小？}
         Q1 -->|< 1K| Exact
         Q1 -->|1K-100K| Balanced
         Q1 -->|100K-10M| High
@@ -156,66 +156,66 @@ flowchart LR
 
 ---
 
-## 3.3 Index Algorithm Principles
+## 3.3 索引算法原理
 
-### 3.3.1 Linear Scan (Flat Index)
+### 3.3.1 线性扫描 (Flat Index)
 
-**How It Works**:
+**工作原理**：
 
-Compare query vector with every vector in the dataset, return top-K closest.
+将查询向量与数据集中的每个向量进行比较，返回距离最近的前 K 个结果。
 
 ```
-For each document in database:
-    distance = cosine_similarity(query, document.embedding)
-    if distance < best_distance:
-        add to results
-Return top-K results
+对于数据库中的每个文档：
+    距离 = cosine_similarity(query, document.embedding)
+    如果距离 < 当前最佳距离：
+        加入结果集
+返回前 K 个结果
 ```
 
-**Characteristics**:
+**特点**：
 
-| Property | Value |
+| 属性 | 数值 |
 |----------|-------|
-| **Build time** | 0s (no index structure) |
-| **Search time** | O(n × d) where n=docs, d=dimensions |
-| **Memory overhead** | 0% (just store vectors) |
-| **Accuracy** | 100% (exact search) |
-| **Best for** | < 1K documents |
+| **构建时间** | 0s (无索引结构) |
+| **搜索时间** | O(n × d)，n=文档数，d=维度 |
+| **内存开销** | 0% (仅存储向量本身) |
+| **准确度** | 100% (精确搜索) |
+| **最适合** | < 1K 文档 |
 
-**When Linear Scan is Best**:
+**何时使用线性扫描效果最好**：
 
-1. **Small datasets**: < 1K documents, index overhead isn't worth it
-2. **Accuracy-critical applications**: Legal, medical, financial where 2% error is unacceptable
-3. **Dynamic data**: Frequent updates make index maintenance expensive
-4. **Batch processing**: Overnight indexing where speed isn't critical
+1. **小数据集**：少于 1K 份文档，索引开销不值得
+2. **准确度至上的应用**：法律、医疗、金融等无法容忍 2% 误差的领域
+3. **动态数据**：频繁更新导致索引维护成本过高
+4. **批量处理**：对速度不敏感的离线索引任务
 
-**Performance Example**:
+**性能示例**：
 
-- 1K documents × 1536 dimensions
-- Search time: ~10ms
-- Memory: 6 MB for vectors only
-- No build time
+- 1K 文档 × 1536 维度
+- 搜索时间：~10ms
+- 内存：仅向量占用 6 MB
+- 无构建时间
 
-### 3.3.2 IVF (Inverted File)
+### 3.3.2 IVF (倒排文件)
 
-**How IVF Works**:
+**IVF 如何工作**：
 
-IVF partitions vector space into **Voronoi cells** using clustering (typically k-means).
+IVF 通过聚类（通常是 k-means）将向量空间划分为 **Voronoi 单元 (Voronoi cells)**。
 
 ```mermaid
 flowchart TB
-    subgraph Build["IVF Build Phase"]
-        B1["1. Run k-means clustering<br/>on dataset"]
-        B2["2. Create 1000 clusters<br/>(Voronoi cells)"]
-        B3["3. Assign each vector<br/>to nearest cluster"]
-        B4["4. Store cluster assignments<br/>in inverted index"]
+    subgraph Build["IVF 构建阶段"]
+        B1["1. 在数据集上运行<br/>k-means 聚类"]
+        B2["2. 创建 1000 个簇<br/>(Voronoi 单元)"]
+        B3["3. 将每个向量分配<br/>到最近的簇"]
+        B4["4. 在倒排索引中存储<br/>簇分配关系"]
     end
 
-    subgraph Search["IVF Search Phase"]
-        S1["1. Find nearest cluster<br/>to query vector"]
-        S2["2. Search only that cluster<br/>(or nprobe closest clusters)"]
-        S3["3. Compute distances<br/>within cluster only"]
-        S4["4. Return top-K results"]
+    subgraph Search["IVF 搜索阶段"]
+        S1["1. 找到距离查询向量<br/>最近的簇"]
+        S2["2. 仅搜索该簇<br/>(或 nprobe 个最近簇)"]
+        S3["3. 仅计算簇内<br/>的距离"]
+        S4["4. 返回前 K 个结果"]
     end
 
     Build --> Search
@@ -224,69 +224,69 @@ flowchart TB
     style S2 fill:#ff9800,stroke:#e65100,color:#fff
 ```
 
-**Voronoi Cell Diagram**:
+**Voronoi 单元图解**：
 
 ```
-    Cluster 1       Cluster 2       Cluster 3
-   (Centroid C1)   (Centroid C2)   (Centroid C3)
+    簇 1            簇 2            簇 3
+   (质心 C1)       (质心 C2)       (质心 C3)
 
   *   *   *           *   *   *           *   *   *
     * * * *             * * * *             * * * *
   *   *   *           *   *   *           *   *   *
 
-Query Q is closest to C2 → Search only Cluster 2
+查询 Q 距离 C2 最近 → 仅搜索簇 2
 ```
 
-**IVF Parameters**:
+**IVF 参数**：
 
-| Parameter | Description | Default | Effect |
+| 参数 | 描述 | 默认值 | 影响 |
 |-----------|-------------|---------|--------|
-| **nlist** | Number of clusters | 1000 | Higher = better precision, slower search |
-| **nprobe** | Clusters to search | 10 | Higher = better recall, slower search |
+| **nlist** | 簇的数量 | 1000 | 越高 = 精度越好，搜索越慢 |
+| **nprobe** | 搜索的簇数 | 10 | 越高 = 召回率越好，搜索越慢 |
 
-**Characteristics**:
+**特点**：
 
-| Property | Value |
+| 属性 | 数值 |
 |----------|-------|
-| **Build time** | Minutes (requires clustering) |
-| **Search time** | O(√n × d) with nprobe=10 |
-| **Memory overhead** | Medium (cluster assignments) |
-| **Accuracy** | 92-95% recall |
-| **Best for** | 1K-100K documents |
+| **构建时间** | 数分钟 (需要聚类训练) |
+| **搜索时间** | O(√n × d)，nprobe=10 时 |
+| **内存开销** | 中 (存储簇分配关系) |
+| **准确度** | 92-95% 召回率 |
+| **最适合** | 1K-100K 文档 |
 
-**When IVF is Best**:
+**何时使用 IVF 效果最好**：
 
-1. **Medium datasets**: 1K-100K documents
-2. **Limited memory**: Lower memory overhead than HNSW
-3. **Batch updates**: Can rebuild index periodically
+1. **中型数据集**：1K-100K 文档
+2. **内存受限**：内存开销低于 HNSW
+3. **批量更新**：可以定期重建索引
 
-**Limitations**:
+**局限性**：
 
-1. **Requires training**: Need to run k-means before indexing
-2. **Poor for dynamic data**: Updating index is expensive
-3. **Cluster boundary issues**: Documents near cluster edges may be missed
+1. **需要训练**：索引前需要运行 k-means
+2. **对动态数据支持差**：更新索引成本高
+3. **簇边界问题**：簇边缘附近的文档可能会被遗漏
 
-### 3.3.3 HNSW (Hierarchical Navigable Small World)
+### 3.3.3 HNSW (分层导航小世界)
 
-**How HNSW Works**:
+**HNSW 如何工作**：
 
-HNSW builds a **probabilistic skip list** (layered graph) for logarithmic-time search.
+HNSW 构建了一个**概率跳表 (Probabilistic skip list)**（分层图结构），以实现对数级时间的搜索。
 
 ```mermaid
 flowchart TB
-    subgraph Layers["HNSW Layer Structure"]
-        L3["Layer 3: 0.1% of points<br/>Entry points<br/>Long-range connections"]
-        L2["Layer 2: 1% of points<br/>Expressway<br/>Medium-range connections"]
-        L1["Layer 1: 10% of points<br/>Fast navigation<br/>Short-range connections"]
-        L0["Layer 0: All points<br/>Base layer<br/>Fine-grained search"]
+    subgraph Layers["HNSW 分层结构"]
+        L3["第 3 层：0.1% 的点<br/>入口点<br/>远距离连接"]
+        L2["第 2 层：1% 的点<br/>高速公路<br/>中距离连接"]
+        L1["第 1 层：10% 的点<br/>快速导航<br/>短距离连接"]
+        L0["第 0 层：所有点<br/>基础层<br/>细粒度搜索"]
     end
 
-    subgraph Search["Search Algorithm"]
-        S1["1. Enter at Layer 3 entry point"]
-        S2["2. Greedy search: move to<br/>closer point in same layer"]
-        S3["3. When no closer point,<br/>move down to Layer 2"]
-        S4["4. Repeat until Layer 0"]
-        S5["5. Exhaustive search in<br/>Layer 0 for nearest neighbors"]
+    subgraph Search["搜索算法"]
+        S1["1. 从第 3 层的入口点进入"]
+        S2["2. 贪婪搜索：移动到<br/>同层中更近的点"]
+        S3["3. 当没有更近的点时，<br/>向下移动到第 2 层"]
+        S4["4. 重复此过程直到第 0 层"]
+        S5["5. 在第 0 层进行详尽搜索<br/>寻找最近邻"]
     end
 
     Layers --> Search
@@ -295,126 +295,126 @@ flowchart TB
     style L0 fill:#4caf50,stroke:#1b5e20,color:#fff
 ```
 
-**Graph Construction Algorithm**:
+**图构建算法**：
 
 ```
-For each new point:
-    1. Determine point's level (probabilistic)
-       - Level 0: 100% of points
-       - Level 1: 10% of points
-       - Level 2: 1% of points
-       - Level 3+: 0.1% of points
+对于每个新加入的点：
+    1. 确定该点的层级（基于概率）
+       - 第 0 层：100% 的点
+       - 第 1 层：10% 的点
+       - 第 2 层：1% 的点
+       - 第 3 层及以上：0.1% 的点
 
-    2. Find entry point (top-level point)
+    2. 找到入口点（顶层的点）
 
-    3. For each level from top down:
-        a. Greedy search for nearest neighbors in that level
-        b. Select M neighbors based on ef_construction parameter
-        c. Bidirectional connections between points
+    3. 从顶层向下逐层处理：
+        a. 在该层贪婪搜索最近邻
+        b. 基于 ef_construction 参数选择 M 个邻居
+        c. 在点之间建立双向连接
 
-    4. In base layer (Level 0):
-        a. Find M nearest neighbors
-        b. Create bidirectional edges
+    4. 在基础层 (第 0 层)：
+        a. 找到 M 个最近邻
+        b. 创建双向边
 ```
 
-**HNSW Parameters**:
+**HNSW 参数**：
 
-| Parameter | Description | Default | Range | Effect |
+| 参数 | 描述 | 默认值 | 范围 | 影响 |
 |-----------|-------------|---------|-------|--------|
-| **M** | Max connections per node | 16 | 8-64 | Higher = better recall, more memory |
-| **ef_construction** | Index build quality | 100 | 50-200 | Higher = better index, slower build |
-| **ef_search** | Search candidates | 50 | 10-100 | Higher = better recall, slower search |
+| **M** | 每个节点的最大连接数 | 16 | 8-64 | 越高 = 召回率越好，内存占用越多 |
+| **ef_construction** | 索引构建质量 | 100 | 50-200 | 越高 = 索引质量越好，构建越慢 |
+| **ef_search** | 搜索候选数 | 50 | 10-100 | 越高 = 召回率越好，搜索越慢 |
 
-**Characteristics**:
+**特点**：
 
-| Property | Value |
+| 属性 | 数值 |
 |----------|-------|
-| **Build time** | Minutes (incremental) |
-| **Search time** | O(log n × d) |
-| **Memory overhead** | High (graph structure) |
-| **Accuracy** | 97-99% recall |
-| **Best for** | 100K-10M documents |
+| **构建时间** | 数分钟 (支持增量构建) |
+| **搜索时间** | O(log n × d) |
+| **内存开销** | 高 (图结构占用多) |
+| **准确度** | 97-99% 召回率 |
+| **最适合** | 100K-10M 文档 |
 
-**When HNSW is Best**:
+**何时使用 HNSW 效果最好**：
 
-1. **Large datasets**: 100K-10M documents
-2. **Real-time search**: Sub-50ms query latency
-3. **Dynamic data**: Incremental updates supported
-4. **High recall required**: 97-99% accuracy acceptable
+1. **大型数据集**：100K-10M 文档
+2. **实时搜索**：延迟低于 50ms 的查询
+3. **动态数据**：支持增量更新
+4. **高召回率要求**：可接受 97-99% 的准确度
 
-**Why HNSW is Fast**:
+**为什么 HNSW 这么快**：
 
-1. **Logarithmic search**: Skip list structure enables O(log n) search
-2. **Greedy navigation**: Always move closer to target
-3. **Layered approach**: Coarse-to-fine search reduces distance computations
-4. **Probabilistic sampling**: Only small fraction of points in higher layers
+1. **对数搜索**：跳表结构实现了 O(log n) 的搜索复杂度
+2. **贪婪导航**：始终朝着目标移动
+3. **分层方法**：由粗到细的搜索减少了距离计算次数
+4. **概率采样**：高层级仅保留极少比例的点
 
-### 3.3.4 Algorithm Comparison
+### 3.3.4 算法对比总结
 
-**Comprehensive Comparison Table**:
+**综合对比表**：
 
-| Algorithm | Build Time | Search Time | Memory | Accuracy | Best For | Limitations |
+| 算法 | 构建时间 | 搜索时间 | 内存占用 | 准确度 | 最适合 | 局限性 |
 |-----------|------------|-------------|---------|----------|----------|-------------|
-| **Flat** | 0s | O(n×d) = 10-30s | Low | 100% | < 1K docs, accuracy-critical | Doesn't scale |
-| **IVF** | Minutes | O(√n) = 100-500ms | Medium | 92-95% | 1K-100K docs | Poor for dynamic data |
-| **HNSW** | Minutes | O(log n) = 10-50ms | High | 97-99% | 100K-10M docs | High memory overhead |
-| **PQ-HNSW** | Hours | O(log n) = 5-20ms | Medium | 90-95% | 10M+ docs | Accuracy loss, complex setup |
+| **Flat** | 0s | 10-30s | 低 | 100% | < 1K 文档，精度至上 | 无法扩展 |
+| **IVF** | 分钟级 | 100-500ms | 中 | 92-95% | 1K-100K 文档 | 对动态数据支持差 |
+| **HNSW** | 分钟级 | 10-50ms | 高 | 97-99% | 100K-10M 文档 | 内存开销大 |
+| **PQ-HNSW**| 小时级 | 5-20ms | 中 | 90-95% | 1000 万+ 文档 | 有精度损失，设置复杂 |
 
-**Decision Tree**:
+**决策树摘要**：
 
 ```
-Dataset size?
-├─ < 1K → Flat (no index overhead, 100% accuracy)
-├─ 1K-100K → IVF (balanced speed/accuracy, simpler than HNSW)
-├─ 100K-10M → HNSW (best performance, industry standard)
-└─ 10M+ → PQ-HNSW (quantization for memory efficiency)
+数据集大小？
+├─ < 1K → Flat (无索引开销，100% 准确)
+├─ 1K-100K → IVF (平衡速度与准确度，比 HNSW 简单)
+├─ 100K-10M → HNSW (性能最佳，行业标准)
+└─ 10M+ → PQ-HNSW (使用量化提升内存效率)
 
-Memory constrained?
-├─ Yes → IVF or PQ-HNSW
-└─ No → HNSW (best performance)
+内存受限吗？
+├─ 是 → IVF 或 PQ-HNSW
+└─ 否 → HNSW (追求极致性能)
 
-Dynamic data (frequent updates)?
-├─ Yes → HNSW (supports incremental updates)
-└─ No → IVF (simpler, good for batch workloads)
+是动态数据吗 (频繁更新)？
+├─ 是 → HNSW (支持增量更新)
+└─ 否 → IVF (更简单，适合批处理工作负载)
 
-Accuracy critical (legal/medical)?
-├─ Yes → Flat (100% accuracy) or high-ef HNSW
-└─ No → IVF or HNSW (trade accuracy for speed)
+准确度至上吗 (如医疗/法律)？
+├─ 是 → Flat (100% 准确) 或高 ef 值的 HNSW
+└─ 否 → IVF 或 HNSW (用准确度换取速度)
 ```
 
 ---
 
-## 3.4 Embedding Model Selection
+## 3.4 Embedding 模型选择
 
-### Model Comparison
+### 模型对比
 
-| Model | Dimensions | Speed | Quality | Cost | Best For |
+| 模型 | 维度 | 速度 | 质量 | 成本 | 最适合 |
 |-------|------------|-------|---------|------|----------|
-| **OpenAI text-embedding-3-small** | 1536 | Fast | ⭐⭐⭐⭐⭐ | $0.02/1M tokens | General purpose, cost-sensitive |
-| **OpenAI text-embedding-3-large** | 3072 | Medium | ⭐⭐⭐⭐⭐ | $0.13/1M tokens | High accuracy required |
-| **BGE-M3** | 1024 | Fast | ⭐⭐⭐⭐ | Free (self-hosted) | Chinese, multilingual, cost-sensitive |
-| **BGE-Large-EN** | 1024 | Fast | ⭐⭐⭐⭐ | Free (self-hosted) | English-only, cost-sensitive |
-| **Cohere embed-v3** | 1024 | Fast | ⭐⭐⭐⭐⭐ | $0.10/1M tokens | Hybrid retrieval, reranking |
+| **OpenAI text-embedding-3-small** | 1536 | 快 | ⭐⭐⭐⭐⭐ | $0.02/1M tokens | 通用场景、成本敏感 |
+| **OpenAI text-embedding-3-large** | 3072 | 中 | ⭐⭐⭐⭐⭐ | $0.13/1M tokens | 高精度需求 |
+| **BGE-M3** | 1024 | 快 | ⭐⭐⭐⭐ | 免费 (自托管) | 中文、多语言、成本敏感 |
+| **BGE-Large-EN** | 1024 | 快 | ⭐⭐⭐⭐ | 免费 (自托管) | 纯英文、成本敏感 |
+| **Cohere embed-v3** | 1024 | 快 | ⭐⭐⭐⭐⭐ | $0.10/1M tokens | 混合检索、重排序 |
 
-### Selection Guide
+### 选择指南
 
 ```mermaid
 flowchart TB
-    Start{Select Embedding Model}
+    Start{选择 Embedding 模型}
 
-    Q1{Cost Major Concern?}
-    Q1 -->|Yes| BGE[BGE-M3<br/>Free, self-hosted]
-    Q1 -->|No| Q2{Accuracy Critical?}
+    Q1{成本是主要考量吗？}
+    Q1 -->|是| BGE[BGE-M3<br/>免费，自托管]
+    Q1 -->|否| Q2{准确度是否至关重要？}
 
-    Q2 -->|Yes| Large[OpenAI text-embedding-3-large<br/>3072 dimensions]
-    Q2 -->|No| Q3{Language?}
+    Q2 -->|是| Large[OpenAI text-embedding-3-large<br/>3072 维度]
+    Q2 -->|否| Q3{内容语言？}
 
-    Q3 -->|Chinese/Multilingual| BGE
-    Q3 -->|English| Small[OpenAI text-embedding-3-small<br/>Best value]
+    Q3 -->|中文/多语言| BGE
+    Q3 -->|英文| Small[OpenAI text-embedding-3-small<br/>最高性价比]
 
-    Q4{Need Hybrid Retrieval?}
-    Q4 -->|Yes| Cohere[Cohere embed-v3<br/>Built-in sparse embeddings]
-    Q4 -->|No| Small
+    Q4{需要混合检索吗？}
+    Q4 -->|是| Cohere[Cohere embed-v3<br/>内置稀疏向量支持]
+    Q4 -->|否| Small
 
     Start --> Q1
 
@@ -423,39 +423,39 @@ flowchart TB
     style BGE fill:#ff9800,stroke:#e65100,color:#fff
 ```
 
-**Decision Tree**:
+**决策树细节**：
 
 ```
-Is cost a major concern?
-├─ Yes → Use BGE-M3 (free, self-hosted)
-└─ No → Is accuracy critical?
-    ├─ Yes → Use OpenAI text-embedding-3-large
-    └─ No → Use OpenAI text-embedding-3-small (best value)
+成本是主要关注点吗？
+├─ 是 → 使用 BGE-M3 (免费，自托管)
+└─ 否 → 准确度是否至关重要？
+    ├─ 是 → 使用 OpenAI text-embedding-3-large
+    └─ 否 → 使用 OpenAI text-embedding-3-small (性价比之选)
 
-Is Chinese/multilingual content?
-├─ Yes → Use BGE-M3 (optimized for multilingual)
-└─ No → Use OpenAI models (better English performance)
+是中文或多语言内容吗？
+├─ 是 → 使用 BGE-M3 (针对多语言优化)
+└─ 否 → 使用 OpenAI 模型 (英文表现更佳)
 
-Need hybrid retrieval (dense + sparse)?
-├─ Yes → Use Cohere embed-v3 (built-in sparse embeddings)
-└─ No → Use OpenAI or BGE models
+需要混合检索（稠密 + 稀疏）吗？
+├─ 是 → 使用 Cohere embed-v3 (内置稀疏 Embedding)
+└─ 否 → 使用 OpenAI 或 BGE 模型
 ```
 
-### Dimensionality Trade-offs
+### 维度权衡
 
 ```mermaid
 flowchart LR
-    subgraph Dimension["Dimensionality Impact"]
-        D256["256 dims<br/>Fast, low memory<br/>Lower accuracy"]
-        D768["768-1024 dims<br/>Balanced<br/>Good default"]
-        D1536["1536 dims<br/>Slower, more memory<br/>High accuracy"]
-        D3072["3072 dims<br/>Slowest, most memory<br/>Best accuracy"]
+    subgraph Dimension["维度影响"]
+        D256["256 维<br/>极速，省内存<br/>精度较低"]
+        D768["768-1024 维<br/>平衡<br/>良好的默认值"]
+        D1536["1536 维<br/>稍慢，内存占用多<br/>高精度"]
+        D3072["3072 维<br/>最慢，最占内存<br/>极致精度"]
     end
 
-    subgraph UseCases["When to Use"]
-        U1["Real-time apps<br/>Edge devices<br/>→ 256-768 dims"]
-        U2["General RAG<br/>Production systems<br/>→ 1024-1536 dims"]
-        U3["Critical accuracy<br/>Complex queries<br/>→ 3072 dims"]
+    subgraph UseCases["适用场景"]
+        U1["实时应用<br/>边缘设备<br/>→ 256-768 维"]
+        U2["通用 RAG<br/>生产系统<br/>→ 1024-1536 维"]
+        U3["极端准确度需求<br/>复杂查询<br/>→ 3072 维"]
     end
 
     Dimension --> UseCases
@@ -463,9 +463,9 @@ flowchart LR
     style D768 fill:#4caf50,stroke:#1b5e20,color:#fff
 ```
 
-**Cost Analysis** (for 1M documents, 500 tokens each):
+**成本分析** (以 100 万份文档，每份 500 tokens 为例)：
 
-| Dimensions | Storage (GB) | Memory (GB) | Search Time | Cost |
+| 维度 | 存储空间 (GB) | 运行内存 (GB) | 搜索时间 | 估算成本 |
 |------------|--------------|-------------|-------------|------|
 | **256** | 1 GB | 2 GB | ~5ms | $2.50 |
 | **768** | 3 GB | 6 GB | ~10ms | $5.00 |
@@ -474,80 +474,80 @@ flowchart LR
 
 ---
 
-## 3.5 Advanced Indexing Strategies
+## 3.5 高级索引策略
 
-### 3.5.1 Product Quantization (PQ)
+### 3.5.1 乘积量化 (Product Quantization, PQ)
 
-**What is Product Quantization?**
+**什么是乘积量化？**
 
-PQ compresses high-dimensional vectors into short codes by partitioning dimensions and quantizing each partition separately.
+PQ 通过将高维空间划分为多个低维子空间的笛卡尔积，并将每个子空间单独进行量化，从而将高维向量压缩为短代码。
 
-**How PQ Works**:
+**PQ 如何工作**：
 
 ```
-1. Partition vector into sub-vectors (e.g., 1536 dims → 8 sub-vectors of 192 dims)
+1. 将向量划分为子向量 (例如 1536 维 → 8 个 192 维的子向量)
 
-2. Train k-means on each sub-vector (typically 256 clusters per sub-vector)
+2. 在每个子向量上进行 k-means 训练 (通常每个子空间 256 个簇)
 
-3. For each vector:
-   - Assign each sub-vector to nearest cluster center
-   - Store cluster ID (8 bits) instead of full sub-vector
+3. 对于每个向量：
+   - 将每个子向量分配到最近的簇中心
+   - 仅存储簇 ID (8 bits)，而非完整的子向量
 
-4. Result: 1536-dim vector (6 KB) → 8-byte code (99.9% compression)
+4. 结果：1536 维向量 (6 KB) → 8 字节代码 (99.9% 压缩率)
 ```
 
-**PQ Parameters**:
+**PQ 参数**：
 
-| Parameter | Description | Typical Value | Effect |
+| 参数 | 描述 | 典型值 | 影响 |
 |-----------|-------------|---------------|--------|
-| **M** | Number of sub-vectors | 8-64 | Higher = better accuracy, slower search |
-| **nbits** | Bits per sub-vector | 8 | Higher = more clusters, better accuracy |
+| **M** | 子向量的数量 | 8-64 | 越高 = 精度越好，搜索越慢 |
+| **nbits** | 每个子向量的位数 | 8 | 越高 = 簇越多，精度越高 |
 
-**Characteristics**:
+**特点**：
 
-| Property | Value |
+| 属性 | 数值 |
 |----------|-------|
-| **Compression ratio** | 90-99% |
-| **Memory savings** | 10-100x |
-| **Accuracy loss** | 2-5% |
-| **Build time** | Hours (requires training) |
-| **Best for** | 10M+ documents, memory-constrained |
+| **压缩比** | 90-99% |
+| **内存节省** | 10-100 倍 |
+| **精度损失** | 2-5% |
+| **构建时间** | 数小时 (需要训练过程) |
+| **最适合** | 1000 万+ 文档，内存极度受限 |
 
-**When to Use PQ**:
+**何时使用 PQ**：
 
-1. **Very large datasets**: 10M+ documents where memory is limiting
-2. **Memory-constrained environments**: Edge devices, small servers
-3. **Cost-sensitive**: Reduce cloud storage costs
+1. **超大规模数据集**：内存无法装下完整向量的千万级数据量
+2. **内存受限环境**：边缘计算设备、小型服务器
+3. **成本敏感型**：显著降低云存储成本
 
-**Trade-offs**:
+**权衡分析**：
 
-| Pro | Con |
+| 优点 | 缺点 |
 |-----|-----|
-| 10-100x memory reduction | 2-5% accuracy loss |
-| Faster search (less data to load) | Complex training process |
-| Lower storage costs | Longer build time |
+| 10-100 倍内存降幅 | 2-5% 的精度损失 |
+| 搜索更快 (加载数据更少) | 复杂的训练过程 |
+| 极低的存储成本 | 构建索引时间较长 |
 
-### 3.5.2 DiskANN
+### 3.5.2 DiskANN (磁盘索引)
 
-**What is DiskANN?**
+**什么是 DiskANN？**
 
-DiskANN enables vector search on datasets larger than memory by storing the index on disk and loading pages on-demand.
+DiskANN 是一种允许在超过内存大小的数据集上进行向量搜索的技术，它将索引存储在 SSD 上并按需加载数据页。
 
-**How DiskANN Works**:
+**DiskANN 如何工作**：
 
 ```mermaid
 flowchart TB
-    subgraph Offline["Offline Build Phase"]
-        O1["1. Build HNSW index on<br/>entire dataset"]
-        O2["2. Optimize graph layout<br/>for sequential disk access"]
-        O3["3. Store graph on SSD<br/>with page structure"]
+    subgraph Offline["离线构建阶段"]
+        O1["1. 在完整数据集上<br/>构建 HNSW 索引"]
+        O2["2. 优化图布局<br/>以实现顺序磁盘访问"]
+        O3["3. 将带有页面结构的图<br/>存储在 SSD 上"]
     end
 
-    subgraph Online["Online Search Phase"]
-        Q1["1. Load root page<br/>(fits in memory)"]
-        Q2["2. Traverse graph<br/>loading pages on-demand"]
-        Q3["3. Cache frequently<br/>accessed pages"]
-        Q4["4. Return results"]
+    subgraph Online["在线搜索阶段"]
+        Q1["1. 加载根节点页<br/>(常驻内存)"]
+        Q2["2. 遍历图结构<br/>按需加载数据页"]
+        Q3["3. 缓存频繁<br/>访问的页面"]
+        Q4["4. 返回结果"]
     end
 
     Offline --> Online
@@ -556,61 +556,61 @@ flowchart TB
     style Q2 fill:#4caf50,stroke:#1b5e20,color:#fff
 ```
 
-**Characteristics**:
+**特点**：
 
-| Property | Value |
+| 属性 | 数值 |
 |----------|-------|
-| **Max dataset size** | Billions of vectors (limited by disk, not RAM) |
-| **Search time** | 100-500ms (disk I/O bottleneck) |
-| **Memory requirement** | 10-20% of dataset size (cache) |
-| **Accuracy** | 90-95% |
-| **Best for** | 100M+ document collections |
+| **最大数据量** | 数十亿级 (受磁盘限制，而非内存) |
+| **搜索时间** | 100-500ms (受磁盘 I/O 瓶颈影响) |
+| **内存需求** | 数据集大小的 10-20% (用于缓存) |
+| **准确度** | 90-95% |
+| **最适合** | 1 亿+ 文档量的超大规模收藏 |
 
-**When to Use DiskANN**:
+**何时使用 DiskANN**：
 
-1. **Massive datasets**: 100M+ documents that don't fit in memory
-2. **Archival search**: Latency tolerance (100-500ms acceptable)
-3. **Cost-sensitive**: SSD is cheaper than RAM
+1. **海量数据集**：超过单机或集群内存容量的一亿级数据
+2. **档案搜索**：对延迟有一定的容忍度 (100-500ms 可接受)
+3. **成本优化**：SSD 比 RAM 廉价得多
 
-**Trade-offs**:
+**权衡分析**：
 
-| Pro | Con |
+| 优点 | 缺点 |
 |-----|-----|
-| Scale to billions of vectors | 10-100x slower than in-memory |
-| Lower hardware costs (SSD vs RAM) | Complex setup and optimization |
-| Scales horizontally (distributed disk) | SSD wear and tear |
+| 扩展至数十亿个向量 | 比纯内存搜索慢 10-100 倍 |
+| 硬件成本极低 (SSD vs RAM) | 设置和优化过程复杂 |
+| 水平扩展性强 | SSD 磨损考量 |
 
-### 3.5.3 Composite Indexes
+### 3.5.3 复合索引 (Composite Indexes)
 
-**What are Composite Indexes?**
+**什么是复合索引？**
 
-Composite indexes combine multiple indexes for different aspects of documents (semantic, keyword, metadata).
+复合索引将针对文档不同方面（语义、关键词、元数据）的多个索引结合在一起。
 
-**Architecture**:
+**架构图**：
 
 ```mermaid
 flowchart TB
-    subgraph Composite["Composite Index Architecture"]
+    subgraph Composite["复合索引架构"]
         direction TB
 
-        subgraph Semantic["Semantic Index"]
-            S1["HNSW Index<br/>Embeddings"]
+        subgraph Semantic["语义索引"]
+            S1["HNSW 索引<br/>Embeddings"]
         end
 
-        subgraph Keyword["Keyword Index"]
-            K1["BM25 Index<br/>Tokens"]
+        subgraph Keyword["关键词索引"]
+            K1["BM25 索引<br/>分词/Tokens"]
         end
 
-        subgraph Metadata["Metadata Index"]
-            M1["B-tree Index<br/>Filters"]
+        subgraph Metadata["元数据索引"]
+            M1["B-tree 索引<br/>过滤器/字段"]
         end
     end
 
-    subgraph Query["Query Processing"]
-        Q1["1. Parse query"]
-        Q2["2. Route to relevant indexes"]
-        Q3["3. Execute parallel searches"]
-        Q4["4. Fusion: combine & rank results"]
+    subgraph Query["查询处理"]
+        Q1["1. 解析查询意图"]
+        Q2["2. 分发到相关索引"]
+        Q3["3. 执行并行搜索"]
+        Q4["4. 融合：合并并排序结果"]
     end
 
     Composite --> Query
@@ -620,156 +620,134 @@ flowchart TB
     style M1 fill:#2196f3,stroke:#0d47a1,color:#fff
 ```
 
-**Fusion Strategies**:
+**融合策略**：
 
-| Strategy | Description | When to Use |
+| 策略 | 描述 | 适用场景 |
 |----------|-------------|-------------|
-| **Reciprocal Rank Fusion (RRF)** | Combine ranked lists | General purpose |
-| **Weighted fusion** | Weight semantic + keyword | Known optimal weights |
-| **Cascade** | Keyword filter → semantic rerank | Keyword-heavy queries |
-| **Learned fusion** | ML model to combine results | Large-scale production |
+| **倒数排名融合 (RRF)** | 结合多个排名列表 | 通用场景 |
+| **加权融合** | 对语义和关键词赋予权重 | 已知最佳权重的情况 |
+| **级联过滤** | 关键词过滤 → 语义重排 | 关键词密集的查询 |
+| **学习型融合** | 使用 ML 模型组合结果 | 大规模生产环境 |
 
-**Benefits**:
+**收益**：
 
-1. **Better recall**: Capture semantic and lexical matches
-2. **Filtered search**: Metadata filtering with vector search
-3. **Flexibility**: Optimize each index independently
+1. **更高的召回率**：同时捕获语义和词汇匹配
+2. **带过滤的搜索**：支持在向量搜索中加入硬性的元数据过滤
+3. **灵活性**：可以独立优化各个索引组件
 
-**When to Use Composite Indexes**:
+### 3.5.4 多向量索引 (Multi-Vector Indexing)
 
-1. **Hybrid retrieval**: Need both semantic and keyword search
-2. **Metadata filtering**: Category, date, author filters
-3. **Multi-modal**: Text, image, audio search
-4. **Reranking**: Cheap pre-filter → expensive rerank
+**什么是多向量索引？**
 
-### 3.5.4 Multi-Vector Indexing
+为每份文档存储多个向量表示，以应对不同类型的查询。
 
-**What is Multi-Vector Indexing?**
-
-Store multiple vector representations per document for different query types.
-
-**Example Architecture**:
+**示例架构**：
 
 ```
-Document: "Machine Learning with TensorFlow"
+文档: "使用 TensorFlow 进行机器学习"
 
-Vectors stored:
-├─ Dense embedding (1536 dims): Semantic meaning
-├─ Sparse embedding (10K dims): Keywords, entities
-├─ Summary embedding (1536 dims): Document overview
-├─ Title embedding (1536 dims): Title-specific
-└─ Section embeddings (N × 1536): Per-section
+存储的向量：
+├─ 稠密 Embedding (1536 维): 语义含义
+├─ 稀疏 Embedding (1万 维): 关键词、实体
+├─ 摘要 Embedding (1536 维): 文档概览
+├─ 标题 Embedding (1536 维): 针对标题
+└─ 章节 Embedding (N × 1536): 针对每个章节
 ```
 
-**Query Processing**:
+**查询处理流**：
 
 ```
-Query: "How to use TensorFlow for ML?"
+查询: "如何将 TensorFlow 用于机器学习？"
 
-1. Generate query embedding
-2. Search all vector types in parallel
-3. Fuse results:
-   - Title match: 2.0× weight (high relevance)
-   - Summary match: 1.5× weight (good overview)
-   - Section match: 1.2× weight (specific detail)
-   - Dense match: 1.0× weight (semantic)
-   - Sparse match: 0.8× weight (keyword)
-4. Return fused ranked results
+1. 生成查询的 Embedding
+2. 并行搜索所有向量类型
+3. 结果融合：
+   - 标题匹配：2.0x 权重 (高相关性)
+   - 摘要匹配：1.5x 权重 (良好的概览)
+   - 章节匹配：1.2x 权重 (特定细节)
+   - 稠密匹配：1.0x 权重 (基础语义)
+   - 稀疏匹配：0.8x 权重 (词汇匹配)
+4. 返回融合排序后的结果
 ```
 
-**Benefits**:
+**收益**：
 
-| Benefit | Description |
+| 收益 | 描述 |
 |---------|-------------|
-| **Better recall** | Capture different aspects of relevance |
-| **Query-type awareness** | Optimize for different query patterns |
-| **Granular search** | Title vs. content vs. section search |
-
-**Trade-offs**:
-
-| Pro | Con |
-|-----|-----|
-| 2-5x better recall | 2-5x storage cost |
-| Flexible retrieval | Complex query orchestration |
-| Better user experience | Slower queries (multiple indexes) |
-
-**When to Use Multi-Vector Indexing**:
-
-1. **Long documents**: Single embedding insufficient
-2. **Structured documents**: Title, abstract, sections
-3. **Multiple query types**: Navigational vs. informational
-4. **High recall required**: Enterprise search, e-commerce
+| **更高的召回率** | 捕获相关性的不同维度 |
+| **查询类型感知** | 针对不同查询模式进行优化 |
+| **更细粒度的搜索** | 支持标题、内容、章节级别的精准搜索 |
 
 ---
 
-## 3.6 Index Optimization Techniques
+## 3.6 索引优化技术
 
-### 3.6.1 Quantization Methods
+### 3.6.1 量化方法 (Quantization)
 
-**Scalar Quantization**
+**标量量化 (Scalar Quantization)**
 
-Convert float32 vectors to int8 by dividing each dimension by a constant.
+将 float32 向量转换为 int8 整数，通过将每个分量除以一个常数实现。
 
 ```
-Float32 vector: [0.234, -0.567, 0.891, ...]
-Quantization factor: 0.01
-Int8 vector: [23, -57, 89, ...]
+Float32 向量: [0.234, -0.567, 0.891, ...]
+量化因子: 0.01
+Int8 向量: [23, -57, 89, ...]
 
-Memory reduction: 75% (4 bytes → 1 byte per dimension)
-Accuracy loss: 1-3%
+内存减少: 75% (4 字节 → 1 字节每分量)
+精度损失: 1-3%
 ```
 
-**Scalar Quantization Parameters**:
+**标量量化参数**：
 
-| Parameter | Description | Effect |
+| 参数 | 描述 | 影响 |
 |-----------|-------------|--------|
-| **Quantization range** | Min/max values to quantize | Larger range = more precision loss |
-| **Uniform vs. non-uniform** | Spacing of quantization levels | Non-uniform better for skewed data |
+| **量化范围** | 参与量化的最小值/最大值 | 范围越大 = 精度损失越多 |
+| **均匀 vs. 非均匀** | 量化层级的间距 | 非均匀更适合偏斜数据 |
 
-**Product Quantization (PQ)**
+**乘积量化 (PQ)**
 
-Compress vectors by partitioning and clustering each partition (see 3.5.1).
+通过维度划分和聚类来压缩向量（详见 3.5.1）。
 
-**Comparison**:
+**方法对比**：
 
-| Method | Memory Reduction | Accuracy Loss | Speed | Complexity |
+| 方法 | 内存降幅 | 精度损失 | 速度提升 | 复杂度 |
 |--------|-----------------|---------------|-------|------------|
-| **Scalar (int8)** | 75% | 1-3% | 2x faster | Low |
-| **Product (PQ)** | 90%+ | 2-5% | 4x faster | High |
-| **Binary** | 97% | 5-10% | 10x faster | Medium |
+| **标量 (int8)** | 75% | 1-3% | 2 倍 | 低 |
+| **乘积 (PQ)** | 90%+ | 2-5% | 4 倍 | 高 |
+| **二进制 (Binary)** | 97% | 5-10% | 10 倍 | 中 |
 
-**When to Use Each**:
+**如何选择**：
 
 ```
-Dataset size?
-├─ < 10M → Scalar quantization (good balance)
-├─ 10M-100M → Product quantization (memory savings)
-└─ 100M+ → Binary + PQ (extreme compression)
+数据集大小？
+├─ < 1000 万 → 标量量化 (最佳平衡)
+├─ 1000 万-1 亿 → 乘积量化 (极致省内存)
+└─ 1 亿+ → 二进制 + PQ (极端压缩)
 
-Accuracy sensitivity?
-├─ High → Scalar (minimal loss)
-├─ Medium → PQ (acceptable loss)
-└─ Low → Binary (max compression)
+对准确度敏感吗？
+├─ 高 → 标量量化 (损失微乎其微)
+├─ 中 → PQ (可接受的损失)
+└─ 低 → 二进制 (追求最大压缩)
 ```
 
-### 3.6.2 Index Partitioning Strategies
+### 3.6.2 索引分区策略
 
-**Category-Based Partitioning**
+**基于类别的分区 (Category-Based)**
 
-Create separate indexes per document category.
+为不同类别的文档创建独立的索引。
 
 ```mermaid
 flowchart TB
-    subgraph Category["Category-Based Partitioning"]
-        C1["Tech Index<br/>100K docs"]
-        C2["Legal Index<br/>50K docs"]
-        C3["Medical Index<br/>30K docs"]
+    subgraph Category["基于类别的分区"]
+        C1["技术索引<br/>10 万文档"]
+        C2["法律索引<br/>5 万文档"]
+        C3["医疗索引<br/>3 万文档"]
     end
 
-    subgraph Query["Query Flow"]
-        Q1["Classify query category"]
-        Q2["Route to relevant index"]
-        Q3["Search single index<br/>(3x faster)"]
+    subgraph Query["查询流"]
+        Q1["识别查询类别"]
+        Q2["路由到相关索引"]
+        Q3["仅搜索单个索引<br/>(速度提升 3 倍)"]
     end
 
     Category --> Query
@@ -779,63 +757,51 @@ flowchart TB
     style C3 fill:#2196f3,stroke:#0d47a1,color:#fff
 ```
 
-**Benefits**:
+**收益**：
 
-- 3-10x faster filtered search (search only relevant partition)
-- Parallel indexing (build partitions independently)
-- Easier maintenance (rebuild single partition)
+- 带过滤搜索快 3-10 倍（仅搜索相关分区）
+- 并行索引（独立构建各分区）
+- 维护更方便（只需重建单个分区）
 
-**When to Use**:
+**基于时间的分区 (Time-Based)**
 
-1. **Clear category boundaries**: Tech, Legal, Medical, etc.
-2. **Category filters in queries**: Most queries specify category
-3. **Uneven query distribution**: 80% of queries target 20% of categories
-
-**Time-Based Partitioning**
-
-Create indexes per time period (day, week, month).
+按时间段（天、周、月）创建索引。
 
 ```
-Index Structure:
-├─ 2024-01 Index (Jan 2024 documents)
-├─ 2024-02 Index (Feb 2024 documents)
+索引结构：
+├─ 2024-01 索引 (2024 年 1 月文档)
+├─ 2024-02 索引 (2024 年 2 月文档)
 ├─ ...
-└─ 2024-12 Index (Dec 2024 documents)
+└─ 2024-12 索引 (2024 年 12 月文档)
 
-Query: "Recent news about AI"
-→ Search only last 3 partitions (3x faster)
+查询: "关于 AI 的最新新闻"
+→ 仅搜索最近 3 个分区 (速度提升 3 倍)
 ```
 
-**Benefits**:
+**收益**：
 
-- Faster recent-document searches (most queries target recent content)
-- Time travel queries (search specific time periods)
-- Easier archival (delete old partitions)
+- 最近文档搜索更快（大多数查询针对近期内容）
+- 时空查询支持（搜索特定时间段）
+- 归档更容易（直接删除旧分区）
 
-**When to Use**:
+**分片 (Sharding)**
 
-1. **Temporal queries**: Most queries target recent documents
-2. **Data retention policies**: Delete old data regularly
-3. **Time-series analysis**: Trend detection over time
-
-**Sharding**
-
-Distribute index across multiple servers.
+将索引分布在多台服务器上。
 
 ```mermaid
 flowchart TB
-    subgraph Sharding["Distributed Index Sharding"]
-        S1["Server 1<br/>Shard A: 25% of docs"]
-        S2["Server 2<br/>Shard B: 25% of docs"]
-        S3["Server 3<br/>Shard C: 25% of docs"]
-        S4["Server 4<br/>Shard D: 25% of docs"]
+    subgraph Sharding["分布式索引分片"]
+        S1["服务器 1<br/>分片 A: 25% 文档"]
+        S2["服务器 2<br/>分片 B: 25% 文档"]
+        S3["服务器 3<br/>分片 C: 25% 文档"]
+        S4["服务器 4<br/>分片 D: 25% 文档"]
     end
 
-    subgraph Query["Distributed Query"]
-        Q1["1. Broadcast query<br/>to all shards"]
-        Q2["2. Parallel search<br/>(4x throughput)"]
-        Q3["3. Merge results<br/>from all shards"]
-        Q4["4. Return top-K"]
+    subgraph Query["分布式查询"]
+        Q1["1. 向所有分片广播查询"]
+        Q2["2. 并行搜索<br/>(吞吐量提升 4 倍)"]
+        Q3["3. 汇总各分片结果"]
+        Q4["4. 返回前 K 个结果"]
     end
 
     Sharding --> Query
@@ -846,56 +812,34 @@ flowchart TB
     style S4 fill:#c8e6c9,stroke:#1b5e20,color:#000
 ```
 
-**Sharding Strategies**:
+### 3.6.3 索引维护
 
-| Strategy | Description | Pros | Cons |
-|----------|-------------|------|------|
-| **Hash-based** | Hash document ID to shard | Even distribution | Cross-shard queries hard |
-| **Range-based** | Document ID ranges to shard | Range queries easy | Uneven load |
-| **Category-based** | Category to shard mapping | Targeted queries | Load imbalance |
-| **Geographic** | User location to shard | Low latency | Complex routing |
+**增量更新**
 
-**When to Use Sharding**:
+在不完全重建索引的情况下，将新文档添加到现有索引中。
 
-1. **Single-server limit**: Dataset doesn't fit on one machine
-2. **Query throughput**: Need to handle 1000+ QPS
-3. **Fault tolerance**: Replicate shards across servers
-
-### 3.6.3 Index Maintenance
-
-**Incremental Updates**
-
-Add new documents to existing index without full rebuild.
-
-| Approach | Description | When to Use |
+| 方式 | 描述 | 适用场景 |
 |----------|-------------|-------------|
-| **HNSW incremental** | Add points to graph | Dynamic data, < 10% daily growth |
-| **IVF append** | Add to clusters | Batch updates, < 5% daily growth |
-| **Full rebuild** | Rebuild from scratch | High churn, > 10% daily growth |
+| **HNSW 增量** | 向图中添加点 | 动态数据，日增量 < 10% |
+| **IVF 追加** | 添加到现有簇 | 批量更新，日增量 < 5% |
+| **全量重建** | 从零开始重构 | 变动极剧烈，日增量 > 10% |
 
-**Trade-offs**:
+**索引重建策略**
 
-| Approach | Speed | Accuracy | Complexity |
-|----------|-------|----------|------------|
-| **Incremental** | Fast (ms per doc) | Degrades over time | Medium |
-| **Periodic rebuild** | Slow (hours) | Always optimal | Low |
-
-**Index Rebuilding**
-
-Periodic full rebuild to maintain index quality.
+通过定期全量重建来维持索引质量。
 
 ```mermaid
 flowchart TB
-    subgraph Rebuild["Index Rebuild Strategy"]
-        R1["Day 1-7: Incremental updates<br/>(index degrades 5%)"]
-        R2["Day 7: Rebuild index<br/>(restore optimal quality)"]
-        R3["Day 8-14: Incremental updates<br/>(index degrades 5%)"]
-        R4["Day 14: Rebuild index<br/>(restore optimal quality)"]
+    subgraph Rebuild["索引重建策略"]
+        R1["第 1-7 天：增量更新<br/>(索引质量下降约 5%)"]
+        R2["第 7 天：全量重建<br/>(恢复最优质量)"]
+        R3["第 8-14 天：增量更新<br/>(质量再次下降)"]
+        R4["第 14 天：再次全量重建"]
     end
 
-    subgraph Metrics["Quality Metrics"]
-        Q1["Recall: 98% → 93% → 98%"]
-        Q2["Latency: 20ms → 35ms → 20ms"]
+    subgraph Metrics["质量指标演变"]
+        Q1["召回率: 98% → 93% → 98%"]
+        Q2["延迟: 20ms → 35ms → 20ms"]
     end
 
     Rebuild --> Metrics
@@ -904,53 +848,44 @@ flowchart TB
     style R4 fill:#ff9800,stroke:#e65100,color:#fff
 ```
 
-**Rebuild Frequency Guidelines**:
+**删除策略**
 
-| Update Rate | Rebuild Frequency | Rationale |
-|-------------|-------------------|-----------|
-| **< 1% daily** | Monthly | Negligible degradation |
-| **1-5% daily** | Weekly | Balance cost and quality |
-| **5-10% daily** | Daily | Maintain optimal performance |
-| **> 10% daily** | Continuous streaming | Real-time indexing |
-
-**Deletion Strategies**
-
-| Strategy | Description | Speed | Consistency | Best For |
+| 策略 | 描述 | 速度 | 一致性 | 适用场景 |
 |----------|-------------|-------|-------------|----------|
-| **Lazy deletion** | Mark deleted, rebuild later | Fast | Eventually consistent | High-churn datasets |
-| **Immediate deletion** | Remove from index | Slow | Strongly consistent | Low-churn datasets |
-| **Soft deletion** | Keep tombstone, filter queries | Fast | Query-time filtering | Compliance, audit trails |
+| **延迟删除** | 标记删除，稍后重建 | 快 | 最终一致性 | 高频变动的数据集 |
+| **立即删除** | 从索引中实时移除 | 慢 | 强一致性 | 低频变动的数据集 |
+| **软删除** | 保留墓碑，查询时过滤 | 快 | 查询时一致 | 合规、审计需求 |
 
 ---
 
-## 3.7 Vector Database Architecture
+## 3.7 向量数据库架构
 
-### 3.7.1 Core Components
+### 3.7.1 核心组件
 
 ```mermaid
 flowchart TB
-    subgraph VectorDB["Vector Database Architecture"]
+    subgraph VectorDB["向量数据库架构"]
         direction TB
 
-        subgraph Ingestion["Ingestion Pipeline"]
-            I1["API Endpoint<br/>REST/gRPC"]
-            I2["Embedding Generation<br/>Batch + Cache"]
-            I3["Validation<br/>Dimension check"]
-            I4["Metadata Extraction<br/>Auto + LLM"]
+        subgraph Ingestion["摄取流水线"]
+            I1["API 终点<br/>REST/gRPC"]
+            I2["Embedding 生成<br/>批量 + 缓存"]
+            I3["验证<br/>维度检查"]
+            I4["元数据提取<br/>自动 + LLM"]
         end
 
-        subgraph Storage["Storage Engine"]
-            S1["Vector Store<br/>Vectors + Metadata"]
-            S2["Index Engine<br/>HNSW/IVF/PQ"]
-            S3["Metadata Store<br/>PostgreSQL/MongoDB"]
-            S4["Cache Layer<br/>Redis/Memcached"]
+        subgraph Storage["存储引擎"]
+            S1["向量存储<br/>向量 + 元数据"]
+            S2["索引引擎<br/>HNSW/IVF/PQ"]
+            S3["元数据存储<br/>PostgreSQL/MongoDB"]
+            S4["缓存层<br/>Redis/Memcached"]
         end
 
-        subgraph Query["Query Execution"]
-            Q1["Parser<br/>SQL/DSL"]
-            Q2["Planner<br/>Optimize query"]
-            Q3["Executor<br/>Parallel search"]
-            Q4["Fusion<br/>Combine results"]
+        subgraph Query["查询执行"]
+            Q1["解析器<br/>SQL/DSL"]
+            Q2["规划器<br/>优化查询策略"]
+            Q3["执行器<br/>并行搜索"]
+            Q4["融合器<br/>合并多路结果"]
         end
 
         Ingestion --> Storage
@@ -958,753 +893,141 @@ flowchart TB
     end
 ```
 
-### 3.7.2 Storage Engine Comparison
+### 3.7.2 存储引擎对比
 
-| Database | Storage Engine | Index Support | ACID | Metadata | Best For |
+| 数据库 | 存储引擎 | 索引支持 | ACID | 元数据支持 | 最佳场景 |
 |----------|---------------|--------------|------|----------|----------|
-| **PgVector** | PostgreSQL | HNSW, IVF | ✅ | Native SQL | < 10M docs, SQL-heavy workloads |
-| **Milvus** | etcdKV + MinIO/S3 | HNSW, IVF, DiskANN | ❌ | Built-in | 1M+ docs, scalable |
-| **Pinecone** | Proprietary | HNSW, PQ | ❌ | Limited | Production, managed service |
-| **Qdrant** | Rust + etcd | HNSW, hybrid | ✅ | Native | Hybrid search, real-time |
-| **Weaviate** | Go + BoltDB | HNSW | ❌ | Graph-based | GraphQL APIs |
+| **PgVector** | PostgreSQL | HNSW, IVF | ✅ | 原生 SQL | < 1000 万文档，强 SQL 依赖 |
+| **Milvus** | etcdKV + MinIO/S3 | HNSW, IVF, DiskANN | ❌ | 内置 | 100 万+ 文档，高扩展性需求 |
+| **Pinecone** | 私有 | HNSW, PQ | ❌ | 有限 | 生产环境，托管服务首选 |
+| **Qdrant** | Rust + etcd | HNSW, 混合 | ✅ | 原生 | 混合搜索，实时性要求高 |
+| **Weaviate** | Go + BoltDB | HNSW | ❌ | 基于图 | GraphQL API 偏好者 |
 
-**PgVector Internals**:
-
-```
-Storage Format:
-├─ Vectors stored as ARRAY[float] column type
-├─ HNSW: Graph edges in separate table
-└─ Metadata: Native PostgreSQL columns
-
-Query Execution:
-SELECT id, content, embedding <-> query_vector AS distance
-FROM documents
-WHERE category = 'tech'
-ORDER BY distance
-LIMIT 10;
-
-Flow:
-1. Filter by category (B-tree index)
-2. Compute distance for filtered docs (HNSW index)
-3. Sort by distance
-4. Return top-10
-```
-
-**Milvus Internals**:
+### 3.7.3 查询执行流
 
 ```
-Storage Format:
-├─ etcd: Metadata (schema, index stats)
-├─ MinIO/S3: Vector data (persistent storage)
-└─ Memory: Loaded index segments
-
-Query Execution:
-1. Proxy receives query
-2. Query router identifies relevant shards
-3. Query nodes search local index segments
-4. Results aggregated and returned
-```
-
-### 3.7.3 Distributed Indexing
-
-**Problem**: Single-server indexing doesn't scale
-
-**Solution**: Distributed indexing across cluster
-
-**Architecture Patterns**:
-
-**1. Data Parallelism** (Most Common):
-
-```
-Documents split across nodes:
-├─ Node 1: 25% of documents (independent index)
-├─ Node 2: 25% of documents (independent index)
-├─ Node 3: 25% of documents (independent index)
-└─ Node 4: 25% of documents (independent index)
-
-Query flow:
-1. Broadcast query to all nodes
-2. Each node searches its local index
-3. Merge results from all nodes
-4. Return global top-K
-
-Trade-off: Network overhead, but scales horizontally
-```
-
-**2. Index Parallelism**:
-
-```
-All nodes see all documents:
-├─ Node 1: HNSW index (all docs)
-├─ Node 2: IVF index (all docs)
-├─ Node 3: PQ index (all docs)
-└─ Node 4: Flat index (all docs)
-
-Query flow:
-1. Route to appropriate node (by index type)
-2. Search single index
-3. Return results
-
-Trade-off: Complex coordination, high memory per node
-```
-
-**3. Hybrid Approach** (Production Standard):
-
-```
-Shard by metadata category:
-├─ Node 1: Tech category index (all tech docs)
-├─ Node 2: Legal category index (all legal docs)
-├─ Node 3: Medical category index (all medical docs)
-└─ Node 4: Finance category index (all finance docs)
-
-Query flow:
-1. Classify query category
-2. Route to relevant node(s)
-3. Parallel search on targeted nodes
-4. Merge results
-
-Trade-off: Best balance, requires category classification
-```
-
-### 3.7.4 Query Execution Flow
-
-```
-User Query: "How do I configure Redis for production?"
+用户查询: "如何为生产环境配置 Redis？"
     ↓
-Query Parser: Parse DSL/SQL
-    ├─ Extract: "configure", "Redis", "production"
-    ├─ Classify: Tech category
-    └─ Detect: Keyword-heavy query
+查询解析器: 解析 DSL/SQL
+    ├─ 提取关键词: "配置", "Redis", "生产环境"
+    ├─ 自动分类: 属于“技术”类别
+    └─ 检测意图: 偏向关键词的查询
     ↓
-Query Planner: Optimize search strategy
-    ├─ Metadata filtering: category=tech, year>=2023
-    ├─ Index selection:
-    │   ├─ Keyword index (BM25): "configure", "Redis"
-    │   ├─ Semantic index (HNSW): Query embedding
-    │   └─ Metadata index (B-tree): category=tech
-    └─ Parallel execution plan:
-        ├─ Thread 1: Search keyword index
-        ├─ Thread 2: Search semantic index
-        └─ Thread 3: Filter by metadata
+查询规划器: 优化搜索策略
+    ├─ 元数据过滤条件: category='tech', year>=2023
+    ├─ 索引选择:
+    │   ├─ 关键词索引 (BM25): 用于精确匹配
+    │   ├─ 语义索引 (HNSW): 用于语义搜索
+    │   └─ 元数据索引 (B-tree): 用于快速过滤
+    └─ 并行执行计划:
+        ├─ 线程 1: 搜索关键词索引
+        ├─ 线程 2: 搜索语义索引
+        └─ 线程 3: 应用元数据过滤
     ↓
-Executor: Parallel search
-    ├─ Thread 1 (Keyword): Returns [doc42, doc87, doc153, ...]
-    ├─ Thread 2 (Semantic): Returns [doc87, doc153, doc291, ...]
-    └─ Thread 3 (Metadata): Filters to tech docs published 2023+
+执行器: 并行搜索
+    ├─ 线程 1 (关键词): 返回 [doc42, doc87, doc153, ...]
+    ├─ 线程 2 (语义): 返回 [doc87, doc153, doc291, ...]
+    └─ 线程 3 (元数据): 筛选出 2023 年后的技术文档
     ↓
-Result Fusion: Reciprocal Rank Fusion (RRF)
-    ├─ doc87: 1/1 + 1/1 + 1/1 = 3.0 (top rank)
-    ├─ doc153: 1/2 + 1/2 + 1/2 = 1.5 (second rank)
-    └─ doc291: 1/3 + 1/3 + 1/1 = 1.1 (third rank)
+结果融合: 倒数排名融合 (RRF)
+    ├─ doc87: 1/1 + 1/1 + 1/1 = 3.0 (排名第一)
+    ├─ doc153: 1/2 + 1/2 + 1/2 = 1.5 (排名第二)
+    └─ doc291: 1/3 + 1/3 + 1/1 = 1.1 (排名第三)
     ↓
-Return Top-10 documents to user
-```
-
-### 3.7.5 Update Mechanisms
-
-| Database | Insert | Update | Delete | Impact |
-|----------|--------|-------|--------|--------|
-| **PgVector** | Fast | Slow (rebuild needed) | Slow (mark dirty) | Best for append-only |
-| **Milvus** | Fast | Fast (in-place) | Fast (in-place) | Best for dynamic data |
-| **Pinecone** | Fast | Fast (upsert) | Fast (upsert) | Best for production |
-| **Qdrant** | Fast | Fast (in-place) | Fast (in-place) | Best for real-time |
-
-**Update Strategies**:
-
-```
-PgVector (Append-Only):
-1. Insert new vectors: Fast (add to table, index incrementally)
-2. Update existing: Slow (need to rebuild index)
-3. Delete: Slow (mark deleted, rebuild later)
-
-Milvus (Dynamic):
-1. Insert new vectors: Fast (add to segment)
-2. Update existing: Fast (in-place update in segment)
-3. Delete: Fast (mark deleted in segment metadata)
-
-Pinecone (Upsert-Optimized):
-1. Insert/Upsert: Fast (upsert API)
-2. Delete: Fast (upsert with deleted=true flag)
-3. Background: Automatic index optimization
-```
-
-### 3.7.6 Consistency and ACID
-
-| Database | ACID Support | Transaction Support | Implications |
-|----------|-------------|------------------|-------------|
-| **PgVector** | ✅ Full ACID | BEGIN/COMMIT | Strong consistency, slower writes |
-| **Milvus** | ❌ No ACID | Batch operations | Eventually consistent, faster writes |
-| **Pinecone** | ❌ No ACID | Atomic operations | Eventual consistency |
-| **Qdrant** | ✅ Full ACID | Transactional API | Strong consistency with real-time features |
-
-**When ACID Matters**:
-
-```
-Financial/Legal applications:
-├─ Need strong consistency
-├─ Use PgVector or Qdrant
-└─ Accept slower writes for correctness
-
-Real-time applications:
-├─ Need fast writes, eventual consistency OK
-├─ Use Milvus or Pinecone
-└─ Accept brief inconsistency for speed
-```
-
-### 3.7.7 Scaling Strategies
-
-**Horizontal Scaling** (Adding more nodes):
-
-```mermaid
-flowchart LR
-    subgraph Single["Single Node"]
-        N1["1TB index<br/>100K QPS"]
-    end
-
-    subgraph Cluster["4-Node Cluster"]
-        N2["250GB index<br/>25K QPS"]
-        N3["250GB index<br/>25K QPS"]
-        N4["250GB index<br/>25K QPS"]
-        N5["250GB index<br/>25K QPS"]
-    end
-
-    Single -->|Scale out 4x| Cluster
-
-    style N1 fill:#f44336,stroke:#b71c1c,color:#fff
-    style N2 fill:#4caf50,stroke:#1b5e20,color:#fff
-    style N3 fill:#4caf50,stroke:#1b5e20,color:#fff
-    style N4 fill:#4caf50,stroke:#1b5e20,color:#fff
-    style N5 fill:#4caf50,stroke:#1b5e20,color:#fff
-```
-
-**Replication** (Copying data across nodes):
-
-| Strategy | Description | Pros | Cons |
-|----------|-------------|------|------|
-| **Leader-follower** | One leader writes, followers read | Simple, consistent | Leader bottleneck |
-| **Multi-leader** | Any node can write | No bottleneck | Conflict resolution |
-| **Sharding + replica** | Each shard replicated | Balanced | Complex setup |
-
-**Failover**:
-
-```
-Node failure detection:
-1. Health check: Ping all nodes every 5 seconds
-2. Failure detection: Node unresponsive for 15 seconds
-3. Re-routing: Redirect queries to replica nodes
-4. Recovery: Rebuild failed node from replica
-5. Re-balance: Redistribute data across cluster
+向用户返回 Top-10 文档
 ```
 
 ---
 
-## 3.8 Batch Embedding Generation
+## 3.8 批量生成与缓存
 
-### The Batch Processing Problem
+### 3.8.1 批量处理优化
 
-**Problem**: Generating embeddings one-by-one is expensive and slow
+**问题**：逐条生成 Embedding 成本高且速度慢。
 
-| Approach | API Calls | Time | Cost (100K docs) |
+| 方法 | API 调用次数 | 耗时 | 成本 (10 万文档) |
 |----------|-----------|------|-------------------|
-| **Individual** | 100,000 | ~14 hours | $10.00 |
-| **Batch (100)** | 1,000 | ~10 minutes | $10.00 |
-| **Batch (1000)** | 100 | ~2 minutes | $10.00 |
+| **逐条处理** | 100,000 | ~14 小时 | $10.00 |
+| **批量 (100 条)** | 1,000 | ~10 分钟 | $10.00 |
+| **批量 (1000 条)** | 100 | ~2 分钟 | $10.00 |
 
-**Key Insight**: Batch processing doesn't reduce cost (API pricing is per token), but provides 50-100x speed improvement.
+**关键洞察**：批量处理虽不直接降低 Token 费用，但能减少网络开销，将速度提升 50-100 倍。
 
-### Batch Size Optimization
+### 3.8.2 Embedding 缓存
 
-```mermaid
-flowchart TB
-    subgraph BatchSize["Batch Size Impact"]
-        B1["Batch: 1<br/>Cost: $0.20/1M tokens<br/>Time: 500s<br/>API calls: 100,000"]
-        B10["Batch: 10<br/>Cost: $0.02/1M tokens<br/>Time: 60s<br/>API calls: 10,000"]
-        B100["Batch: 100<br/>Cost: $0.02/1M tokens<br/>Time: 10s<br/>API calls: 1,000"]
-        B1000["Batch: 1000<br/>Cost: $0.02/1M tokens<br/>Time: 8s<br/>API calls: 100"]
-    end
-
-    subgraph Recommendation["Recommended Strategy"]
-        R1["Small scale<br/>< 10K docs<br/>→ Batch: 50-100"]
-        R2["Medium scale<br/>10K-1M docs<br/>→ Batch: 100-200"]
-        R3["Large scale<br/>1M+ docs<br/>→ Batch: 200-500"]
-    end
-
-    BatchSize --> Recommendation
-
-    style B100 fill:#4caf50,stroke:#1b5e20,color:#fff
-    style B1000 fill:#81c784,stroke:#1b5e20,color:#fff
-```
-
-**Batch Size Guidelines**:
-
-| Document Count | Optimal Batch | Reason | Speed Improvement |
-|----------------|---------------|---------|-------------------|
-| **< 1,000** | 50-100 | Balance efficiency vs memory | 50x |
-| **1,000 - 10,000** | 100-200 | Maximize throughput | 100x |
-| **10,000 - 100,000** | 200-500 | Minimize API overhead | 150x |
-| **100,000+** | 500-1000 | Maximum efficiency | 200x |
-
-### Batch Processing Best Practices
-
-| Practice | Why | Implementation |
-|----------|-----|----------------|
-| **Automatic retry** | API failures are common | Exponential backoff (3-5 retries) |
-| **Progress monitoring** | Track long-running jobs | Log batch progress, ETA calculation |
-| **Cost tracking** | Avoid surprise bills | Estimate cost before processing |
-| **Error resilience** | One bad batch shouldn't fail all | Skip failed documents, continue processing |
-| **Rate limiting** | Avoid API throttling | Control concurrent requests |
-
----
-
-## 3.9 Embedding Caching
-
-### Cache Architecture
-
-Cache embeddings to avoid recomputing for identical or similar text:
+缓存 Embedding 以避免为相同或相似的文本重复计算：
 
 ```mermaid
 flowchart TB
-    subgraph CacheFlow["Caching Flow"]
-        Q["Query Embedding Request"]
-
-        direction TB
-        Q --> Check{Cache Hit?}
-
-        Check -->|Yes| Return["Return Cached<br/>~1ms"]
-        Check -->|No| Generate["Generate Embedding<br/>~500ms"]
-
-        Generate --> Store["Store in Cache"]
-        Store --> Return2["Return to User<br/>~501ms"]
+    subgraph CacheFlow["缓存工作流"]
+        Q["Embedding 请求"]
+        Q --> Check{缓存命中?}
+        Check -->|是| Return["返回缓存结果<br/>~1ms"]
+        Check -->|否| Generate["生成 Embedding<br/>~500ms"]
+        Generate --> Store["存入缓存"]
+        Store --> Return2["返回用户<br/>~501ms"]
     end
-
-    subgraph Benefits["Benefits"]
-        B1["Cost: 80% reduction<br/>for repetitive content"]
-        B2["Speed: 500x faster<br/>cache hit vs API"]
-        B3["Rate limits: Fewer<br/>API calls"]
-    end
-
-    CacheFlow --> Benefits
-
-    style Return fill:#4caf50,stroke:#1b5e20,color:#fff
-    style Return2 fill:#ff9800,stroke:#e65100,color:#fff
 ```
 
-### Cache Strategy Comparison
-
-| Strategy | Hit Rate | Memory | Complexity | Use Case |
-|----------|----------|---------|------------|----------|
-| **No Cache** | 0% | 0 MB | Low | One-time indexing |
-| **LRU Cache (100K)** | 20-40% | 6 GB | Low | General purpose |
-| **TTL Cache (7 days)** | 30-50% | 6 GB | Low | Time-sensitive content |
-| **Persistent Cache** | 50-80% | Disk | High | Large-scale, repetitive |
-| **Semantic Cache** | 40-60% | 8 GB | High | Similar queries |
-
-### Cache Best Practices
-
-| Practice | Implementation | Impact |
-|----------|----------------|--------|
-| **Cache query embeddings** | Hash query text, check cache first | 80% cost reduction for repeated queries |
-| **Cache document embeddings** | Hash document content, check before generating | 20-40% cost reduction during re-indexing |
-| **Monitor hit rate** | Track cache hits vs misses | Optimize cache size and TTL |
-| **Set appropriate TTL** | 7 days for most content | Balance freshness and hit rate |
-| **Persistent cache** | Store cache on disk for restarts | Avoid re-generation after restart |
-
 ---
 
-## 3.10 Production Optimization
-
-### Performance Benchmarks
-
-**Index Size vs Document Count**:
-
-| Documents | Dimensions | Index Size | Memory | Build Time | Search Time |
-|-----------|------------|------------|---------|------------|-------------|
-| **10K** | 1536 | 100 MB | 200 MB | 30s | 5ms |
-| **100K** | 1536 | 1 GB | 2 GB | 5min | 10ms |
-| **1M** | 1536 | 10 GB | 20 GB | 45min | 20ms |
-| **10M** | 1536 | 100 GB | 200 GB | 6hr | 40ms |
-
-### HNSW Parameter Tuning
-
-**Parameter Impact Visualization**:
-
-```mermaid
-flowchart TB
-    subgraph Tuning["HNSW Parameter Tuning"]
-        direction TB
-
-        subgraph Recall["Recall vs Speed Trade-off"]
-            R1["ef_search: 10<br/>Speed: Fast<br/>Recall: 90%"]
-            R2["ef_search: 50<br/>Speed: Medium<br/>Recall: 95%"]
-            R3["ef_search: 100<br/>Speed: Slow<br/>Recall: 98%"]
-        end
-
-        subgraph Memory["Memory vs Build Time"]
-            M1["M: 8<br/>Memory: Low<br/>Build: Fast"]
-            M2["M: 16<br/>Memory: Medium<br/>Build: Medium"]
-            M3["M: 32<br/>Memory: High<br/>Build: Slow"]
-        end
-    end
-
-    subgraph Recommendation["Recommended Configurations"]
-        RC1["Real-time apps<br/>→ M: 16, ef_search: 20"]
-        RC2["Balanced systems<br/>→ M: 16, ef_search: 50"]
-        RC3["Accuracy-critical<br/>→ M: 32, ef_search: 100"]
-    end
-
-    Tuning --> Recommendation
-
-    style R2 fill:#4caf50,stroke:#1b5e20,color:#fff
-    style M2 fill:#4caf50,stroke:#1b5e20,color:#fff
-```
-
-**Tuning Guidelines**:
-
-| Use Case | M | ef_construction | ef_search | Expected Recall |
-|----------|---|-----------------|-----------|-----------------|
-| **Real-time** (fast queries) | 12 | 80 | 20 | 90-92% |
-| **Balanced** (default) | 16 | 100 | 50 | 95-97% |
-| **High accuracy** | 24 | 150 | 100 | 97-99% |
-| **Maximum accuracy** | 32 | 200 | 150 | 99%+ |
-
-### Cost Optimization Strategies
-
-**Optimization Strategy Details**:
-
-| Optimization | Description | When to Use | Trade-offs |
-|--------------|-------------|-------------|-----------|
-| **Quantization** | Float32 → INT8 vectors | Memory constrained | 2% accuracy loss, 75% memory savings |
-| **Dimensionality reduction** | PCA to reduce dimensions | Very large corpora | 5% accuracy loss, 50% memory savings |
-| **Index partitioning** | Separate indexes per category | Metadata-heavy queries | More complex queries |
-| **Hybrid search** | Combine dense + sparse vectors | Keyword + semantic queries | 50% cost increase, 10% recall improvement |
-
-### Monitoring & Alerting
-
-**Key Metrics to Track**:
-
-1. **Index Health**
-   - Document count
-   - Index size
-   - Fragmentation level
-
-2. **Query Performance**
-   - P50, P95, P99 latency
-   - Recall rate (vs ground truth)
-   - Timeout rate
-
-3. **Cost Tracking**
-   - API call volume
-   - Token usage
-   - Cache hit rate
-
-**Alert Thresholds**:
-
-| Metric | Warning | Critical | Action |
-|--------|---------|----------|--------|
-| **Query latency (P95)** | > 100ms | > 500ms | Check ef_search, index health |
-| **Recall rate** | < 90% | < 80% | Increase ef_search, check embedding quality |
-| **Cache hit rate** | < 20% | < 10% | Review cache strategy, preload common queries |
-| **API error rate** | > 5% | > 10% | Check rate limits, retry logic |
-| **Index fragmentation** | > 50% overhead | > 100% overhead | Rebuild index, VACUUM ANALYZE |
-
----
-
-## 3.11 Interview Q&A
+## 3.9 面试 Q&A
 
 <details>
-<summary><strong>Q1: Explain the curse of dimensionality problem</strong></summary>
+<summary><strong>Q1: 请解释维度灾难 (Curse of Dimensionality)</strong></summary>
 
-The curse of dimensionality refers to the phenomenon where distance metrics lose meaning in high-dimensional spaces.
+维度灾难是指在高维空间中，传统的距离度量逐渐失去意义的现象。
 
-**Key points**:
-
-1. **Distance concentration**: In high dimensions, all points become approximately equidistant
-2. **Empty space phenomenon**: Volume grows exponentially, data becomes sparse
-3. **Implication for indexing**: Traditional tree-based indexes become ineffective
-4. **Solution**: Approximate Nearest Neighbor (ANN) algorithms trade small accuracy loss for massive speed improvement
-
-**Example**:
-- 2D space: Euclidean distance works well, points have clear nearest neighbors
-- 1000D space: Most points are roughly the same distance apart, making "nearest neighbor" less meaningful
+**核心要点**：
+1. **距离集中**：在高维空间中，几乎所有点之间的距离都趋于相等，难以区分。
+2. **空间空洞**：随着维度增加，空间体积呈指数级增长，导致数据变得极其稀疏。
+3. **索引失效**：传统的基于树（如 B-tree）的索引在处理高维数据时效率极低。
+4. **解决方案**：引入近似最近邻 (ANN) 算法，通过牺牲极小的精度换取巨大的搜索速度提升。
 
 </details>
 
 <details>
-<summary><strong>Q2: How does HNSW actually work?</strong></summary>
+<summary><strong>Q2: HNSW 算法的工作原理是什么？</strong></summary>
 
-HNSW (Hierarchical Navigable Small World) builds a probabilistic skip list for logarithmic-time approximate search.
+HNSW (分层导航小世界) 通过构建一个分层的图结构来实现对数级时间的近似搜索。
 
-**How it works**:
-
-1. **Layered structure**:
-   - Layer 0: All points (base layer)
-   - Layer 1: Top 10% of points
-   - Layer 2: Top 1% of points
-   - Layer 3+: Top 0.1% of points
-
-2. **Graph construction**:
-   - Each point connects to M nearest neighbors in its layer
-   - Higher layers have fewer points but longer-range connections
-   - Built incrementally, point by point
-
-3. **Search algorithm**:
-   - Start at entry point in top layer
-   - Greedy search: Move to closer point in current layer
-   - When no closer point, move down to next layer
-   - In base layer, exhaustive search of nearest neighbors
-   - Return top-K candidates
-
-4. **Why it's fast**:
-   - Logarithmic search: O(log n) due to layered structure
-   - Coarse-to-fine: Higher layers navigate quickly, base layer refines
-   - Probabilistic sampling: Only small fraction of points in higher layers
-
-**Key parameters**:
-- M: Connections per point (16 default)
-- ef_construction: Candidates during build (100 default)
-- ef_search: Candidates during search (50 default)
-
-</details>
-
-<details>
-<summary><strong>Q3: When would you use IVF vs HNSW?</strong></summary>
-
-**IVF (Inverted File)**:
-- Use when: Dataset is 1K-100K documents
-- Pros: Lower memory overhead, simpler implementation
-- Cons: Poor for dynamic data, requires clustering
-- Mechanism: Partitions space into Voronoi cells, searches only relevant cells
-
-**HNSW (Hierarchical Small World)**:
-- Use when: Dataset is 100K-10M documents
-- Pros: Faster search, supports incremental updates, higher recall
-- Cons: Higher memory overhead (graph structure)
-- Mechanism: Layered graph structure, logarithmic search
-
-**Decision factors**:
-1. Dataset size: < 100K → IVF, > 100K → HNSW
-2. Update frequency: High churn → HNSW (supports incremental updates)
-3. Memory constraints: Limited memory → IVF
-4. Query latency: Sub-50ms required → HNSW
-
-</details>
-
-<details>
-<summary><strong>Q4: How do vector databases handle updates and deletions?</strong></summary>
-
-**Update strategies vary by database**:
-
-1. **PgVector**:
-   - Insert: Fast (incremental)
-   - Update: Slow (requires index rebuild)
-   - Delete: Slow (mark deleted, rebuild later)
-   - Best for: Append-only workloads
-
-2. **Milvus**:
-   - Insert: Fast (add to segment)
-   - Update: Fast (in-place update)
-   - Delete: Fast (mark deleted in segment metadata)
-   - Best for: Dynamic data
-
-3. **Pinecone**:
-   - Insert/Upsert: Fast (upsert API)
-   - Delete: Fast (upsert with deleted flag)
-   - Best for: Production, real-time
-
-**Why updates are challenging**:
-- **HNSW**: Removing a point requires updating graph edges (expensive)
-- **IVF**: Changing a point's cluster requires re-clustering
-- **PQ**: Updating requires recomputing quantization codes
-
-**Common strategies**:
-- Lazy deletion: Mark deleted, rebuild periodically
-- Soft deletion: Keep tombstone, filter at query time
-- Immediate deletion: Remove and update graph (complex)
-
-</details>
-
-<details>
-<summary><strong>Q5: What are the trade-offs between different vector databases?</strong></summary>
-
-**PgVector**:
-- Pros: SQL queries, ACID transactions, metadata filtering, open-source
-- Cons: Slower than dedicated databases, limited scalability
-- Best for: < 10M docs, SQL-heavy workloads, need metadata filtering
-
-**Milvus**:
-- Pros: Highly scalable, feature-rich, supports multiple indexes
-- Cons: Complex setup, no ACID, eventually consistent
-- Best for: 1M+ docs, self-hosted, scalable architectures
-
-**Pinecone**:
-- Pros: Fully managed, auto-scaling, simple API
-- Cons: Expensive, vendor lock-in, limited metadata
-- Best for: Production, no ops team, rapid development
-
-**Qdrant**:
-- Pros: Hybrid search, ACID transactions, fast
-- Cons: Newer ecosystem, less mature
-- Best for: Hybrid retrieval, real-time applications
-
-**Decision factors**:
-1. Team expertise: SQL skills → PgVector
-2. Scalability needs: < 10M → PgVector, > 10M → Milvus/Pinecone
-3. Consistency requirements: ACID needed → PgVector/Qdrant
-4. Ops capacity: No ops → Pinecone, have ops → Milvus/Qdrant
-
-</details>
-
-<details>
-<summary><strong>Q6: Explain product quantization and when to use it</strong></summary>
-
-**Product Quantization (PQ)** compresses vectors by partitioning dimensions and quantizing each partition.
-
-**How it works**:
-1. Partition vector into M sub-vectors (e.g., 1536 dims → 8 sub-vectors of 192 dims)
-2. Train k-means on each sub-vector (typically 256 clusters)
-3. For each vector, assign each sub-vector to nearest cluster center
-4. Store cluster IDs (8 bits each) instead of full vectors
-5. Result: 1536-dim vector (6 KB) → 8-byte code (99.9% compression)
-
-**When to use PQ**:
-- Dataset size: 10M+ documents
-- Memory constrained: Can't fit full vectors in RAM
-- Cost-sensitive: Reduce cloud storage costs
-- Accuracy tolerance: Accept 2-5% accuracy loss
-
-**Trade-offs**:
-- Pros: 10-100x memory reduction, faster search (less data to load)
-- Cons: 2-5% accuracy loss, complex training (hours to days), longer build time
-
-**Alternatives**:
-- Scalar quantization: Simpler, less compression (75%), less accuracy loss (1-3%)
-- Binary quantization: Extreme compression (97%), higher accuracy loss (5-10%)
-
-</details>
-
-<details>
-<summary><strong>Q7: How do you optimize vector search performance?</strong></summary>
-
-**Optimization strategies**:
-
-1. **Index algorithm selection**:
-   - < 1K docs: Flat (no index)
-   - 1K-100K docs: IVF
-   - 100K-10M docs: HNSW
-   - 10M+ docs: PQ-HNSW
-
-2. **Quantization**:
-   - Scalar (int8): 75% memory reduction, 1-3% accuracy loss
-   - Product (PQ): 90%+ memory reduction, 2-5% accuracy loss
-   - Use when: Memory constrained or very large datasets
-
-3. **HNSW parameter tuning**:
-   - M (connections): Higher = better recall, more memory
-   - ef_search (search candidates): Higher = better recall, slower search
-   - Real-time: M=16, ef_search=20
-   - Balanced: M=16, ef_search=50
-   - Accuracy-critical: M=32, ef_search=100
-
-4. **Index partitioning**:
-   - Category-based: Separate indexes per category
-   - Time-based: Partition by creation date
-   - Sharding: Distribute across servers
-
-5. **Caching**:
-   - LRU cache for query embeddings: 20-40% hit rate
-   - Preload common queries at startup
-   - Persistent cache for restart resilience
-
-6. **Batch processing**:
-   - Batch size: 100-500 for optimal throughput
-   - Reduces API overhead 50-200x
-
-**Monitoring**:
-- Track query latency (P50, P95, P99)
-- Monitor recall rate vs ground truth
-- Alert on degraded performance
-- Rebuild index periodically (weekly to monthly)
+**工作流程**：
+1. **分层结构**：类似于跳表，顶层包含少量远距离连接的点，底层包含所有点和近距离连接。
+2. **图构建**：每个新点被随机分配一个最高层级，并在每一层与其最近的 M 个邻居相连。
+3. **搜索过程**：从顶层入口点开始，执行贪婪搜索移动到最近的点；当在该层找不到更近的点时，下移一层；最终在底层找到 Top-K 个候选。
+4. **优势**：查询性能极其出色，且支持增量更新。
 
 </details>
 
 ---
 
-## Summary
+## 总结
 
-### Key Takeaways
+### 核心要点
 
-**1. Index Fundamentals**:
-- Indexes accelerate search by avoiding full scans
-- Vector indexes differ from traditional database indexes (similarity vs. exact match)
-- Curse of dimensionality makes high-dimensional search challenging
-- ANN algorithms trade small accuracy loss for massive speed improvement
+**1. 索引基础**：
+- 索引通过避免全量扫描来加速搜索。
+- 维度灾难使得高维搜索极具挑战，需要 ANN 算法。
 
-**2. Index Algorithms**:
-- Flat (Linear Scan): 100% accuracy, < 1K docs
-- IVF: 92-95% accuracy, 1K-100K docs
-- HNSW: 97-99% accuracy, 100K-10M docs (industry standard)
-- PQ-HNSW: 90-95% accuracy, 10M+ docs
+**2. 索引算法**：
+- **Flat**: 100% 准确，适合小规模 (< 1K)。
+- **IVF**: 平衡准确度与速度，适合中等规模 (1K-100K)。
+- **HNSW**: 行业标准，速度快、召回率高，适合大规模 (100K-10M)。
+- **PQ-HNSW**: 内存效率最高，适合海量数据 (10M+)。
 
-**3. Advanced Strategies**:
-- Product Quantization: 90%+ memory reduction, 2-5% accuracy loss
-- DiskANN: Scale to billions of vectors (disk-based)
-- Composite Indexes: Hybrid semantic + keyword + metadata
-- Multi-Vector: Multiple embeddings per document
+**3. 存储与架构**：
+- 向量数据库由摄取、存储和查询三个核心引擎组成。
+- 标量量化 (int8) 可节省 75% 内存且精度损失极小。
+- 批量生成和缓存是降低延迟与成本的关键手段。
 
-**4. Optimization Techniques**:
-- Quantization: Scalar (75% reduction), Product (90%+ reduction)
-- Partitioning: Category-based, time-based, sharding
-- Maintenance: Incremental updates, periodic rebuilds
-- Deletion: Lazy (eventual), immediate (strong consistency)
-
-**5. Vector Database Architecture**:
-- Components: Ingestion, storage, query execution
-- Storage engines: PgVector (SQL), Milvus (scalable), Pinecone (managed)
-- Distributed indexing: Data parallelism (most common)
-- Consistency: ACID (PgVector, Qdrant) vs. eventual (Milvus, Pinecone)
-
-**6. Production Best Practices**:
-- HNSW tuning: M=16, ef_search=50 for balanced systems
-- Batch size: 100-500 for optimal throughput
-- Caching: LRU with 7-day TTL, 20-40% hit rate
-- Monitoring: Latency, recall, cost metrics with alerting
-
-### Best Practices Checklist
-
-- [ ] Select index algorithm based on dataset size and query patterns
-- [ ] Implement HNSW with optimized parameters (M=16, ef_search=50)
-- [ ] Add caching layer for query embeddings (LRU, 100K entries, 7-day TTL)
-- [ ] Implement batch generation with retry logic (batch size: 100-500)
-- [ ] Set up monitoring for index health and query performance
-- [ ] Implement alerting for degraded performance
-- [ ] Consider quantization for memory-constrained environments
-- [ ] Partition indexes by category or time for filtered searches
-- [ ] Schedule periodic index rebuilds (weekly to monthly)
-- [ ] Use composite indexes for hybrid retrieval needs
-
-### Further Reading
-
-**Research Papers**:
-- [Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs](https://arxiv.org/abs/1603.09320) (Malkov & Yashunin, 2016) - HNSW foundation
-- [Product Quantization for Nearest Neighbor Search](https://lear.inrialpes.fr/pubs/2011/JDS11/jegou_searching_with_quantization.pdf) (Jegou et al., 2011) - PQ foundation
-- [DiskANN: Fast Accurate Billion-point Nearest Neighbor Search on a Single Node](https://arxiv.org/abs/1901.06015) (Subramanya et al., 2019) - DiskANN foundation
-
-**Tools & Documentation**:
-- [PgVector Documentation](https://github.com/pgvector/pgvector)
-- [Milvus Documentation](https://milvus.io/docs)
-- [Pinecone Documentation](https://docs.pinecone.io)
-- [Qdrant Documentation](https://qdrant.tech/documentation)
-- [Spring AI VectorStore](https://docs.spring.io/spring-ai/reference/api/vectorstore.html)
-
-**Benchmark Resources**:
-- [ANN-Benchmarks](https://github.com/erikbern/ann-benchmarks) - Comprehensive algorithm comparison
-- [Vector Database Comparison](https://thedataquarry.com/posts/vector-db-comparison/) - Performance benchmarks
+**4. 生产实践**：
+- 对平衡系统建议设置 HNSW 参数为 M=16, ef_search=50。
+- 始终实现带有指数退避重试逻辑的批量生成流程。
+- 监控 P95 延迟、召回率和 API 成本，并设置警报。
 
 ---
 
-**Next Steps**:
-- 📖 Read [Retrieval Strategies](/docs/ai/rag/retrieval) for search optimization
-- 📖 Read [Data Processing](/docs/ai/rag/data-processing) for chunking strategies
-- 💻 Implement batch embedding generation with caching
-- 🔧 Tune HNSW parameters for your use case
-- 📊 Set up monitoring for your vector index
+**下一步**：
+- 📖 阅读 [检索策略](/docs/ai/rag/retrieval) 学习如何进一步优化搜索。
+- 📖 阅读 [数据处理](/docs/ai/rag/data-processing) 了解分块策略。
+- 💻 为你的向量索引设置性能监控。

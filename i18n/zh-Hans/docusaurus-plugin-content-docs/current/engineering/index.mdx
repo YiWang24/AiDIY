@@ -1,72 +1,72 @@
 ---
 id: index
-title: 工程实践
-sidebar_label: index
-description: 全栈开发 - 后端、前端、DevOps 和开发者工具
+title: 工程实战
+sidebar_label: 概览
+description: 全栈开发实战：后端、前端、DevOps 及开发者工具
 slug: /engineering
 ---
 
-# 🛠️ 工程实践
+# 🛠️ 工程实战
 
-> **"优秀的工程师不是由他们知道什么来定义的，而是由他们能构建什么来定义的。"**
+> **“伟大的工程师不仅在于他们知道什么，更在于他们能构建出什么。”**
 
-本节涵盖构建、部署和维护生产应用所需的**实用工程技能**。从后端架构到前端体验，从容器到 CI/CD 流水线。
+本章节涵盖了构建、部署和维护生产级应用所需的**实战工程技能**。从后端架构到前端体验，从容器化技术到 CI/CD 流水线，为您提供全方位的技术指引。
 
 ---
 
 ## 📚 涵盖主题
 
-### [后端（Java 生态）](/docs/engineering/backend)
-构建健壮、可扩展的服务端应用。
-- Spring Boot 核心概念与注解
-- JUC 并发编程（java.util.concurrent）
-- JVM 内部原理与垃圾回收调优
-- API 设计与微服务模式
+### [后端开发 (Java 生态)](/docs/engineering/backend)
+构建稳健、可扩展的服务端应用。
+- Spring Boot 核心概念与常用注解
+- 基于 JUC (java.util.concurrent) 的并发编程
+- JVM 内部原理与垃圾回收 (GC) 调优
+- API 设计与微服务架构模式
 
-### [前端（现代 Web）](/docs/engineering/frontend)
-创建响应式、交互式的用户体验。
-- React 基础与 Hooks
-- Next.js 全栈应用开发
+### [前端开发 (现代 Web)](/docs/engineering/frontend)
+打造响应式、交互性强的用户体验。
+- React 基础与 Hooks 深度解析
+- 使用 Next.js 构建全栈应用
 - Tailwind CSS 与现代样式方案
-- 状态管理模式
+- 状态管理模式 (State Management)
 
-### [DevOps 与云](/docs/engineering/devops)
-大规模部署和运维应用。
-- Docker 容器化
-- Kubernetes 编排
-- AWS / Google Cloud 服务
-- GitHub Actions CI/CD
+### [DevOps 与云原生](/docs/engineering/devops)
+实现大规模应用的部署与自动化运维。
+- Docker 容器化技术
+- Kubernetes (K8s) 集群编排
+- AWS / Google Cloud 核心服务
+- 基于 GitHub Actions 的 CI/CD 流水线
 
 ### [开发者工具](/docs/engineering/tools)
-使用合适的工具最大化生产力。
+工欲善其事，必先利其器。
 - Git 高级工作流
-- IDE 精通（IntelliJ IDEA）
-- 终端与 Shell 配置
-- 调试与性能分析
+- IDE 提效技巧 (IntelliJ IDEA)
+- 终端与 Shell 环境配置
+- 调试 (Debugging) 与性能分析 (Profiling)
 
 ---
 
-## 🏗️ 全栈架构
+## 🏗️ 全栈架构全景图
 
 ```mermaid
 flowchart TB
-    subgraph "前端"
-        A[React/Next.js] --> B[API 层]
+    subgraph "前端 (Frontend)"
+        A[React/Next.js] --> B[API 交互层]
     end
-
-    subgraph "后端"
-        C[API 网关] --> D[服务]
-        D --> E[数据库]
-        D --> F[缓存]
+    
+    subgraph "后端 (Backend)"
+        C[API 网关] --> D[微服务群]
+        D --> E[关系型数据库]
+        D --> F[分布式缓存]
         D --> G[消息队列]
     end
-
-    subgraph "基础设施"
-        H[Docker/K8s]
-        I[CI/CD 流水线]
-        J[监控]
+    
+    subgraph "基础设施 (Infrastructure)"
+        H[Docker/K8s 容器云]
+        I[CI/CD 自动化流水线]
+        J[监控与告警体系]
     end
-
+    
     B --> C
     D --> H
     I --> H
@@ -75,10 +75,10 @@ flowchart TB
 
 ---
 
-## 🎯 技术栈
+## 🎯 核心技术栈
 
-| 层级 | 主要技术 |
-|------|---------|
+| 层次 | 主流技术选型 |
+|-------|---------------------|
 | **前端** | React, Next.js, TypeScript, Tailwind CSS |
 | **后端** | Java 21, Spring Boot 3, PostgreSQL, Redis |
 | **DevOps** | Docker, Kubernetes, GitHub Actions, AWS |
@@ -86,64 +86,64 @@ flowchart TB
 
 ---
 
-## 📖 快速参考
+## 📖 核心知识速查
 
 ### 常用 Spring 注解
 
 ```java
-@RestController      // REST API 控制器
-@Service             // 业务逻辑
-@Repository          // 数据访问
-@Transactional       // 事务管理
-@Async               // 异步执行
-@Scheduled           // 定时任务
-@Cacheable           // 方法缓存
+@RestController      // 定义 REST API 控制器
+@Service             // 标记业务逻辑层
+@Repository          // 标记数据访问层
+@Transactional       // 开启声明式事务
+@Async               // 开启异步执行
+@Scheduled           // 配置定时任务
+@Cacheable           // 启用方法级缓存
 ```
 
-### 常用 Docker 命令
+### 必备 Docker 命令
 
 ```bash
-docker build -t app:latest .
-docker run -d -p 8080:8080 app:latest
-docker compose up -d
-docker logs -f container_name
-docker exec -it container_name /bin/sh
+docker build -t app:latest .        # 构建镜像
+docker run -d -p 8080:8080 app:latest # 运行容器
+docker compose up -d               # 启动编排服务
+docker logs -f container_name      # 实时查看日志
+docker exec -it container_name /bin/sh # 进入容器终端
 ```
 
-### Git 工作流命令
+### Git 高级工作流
 
 ```bash
-git rebase -i HEAD~3      # 交互式变基
-git cherry-pick <sha>     # 精选提交
-git stash push -m "msg"   # 带消息暂存
-git bisect start          # 二分查找 bug
+git rebase -i HEAD~3      # 交互式变基（合并/修改提交）
+git cherry-pick <sha>     # 挑选特定的提交
+git stash push -m "msg"   # 暂存当前更改
+git bisect start          # 二分法定位 Bug 提交点
 ```
 
 ---
 
-## 🎯 学习路径
+## 🎯 工程师成长路径
 
 ```mermaid
 flowchart LR
     A[Java 核心] --> B[Spring Boot]
-    B --> C[数据库]
-    C --> D[Docker]
-    D --> E[云/K8s]
-
-    F[HTML/CSS/JS] --> G[React]
-    G --> H[Next.js]
-
-    B --> I[生产应用]
+    B --> C[数据库设计]
+    C --> D[Docker 容器化]
+    D --> E[云原生/K8s]
+    
+    F[HTML/CSS/JS] --> G[React 框架]
+    G --> H[Next.js 全栈]
+    
+    B --> I[生产级商业应用]
     H --> I
     E --> I
 ```
 
 ---
 
-:::tip 工程原则
-1. **为人写代码** - 清晰胜于技巧
-2. **快速失败** - 在开发中尽早发现问题
-3. **自动化一切** - 做过两次的事就写成脚本
-4. **先度量再优化** - 用数据说话，不要靠猜
-5. **持续学习** - 技术领域在不断变化
+:::tip 工程化原则 (Principles)
+1. **代码是写给人看的** —— 清晰度远比所谓的“奇技淫巧”重要。
+2. **尽早失败 (Fail Fast)** —— 在开发阶段尽早捕捉错误。
+3. **自动化一切** —— 如果一件事情你需要重复做两次，请写脚本。
+4. **度量驱动优化** —— 先做性能分析 (Profile)，不要盲目猜测。
+5. **保持终身学习** —— 技术浪潮瞬息万变。
 :::

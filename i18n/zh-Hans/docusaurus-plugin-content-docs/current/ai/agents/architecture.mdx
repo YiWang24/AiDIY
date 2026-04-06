@@ -1,42 +1,42 @@
 ---
 id: architecture
-title: 2. Architecture Components
-sidebar_label: 2. Architecture Components
-description: Building AI Agent Architecture - The Agent Loop, Memory Systems, Tool Integration, and Planning Mechanisms
+title: 2. 架构组件
+sidebar_label: 2. 架构组件
+description: 构建 AI Agent 架构 - Agent 循环、记忆系统、工具集成和规划机制
 ---
 
-# 2. Core Architecture Components
+# 2. 核心架构组件
 
-AI agents are built on four foundational systems: **The Agent Loop**, **Memory**, **Tools**, and **Planning**. This section dives deep into each component, explaining how they work together to create autonomous, intelligent systems.
+AI Agent 构建在四个基石系统之上：**Agent 循环 (The Agent Loop)**、**记忆 (Memory)**、**工具 (Tools)** 和 **规划 (Planning)**。本节将深入探讨每个组件，解释它们如何协同工作以创建自主、智能的系统。
 
 ---
 
-## 2.1 The Agent Loop
+## 2.1 Agent 循环
 
-### Core Mechanism: Observe → Reason → Act → Observe
+### 核心机制：观察 → 推理 → 行动 → 观察
 
-The agent loop is the heartbeat of any agentic system. It's a continuous cycle of perception, reasoning, action, and reflection.
+Agent 循环是任何智能体系统的“心脏”。它是一个关于感知、推理、行动和反思的持续循环。
 
 ```mermaid
 flowchart TB
-    subgraph Loop["Agent Loop"]
+    subgraph Loop["Agent 循环"]
         direction TB
-        O[Observe<br/>Perceive input & context]
-        R[Reason<br/>Plan & decide]
-        A[Act<br/>Execute tools]
-        Ref[Reflect<br/>Evaluate results]
+        O[观察 Observe<br/>感知输入与上下文]
+        R[推理 Reason<br/>规划与决策]
+        A[行动 Act<br/>执行工具]
+        Ref[反思 Reflect<br/>评估结果]
     end
 
     O --> R --> A --> Ref --> O
 
-    subgraph Memory["Memory System"]
-        M[Buffer<br/>Summary<br/>Vector<br/>Entity]
+    subgraph Memory["记忆系统"]
+        M[缓冲区 Buffer<br/>摘要 Summary<br/>向量 Vector<br/>实体 Entity]
     end
 
-    subgraph Tools["Tool Ecosystem"]
+    subgraph Tools["工具生态"]
         T1[APIs]
-        T2[DBs]
-        T3[Code]
+        T2[数据库 DBs]
+        T3[代码 Code]
         T4[MCP]
     end
 
@@ -51,88 +51,88 @@ flowchart TB
     style Ref fill:#fff3e0
 ```
 
-### Detailed Loop Execution
+### 详细循环执行流程
 
 ```mermaid
 sequenceDiagram
-    participant U as User
+    participant U as 用户
     participant A as Agent
-    participant M as Memory
-    participant T as Tools
+    participant M as 记忆
+    participant T as 工具
 
-    U->>A: Task Input
-    A->>M: Retrieve Context
-    M-->>A: Historical Data
+    U->>A: 任务输入
+    A->>M: 检索上下文
+    M-->>A: 历史数据
 
-    A->>A: Reason & Plan
-    A->>T: Execute Tool
-    T-->>A: Tool Result
+    A->>A: 推理与规划
+    A->>T: 执行工具
+    T-->>A: 工具结果
 
-    A->>A: Reflect & Evaluate
-    alt Goal Achieved?
-        A->>U: Final Output
-    else Continue?
-        A->>T: Next Tool
+    A->>A: 反思与评估
+    alt 目标已达成?
+        A->>U: 最终输出
+    else 需继续?
+        A->>T: 下一个工具
     end
 ```
 
-### Loop Variants
+### 循环变体
 
-| Pattern | Description | Best For |
+| 模式 | 描述 | 最适合 |
 |---------|-------------|----------|
-| **ReAct** | Reason → Act → Observe | General purpose tasks |
-| **Plan-and-Execute** | Plan all steps, then execute | Well-defined goals |
-| **Re-planning** | Continuous adjustment | Dynamic environments |
-| **Reflection** | Self-critique and revision | Quality-critical tasks |
+| **ReAct** | 推理 → 行动 → 观察 | 通用任务 |
+| **Plan-and-Execute** | 规划所有步骤，然后执行 | 定义明确的目标 |
+| **Re-planning** | 持续调整 | 动态环境 |
+| **Reflection** | 自我批判与修正 | 质量至上的任务 |
 
 ---
 
-## 2.2 Memory Systems
+## 2.2 记忆系统
 
-Memory is what separates stateless chatbots from intelligent agents. A robust memory system enables agents to maintain context, learn from experience, and make informed decisions. This section provides a comprehensive guide to memory systems, from cognitive science foundations to production-grade implementations with Spring AI.
+记忆是区分“无状态聊天机器人”与“智能 Agent”的关键。一个强大的记忆系统使 Agent 能够保持上下文、从经验中学习并做出明智的决策。本节提供从认知科学基础到使用 Spring AI 实现生产级记忆系统的全面指南。
 
 ---
 
-### 2.2.1 Cognitive Architecture Layer
+### 2.2.1 认知架构层
 
-Building effective memory systems for AI agents requires understanding how human memory works. Cognitive science provides a blueprint for designing architectures that mimic human-like memory capabilities.
+构建有效的 AI Agent 记忆系统需要理解人类记忆的工作原理。认知科学为设计模拟人类记忆能力的架构提供了蓝图。
 
-#### Human Memory Systems
+#### 人类记忆系统
 
-Human memory is organized into three interconnected systems, each with distinct characteristics and time scales:
+人类记忆组织在三个相互关联的系统中，每个系统具有不同的特征和时间跨度：
 
-**1. Sensory Memory (Instantaneous Buffer)**
-- **Visual**: Iconic memory (~500ms retention)
-- **Auditory**: Echoic memory (~3 seconds retention)
-- **Purpose**: Briefly preserves sensory input for attentional selection
-- **Agent Equivalent**: Raw prompt buffer, API response cache
+**1. 感知记忆 (Sensory Memory - 瞬时缓冲区)**
+- **视觉**：图像记忆（~500ms 保留）
+- **听觉**：声像记忆（~3 秒保留）
+- **目的**：短暂保留感官输入以供注意力选择
+- **Agent 等效物**：原始 Prompt 缓冲区、API 响应缓存
 
 ```mermaid
 flowchart LR
-    Input[Visual/Auditory Input] --> SM[Sensory Memory<br/>~500ms-3s]
-    SM -->|Attention| WM[Working Memory]
-    SM -->|Ignored| Lost[Lost]
+    Input[视觉/听觉输入] --> SM[感知记忆<br/>~500ms-3s]
+    SM -->|注意力| WM[工作记忆]
+    SM -->|被忽略| Lost[丢失]
 ```
 
-**2. Working Memory (Active Processing)**
-- **Capacity**: 7±2 items (Miller's Law, 1956)
-- **Duration**: 15-30 seconds without rehearsal
-- **Components**: Central executive, phonological loop, visuospatial sketchpad (Baddeley, 1974)
-- **Agent Equivalent**: LLM Context Window
-- **Critical Phenomenon**: "Lost in the Middle" - LLMs struggle to retrieve information from the middle of long contexts (Liu et al., 2023)
+**2. 工作记忆 (Working Memory - 活动处理)**
+- **容量**：7±2 个项目（米勒定律 Miller's Law, 1956）
+- **持续时间**：不复述的情况下为 15-30 秒
+- **组成**：中央执行系统、语音环路、视觉空间模板（Baddeley, 1974）
+- **Agent 等效物**：LLM 上下文窗口 (Context Window)
+- **关键现象**：“迷失在中间” (Lost in the Middle) —— LLM 难以从长上下文的中间部分检索信息（Liu et al., 2023）
 
 ```java
-// Spring AI: Working Memory as Context Window
+// Spring AI: 将工作记忆视为上下文窗口
 @Service
 public class WorkingMemoryManager {
 
-    private final int WORKING_MEMORY_CAPACITY = 7; // Miller's Law
+    private final int WORKING_MEMORY_CAPACITY = 7; // 米勒定律
     private final Queue<MemoryItem> activeItems = new LinkedList<>();
 
     public void addToWorkingMemory(MemoryItem item) {
         activeItems.add(item);
         if (activeItems.size() > WORKING_MEMORY_CAPACITY) {
-            activeItems.poll(); // FIFO eviction - maintains capacity limit
+            activeItems.poll(); // FIFO 逐出 - 维持容量限制
         }
     }
 
@@ -142,28 +142,28 @@ public class WorkingMemoryManager {
 }
 ```
 
-**3. Long-Term Memory (Persistent Storage)**
+**3. 长期记忆 (Long-Term Memory - 持久化存储)**
 
-Long-term memory is divided into three distinct types:
+长期记忆分为三种不同的类型：
 
-| Type | Description | Duration | Agent Implementation |
+| 类型 | 描述 | 持续时间 | Agent 实现 |
 |------|-------------|----------|---------------------|
-| **Episodic** | Personal experiences with temporal context ("What I did last summer") | Lifetime | Conversation history, episode logs |
-| **Semantic** | General knowledge and facts ("Paris is the capital of France") | Lifetime | Vector store, knowledge base |
-| **Procedural** | Skills and habits ("How to ride a bike") | Lifetime | System prompts, tool definitions, code |
+| **情节记忆 (Episodic)** | 具有时间上下文的个人经历（“我去年夏天做了什么”） | 终身 | 对话历史、会话日志 |
+| **语义记忆 (Semantic)** | 通用知识和事实（“巴黎是法国的首都”） | 终身 | 向量库、知识库 |
+| **程序记忆 (Procedural)** | 技能和习惯（“如何骑自行车”） | 终身 | System Prompt、工具定义、代码 |
 
 ```mermaid
 flowchart TB
-    subgraph LTM["Long-Term Memory"]
-        EP[Episodic<br/>Personal Experiences<br/>When I helped User X]
-        SEM[Semantic<br/>Facts & Knowledge<br/>User prefers素食]
-        PROC[Procedural<br/>Skills & Rules<br/>How to call Calendar API]
+    subgraph LTM["长期记忆"]
+        EP[情节记忆 Episodic<br/>个人经历<br/>何时我帮助了用户 X]
+        SEM[语义记忆 Semantic<br/>事实与知识<br/>用户偏好素食]
+        PROC[程序记忆 Procedural<br/>技能与规则<br/>如何调用日历 API]
     end
 
-    subgraph Agent["Agent Implementation"]
-        VDB[(Vector Database<br/>Semantic Search)]
-        KG[(Knowledge Graph<br/>Entity Relations)]
-        RULES[Hard-coded Rules<br/>System Prompts]
+    subgraph Agent["Agent 实现"]
+        VDB[(向量数据库<br/>语义搜索)]
+        KG[(知识图谱<br/>实体关系)]
+        RULES[硬编码规则<br/>System Prompts]
     end
 
     EP --> VDB
@@ -172,33 +172,33 @@ flowchart TB
     PROC --> RULES
 ```
 
-#### Cognitive Science Foundations
+#### 认知科学基础
 
-Key research findings that inform agent memory design:
+指导 Agent 记忆设计的关键研究成果：
 
-1. **Atkinson-Shiffrin Model (1968)**: Three-stage memory flow (Sensory → Short-term → Long-term)
-2. **Tulving's Distinction (1972)**: Episodic vs Semantic memory have different neural substrates
-3. **Levels of Processing (Craik & Lockhart, 1972)**: Deeper semantic encoding leads to better retention
-4. **Encoding Specificity Principle (Tulving, 1983)**: Retrieval cues match encoding context
-5. **Spacing Effect**: Distributed rehearsal enhances long-term retention
+1. **Atkinson-Shiffrin 模型 (1968)**：三阶段记忆流（感知 → 短期 → 长期）
+2. **Tulving 的区分 (1972)**：情节记忆与语义记忆具有不同的神经基质
+3. **处理深度等级 (Craik & Lockhart, 1972)**：更深的语义编码导致更好的保留
+4. **编码特异性原则 (Tulving, 1983)**：检索线索与编码上下文相匹配时效果最佳
+5. **间隔效应 (Spacing Effect)**：分散复述可增强长期保留
 
-#### Lost in the Middle Phenomenon
+#### “迷失在中间”现象 (Lost in the Middle)
 
-**Critical Research**: "Lost in the Middle: How Language Models Use Long Contexts" (Liu et al., 2023)
+**关键研究**："Lost in the Middle: How Language Models Use Long Contexts" (Liu et al., 2023)
 
-**Key Findings**:
-- LLM performance drops 20-30% for information in the middle of long contexts
-- Optimal performance at the beginning (primacy effect) and end (recency effect)
-- Performance degrades significantly beyond 8K tokens for most models
+**核心发现**：
+- 对于长上下文中间部分的信息，LLM 的性能会下降 20-30%
+- 性能在开头（首因效应 Primacy Effect）和结尾（近因效应 Recency Effect）表现最佳
+- 对于大多数模型，超过 8K tokens 后性能会显著下降
 
-**Practical Implications**:
+**实践建议**：
 ```java
-// Combatting Lost in the Middle with Strategic Context Placement
+// 通过策略性上下文放置对抗“迷失在中间”
 @Service
 public class ContextOptimizer {
 
     public List<Memory> organizeForOptimalRetrieval(List<Memory> memories) {
-        // Strategy 1: Place critical information at beginning or end
+        // 策略 1：将关键信息放在开头或结尾
         List<Memory> critical = memories.stream()
             .filter(m -> m.getImportance() > 0.8)
             .toList();
@@ -207,7 +207,7 @@ public class ContextOptimizer {
             .filter(m -> m.getImportance() <= 0.8)
             .toList();
 
-        // Optimal placement: critical at start, rest in middle, summary at end
+        // 优化放置：开头放关键信息，中间放普通信息，结尾放摘要
         List<Memory> organized = new ArrayList<>();
         organized.addAll(critical.subList(0, Math.min(3, critical.size())));
         organized.addAll(standard);
@@ -218,16 +218,16 @@ public class ContextOptimizer {
         return organized;
     }
 
-    // Strategy 2: Hierarchical summarization for long contexts
+    // 策略 2：针对长上下文的分层摘要
     public String summarizeMiddleSection(List<Message> middleMessages) {
         String prompt = String.format("""
-            Create a concise summary of these messages, preserving key information:
+            创建这些消息的简明摘要，保留关键信息：
             %s
 
-            Focus on:
-            - Main topics discussed
-            - Important decisions made
-            - User preferences revealed
+            关注点：
+            - 讨论的主要话题
+            - 做出的重要决策
+            - 揭示的用户偏好
             """,
             middleMessages.stream()
                 .map(Message::getContent)
@@ -239,48 +239,48 @@ public class ContextOptimizer {
 }
 ```
 
-#### Agent Memory: Cognitive Mapping
+#### Agent 记忆：认知映射
 
-| Cognitive Component | Human Implementation | Agent Implementation | Technical Carrier |
+| 认知组件 | 人类实现 | Agent 实现 | 技术载体 |
 |---------------------|---------------------|---------------------|-------------------|
-| Sensory Memory | Visual/auditory buffers | Message buffer | Conversation list |
-| Working Memory | Attention focus | LLM context | Context window |
-| Episodic Memory | Autobiographical events | Conversation history | Vector store / DB |
-| Semantic Memory | World knowledge | Knowledge base | Vector store / KG |
-| Procedural Memory | Skills & habits | System prompts | Hard-coded rules |
+| 感知记忆 | 视觉/听觉缓冲区 | 消息缓冲区 | 对话列表 |
+| 工作记忆 | 注意力焦点 | LLM 上下文 | 上下文窗口 |
+| 情节记忆 | 自传体事件 | 对话历史 | 向量库 / 数据库 |
+| 语义记忆 | 世界知识 | 知识库 | 向量库 / 知识图谱 |
+| 程序记忆 | 技能与习惯 | 系统提示词 | 硬编码规则 |
 
 ```java
-// Complete cognitive memory system
+// 完整的认知记忆系统
 @Service
 public class CognitiveMemorySystem {
 
-    // Sensory Memory: Transient input buffer
+    // 感知记忆：瞬时输入缓冲区
     private final Map<String, String> sensoryBuffer = new ConcurrentHashMap<>();
 
-    // Working Memory: Active processing (LLM context)
+    // 工作记忆：活动处理（LLM 上下文）
     private final WorkingMemoryManager workingMemory;
 
-    // Long-Term Memory: Persistent storage
-    private final VectorStore episodicMemory; // Experiences
-    private final KnowledgeGraph semanticMemory; // Facts & entities
-    private final SystemPromptManager proceduralMemory; // Skills
+    // 长期记忆：持久化存储
+    private final VectorStore episodicMemory; // 经历
+    private final KnowledgeGraph semanticMemory; // 事实与实体
+    private final SystemPromptManager proceduralMemory; // 技能
 
     public MemoryContext buildContext(String userQuery) {
-        // 1. Load from sensory buffer (immediate context)
+        // 1. 从感知缓冲区加载（即时上下文）
         String immediateContext = sensoryBuffer.get(userQuery);
 
-        // 2. Retrieve from working memory (active items)
+        // 2. 从工作记忆检索（活动项）
         List<MemoryItem> activeItems = workingMemory.getActiveContext();
 
-        // 3. Recall from episodic memory (relevant experiences)
+        // 3. 从情节记忆回忆（相关经历）
         List<Memory> experiences = episodicMemory.similaritySearch(
             SearchRequest.query(userQuery).withTopK(5)
         );
 
-        // 4. Query semantic memory (facts & entities)
+        // 4. 查询语义记忆（事实与实体）
         List<Entity> entities = semanticMemory.findRelevantEntities(userQuery);
 
-        // 5. Load procedural memory (skills & rules)
+        // 5. 加载程序记忆（技能与规则）
         String systemPrompt = proceduralMemory.getSystemPrompt();
 
         return MemoryContext.builder()
@@ -296,26 +296,26 @@ public class CognitiveMemorySystem {
 
 ---
 
-### 2.2.2 Storage & Data Structures Layer
+### 2.2.2 存储与数据结构层
 
-Choosing the right storage backend is critical for memory system performance. Different storage technologies excel at different use cases.
+选择正确的存储后端对于记忆系统性能至关重要。不同的存储技术擅长不同的用例。
 
-#### 1. Vector Stores (Semantic Memory)
+#### 1. 向量库 (Vector Stores - 语义记忆)
 
-**Best For**: Semantic similarity search, fuzzy matching, knowledge-intensive tasks
+**最适合**：语义相似度搜索、模糊匹配、知识密集型任务
 
-**How It Works**:
-1. Text is converted to dense vector embeddings (e.g., OpenAI text-embedding-3-large)
-2. Vectors are indexed using HNSW (Hierarchical Navigable Small World) algorithm
-3. Similarity is computed using cosine similarity or Euclidean distance
+**工作原理**：
+1. 文本被转换为密集的向量嵌入 (Vector Embeddings)（例如 OpenAI text-embedding-3-large）
+2. 向量使用 HNSW（分层导航小世界）等算法进行索引
+3. 使用余弦相似度或欧几里得距离计算相似度
 
-**Distance Metrics**:
-- **Cosine Similarity**: `cos(θ) = (A·B) / (||A|| × ||B||)` - Range [-1, 1], angle between vectors
-- **Euclidean Distance**: `||A - B||` - Straight-line distance
-- **Dot Product**: `A·B` - Raw similarity (requires normalized vectors)
+**距离度量**：
+- **余弦相似度 (Cosine Similarity)**：`cos(θ) = (A·B) / (||A|| × ||B||)` - 范围 [-1, 1]，衡量向量间的角度
+- **欧几里得距离 (Euclidean Distance)**：`||A - B||` - 直线距离
+- **点积 (Dot Product)**：`A·B` - 原始相似度（需要归一化向量）
 
 ```java
-// Spring AI: Production-Grade Vector Store Configuration
+// Spring AI: 生产级向量库配置
 @Configuration
 public class VectorStoreConfig {
 
@@ -325,7 +325,7 @@ public class VectorStoreConfig {
             PgVectorStoreConfig.builder()
                 .embeddingModel(embeddingModel)
                 .jdbcTemplate(jdbcTemplate)
-                .initializeSchema(true) // Auto-create tables
+                .initializeSchema(true) // 自动创建表
                 .dimensions(3072) // OpenAI text-embedding-3-large
                 .distanceType(VectorStore.DistanceType.COSINE_DISTANCE)
                 .build()
@@ -346,7 +346,7 @@ public class VectorStoreConfig {
     }
 }
 
-// Service: Storing and retrieving memories
+// Service: 存储与检索记忆
 @Service
 public class SemanticMemoryService {
 
@@ -366,7 +366,7 @@ public class SemanticMemoryService {
         return vectorStore.similaritySearch(
             SearchRequest.query(query)
                 .withTopK(topK)
-                .withSimilarityThreshold(0.7) // Only high-quality matches
+                .withSimilarityThreshold(0.7) // 仅限高质量匹配
         ).stream()
             .map(Memory::fromDocument)
             .toList();
@@ -374,33 +374,33 @@ public class SemanticMemoryService {
 }
 ```
 
-**Production Implementations**:
+**生产实现选择**：
 
-| Technology | Strengths | Best For | Cost |
+| 技术 | 优势 | 最适合 | 成本 |
 |------------|-----------|----------|------|
-| **Pinecone** | Fully managed, auto-scaling | Production apps, high traffic | $70-320/mon |
-| **Weaviate** | Open-source, hybrid search | Self-hosted, multimodal | Free tier available |
-| **Qdrant** | High performance, filter support | Real-time applications | Free tier available |
-| **Milvus** | Distributed, 10M+ vectors | Large-scale deployments | Open-source |
-| **pgvector** | Postgres extension | Simple deployments, SQL queries | Free |
+| **Pinecone** | 完全托管，自动缩放 | 生产应用，高流量 | $70-320/月 |
+| **Weaviate** | 开源，混合搜索 | 自托管，多模态 | 提供免费层 |
+| **Qdrant** | 高性能，支持过滤 | 实时应用 | 提供免费层 |
+| **Milvus** | 分布式，支持 10M+ 向量 | 大规模部署 | 开源 |
+| **pgvector** | Postgres 扩展 | 简单部署，SQL 查询 | 免费 |
 
-#### 2. Knowledge Graphs (Structured Memory)
+#### 2. 知识图谱 (Knowledge Graphs - 结构化记忆)
 
-**Breakthrough Research**: **GraphRAG** (Microsoft Research, 2024)
+**突破性研究**：**GraphRAG** (Microsoft Research, 2024)
 
-GraphRAG combines knowledge graphs with RAG to solve key limitations of pure vector search:
-- **Multi-hop reasoning**: "John works at OpenAI → OpenAI is in SF → John lives in SF area"
-- **Community detection**: Groups related entities into communities for hierarchical search
-- **Global context**: Generates community summaries for cross-community reasoning
+GraphRAG 将知识图谱与 RAG 相结合，解决了纯向量搜索的关键局限：
+- **多跳推理**：“约翰在 OpenAI 工作 → OpenAI 在旧金山 → 约翰住在旧金山地区”
+- **社区发现**：将相关实体分组为社区，进行分层搜索
+- **全局上下文**：生成社区摘要以进行跨社区推理
 
-**When to Use GraphRAG**:
-- Complex reasoning across multiple entities
-- Relationship-heavy queries ("Who else works with John?")
-- Multi-hop inference chains
-- Knowledge-intensive domains (medical, legal, research)
+**何时使用 GraphRAG**：
+- 跨多个实体的复杂推理
+- 关系密集型查询（“还有谁和约翰一起工作？”）
+- 多步推断链
+- 知识密集型领域（医疗、法律、研究）
 
 ```java
-// Spring AI + Neo4j: Knowledge Graph Implementation
+// Spring AI + Neo4j: 知识图谱实现
 @Configuration
 @EnableNeo4jRepositories(basePackages = "com.example.memory.graph")
 public class KnowledgeGraphConfig {
@@ -417,7 +417,7 @@ public class KnowledgeGraphConfig {
     }
 }
 
-// Domain Model: Entities and Relationships
+// 领域模型：实体与关系
 @Node("Entity")
 public class MemoryNode {
     @Id @GeneratedValue
@@ -427,7 +427,7 @@ public class MemoryNode {
     private String name;
 
     @Property("type")
-    private String type; // PERSON, PLACE, CONCEPT, etc.
+    private String type; // 人物、地点、概念等
 
     @Property("attributes")
     private Map<String, Object> attributes;
@@ -445,7 +445,7 @@ public class Preference {
     private Long id;
 
     @Property("type")
-    private String type; // FOOD, TRAVEL, etc.
+    private String type; // 食物、旅游等
 
     @Property("value")
     private String value;
@@ -460,7 +460,7 @@ public class ExperiencedRelation {
     private double importance;
 }
 
-// Repository: Custom queries
+// Repository: 自定义查询
 public interface MemoryGraphRepository extends Neo4jRepository<MemoryNode, Long> {
 
     @Query("MATCH (u:User {id: $userId})-[:HAS_PREFERENCE]->(p:Preference) RETURN p")
@@ -483,40 +483,40 @@ public interface MemoryGraphRepository extends Neo4jRepository<MemoryNode, Long>
     );
 }
 
-// Service: GraphRAG-style retrieval
+// Service: GraphRAG 风格的检索
 @Service
 public class GraphRAGService {
 
     private final MemoryGraphRepository graphRepository;
-    private final LLM llm;
+    private final ChatModel llm;
 
-    // 1. Entity extraction from text
+    // 1. 从文本中提取实体
     public List<Entity> extractEntities(String text) {
         String prompt = String.format("""
-            Extract entities and relationships from this text:
+            从这段文本中提取实体和关系：
             %s
 
-            Respond in JSON:
+            以 JSON 格式响应：
             {
                 "entities": [{"name": "...", "type": "..."}],
                 "relationships": [{"from": "...", "to": "...", "type": "..."}]
             }
             """, text);
 
-        String response = llm.generate(prompt);
+        String response = llm.call(prompt);
         return parseEntities(response);
     }
 
-    // 2. Community detection (Louvain algorithm)
+    // 2. 社区发现（Louvain 算法）
     public List<Community> detectCommunities(List<MemoryNode> nodes) {
-        // Build graph from nodes
+        // 从节点构建图
         Graph graph = buildEntityGraph(nodes);
 
-        // Apply Louvain community detection
+        // 应用 Louvain 社区发现算法
         LouvainAlgorithm louvain = new LouvainAlgorithm();
         List<Set<MemoryNode>> communities = louvain.detect(graph);
 
-        // Generate community summaries
+        // 生成社区摘要
         return communities.stream()
             .map(this::summarizeCommunity)
             .toList();
@@ -524,20 +524,20 @@ public class GraphRAGService {
 
     private Community summarizeCommunity(Set<MemoryNode> nodes) {
         String summaryPrompt = String.format("""
-            Create a summary of this entity community:
-            Entities: %s
+            创建该实体社区的摘要：
+            实体： %s
 
-            Focus on:
-            - Common themes or patterns
-            - Key relationships
-            - Important insights
+            关注点：
+            - 共同主题或模式
+            - 关键关系
+            - 重要见解
             """,
             nodes.stream()
                 .map(MemoryNode::getName)
                 .collect(Collectors.joining(", "))
         );
 
-        String summary = llm.generate(summaryPrompt);
+        String summary = llm.call(summaryPrompt);
 
         return Community.builder()
             .entities(nodes)
@@ -545,13 +545,13 @@ public class GraphRAGService {
             .build();
     }
 
-    // 3. Hierarchical retrieval (local + global)
+    // 3. 分层检索（本地 + 全局）
     public GraphRAGResult retrieve(String query, List<Community> communities) {
-        // Local search: Within most relevant community
+        // 本地搜索：在最相关的社区内
         Community bestCommunity = findMostRelevantCommunity(query, communities);
         List<MemoryNode> localResults = searchWithinCommunity(query, bestCommunity);
 
-        // Global search: Across all community summaries
+        // 全局搜索：横跨所有社区摘要
         List<Community> relevantCommunities = communities.stream()
             .filter(c -> calculateRelevance(query, c.getSummary()) > 0.6)
             .toList();
@@ -564,34 +564,34 @@ public class GraphRAGService {
 }
 ```
 
-**GraphRAG Architecture**:
+**GraphRAG 架构图**：
 
 ```mermaid
 flowchart TB
-    subgraph Input["Raw Documents"]
-        D[Text Input]
+    subgraph Input["原始文档"]
+        D[文本输入]
     end
 
-    subgraph Extraction["Entity-Relation Extraction"]
-        LLM[LLM Extraction<br/>Entities + Relations]
+    subgraph Extraction["实体-关系提取"]
+        LLM[LLM 提取<br/>实体 + 关系]
     end
 
-    subgraph Graph["Knowledge Graph Construction"]
-        E1[Entity: User]
-        E2[Entity: Preference]
-        E3[Entity: Episode]
+    subgraph Graph["知识图谱构建"]
+        E1[实体: 用户]
+        E2[实体: 偏好]
+        E3[实体: 情节]
         R1[(HAS_PREFERENCE)]
         R2[(EXPERIENCED)]
     end
 
-    subgraph Community["Community Detection"]
-        C1[Community 1<br/>Dietary Preferences]
-        C2[Community 2<br/>Travel History]
+    subgraph Community["社区发现"]
+        C1[社区 1<br/>饮食偏好]
+        C2[社区 2<br/>旅行历史]
     end
 
-    subgraph Search["Hierarchical Search"]
-        LS[Local Search<br/>Within Community]
-        GS[Global Search<br/>Across Communities]
+    subgraph Search["分层搜索"]
+        LS[本地搜索<br/>社区内]
+        GS[全局搜索<br/>跨社区]
     end
 
     D --> LLM
@@ -608,22 +608,22 @@ flowchart TB
     C2 --> GS
 ```
 
-**Vector Store vs Knowledge Graph**:
+**向量库 vs 知识图谱**：
 
-| Aspect | Vector Store | Knowledge Graph | Hybrid (GraphRAG) |
+| 维度 | 向量库 | 知识图谱 | 混合 (GraphRAG) |
 |--------|-------------|----------------|-------------------|
-| **Query Type** | Semantic similarity | Relationship queries | Both |
-| **Reasoning** | Shallow (single-hop) | Deep (multi-hop) | Adaptive |
-| **Setup Cost** | Low | High | Very high |
-| **Maintenance** | Minimal | Significant | Significant |
-| **Best For** | Keyword search, Q&A | Complex reasoning | Knowledge-intensive |
+| **查询类型** | 语义相似度 | 关系查询 | 两者兼有 |
+| **推理能力** | 浅层（单步） | 深层（多步） | 自适应 |
+| **构建成本** | 低 | 高 | 极高 |
+| **维护难度** | 极小 | 显著 | 显著 |
+| **最适合** | 关键字搜索, 问答 | 复杂推理 | 知识密集型 |
 
-#### 3. Structured Databases (SQL/NoSQL)
+#### 3. 结构化数据库 (SQL/NoSQL)
 
-**Best For**: Precise business state, transactions, structured queries
+**最适合**：精确的业务状态、事务、结构化查询
 
 ```java
-// Spring AI: JDBC Chat Memory
+// Spring AI: JDBC 对话记忆
 @Configuration
 public class JdbcMemoryConfig {
 
@@ -633,7 +633,7 @@ public class JdbcMemoryConfig {
     }
 }
 
-// Entity: Conversation metadata
+// 实体：对话元数据
 @Entity
 @Table(name = "conversations")
 public class ConversationEntity {
@@ -654,7 +654,7 @@ public class ConversationEntity {
     private Map<String, String> metadata;
 }
 
-// Repository: Custom queries
+// Repository: 自定义查询
 @Repository
 public interface ChatMemoryRepository extends JpaRepository<ConversationEntity, Long> {
 
@@ -672,7 +672,7 @@ public interface ChatMemoryRepository extends JpaRepository<ConversationEntity, 
     );
 }
 
-// Service: Managing conversation memory
+// Service: 管理对话记忆
 @Service
 public class ConversationMemoryService {
 
@@ -705,56 +705,56 @@ public class ConversationMemoryService {
 }
 ```
 
-**When to Use SQL/NoSQL**:
-- Transactional consistency required (e.g., order states)
-- Complex queries with joins
-- Regulatory compliance (data retention, GDPR)
-- Existing database infrastructure
+**何时使用 SQL/NoSQL**：
+- 需要事务一致性（例如订单状态）
+- 复杂的 Join 查询
+- 法规遵从（数据保留、GDPR）
+- 已有的数据库基础设施
 
-#### 4. Hierarchical Storage (Virtual Context)
+#### 4. 分层存储 (分层上下文/虚拟记忆)
 
-**Breakthrough Research**: **MemGPT** (UC Berkeley, 2023/2024) - "Towards LLMs as Operating Systems"
+**突破性研究**：**MemGPT** (UC Berkeley, 2023/2024) - "将 LLM 视为操作系统"
 
-MemGPT introduces **Virtual Context Management**, treating LLM context windows like operating system memory:
+MemGPT 引入了**虚拟上下文管理**，像管理操作系统内存一样管理 LLM 上下文窗口：
 
-| OS Concept | MemGPT Equivalent | Purpose |
+| OS 概念 | MemGPT 等效概念 | 目的 |
 |------------|-------------------|---------|
-| RAM | Main Context | Fast access, limited capacity |
-| Disk | External Context | Large storage, slower access |
-| Page Fault | Context Overflow | Trigger for data movement |
-| Page Replacement | FIFO/LRU eviction | Manage memory pressure |
+| RAM | 主上下文 (Main Context) | 快速访问，容量有限 |
+| 磁盘 | 外部上下文 (External Context) | 海量存储，访问较慢 |
+| 缺页中断 | 上下文溢出 (Context Overflow) | 数据移动的触发器 |
+| 页面置换 | FIFO/LRU 逐出 | 管理内存压力 |
 
-**Key Innovation**: Agents can proactively manage their context through function calls:
-- `page_in()`: Load data from external to main context
-- `page_out()`: Move data from main to external context
+**核心创新**：Agent 可以通过函数调用主动管理其上下文：
+- `page_in()`：将数据从外部加载到主上下文
+- `page_out()`：将数据从主上下文移至外部存储
 
 ```java
-// MemGPT-style: Hierarchical Memory Management
+// MemGPT 风格：分层记忆管理
 @Service
 public class HierarchicalMemoryManager {
 
     private final int CONTEXT_LIMIT = 8000; // tokens
 
-    // Main context: Fast access (RAM equivalent)
+    // 主上下文：快速访问（相当于 RAM）
     private final List<MemoryBlock> mainContext = new ArrayList<>();
 
-    // External context: Infinite storage (Disk equivalent)
+    // 外部上下文：海量存储（相当于磁盘）
     private final Queue<MemoryBlock> externalContext = new LinkedList<>();
 
     public void addMemory(MemoryBlock block) {
         int currentSize = calculateTokenCount(mainContext);
 
         if (currentSize + block.getTokenCount() <= CONTEXT_LIMIT) {
-            // Fits in main context
+            // 主上下文装得下
             mainContext.add(block);
         } else {
-            // Overflow: Page out old memories
+            // 溢出：将旧记忆换出（Page out）
             evictToExternalContext(block.getTokenCount());
             mainContext.add(block);
         }
     }
 
-    // Page replacement: LRU-style eviction
+    // 页面置换：LRU 风格逐出
     private void evictToExternalContext(int requiredSpace) {
         List<MemoryBlock> evicted = mainContext.stream()
             .sorted(Comparator.comparing(MemoryBlock::getLastAccessed))
@@ -770,27 +770,27 @@ public class HierarchicalMemoryManager {
         }
     }
 
-    // Page-in: Load relevant memories
+    // Page-in: 加载相关记忆
     public List<MemoryBlock> retrieveRelevant(String query) {
-        // 1. Search in main context
+        // 1. 在主上下文中搜索
         List<MemoryBlock> mainResults = searchInMainContext(query);
 
         if (mainResults.size() >= 5) {
             return mainResults;
         }
 
-        // 2. Need more: Page in from external context
+        // 2. 需要更多：从外部上下文换入（Page in）
         List<MemoryBlock> externalResults = searchInExternalContext(query);
 
-        // 3. Page in top results (may trigger page-out)
+        // 3. 换入顶部结果（可能触发 page-out）
         for (MemoryBlock block : externalResults) {
-            addMemory(block); // Handles eviction automatically
+            addMemory(block); // 自动处理逐出
         }
 
         return searchInMainContext(query);
     }
 
-    // MemGPT-style functions for agent to call
+    // 供 Agent 调用的 MemGPT 风格函数
     @FunctionCallback(name = "page_in")
     public String pageIn(String memoryId) {
         MemoryBlock block = externalContext.stream()
@@ -799,9 +799,9 @@ public class HierarchicalMemoryManager {
             .orElseThrow();
 
         externalContext.remove(block);
-        addMemory(block); // Handles capacity management
+        addMemory(block); // 处理容量管理
 
-        return String.format("Paged in memory: %s", block.getId());
+        return String.format("已换入记忆: %s", block.getId());
     }
 
     @FunctionCallback(name = "page_out")
@@ -814,66 +814,66 @@ public class HierarchicalMemoryManager {
         mainContext.remove(block);
         externalContext.add(block);
 
-        return String.format("Paged out memory: %s", block.getId());
+        return String.format("已换出记忆: %s", block.getId());
     }
 }
 ```
 
-**Storage Comparison**:
+**存储对比表**：
 
-| Storage Type | Best For | Advantages | Disadvantages | Production Choice |
+| 存储类型 | 最适合 | 优点 | 缺点 | 生产选择 |
 |-------------|----------|------------|---------------|-------------------|
-| **Vector Store** | Semantic retrieval | Fuzzy matching, scalable | Poor exact queries | Pinecone, Weaviate, Qdrant |
-| **Knowledge Graph** | Complex reasoning | Multi-hop inference | Expensive setup | Neo4j, GraphRAG |
-| **SQL/NoSQL** | Business state | ACID transactions | No semantic search | PostgreSQL, MongoDB |
-| **Hierarchical** | Long context | Unlimited context | High complexity | MemGPT, Letta |
+| **向量库** | 语义检索 | 模糊匹配，可扩展 | 精确查询能力差 | Pinecone, Weaviate, Qdrant |
+| **知识图谱** | 复杂推理 | 多步推断 | 构建成本高 | Neo4j, GraphRAG |
+| **SQL/NoSQL** | 业务状态 | ACID 事务 | 无语义搜索 | PostgreSQL, MongoDB |
+| **分层存储** | 长上下文 | 无限上下文 | 复杂度高 | MemGPT, Letta |
 
 ---
 
-### 2.2.3 Memory Lifecycle Operations
+### 2.2.3 记忆生命周期操作
 
-Memory is not static storage - it's a dynamic system with four key operations: **Encoding**, **Retrieval**, **Reflection**, and **Forgetting**. Each operation transforms memory, enabling agents to learn and adapt.
+记忆并非静态存储——它是一个具有四个关键操作的动态系统：**编码 (Encoding)**、**检索 (Retrieval)**、**反思 (Reflection)** 和 **遗忘 (Forgetting)**。每种操作都会转换记忆，使 Agent 能够学习和适应。
 
-#### 1. Encoding: From Input to Memory
+#### 1. 编码：从输入到记忆
 
-**Encoding** is the process of transforming raw input into stored memory representations. The quality of encoding determines retrieval effectiveness.
+**编码**是将原始输入转化为存储的记忆表示的过程。编码的质量决定了检索的有效性。
 
-**Three Chunking Strategies**:
+**三种分块 (Chunking) 策略**：
 
-1. **Semantic Chunking** (LightRAG, 2024)
-   - Groups related content by topic/theme
-   - Preserves semantic coherence
-   - Best for: Conversational agents, document QA
+1. **语义分块 (Semantic Chunking)** (LightRAG, 2024)
+   - 按主题/主题组聚合相关内容
+   - 保持语义连贯性
+   - 最适合：对话式智能体、文档 QA
 
-2. **Hierarchical Chunking** (MemGPT)
-   - Creates multi-level chunks: Document → Chapter → Section → Paragraph
-   - Enables retrieval at appropriate granularity
-   - Best for: Long-form documents, technical manuals
+2. **分层分块 (Hierarchical Chunking)** (MemGPT)
+   - 创建多级块：文档 → 章节 → 节 → 段落
+   - 支持在适当粒度下检索
+   - 最适合：长篇文档、技术手册
 
-3. **Temporal Chunking** (Zep)
-   - Groups by time windows (hour, day, week)
-   - Maintains conversation flow
-   - Best for: Chat history, episode logs
+3. **时间分块 (Temporal Chunking)** (Zep)
+   - 按时间窗口分组（小时、天、周）
+   - 维持对话流
+   - 最适合：聊天记录、情节日志
 
 ```java
-// Spring AI: Intelligent Chunking Strategies
+// Spring AI: 智能分块策略
 @Service
 public class MemoryChunkingService {
 
-    // Strategy 1: Semantic Chunking (LightRAG-style)
+    // 策略 1: 语义分块 (LightRAG 风格)
     public List<MemoryChunk> semanticChunk(String text) {
-        // 1. Split into sentences
+        // 1. 拆分为句子
         List<String> sentences = splitIntoSentences(text);
 
-        // 2. Compute embeddings for each sentence
+        // 2. 为每个句子计算 Embedding
         List<float[]> embeddings = sentences.stream()
             .map(embeddingModel::embed)
             .toList();
 
-        // 3. Cluster by semantic similarity
+        // 3. 按语义相似度聚类
         List<List<String>> clusters = clusterBySimilarity(sentences, embeddings);
 
-        // 4. Each cluster becomes a chunk
+        // 4. 每个簇成为一个分块
         return clusters.stream()
             .map(cluster -> MemoryChunk.builder()
                 .content(String.join(" ", cluster))
@@ -886,7 +886,7 @@ public class MemoryChunkingService {
             .toList();
     }
 
-    // Strategy 2: Hierarchical Chunking (MemGPT-style)
+    // 策略 2: 分层分块 (MemGPT 风格)
     public HierarchicalChunks hierarchicalChunk(Document doc) {
         return HierarchicalChunks.builder()
             .document(doc.getContent())
@@ -897,9 +897,9 @@ public class MemoryChunkingService {
             .build();
     }
 
-    // Strategy 3: Temporal Chunking (Conversation-based)
+    // 策略 3: 时间分块 (基于对话)
     public List<MemoryChunk> temporalChunk(List<Message> messages) {
-        // Group by time window (1 hour)
+        // 按时间窗口分组 (1 小时)
         Map<LocalDateTime, List<Message>> grouped = messages.stream()
             .collect(Collectors.groupingBy(
                 m -> m.getTimestamp().truncatedTo(ChronoUnit.HOURS)
@@ -925,15 +925,15 @@ public class MemoryChunkingService {
             .toList();
     }
 
-    // Hybrid: Multi-dimensional chunking
+    // 混合策略: 多维分块
     public List<MemoryChunk> hybridChunk(String text, List<Message> conversation) {
-        // 1. Semantic chunking for content
+        // 1. 内容的语义分块
         List<MemoryChunk> contentChunks = semanticChunk(text);
 
-        // 2. Temporal chunking for conversation
+        // 2. 对话的时间分块
         List<MemoryChunk> timeChunks = temporalChunk(conversation);
 
-        // 3. Merge and deduplicate
+        // 3. 合并并去重
         return Stream.concat(contentChunks.stream(), timeChunks.stream())
             .distinct()
             .toList();
@@ -941,55 +941,55 @@ public class MemoryChunkingService {
 }
 ```
 
-**Embedding Techniques**:
+**Embedding 技术对比**：
 
-| Technique | Description | Best For |
+| 技术 | 描述 | 最适合 |
 |-----------|-------------|----------|
-| **Static Embeddings** | One-time encoding | Stable documents |
-| **Dynamic Embeddings** | Update based on usage | Evolving knowledge |
-| **Hybrid Embeddings** | Text + metadata | Rich contexts |
-| **Multi-modal** | Text + images + audio | Multimedia agents |
+| **静态 Embedding** | 一次性编码 | 稳定的文档 |
+| **动态 Embedding** | 根据使用情况更新 | 演进中的知识 |
+| **混合 Embedding** | 文本 + 元数据 | 丰富的上下文 |
+| **多模态** | 文本 + 图像 + 语音 | 多媒体 Agent |
 
-#### 2. Retrieval: Finding What Matters
+#### 2. 检索：寻找关键信息
 
-**Retrieval** selects relevant memories from storage. Effective retrieval combines multiple signals: recency, importance, and relevance.
+**检索**从存储中选择相关记忆。有效的检索结合了多种信号：时效性 (Recency)、重要性 (Importance) 和相关性 (Relevance)。
 
-**Multi-Dimensional Retrieval**:
+**多维检索实现**：
 
 ```java
-// Stanford Generative Agents Style: Multi-signal Retrieval
+// 斯坦福生成式智能体风格：多信号检索
 @Service
 public class MemoryRetrievalService {
 
     public List<Memory> retrieve(RetrievalQuery query) {
 
-        // Signal 1: Semantic similarity (vector search)
+        // 信号 1: 语义相似度 (向量搜索)
         List<Memory> semanticResults = vectorStore.similaritySearch(
             SearchRequest.query(query.getQuery())
                 .withTopK(20)
         );
 
-        // Signal 2: Temporal recency
+        // 信号 2: 时间时效性
         List<Memory> recentResults = semanticResults.stream()
             .filter(m -> m.getTimestamp().isAfter(query.getSince()))
             .toList();
 
-        // Signal 3: Importance scoring (LLM-based)
+        // 信号 3: 重要性评分 (基于 LLM)
         Map<Memory, Double> importanceScores = calculateImportance(recentResults);
 
-        // Signal 4: Combine all signals
+        // 信号 4: 合并所有信号
         List<ScoredMemory> scoredMemories = recentResults.stream()
             .map(memory -> {
-                // Recency score: Exponential decay
+                // 时效性得分: 指数衰减
                 double recencyScore = calculateRecency(memory, query.getCurrentTime());
 
-                // Importance score: LLM-rated (1-10)
+                // 重要性得分: LLM 评分 (1-10)
                 double importanceScore = importanceScores.get(memory);
 
-                // Relevance score: Vector similarity
+                // 相关性得分: 向量相似度
                 double relevanceScore = memory.getSimilarity();
 
-                // Final weighted score
+                // 最终加权得分
                 double finalScore =
                     0.3 * recencyScore +
                     0.4 * importanceScore +
@@ -1005,36 +1005,36 @@ public class MemoryRetrievalService {
         return scoredMemories;
     }
 
-    // Recency: Exponential decay over time
+    // 时效性: 随时间指数衰减
     private double calculateRecency(Memory memory, Instant currentTime) {
         long daysSince = ChronoUnit.DAYS.between(
             memory.getTimestamp(),
             currentTime
         );
-        double lambda = 0.1; // Decay rate
+        double lambda = 0.1; // 衰减率
         return Math.exp(-lambda * daysSince);
     }
 
-    // Importance: LLM-based scoring (Stanford Generative Agents)
+    // 重要性: 基于 LLM 的评分 (参考斯坦福生成式智能体)
     private Map<Memory, Double> calculateImportance(List<Memory> memories) {
         return memories.stream()
             .collect(Collectors.toMap(
                 Function.identity(),
                 memory -> {
                     String prompt = String.format("""
-                        On a scale of 1-10, how important is this memory for future decisions?
+                        在 1-10 的范围内，这段记忆对于未来的决策有多重要？
 
-                        Memory: %s
+                        记忆： %s
 
-                        Consider:
-                        - Will this impact future interactions?
-                        - Is this a significant event?
-                        - Does this reveal key preferences?
+                        考虑因素：
+                        - 是否会影响未来的互动？
+                        - 是否是一个重大事件？
+                        - 是否揭示了关键偏好？
 
-                        Respond with just a number.
+                        仅返回一个数字。
                         """, memory.getContent());
 
-                    String response = llm.generate(prompt);
+                    String response = llm.call(prompt);
                     return Double.parseDouble(response.trim()) / 10.0;
                 }
             ));
@@ -1042,33 +1042,33 @@ public class MemoryRetrievalService {
 }
 ```
 
-**Retrieval Strategy Comparison**:
+**检索策略对比**：
 
-| Strategy | Formula | Best For | Example |
+| 策略 | 公式 | 最适合 | 示例 |
 |----------|---------|----------|---------|
-| **Recency** | `exp(-λ × Δt)` | Time-sensitive queries | "What did we discuss yesterday?" |
-| **Importance** | LLM-rated (1-10) | Long-term decisions | "User's core preferences" |
-| **Relevance** | Cosine similarity | Semantic search | "Information about X" |
-| **Hybrid** | `α×Recency + β×Importance + γ×Relevance` | Balanced retrieval | Most production systems |
+| **时效性 (Recency)** | `exp(-λ × Δt)` | 时间敏感型查询 | “我们昨天讨论了什么？” |
+| **重要性 (Importance)** | LLM 评分 (1-10) | 长期决策 | “用户的核心偏好” |
+| **相关性 (Relevance)** | 余弦相似度 | 语义搜索 | “关于 X 的信息” |
+| **混合 (Hybrid)** | `α×时效 + β×重要 + γ×相关` | 平衡检索 | 大多数生产系统 |
 
-#### 3. Reflection & Consolidation
+#### 3. 反思与整合 (Reflection & Consolidation)
 
-**Breakthrough Research**: **Stanford Generative Agents** (Park et al., 2023)
+**突破性研究**：**斯坦福生成式智能体 (Stanford Generative Agents)** (Park et al., 2023)
 
-Reflection enables agents to:
-1. **Identify patterns** across experiences
-2. **Generate high-level insights** from raw observations
-3. **Build hierarchical memory structures** (observations → reflections)
+反思使 Agent 能够：
+1. **识别模式**：横跨多次经历识别规律
+2. **生成高层见解**：从原始观察中提炼见解
+3. **构建分层记忆结构**：观察 → 反思
 
-**The Reflection Loop**:
+**反思循环图**：
 
 ```mermaid
 flowchart TB
-    Obs[Raw Observations] --> Imp[Importance Scoring]
-    Imp -->|Score > 7| Q[Generate Questions]
-    Q --> Ans[Answer Questions<br/>Generate Insights]
-    Ans --> Ref[Reflection Memory]
-    Ref --> Tree[Memory Tree<br/>Observations → Reflections]
+    Obs[原始观察] --> Imp[重要性评分]
+    Imp -->|得分 > 7| Q[生成问题]
+    Q --> Ans[回答问题<br/>生成见解]
+    Ans --> Ref[反思记忆]
+    Ref --> Tree[记忆树<br/>观察 → 反思]
 
     style Obs fill:#e3f2fd
     style Ref fill:#f3e5f5
@@ -1076,19 +1076,19 @@ flowchart TB
 ```
 
 ```java
-// Stanford Generative Agents Style: Reflection Mechanism
+// 斯坦福生成式智能体风格：反思机制实现
 @Service
 public class ReflectionMemoryService {
 
-    // Dual memory system
+    // 双重记忆系统
     private final List<Observation> observationMemory = new ArrayList<>();
     private final List<Reflection> reflectionMemory = new ArrayList<>();
 
-    // Triggered daily (or when importance threshold reached)
-    @Scheduled(cron = "0 0 2 * * ?") // 2 AM daily
+    // 每天凌晨 2 点触发 (或达到重要性阈值时)
+    @Scheduled(cron = "0 0 2 * * ?")
     public void triggerReflection() {
 
-        // 1. Get recent high-importance observations
+        // 1. 获取近期高重要性的观察结果
         List<Observation> recent = getRecentObservations(Duration.ofDays(1));
         List<Observation> importantOnes = recent.stream()
             .filter(obs -> calculateImportance(obs) > 7.0)
@@ -1098,49 +1098,49 @@ public class ReflectionMemoryService {
             return;
         }
 
-        // 2. Generate reflection questions
+        // 2. 生成反思问题
         List<String> questions = generateReflectionQuestions(importantOnes);
 
-        // 3. Synthesize insights
+        // 3. 整合见解
         for (String question : questions) {
             Reflection reflection = generateReflection(question, importantOnes);
             reflectionMemory.add(reflection);
         }
 
-        // 4. Build memory tree (observations → reflections)
+        // 4. 构建记忆树 (观察 → 反思)
         buildMemoryTree(importantOnes, reflectionMemory);
     }
 
-    // Step 1: Generate reflection questions
+    // 步骤 1: 生成反思问题
     private List<String> generateReflectionQuestions(List<Observation> observations) {
         String prompt = String.format("""
-            Given these recent observations, generate 3-5 high-level questions
-            that would help identify patterns or insights:
+            根据这些近期的观察，生成 3-5 个高层问题，
+            以帮助识别其中的模式或见解：
 
-            Observations:
+            观察结果：
             %s
 
-            Questions should be abstract and seek to understand underlying themes.
+            问题应该是抽象的，旨在理解潜在的主题。
             """,
             observations.stream()
                 .map(Observation::getContent)
                 .collect(Collectors.joining("\n"))
         );
 
-        String response = llm.generate(prompt);
+        String response = llm.call(prompt);
         return parseQuestions(response);
     }
 
-    // Step 2: Generate reflection (answer questions)
+    // 步骤 2: 执行反思 (回答问题)
     private Reflection generateReflection(String question, List<Observation> observations) {
         String prompt = String.format("""
-            Question: %s
+            问题： %s
 
-            Relevant observations:
+            相关观察：
             %s
 
-            Provide a high-level insight or pattern that addresses this question.
-            Synthesize from the observations, but think beyond them.
+            针对此问题提供一个高层见解或模式。
+            从观察结果中提炼，但要超越观察本身。
             """,
             question,
             observations.stream()
@@ -1148,7 +1148,7 @@ public class ReflectionMemoryService {
                 .collect(Collectors.joining("\n"))
         );
 
-        String insight = llm.generate(prompt);
+        String insight = llm.call(prompt);
 
         return Reflection.builder()
             .question(question)
@@ -1161,9 +1161,9 @@ public class ReflectionMemoryService {
             .build();
     }
 
-    // Step 3: Build memory tree (hierarchical structure)
+    // 步骤 3: 构建记忆树 (分层结构)
     private void buildMemoryTree(List<Observation> observations, List<Reflection> reflections) {
-        // Create links: observations → reflections
+        // 创建链接：观察 → 反思
         for (Reflection reflection : reflections) {
             for (String obsId : reflection.getBasedOnObservations()) {
                 Observation obs = findObservation(obsId);
@@ -1174,29 +1174,29 @@ public class ReflectionMemoryService {
 }
 ```
 
-**Memory Consolidation**:
+**记忆整合 (Memory Consolidation)**：
 
-Over time, memories need consolidation to prevent redundancy and decay.
+随着时间的推移，记忆需要整合以防止冗余和衰减。
 
 ```java
 @Service
 public class MemoryConsolidationService {
 
-    // Periodic consolidation (weekly)
-    @Scheduled(cron = "0 0 3 * * 0") // 3 AM every Sunday
+    // 每周日凌晨 3 点执行
+    @Scheduled(cron = "0 0 3 * * 0")
     public void consolidateMemories() {
 
-        // 1. Detect duplicates
+        // 1. 检测重复项
         List<Memory> duplicates = detectDuplicateMemories();
 
-        // 2. Merge duplicates
+        // 2. 合并重复项
         for (List<Memory> group : groupDuplicates(duplicates)) {
             Memory merged = mergeMemories(group);
             deleteMemories(group);
             storeMemory(merged);
         }
 
-        // 3. Compress old memories
+        // 3. 压缩旧记忆
         List<Memory> oldMemories = getMemoriesOlderThan(Duration.ofDays(30));
         for (List<Memory> batch : batchMemories(oldMemories, 10)) {
             Memory compressed = compressMemories(batch);
@@ -1205,7 +1205,7 @@ public class MemoryConsolidationService {
         }
     }
 
-    // Duplicate detection using semantic similarity
+    // 使用语义相似度进行重复检测
     private List<Memory> detectDuplicateMemories() {
         List<Memory> allMemories = getAllMemories();
         List<Memory> duplicates = new ArrayList<>();
@@ -1217,7 +1217,7 @@ public class MemoryConsolidationService {
                     allMemories.get(j)
                 );
 
-                if (similarity > 0.9) { // Near-duplicate threshold
+                if (similarity > 0.9) { // 近似重复阈值
                     duplicates.add(allMemories.get(j));
                 }
             }
@@ -1226,28 +1226,28 @@ public class MemoryConsolidationService {
         return duplicates;
     }
 
-    // Memory compression using LLM
+    // 使用 LLM 进行记忆压缩
     private Memory compressMemories(List<Memory> oldMemories) {
         String prompt = String.format("""
-            Compress these memories into a concise summary:
+            将这些记忆压缩成一段简明的摘要：
             %s
 
-            Preserve:
-            - Key information
-            - Important details
-            - Actionable insights
+            保留：
+            - 关键信息
+            - 重要细节
+            - 可操作的见解
 
-            Remove:
-            - Redundancy
-            - Outdated details
-            - Minor points
+            移除：
+            - 冗余内容
+            - 过时的细节
+            - 次要点
             """,
             oldMemories.stream()
                 .map(Memory::getContent)
                 .collect(Collectors.joining("\n"))
         );
 
-        String summary = llm.generate(prompt);
+        String summary = llm.call(prompt);
 
         return Memory.builder()
             .content(summary)
@@ -1261,29 +1261,29 @@ public class MemoryConsolidationService {
 }
 ```
 
-#### 4. Forgetting: Managing Memory Pressure
+#### 4. 遗忘：管理内存压力
 
-Not all memories should be kept forever. Intelligent forgetting prevents memory bloat and maintains retrieval performance.
+并非所有记忆都应永久保存。智能遗忘可防止记忆膨胀并维持检索性能。
 
-**Three Forgetting Strategies**:
+**三种遗忘策略**：
 
-| Strategy | Mechanism | Best For | Example |
+| 策略 | 机制 | 最适合 | 示例 |
 |----------|-----------|----------|---------|
-| **FIFO** | First-in-first-out | Time-sensitive data | News feed, alerts |
-| **LRU + Heat** | Least recently used + access frequency | General purpose | Most agents |
-| **Importance Decay** | Low importance fades | Long-term agents | Personal assistants |
+| **FIFO (先进先出)** | 最早进来的先出 | 时间敏感型数据 | 新闻流、告警 |
+| **LRU + 热度评分** | 最近最少使用 + 访问频率 | 通用场景 | 大多数 Agent |
+| **重要性衰减** | 低重要性随时间淡出 | 长期运行的 Agent | 个人助理 |
 
 ```java
 @Service
 public class MemoryForgettingService {
 
-    // Strategy 1: LRU with Heat Scoring
+    // 策略 1: 基于热度评分的 LRU
     public void evictLRUWithHeat(List<Memory> memories, int targetSize) {
         if (memories.size() <= targetSize) {
             return;
         }
 
-        // Calculate heat: access frequency × recency decay
+        // 计算热度：访问频率 × 时效性衰减
         Map<Memory, Double> heatScores = memories.stream()
             .collect(Collectors.toMap(
                 Function.identity(),
@@ -1298,7 +1298,7 @@ public class MemoryForgettingService {
                 }
             ));
 
-        // Evict coldest memories
+        // 逐出最冷（热度最低）的记忆
         List<Memory> toEvict = memories.stream()
             .sorted(Comparator.comparing(heatScores::get))
             .limit(memories.size() - targetSize)
@@ -1307,7 +1307,7 @@ public class MemoryForgettingService {
         memories.removeAll(toEvict);
     }
 
-    // Strategy 2: Importance-Based Decay
+    // 策略 2: 基于重要性的衰减
     public void decayByImportance(List<Memory> memories) {
         memories.forEach(memory -> {
             double age = ChronoUnit.DAYS.between(
@@ -1315,38 +1315,38 @@ public class MemoryForgettingService {
                 Instant.now()
             );
 
-            // Importance decays exponentially over time
+            // 重要性随时间呈指数级衰减
             double decayedImportance = memory.getImportance() * Math.exp(-0.05 * age);
 
-            // Mark low-importance memories for deletion
+            // 将低重要性记忆标记为删除
             if (decayedImportance < 2.0) {
                 memory.markForDeletion();
             }
         });
 
-        // Remove marked memories
+        // 移除已标记的记忆
         memories.removeIf(Memory::isMarkedForDeletion);
     }
 
-    // Strategy 3: Compress Before Forget
+    // 策略 3: 遗忘前压缩
     public Memory compressBeforeForgetting(List<Memory> oldMemories) {
-        // Preserve essence before deletion
+        // 在删除前保留精髓
         String prompt = String.format("""
-            These memories are old and will be deleted.
-            Create a compressed summary that preserves only the most essential information:
+            这些记忆已旧并将被删除。
+            创建一个仅保留最核心信息的压缩摘要：
 
             %s
 
-            Focus on:
-            - One-sentence essence
-            - Key facts only
+            关注：
+            - 一句话核心
+            - 仅关键事实
             """,
             oldMemories.stream()
                 .map(Memory::getContent)
                 .collect(Collectors.joining("\n"))
         );
 
-        String essence = llm.generate(prompt);
+        String essence = llm.call(prompt);
 
         return Memory.builder()
             .content(essence)
@@ -1359,47 +1359,47 @@ public class MemoryForgettingService {
 }
 ```
 
-**Memory Lifecycle Diagram**:
+**记忆生命周期状态图**：
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Encoding: New Input
-    Encoding --> Storage: Chunked & Embedded
-    Storage --> Retrieval: Query
-    Retrieval --> Storage: Update Access Stats
-    Storage --> Reflection: High Importance
-    Reflection --> Storage: New Insights
-    Storage --> Forgetting: Old/Low Importance
-    Forgetting --> [*]: Deleted or Compressed
+    [*] --> 编码: 新输入
+    编码 --> 存储: 已分块且 Embedded
+    存储 --> 检索: 查询
+    检索 --> 存储: 更新访问统计
+    存储 --> 反思: 高重要性
+    反思 --> 存储: 新见解
+    存储 --> 遗忘: 陈旧/低重要性
+    遗忘 --> [*]: 已删除或压缩
 ```
 
 ---
 
-### 2.2.4 Context Management Strategies
+### 2.2.4 上下文管理策略
 
-How do we fit vast memories into limited LLM context windows? Different strategies trade off completeness, coherence, and cost.
+如何将海量记忆塞进 LLM 有限的上下文窗口？不同的策略在完整性、连贯性和成本之间进行权衡。
 
-#### 1. Sliding Window (Message Buffer)
+#### 1. 滑动窗口 (Sliding Window - 消息缓冲区)
 
-**Simplest approach**: Keep only the most recent N messages.
+**最简单的方法**：仅保留最近的 N 条消息。
 
-**Pros**: Fast, simple, preserves conversation flow
-**Cons**: Loses early important information
+**优点**：速度快、简单、保持对话连贯性
+**缺点**：会丢失早期重要的信息
 
 ```java
-// Spring AI: Sliding Window
-ChatMemory memory = new MessageWindowChatMemory(10); // Last 10 messages
+// Spring AI: 滑动窗口
+ChatMemory memory = new MessageWindowChatMemory(10); // 最近 10 条消息
 ```
 
-#### 2. Summarization (Token Buffer)
+#### 2. 摘要法 (Summarization - Token 缓冲区)
 
-**Approach**: Compress old messages into summaries when context exceeds limit.
+**方法**：当上下文超过限制时，将旧消息压缩为摘要。
 
-**Pros**: Token efficient, preserves key information
-**Cons**: Loss of detail, summary artifacts
+**优点**：Token 效率高，保留关键信息
+**缺点**：丢失细节，可能产生摘要伪影
 
 ```java
-// Spring AI: Summary Memory with Custom Strategy
+// Spring AI: 带自定义策略的摘要记忆
 @Service
 public class CustomSummaryMemory {
 
@@ -1410,7 +1410,7 @@ public class CustomSummaryMemory {
     public void addMessage(Message message) {
         fullHistory.add(message);
 
-        // Check if we need to summarize
+        // 检查是否需要摘要
         int currentTokens = estimateTokens(summary, fullHistory);
         if (currentTokens > TOKEN_LIMIT) {
             compressOldestMessages();
@@ -1420,36 +1420,36 @@ public class CustomSummaryMemory {
     public List<Message> getContext() {
         List<Message> context = new ArrayList<>();
 
-        // Add summary at the beginning
+        // 在开头添加摘要
         if (!summary.isEmpty()) {
             context.add(Message.builder()
                 .role("system")
-                .content("[CONVERSATION SUMMARY]\n" + summary)
+                .content("[对话摘要]\n" + summary)
                 .build());
         }
 
-        // Add recent messages
+        // 添加最近消息
         context.addAll(getRecentMessages(10));
 
         return context;
     }
 
     private void compressOldestMessages() {
-        // Keep recent 10, compress the rest
+        // 保留最近 10 条，压缩其余部分
         List<Message> toCompress = fullHistory.subList(
             0,
             Math.max(0, fullHistory.size() - 10)
         );
 
         String prompt = String.format("""
-            Summarize this conversation history:
+            总结这段对话历史：
             %s
 
-            Include:
-            - Main topics discussed
-            - Important decisions made
-            - User preferences revealed
-            - Key information exchanged
+            包括：
+            - 讨论的主要话题
+            - 做出的重要决策
+            - 揭示的用户偏好
+            - 交换的关键信息
             """,
             toCompress.stream()
                 .map(Message::getContent)
@@ -1461,42 +1461,42 @@ public class CustomSummaryMemory {
 }
 ```
 
-#### 3. Entity Extraction (Structured Memory)
+#### 3. 实体提取 (Entity Extraction - 结构化记忆)
 
-**Approach**: Extract key entities and facts, discard conversational filler.
+**方法**：提取关键实体和事实，丢弃对话废话。
 
-**Pros**: Compact, structured, queryable
-**Cons**: Misses nuanced context, extraction errors
+**优点**：紧凑、结构化、可查询
+**缺点**：错过细微的上下文，存在提取错误风险
 
 ```java
-// Spring AI: Entity Extraction Memory
+// Spring AI: 实体提取记忆
 @Service
 public class EntityExtractionMemory {
 
     private final Map<String, EntityFact> entityStore = new ConcurrentHashMap<>();
 
     public void processMessage(Message message) {
-        // Extract entities using LLM
+        // 使用 LLM 提取实体
         String prompt = String.format("""
-            Extract key entities and facts from this message:
+            从这条消息中提取关键实体和事实：
             %s
 
-            Respond in JSON:
+            以 JSON 响应：
             {
                 "entities": [
                     {
                         "name": "...",
-                        "type": "PERSON|PLACE|THING|CONCEPT",
+                        "type": "人物|地点|物品|概念",
                         "attributes": {"key": "value"}
                     }
                 ]
             }
             """, message.getContent());
 
-        String response = llm.generate(prompt);
+        String response = llm.call(prompt);
         ExtractedEntities entities = parseEntities(response);
 
-        // Store in entity store
+        // 存入实体库
         for (Entity entity : entities.getEntities()) {
             entityStore.put(entity.getName(), entity);
         }
@@ -1515,50 +1515,50 @@ public class EntityExtractionMemory {
 }
 ```
 
-#### 4. Retrieval-Augmented Generation (RAG)
+#### 4. 检索增强生成 (RAG)
 
-**Approach**: Dynamically retrieve relevant memory chunks based on current query.
+**方法**：根据当前查询动态检索相关的记忆块。
 
-**Pros**: Precise, scalable, memory-efficient
-**Cons**: Latency, requires good embeddings
+**优点**：精确、可扩展、内存效率高
+**缺点**：存在延迟，需要良好的 Embedding
 
 ```java
-// RAG: Dynamic Context Retrieval
+// RAG: 动态上下文检索
 @Service
 public class RAGMemoryService {
 
     private final VectorStore vectorStore;
 
     public List<Message> buildContext(String query) {
-        // 1. Retrieve relevant memories
+        // 1. 检索相关记忆
         List<Document> relevantDocs = vectorStore.similaritySearch(
             SearchRequest.query(query)
                 .withTopK(5)
                 .withSimilarityThreshold(0.7)
         );
 
-        // 2. Convert to context messages
+        // 2. 转换为上下文消息
         return relevantDocs.stream()
             .map(doc -> Message.builder()
                 .role("system")
-                .content(String.format("[RELEVANT MEMORY]\n%s", doc.getText()))
+                .content(String.format("[相关记忆]\n%s", doc.getText()))
                 .build())
             .toList();
     }
 
-    // Multi-turn retrieval optimization
+    // 多轮检索优化
     public List<Message> multiTurnContext(List<String> queryHistory) {
-        // 1. Expand query using conversation history
+        // 1. 使用对话历史扩展查询
         String expandedQuery = expandQuery(queryHistory);
 
-        // 2. Hybrid search (vector + keyword)
+        // 2. 混合搜索 (向量 + 关键字)
         List<Document> vectorResults = vectorStore.similaritySearch(expandedQuery);
         List<Document> keywordResults = keywordSearch(expandedQuery);
 
-        // 3. Reciprocal Rank Fusion (RRF)
+        // 3. 倒数排名融合 (RRF)
         List<Document> fused = fuseResults(vectorResults, keywordResults);
 
-        // 4. Rerank using LLM
+        // 4. 使用 LLM 重新排序
         List<Document> reranked = rerank(fused, queryHistory);
 
         return reranked.stream()
@@ -1569,16 +1569,16 @@ public class RAGMemoryService {
             .toList();
     }
 
-    // Query expansion using LLM
+    // 使用 LLM 扩展查询
     private String expandQuery(List<String> queryHistory) {
         String prompt = String.format("""
-            Given this conversation history, generate an expanded search query
-            that captures the user's underlying intent:
+            根据这段对话历史，生成一个扩展的搜索查询，
+            以捕获用户的潜在意图：
 
-            Conversation:
+            对话记录：
             %s
 
-            Expanded query (single sentence):
+            扩展查询（单句）：
             """,
             String.join("\n", queryHistory)
         );
@@ -1588,31 +1588,31 @@ public class RAGMemoryService {
 }
 ```
 
-**Strategy Comparison**:
+**策略对比表**：
 
-| Strategy | Token Efficiency | Coherence | Latency | Best For |
+| 策略 | Token 效率 | 连贯性 | 延迟 | 最适合 |
 |----------|------------------|-----------|---------|----------|
-| **Sliding Window** | Low | High | Very low | Short chats |
-| **Summarization** | High | Medium | Low | Long conversations |
-| **Entity Extraction** | Very high | Low | Low | Personal assistants |
-| **RAG** | High | Medium | Medium | Knowledge-intensive |
+| **滑动窗口** | 低 | 高 | 极低 | 短期聊天 |
+| **摘要法** | 高 | 中 | 低 | 长期对话 |
+| **实体提取** | 极高 | 低 | 低 | 个人助理 |
+| **RAG** | 高 | 中 | 中 | 知识密集型任务 |
 
 ---
 
-### 2.2.5 Multi-Agent Shared Memory
+### 2.2.5 多智能体共享记忆
 
-When multiple agents collaborate, how do they share memory while maintaining individual perspectives?
+当多个 Agent 协作时，它们如何在保持各自视角的同事共享记忆？
 
-#### 1. Private Memory (Agent-Specific)
+#### 1. 私有记忆 (Agent 特有)
 
-Each agent maintains private memory for:
-- Intermediate reasoning steps
-- Temporary variables
-- Error logs and debugging info
-- Agent-specific knowledge
+每个 Agent 维护私有记忆，用于：
+- 中间推理步骤
+- 临时变量
+- 错误日志与调试信息
+- Agent 特有的专业知识
 
 ```java
-// Private memory: Thread-local storage
+// 私有记忆：线程本地存储
 @Component
 public class PrivateAgentMemory {
 
@@ -1635,7 +1635,7 @@ public class PrivateAgentMemory {
         return privateState.get().getVariable(key);
     }
 
-    // Cleanup to prevent memory leaks
+    // 清理以防止内存泄漏
     @PreDestroy
     public void cleanup() {
         privateState.remove();
@@ -1643,31 +1643,31 @@ public class PrivateAgentMemory {
 }
 ```
 
-#### 2. Shared Memory (Team Knowledge Base)
+#### 2. 共享记忆 (团队知识库)
 
-All agents can access shared memory:
-- Team announcements
-- Common knowledge base
-- User preferences
-- Project state
+所有 Agent 都可以访问共享记忆：
+- 团队公告
+- 公共知识库
+- 用户偏好
+- 项目整体状态
 
 ```java
-// Shared memory: Blackboard pattern
+// 共享记忆：黑板模式 (Blackboard Pattern)
 @Service
 public class SharedAgentMemory {
 
-    // Key-value store for fast access
+    // 键值对存储用于快速访问
     private final ConcurrentHashMap<String, Object> blackboard =
         new ConcurrentHashMap<>();
 
-    // Vector store for semantic search
+    // 向量库用于语义检索
     private final VectorStore sharedKnowledge;
 
-    // Write to shared memory
+    // 写入共享记忆
     public void writeSharedMemory(String key, Object value) {
         blackboard.put(key, value);
 
-        // Also store in vector store for semantic retrieval
+        // 同时存入向量库以便语义检索
         MemoryDocument doc = MemoryDocument.builder()
             .id(key)
             .text(value.toString())
@@ -1681,12 +1681,12 @@ public class SharedAgentMemory {
         sharedKnowledge.add(List.of(doc));
     }
 
-    // Read from shared memory
+    // 从共享记忆读取
     public Object readSharedMemory(String key) {
         return blackboard.get(key);
     }
 
-    // Semantic search in shared memory
+    // 在共享记忆中进行语义搜索
     public List<Memory> searchSharedMemory(String query) {
         return sharedKnowledge.similaritySearch(
             SearchRequest.query(query).withTopK(5)
@@ -1695,27 +1695,27 @@ public class SharedAgentMemory {
 }
 ```
 
-#### 3. Memory Synchronization
+#### 3. 记忆同步
 
-When one agent updates memory, how do others stay informed?
+当一个 Agent 更新记忆时，其他人如何获知？
 
-**Three Synchronization Patterns**:
+**三种同步模式**：
 
-| Pattern | Mechanism | Best For | Complexity |
+| 模式 | 机制 | 最适合 | 复杂度 |
 |---------|-----------|----------|------------|
-| **Pub-Sub** | Event bus notifications | Real-time updates | Medium |
-| **Version Control** | Conflict detection/resolution | Concurrent writes | High |
-| **Polling** | Periodic checks | Simple setups | Low |
+| **发布-订阅 (Pub-Sub)** | 事件总线通知 | 实时更新 | 中 |
+| **版本控制** | 冲突检测/解决 | 并发写入 | 高 |
+| **轮询 (Polling)** | 定期检查 | 简单配置 | 低 |
 
 ```java
-// Memory synchronization with pub-sub
+// 使用发布-订阅实现记忆同步
 @Service
 public class MemorySynchronizationService {
 
     private final List<Agent> subscribedAgents = new ArrayList<>();
     private final EventEmitter eventBus = new EventEmitter();
 
-    // Agent subscribes to memory updates
+    // Agent 订阅记忆更新
     public void subscribeToUpdates(Agent agent) {
         subscribedAgents.add(agent);
         eventBus.on("memory:update", (event) -> {
@@ -1723,42 +1723,42 @@ public class MemorySynchronizationService {
         });
     }
 
-    // Publish memory update
+    // 发布记忆更新
     @PublishEvent
     public void publishMemoryUpdate(MemoryUpdate update) {
-        // Store update
+        // 存储更新
         applyUpdate(update);
 
-        // Notify all subscribers
+        // 通知所有订阅者
         eventBus.emit("memory:update", update);
 
-        // Notify subscribed agents directly
+        // 直接通知已订阅的 Agent
         subscribedAgents.forEach(agent -> {
             agent.onMemoryUpdate(update);
         });
     }
 
-    // Conflict resolution (version control)
+    // 冲突解决 (版本控制)
     public Memory resolveConflict(Memory local, Memory remote) {
         if (local.getVersion() == remote.getVersion()) {
-            // No conflict
+            // 无冲突
             return remote;
         }
 
-        // Conflict detected: Use LLM to merge
+        // 检测到冲突：使用 LLM 进行合并
         String mergePrompt = String.format("""
-            Merge these conflicting memory versions:
+            合并这些冲突的记忆版本：
 
-            Local version (v%d): %s
-            Remote version (v%d): %s
+            本地版本 (v%d): %s
+            远程版本 (v%d): %s
 
-            Produce a merged version that preserves the most accurate and up-to-date information.
+            生成一个保留最准确和最新信息的合并版本。
             """,
             local.getVersion(), local.getContent(),
             remote.getVersion(), remote.getContent()
         );
 
-        String mergedContent = llm.generate(mergePrompt);
+        String mergedContent = llm.call(mergePrompt);
 
         return Memory.builder()
             .content(mergedContent)
@@ -1768,26 +1768,26 @@ public class MemorySynchronizationService {
 }
 ```
 
-**Multi-Agent Memory Architecture**:
+**多智能体记忆架构图**：
 
 ```mermaid
 flowchart TB
-    subgraph Agents["Agent 1, 2, 3"]
+    subgraph Agents["智能体 1, 2, 3"]
         A1[Agent 1]
         A2[Agent 2]
         A3[Agent 3]
     end
 
-    subgraph Private["Private Memory"]
-        P1[Thought Process 1]
-        P2[Thought Process 2]
-        P3[Thought Process 3]
+    subgraph Private["私有记忆"]
+        P1[推理过程 1]
+        P2[推理过程 2]
+        P3[推理过程 3]
     end
 
-    subgraph Shared["Shared Memory"]
-        BB[Blackboard<br/>Key-Value Store]
-        VS[Vector Store<br/>Semantic Search]
-        MQ[Message Queue<br/>Event Bus]
+    subgraph Shared["共享记忆"]
+        BB[黑板<br/>键值对存储]
+        VS[向量库<br/>语义搜索]
+        MQ[消息队列<br/>事件总线]
     end
 
     A1 --> P1
@@ -1802,24 +1802,24 @@ flowchart TB
     A2 --> VS
     A3 --> VS
 
-    A1 -.Publish.-> MQ
+    A1 -.发布.-> MQ
     A2 -.Publish.-> MQ
     A3 -.Publish.-> MQ
 
-    MQ -.Notify.-> A1
+    MQ -.通知.-> A1
     MQ -.Notify.-> A2
     MQ -.Notify.-> A3
 ```
 
 ---
 
-### 2.2.6 Evaluation Metrics
+### 2.2.6 评估指标
 
-How do we measure if a memory system is effective? We need comprehensive metrics across performance, behavior, and resource utilization.
+我们如何衡量记忆系统是否有效？我们需要涵盖性能、行为和资源利用率的全面指标。
 
-#### 1. Performance Metrics
+#### 1. 性能指标
 
-**Hit Rate**: Proportion of queries that successfully retrieve relevant memory
+**命中率 (Hit Rate)**：成功检索到相关记忆的查询比例。
 
 ```java
 @Service
@@ -1835,24 +1835,24 @@ public class MemoryEvaluationService {
             List<Memory> retrieved = memoryService.retrieve(query.getQuery(), 10);
             Set<String> relevantIds = query.getRelevantMemoryIds();
 
-            // Hit: At least one relevant memory retrieved
+            // 命中：至少检索到一个相关记忆
             boolean hit = retrieved.stream()
                 .anyMatch(m -> relevantIds.contains(m.getId()));
             if (hit) hits++;
 
-            // Precision@10: Relevant retrieved / Total retrieved
+            // Precision@10: 相关已检索 / 总已检索
             long relevantRetrieved = retrieved.stream()
                 .filter(m -> relevantIds.contains(m.getId()))
                 .count();
             double precision = (double) relevantRetrieved / 10;
             sumPrecision += precision;
 
-            // Recall@10: Relevant retrieved / Total relevant
+            // Recall@10: 相关已检索 / 总相关
             double recall = (double) relevantRetrieved / relevantIds.size();
             sumRecall += recall;
         }
 
-        // F1 Score: Harmonic mean of precision and recall
+        // F1 得分: 精确率与召回率的调和平均数
         double avgPrecision = sumPrecision / totalQueries;
         double avgRecall = sumRecall / totalQueries;
         double f1Score = 2 * (avgPrecision * avgRecall) / (avgPrecision + avgRecall);
@@ -1867,59 +1867,59 @@ public class MemoryEvaluationService {
 }
 ```
 
-**Target Metrics**:
+**目标指标参考**：
 
-| Metric | Target | Measurement Method |
+| 指标 | 目标值 | 测量方法 |
 |--------|--------|-------------------|
-| **Hit Rate** | > 90% | Test set evaluation |
-| **Precision@K** | > 0.85 | Annotated test queries |
-| **Recall@K** | > 0.80 | Annotated test queries |
-| **F1 Score** | > 0.82 | Calculated from P/R |
-| **Latency** | < 100ms | Load testing |
+| **命中率** | > 90% | 测试集评估 |
+| **Precision@K** | > 0.85 | 带标注的测试查询 |
+| **Recall@K** | > 0.80 | 带标注的测试查询 |
+| **F1 得分** | > 0.82 | 由 P/R 计算得出 |
+| **延迟** | < 100ms | 负载测试 |
 
-#### 2. Behavioral Metrics
+#### 2. 行为指标
 
-**Coherence**: Does the agent maintain consistent context?
+**连贯性 (Coherence)**：Agent 是否保持了一致的上下文？
 
 ```java
-// LLM-as-a-Judge: Evaluate coherence
+// 以 LLM 作为裁判：评估连贯性
 @Service
 public class BehaviorEvaluationService {
 
     public double evaluateCoherence(List<Message> conversation) {
         String prompt = String.format("""
-            Evaluate the coherence of this conversation:
+            评估这段对话的连贯性：
             %s
 
-            Rate from 1-10 on:
-            - Context consistency
-            - Logical flow
-            - Contradiction avoidance
+            按 1-10 评分：
+            - 上下文一致性
+            - 逻辑流
+            - 矛盾避免
 
-            Respond with just a number.
+            仅返回一个数字。
             """,
             conversation.stream()
                 .map(Message::getContent)
                 .collect(Collectors.joining("\n"))
         );
 
-        String response = llm.generate(prompt);
+        String response = llm.call(prompt);
         return Double.parseDouble(response.trim()) / 10.0;
     }
 }
 ```
 
-**Key Behavioral Metrics**:
+**关键行为指标**：
 
-| Metric | Target | Evaluation Method |
+| 指标 | 目标值 | 评估方法 |
 |--------|--------|-------------------|
-| **Coherence** | > 0.8 | LLM-as-a-Judge |
-| **Believability** | > 4/5 | Human rating |
-| **Adaptability** | > 0.7 | Scenario testing |
+| **连贯性** | > 0.8 | LLM-as-a-Judge |
+| **可信度** | > 4/5 | 人工评分 |
+| **适应性** | > 0.7 | 场景测试 |
 
-#### 3. Resource Metrics
+#### 3. 资源指标
 
-**Token Efficiency**: Percentage of context tokens that contribute to responses
+**Token 效率**：对回答有贡献的上下文 Token 百分比。
 
 ```java
 @Service
@@ -1933,11 +1933,11 @@ public class ResourceEvaluationService {
 
         for (Conversation conv : conversations) {
             for (Turn turn : conv.getTurns()) {
-                // Context tokens provided
+                // 提供的上下文 Token
                 long contextTokens = estimateTokens(turn.getContext());
                 totalContextTokens += contextTokens;
 
-                // Effective tokens: referenced in response
+                // 有效 Token：在回答中被引用的部分
                 long referencedTokens = estimateReferencedTokens(
                     turn.getContext(),
                     turn.getResponse()
@@ -1957,18 +1957,18 @@ public class ResourceEvaluationService {
 }
 ```
 
-**Resource Targets**:
+**资源目标参考**：
 
-| Metric | Target | Monitoring Method |
+| 指标 | 目标值 | 监控方法 |
 |--------|--------|-------------------|
-| **Token Efficiency** | > 80% | Token analysis |
-| **Memory Utilization** | > 70% | Storage metrics |
-| **Compute Cost** | < $0.01/query | Cost tracking |
+| **Token 效率** | > 80% | Token 分析 |
+| **存储利用率** | > 70% | 存储监控指标 |
+| **计算成本** | < $0.01/查询 | 成本追踪 |
 
-#### 4. End-to-End Evaluation Pipeline
+#### 4. 端到端评估流水线
 
 ```java
-// Comprehensive evaluation system
+// 全面的评估系统
 @Service
 public class MemorySystemEvaluator {
 
@@ -1977,19 +1977,19 @@ public class MemorySystemEvaluator {
         List<TestQuery> testQueries,
         List<Conversation> testConversations
     ) {
-        // 1. Performance metrics
+        // 1. 性能指标
         EvaluationMetrics performance = performanceEvaluator.evaluate(testQueries);
 
-        // 2. Behavioral metrics
+        // 2. 行为指标
         double avgCoherence = testConversations.stream()
             .mapToDouble(behaviorEvaluator::evaluateCoherence)
             .average()
             .orElse(0.0);
 
-        // 3. Resource metrics
+        // 3. 资源指标
         TokenEfficiencyMetrics efficiency = resourceEvaluator.evaluateTokenEfficiency(testConversations);
 
-        // 4. Generate report
+        // 4. 生成报告
         return EvaluationReport.builder()
             .performance(performance)
             .coherence(avgCoherence)
@@ -1998,495 +1998,7 @@ public class MemorySystemEvaluator {
             .recommendations(generateRecommendations(performance, avgCoherence, efficiency))
             .build();
     }
-
-    private double calculateOverallScore(
-        EvaluationMetrics performance,
-        double coherence,
-        TokenEfficiencyMetrics efficiency
-    ) {
-        return 0.4 * performance.getF1Score() +
-               0.3 * coherence +
-               0.3 * efficiency.getEfficiency();
-    }
-}
-```
-
-**Complete Metrics Dashboard**:
-
-```mermaid
-graph TB
-    subgraph Evaluation["Memory System Evaluation"]
-        Perf[Performance Metrics<br/>Hit Rate: 92%<br/>F1 Score: 0.86<br/>Latency: 85ms]
-        Beh[Behavioral Metrics<br/>Coherence: 0.84<br/>Believability: 4.2/5<br/>Adaptability: 0.78]
-        Res[Resource Metrics<br/>Token Efficiency: 83%<br/>Memory Utilization: 76%<br/>Cost: $0.008/query]
-    end
-
-    Overall[Overall Score: 0.83/1.0]
-
-    Perf --> Overall
-    Beh --> Overall
-    Res --> Overall
-
-    style Perf fill:#e3f2fd
-    style Beh fill:#f3e5f5
-    style Res fill:#e8f5e9
-    style Overall fill:#fff3e0
-```
-
----
-
-### 2.2.7 Key Takeaways & Best Practices
-
-#### Memory System Design Checklist
-
-- [ ] **Understand your use case**: Semantic search? Exact queries? Long context?
-- [ ] **Choose right storage**: Vector store for semantic, SQL for state, Graph for reasoning
-- [ ] **Implement multi-signal retrieval**: Combine recency, importance, relevance
-- [ ] **Add reflection mechanism**: Enable agents to learn from experience
-- [ ] **Plan for forgetting**: LRU, importance decay, compression
-- [ ] **Measure everything**: Track hit rate, coherence, token efficiency
-- [ ] **Start simple**: Sliding window → Add summarization → Add RAG
-- [ ] **Use production tools**: Pinecone, Weaviate, Neo4j, Spring AI
-
-#### Quick Reference
-
-| Task | Recommended Approach |
-|------|---------------------|
-| **Simple chatbot** | Sliding window (MessageWindowChatMemory) |
-| **Long conversations** | Summarization (TokenBufferChatMemory) |
-| **Personal assistant** | Entity extraction + Vector store |
-| **Knowledge base** | Vector store + RAG |
-| **Complex reasoning** | Knowledge graph (GraphRAG) |
-| **Very long context** | Hierarchical storage (MemGPT) |
-| **Multi-agent system** | Shared memory + Pub-sub sync |
-| **Learning agent** | Episodic memory + Reflection |
-
----
-
-### 2.2.8 References & Further Reading
-
-**Core Papers**:
-1. **MemGPT**: "Towards LLMs as Operating Systems" (UC Berkeley, 2023) - https://arxiv.org/abs/2310.08560
-2. **GraphRAG**: Microsoft Research (2024) - https://www.microsoft.com/en-us/research/project/graphrag/
-3. **Stanford Generative Agents**: Park et al. (2023) - https://arxiv.org/abs/2304.03442
-4. **Lost in the Middle**: Liu et al. (2023) - https://arxiv.org/abs/2307.03172
-
-**Production Frameworks**:
-- **Spring AI**: https://docs.spring.io/spring-ai/reference/
-- **LangChain Memory**: https://python.langchain.com/docs/modules/memory/
-- **MemGPT/Letta**: https://www.memgpt.ai/
-- **LightRAG**: https://github.com/HKUDS/LightRAG
-
-**Tools**:
-- **Pinecone**: https://www.pinecone.io/
-- **Weaviate**: https://weaviate.io/
-- **Neo4j**: https://neo4j.com/
-- **pgvector**: https://github.com/pgvector/pgvector
-
----
-
-## 2.3 Tool System
-
-Tools are the capabilities that allow agents to interact with the world beyond text generation.
-
-### Tool Architecture
-
-```mermaid
-flowchart TB
-    subgraph Agent["Agent Core"]
-        LLM[LLM]
-    end
-
-    subgraph ToolSystem["Tool System"]
-        T1[Tool Registry]
-        T2[Tool Selector]
-        T3[Tool Executor]
-        T4[Error Handler]
-    end
-
-    subgraph Tools["Tool Implementations"]
-        API[REST APIs]
-        DB[Database]
-        MCP[MCP Servers]
-        CODE[Code Execution]
-    end
-
-    LLM --> T1
-    T1 --> T2
-    T2 --> T3
-    T3 --> Tools
-    Tools --> T4
-    T4 --> LLM
-
-    style T1 fill:#e3f2fd
-    style T2 fill:#f3e5f5
-    style T3 fill:#e8f5e9
-    style T4 fill:#fff3e0
-```
-
-### 1. Tool Definition
-
-Tools must be defined with clear schemas for the LLM to understand and use them.
-
-```java
-// Spring AI: Tool Definition
-@Descriptor("search_web")
-public record SearchRequest(
-    @Description("The search query string") String query,
-    @Description("Number of results to return") @DefaultValue("5") int numResults
-) {}
-
-public FunctionCallback callback = FunctionCallback.builder()
-    .function("search_web", this::searchWeb)
-    .description("Search the web for current information")
-    .inputType(SearchRequest.class)
-    .build();
-```
-
-### 2. Tool Selection Strategies
-
-| Strategy | Description | When to Use |
-|----------|-------------|-------------|
-| **LLM-based** | LLM chooses tool | General purpose |
-| **Rule-based** | Predefined rules | Deterministic selection |
-| **Embedding-based** | Semantic matching | Many similar tools |
-| **Router Agent** | Separate agent decides | Complex tool ecosystems |
-
-### 3. Tool Execution Flow
-
-```mermaid
-sequenceDiagram
-    participant LLM as LLM
-    participant TS as Tool Selector
-    participant TE as Tool Executor
-    participant T as Tool
-    participant EH as Error Handler
-
-    LLM->>TS: Need to search
-    TS->>TE: Execute search_web
-    TE->>T: Call API
-
-    alt Success
-        T-->>TE: Results
-        TE-->>LLM: Tool output
-    else Error
-        T-->>EH: Error
-        EH->>EH: Handle/Retry
-        EH-->>LLM: Error info
-    end
-```
-
-### 4. Error Handling
-
-Robust agents must handle tool failures gracefully.
-
-```java
-// Spring AI: Tool Error Handling
-public class ResilientToolExecutor {
-
-    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 1000))
-    public ToolExecutionResult execute(ToolCall call) {
-        try {
-            return tool.execute(call);
-        } catch (RateLimitException e) {
-            // Exponential backoff retry
-            throw e;
-        } catch (InvalidInputException e) {
-            // Return structured error to LLM
-            return ToolExecutionResult.error(e.getMessage());
-        } catch (Exception e) {
-            // Log and fail gracefully
-            logger.error("Tool execution failed", e);
-            return ToolExecutionResult.error("Tool unavailable");
-        }
-    }
-}
-```
-
-### 5. MCP Integration
-
-Model Context Protocol provides a standardized way to integrate tools.
-
-```java
-// Spring AI: MCP Server Integration
-@Bean
-public McpClient mcpClient() {
-    return McpClient.builder()
-        .server("file-system")
-        .transport(StdioServerTransport.builder()
-            .command("npx")
-            .args("-y", "@modelcontextprotocol/server-filesystem", "/allowed/path")
-            .build())
-        .build();
 }
 ```
 
 ---
-
-## 2.4 Planning System
-
-Planning enables agents to break down complex tasks and execute them systematically.
-
-### Planning Hierarchy
-
-```mermaid
-graph TB
-    subgraph Planning["Planning System"]
-        TD[Task Decomposition<br/>Break into subtasks]
-        RP[Re-planning<br/>Adapt to changes]
-        MSP[Multi-step Planning<br/>Sequence actions]
-        GDP[Goal-directed Planning<br/>Work toward objectives]
-    end
-
-    TD --> MSP
-    RP --> MSP
-    GDP --> MSP
-
-    style TD fill:#e3f2fd
-    style RP fill:#f3e5f5
-    style MSP fill:#e8f5e9
-    style GDP fill:#fff3e0
-```
-
-### 1. Task Decomposition
-
-Breaking complex goals into manageable subtasks.
-
-```mermaid
-flowchart TB
-    G[Complex Goal]
-    G --> S1[Subtask 1]
-    G --> S2[Subtask 2]
-    G --> S3[Subtask 3]
-    S1 --> S1a[Action 1.1]
-    S1 --> S1b[Action 1.2]
-    S2 --> S2a[Action 2.1]
-    S3 --> S3a[Action 3.1]
-
-    style G fill:#e3f2fd
-    style S1 fill:#f3e5f5
-    style S2 fill:#f3e5f5
-    style S3 fill:#f3e5f5
-    style S1a fill:#e8f5e9
-    style S1b fill:#e8f5e9
-    style S2a fill:#e8f5e9
-    style S3a fill:#e8f5e9
-```
-
-**Example:**
-```
-Goal: "Research and write a blog post about quantum computing"
-
-Decomposition:
-1. Research Phase
-   - Search "quantum computing basics"
-   - Search "latest quantum computing advances 2024"
-   - Extract key concepts and examples
-
-2. Outline Phase
-   - Structure blog post
-   - Define sections
-
-3. Writing Phase
-   - Write introduction
-   - Write body paragraphs
-   - Write conclusion
-
-4. Review Phase
-   - Check for accuracy
-   - Improve clarity
-   - Add citations
-```
-
-### 2. Re-planning
-
-Adapting plans based on feedback and changing conditions.
-
-```mermaid
-flowchart TB
-    P[Initial Plan]
-    E[Execute Step]
-    F[Feedback]
-    D{Need Adjust?}
-
-    P --> E --> F --> D
-    D -->|Yes| NP[Revised Plan]
-    D -->|No| E
-    NP --> E
-
-    style P fill:#e3f2fd
-    style E fill:#e8f5e9
-    style F fill:#fff3e0
-    style NP fill:#f3e5f5
-```
-
-**Re-planning Triggers:**
-- Tool failure
-- Unexpected results
-- New information
-- User feedback
-- Timeout or resource constraints
-
-### 3. Multi-step Planning
-
-Sequencing actions to achieve complex goals.
-
-```java
-// Spring AI: Multi-step Planning
-public class TaskPlanner {
-
-    public List<Action> plan(String goal) {
-        return List.of(
-            Action.builder()
-                .type("search")
-                .params(Map.of("query", goal))
-                .build(),
-            Action.builder()
-                .type("analyze")
-                .dependsOn(List.of(0))
-                .build(),
-            Action.builder()
-                .type("write")
-                .dependsOn(List.of(1))
-                .build()
-        );
-    }
-}
-```
-
-### 4. Goal-directed Planning
-
-Planning with specific objectives in mind.
-
-```mermaid
-flowchart LR
-    G[Goal State]
-    CS[Current State]
-    P[Plan Actions]
-
-    G -->|Gap Analysis| P
-    CS -->|Context| P
-    P --> E[Execute]
-
-    style G fill:#e3f2fd
-    style CS fill:#fff3e0
-    style P fill:#f3e5f5
-    style E fill:#e8f5e9
-```
-
-**Techniques:**
-- Forward chaining (start from current state)
-- Backward chaining (start from goal state)
-- Bidirectional search (both directions)
-- Hierarchical planning (plan at multiple levels)
-
----
-
-## 2.5 Integration: Complete Agent Architecture
-
-Putting it all together - a complete agent architecture.
-
-```mermaid
-flowchart TB
-    subgraph Input["Input Layer"]
-        U[User Input]
-        C[Context]
-    end
-
-    subgraph Core["Agent Core"]
-        Obs[Observe]
-        Rea[Reason]
-        Pla[Plan]
-        Act[Act]
-        Ref[Reflect]
-    end
-
-    subgraph Systems["Supporting Systems"]
-        Mem[Memory System]
-        ToolReg[Tool Registry]
-    end
-
-    subgraph Output["Output Layer"]
-        R[Response]
-        A2[Actions Taken]
-    end
-
-    U --> Obs
-    C --> Obs
-
-    Obs --> Rea
-    Rea --> Pla
-    Pla --> Act
-
-    Act --> ToolReg
-    ToolReg --> Act
-
-    Act --> Ref
-    Ref --> Mem
-
-    Rea --> Mem
-    Mem --> Rea
-
-    Ref -->|Goal Met| R
-    Ref -->|Continue| Rea
-
-    Act --> A2
-
-    style Obs fill:#e3f2fd
-    style Rea fill:#f3e5f5
-    style Pla fill:#fff3e0
-    style Act fill:#e8f5e9
-    style Ref fill:#fce4ec
-```
-
----
-
-## 2.6 Key Takeaways
-
-### Memory System Selection
-
-| Memory Type | Best For | Trade-offs |
-|-------------|----------|------------|
-| **Buffer** | Short conversations | Simple but limited |
-| **Summary** | Long sessions | Efficient but lossy |
-| **Vector** | Knowledge-intensive | Powerful but complex |
-| **Entity** | Personal assistants | Structured but rigid |
-| **Episodic** | Learning agents | Rich but expensive |
-
-### Tool System Design
-
-1. **Clear Descriptions**: LLM must understand when and how to use tools
-2. **Strong Typing**: Use structured schemas for inputs/outputs
-3. **Error Handling**: Graceful failures with informative messages
-4. **Idempotency**: Tools should be safe to retry
-
-### Planning Best Practices
-
-1. **Decompose**: Break complex tasks into subtasks
-2. **Adapt**: Re-plan when conditions change
-3. **Validate**: Check plan feasibility before execution
-4. **Iterate**: Use reflection to improve plans
-
----
-
-## 2.7 Next Steps
-
-Now that you understand the foundational architecture:
-
-**For Implementation:**
-- → **[3. Design Patterns](../design-patterns)** - Learn proven patterns for structuring agents
-- → **[4. Frameworks](../frameworks)** - See how to implement with Spring AI
-
-**For Advanced Topics:**
-- → **[5. Engineering](../engineering)** - Production deployment and evaluation
-- → **[6. Frontier](../frontier)** - Emerging trends and research
-
----
-
-:::tip Architecture Pattern
-The ReAct loop (Reason → Act → Observe) is the foundation of most agent architectures. Master this pattern before exploring more complex systems.
-:::
-
-:::info Spring AI Developers
-See **[4. Frameworks & Tech Stack](../frameworks)** for complete Spring AI implementation examples of all these components.
-:::

@@ -1,31 +1,31 @@
 ---
 id: core-concepts
-title: 1. Core Concepts
-sidebar_label: 1. Core Concepts
-description: Control Loops, Feedback Systems, and Agent Boundaries - The Foundation of Harness Engineering
+title: 1. 核心概念
+sidebar_label: 1. 核心概念
+description: 控制循环、反馈系统和智能体边界 —— Harness 工程的基石
 ---
 
-# 1. Core Concepts
+# 1. 核心概念
 
-> **"The difference between a toy agent and a production agent is the quality of its control systems."**
+> **“玩具级 Agent 与生产级 Agent 之间的区别，在于其控制系统的质量。”**
 
-Harness engineering is built on three foundational concepts: **control loops**, **feedback systems**, and **agent boundaries**. These concepts work together to create reliable, predictable, and safe agent behavior.
+Harness 工程建立在三个核心概念之上：**控制循环 (Control Loops)**、**反馈系统 (Feedback Systems)** 和 **智能体边界 (Agent Boundaries)**。这些概念协同工作，共同打造出可靠、可预测且安全的 Agent 行为。
 
 ---
 
-## 1.1 Control Loops
+## 1.1 控制循环 (Control Loops)
 
-### The OODA Loop for Agents
+### 面向 Agent 的 OODA 循环
 
-Control loops are the fundamental feedback mechanism that enables agents to operate autonomously while staying aligned with goals.
+控制循环是使 Agent 能够在保持目标一致的同时自主运行的基础反馈机制。
 
 ```mermaid
 flowchart LR
-    O[Observe<br/>Gather information]
-    D[Orient<br/>Analyze context]
-    Decide[Decide<br/>Choose action]
-    A[Act<br/>Execute tool]
-    R[Reflect<br/>Evaluate outcome]
+    O[观察 Observe<br/>收集信息]
+    D[定向 Orient<br/>分析上下文]
+    Decide[决策 Decide<br/>选择行动]
+    A[行动 Act<br/>执行工具]
+    R[反思 Reflect<br/>评估结果]
 
     O --> D --> Decide --> A --> R --> O
 
@@ -36,15 +36,15 @@ flowchart LR
     style R fill:#ffebee
 ```
 
-#### Observe (感知)
+#### Observe (感知/观察)
 
-**What the agent perceives:**
-- User input and intent
-- Current task state
-- Available tools and capabilities
-- Environmental context (time, resources, constraints)
+**Agent 感知的内容：**
+- 用户输入与意图
+- 当前任务状态
+- 可用的工具与能力
+- 环境上下文（时间、资源、约束条件）
 
-**Implementation:**
+**实现示例：**
 
 ```java
 @Service
@@ -73,15 +73,15 @@ public class ObservationService {
 }
 ```
 
-#### Orient (定向)
+#### Orient (定向/分析)
 
-**How the agent interprets observations:**
-- Compare current state to goal state
-- Identify gaps and obstacles
-- Assess risks and constraints
-- Prioritize next actions
+**Agent 如何解读观察结果：**
+- 将当前状态与目标状态进行对比
+- 识别差距与障碍
+- 评估风险与约束
+- 确定后续行动的优先级
 
-**Implementation:**
+**实现示例：**
 
 ```java
 @Service
@@ -93,19 +93,19 @@ public class OrientationService {
     public Orientation orient(AgentObservation observation) {
         String analysis = chatClient.prompt()
             .system("""
-                You are an agent orientation system.
-                Analyze the current situation and provide:
-                1. Current state assessment
-                2. Gap analysis (current vs. goal)
-                3. Identified obstacles
-                4. Risk assessment
-                5. Recommended focus areas
+                你是一个智能体定向系统。
+                请分析当前形势并提供：
+                1. 当前状态评估
+                2. 差距分析（当前 vs 目标）
+                3. 识别出的障碍
+                4. 风险评估
+                5. 建议的重点关注领域
                 """)
             .user("""
-                User Input: {input}
-                Current Task: {task}
-                Available Tools: {tools}
-                Resource Status: {resources}
+                用户输入: {input}
+                当前任务: {task}
+                可用工具: {tools}
+                资源状态: {resources}
                 """.formatted(
                     observation.getUserInput(),
                     observation.getCurrentTask(),
@@ -122,13 +122,13 @@ public class OrientationService {
 
 #### Decide (决策)
 
-**Choosing the next action:**
-- Select appropriate tool(s)
-- Plan execution order
-- Allocate resources
-- Set success criteria
+**选择下一步行动：**
+- 选择合适的工具
+- 规划执行顺序
+- 分配资源
+- 设定成功标准
 
-**Implementation:**
+**实现示例：**
 
 ```java
 @Service
@@ -140,17 +140,17 @@ public class DecisionService {
     public AgentDecision decide(Orientation orientation) {
         String decision = chatClient.prompt()
             .system("""
-                You are an agent decision system.
-                Based on the orientation, decide:
-                1. Which tool(s) to use
-                2. Execution order (if multiple tools)
-                3. Resource allocation
-                4. Success criteria
-                5. Fallback conditions
+                你是一个智能体决策系统。
+                请根据定向分析结果决定：
+                1. 使用哪些工具
+                2. 执行顺序（如果涉及多个工具）
+                3. 资源分配
+                4. 成功标准
+                5. 兜底/降级条件
                 """)
             .user("""
-                Orientation: {orientation}
-                Available Tools: {tools}
+                定向分析: {orientation}
+                可用工具: {tools}
                 """.formatted(
                     orientation,
                     orientation.getAvailableTools()
@@ -165,13 +165,13 @@ public class DecisionService {
 
 #### Act (行动)
 
-**Executing the decision:**
-- Invoke selected tools
-- Handle tool responses
-- Update state
-- Capture results
+**执行决策：**
+- 调用选定的工具
+- 处理工具响应
+- 更新状态
+- 记录结果
 
-**Implementation:**
+**实现示例：**
 
 ```java
 @Service
@@ -191,7 +191,7 @@ public class ActionService {
                 ToolResult result = toolExecutor.execute(call);
                 results.add(result);
 
-                // Update state after each tool call
+                // 每次工具调用后更新状态
                 stateManager.updateState(result);
 
             } catch (ToolExecutionException e) {
@@ -204,15 +204,15 @@ public class ActionService {
 }
 ```
 
-#### Reflect (反思)
+#### Reflect (反思/评估)
 
-**Evaluating the outcome:**
-- Compare outcome to success criteria
-- Identify errors or unexpected results
-- Determine if goal is achieved
-- Decide next iteration
+**评估产出：**
+- 将结果与成功标准进行对比
+- 识别错误或意外结果
+- 确定目标是否已达成
+- 决定下一轮迭代
 
-**Implementation:**
+**实现示例：**
 
 ```java
 @Service
@@ -224,17 +224,17 @@ public class ReflectionService {
     public Reflection reflect(ActionResult result, AgentDecision decision) {
         String reflection = chatClient.prompt()
             .system("""
-                You are an agent reflection system.
-                Evaluate the action results:
-                1. Did we achieve the success criteria?
-                2. Are there any errors or unexpected results?
-                3. Is the goal complete?
-                4. What should we do next?
+                你是一个智能体反思系统。
+                请评估行动结果：
+                1. 我们是否达到了成功标准？
+                2. 是否存在任何错误或意外结果？
+                3. 目标是否已完成？
+                4. 我们下一步该做什么？
                 """)
             .user("""
-                Decision: {decision}
-                Success Criteria: {criteria}
-                Results: {results}
+                决策: {decision}
+                成功标准: {criteria}
+                执行结果: {results}
                 """.formatted(
                     decision,
                     decision.getSuccessCriteria(),
@@ -248,7 +248,7 @@ public class ReflectionService {
 }
 ```
 
-### The Complete Control Loop
+### 完整的控制循环实现
 
 ```java
 @Service
@@ -273,54 +273,54 @@ public class ControlLoopService {
 
     public AgentResult execute(AgentContext context) {
         for (int i = 0; i < MAX_ITERATIONS; i++) {
-            // Observe
+            // 观察
             AgentObservation observation = observationService.observe(context);
 
-            // Orient
+            // 定向
             Orientation orientation = orientationService.orient(observation);
 
-            // Decide
+            // 决策
             AgentDecision decision = decisionService.decide(orientation);
 
-            // Act
+            // 行动
             ActionResult result = actionService.act(decision);
 
-            // Reflect
+            // 反思
             Reflection reflection = reflectionService.reflect(result, decision);
 
-            // Check if goal achieved
+            // 检查目标是否达成
             if (reflection.isGoalAchieved()) {
                 return AgentResult.success(result.getOutput());
             }
 
-            // Update context for next iteration
+            // 更新下一轮迭代的上下文
             context = context.update(result);
         }
 
-        return AgentResult.incomplete("Max iterations reached");
+        return AgentResult.incomplete("已达到最大迭代次数");
     }
 }
 ```
 
 ---
 
-## 1.2 Feedback Systems
+## 1.2 反馈系统 (Feedback Systems)
 
-Feedback systems provide the information agents need to correct course and improve performance.
+反馈系统为 Agent 提供了纠正航向和提升性能所需的信息。
 
-### Types of Feedback
+### 反馈类型
 
 ```mermaid
 flowchart TB
-    subgraph Feedback["Feedback Systems"]
-        T[Tool Result Feedback]
-        H[Human-in-the-Loop]
-        E[Environment Feedback]
-        S[Self-Reflection]
+    subgraph Feedback["反馈系统"]
+        T[工具结果反馈]
+        H[人机协作反馈]
+        E[环境反馈]
+        S[自我反思反馈]
     end
 
-    subgraph Agent["Agent Core"]
-        M[Model]
+    subgraph Agent["Agent 核心"]
+        M[模型]
     end
 
     T --> M
@@ -334,18 +334,18 @@ flowchart TB
     style S fill:#fff3e0
 ```
 
-#### 1. Tool Result Feedback
+#### 1. 工具结果反馈
 
-**Immediate feedback from tool execution:**
+**来自工具执行的即时反馈：**
 
-| Feedback Type | Description | Agent Response |
+| 反馈类型 | 描述 | Agent 响应 |
 |---------------|-------------|----------------|
-| **Success** | Tool executed successfully | Use result in next step |
-| **Partial Success** | Tool returned partial data | Decide if sufficient or retry |
-| **Failure** | Tool error or timeout | Retry with fallback or skip |
-| **Unexpected** | Unexpected result format | Re-interpret or ask for help |
+| **成功** | 工具执行成功 | 在下一步中使用结果 |
+| **部分成功** | 工具返回部分数据 | 决定是否足够或重试 |
+| **失败** | 工具错误或超时 | 尝试降级方案或跳过 |
+| **异常** | 结果格式不符合预期 | 重新解读或请求人工介入 |
 
-**Implementation:**
+**实现示例：**
 
 ```java
 @Service
@@ -359,7 +359,7 @@ public class ToolFeedbackService {
             .metadata(result.getMetadata())
             .build();
 
-        // Analyze feedback quality
+        // 分析反馈质量
         if (feedback.hasErrors()) {
             feedback.setRecommendedAction(
                 determineRecoveryAction(feedback)
@@ -393,9 +393,9 @@ public class ToolFeedbackService {
 }
 ```
 
-#### 2. Human-in-the-Loop Feedback
+#### 2. 人机协作反馈 (Human-in-the-Loop)
 
-**Incorporating human guidance:**
+**引入人类指导：**
 
 ```java
 @Service
@@ -408,15 +408,15 @@ public class HumanFeedbackService {
         AgentContext context,
         FeedbackRequest request
     ) {
-        // Check if human intervention is needed
+        // 检查是否需要人工干预
         if (!requiresHumanFeedback(context, request)) {
             return Optional.empty();
         }
 
-        // Submit feedback request
+        // 提交反馈请求
         String feedbackId = feedbackQueue.submit(request);
 
-        // Wait for response (with timeout)
+        // 等待响应（带超时机制）
         return feedbackQueue.waitForResponse(feedbackId, Duration.ofMinutes(5));
     }
 
@@ -424,11 +424,11 @@ public class HumanFeedbackService {
         AgentContext context,
         FeedbackRequest request
     ) {
-        // Require feedback for:
-        // - Sensitive operations
-        // - High-stakes decisions
-        // - Ambiguous situations
-        // - After N failures
+        // 在以下情况需要反馈：
+        // - 敏感操作
+        // - 高风险决策
+        // - 模糊情境
+        // - 连续 N 次失败后
 
         return context.getSensitivityLevel() == Sensitivity.HIGH
             || context.getFailureCount() >= 3
@@ -437,10 +437,10 @@ public class HumanFeedbackService {
 }
 ```
 
-**Feedback Request UI:**
+**反馈请求 UI 示例：**
 
 ```typescript
-// Next.js: Human Feedback Interface
+// Next.js: 人工反馈界面接口
 interface FeedbackRequest {
   agentId: string;
   context: string;
@@ -467,7 +467,7 @@ export function FeedbackPanel({ request }: { request: FeedbackRequest }) {
 
   return (
     <div className="feedback-panel">
-      <h3>Agent Needs Your Input</h3>
+      <h3>Agent 需要您的输入</h3>
       <p>{request.question}</p>
 
       {request.options ? (
@@ -486,7 +486,7 @@ export function FeedbackPanel({ request }: { request: FeedbackRequest }) {
         <textarea
           value={response}
           onChange={e => setResponse(e.target.value)}
-          placeholder="Provide guidance..."
+          placeholder="请输入指导意见..."
         />
       )}
 
@@ -494,16 +494,16 @@ export function FeedbackPanel({ request }: { request: FeedbackRequest }) {
         onClick={handleSubmit}
         disabled={submitting || !response}
       >
-        {submitting ? 'Submitting...' : 'Submit Feedback'}
+        {submitting ? '提交中...' : '提交反馈'}
       </button>
     </div>
   );
 }
 ```
 
-#### 3. Environment Feedback
+#### 3. 环境反馈
 
-**Signals from the operational environment:**
+**来自运行环境的信号：**
 
 ```java
 @Service
@@ -527,9 +527,9 @@ public class EnvironmentFeedbackService {
 }
 ```
 
-#### 4. Self-Reflection Feedback
+#### 4. 自我反思反馈
 
-**Agent's own assessment of its performance:**
+**Agent 对自身表现的评估：**
 
 ```java
 @Service
@@ -541,17 +541,17 @@ public class SelfReflectionService {
     public SelfReflection reflect(AgentContext context, ActionResult result) {
         String reflection = chatClient.prompt()
             .system("""
-                You are a self-reflective agent.
-                Analyze your performance:
-                1. Did you achieve the goal?
-                2. What worked well?
-                3. What could be improved?
-                4. What would you do differently?
+                你是一个具备自我反思能力的智能体。
+                请分析你的表现：
+                1. 是否达成了目标？
+                2. 哪些做法效果良好？
+                3. 哪些地方可以改进？
+                4. 如果重来一次，你会做哪些不同的调整？
                 """)
             .user("""
-                Goal: {goal}
-                Actions Taken: {actions}
-                Results: {results}
+                目标: {goal}
+                执行的行动: {actions}
+                结果: {results}
                 """.formatted(
                     context.getGoal(),
                     context.getActionsTaken(),
@@ -572,23 +572,23 @@ public class SelfReflectionService {
 
 ---
 
-## 1.3 Agent Boundaries
+## 1.3 智能体边界 (Agent Boundaries)
 
-Boundaries define what agents can and cannot do, ensuring safe and predictable operation.
+边界定义了 Agent 能做和不能做的事情，确保其运行的安全性和可预测性。
 
-### Types of Boundaries
+### 边界类型
 
 ```mermaid
 flowchart TB
-    subgraph Boundaries["Agent Boundaries"]
+    subgraph Boundaries["智能体边界"]
         direction TB
-        CB[Capability Boundaries]
-        RB[Resource Boundaries]
-        TB[Temporal Boundaries]
-        SB[Security Boundaries]
+        CB[能力边界 Capability]
+        RB[资源边界 Resource]
+        TB[时间边界 Temporal]
+        SB[安全边界 Security]
     end
 
-    CB --> Agent[Agent Operations]
+    CB --> Agent[Agent 运作]
     RB --> Agent
     TB --> Agent
     SB --> Agent
@@ -599,9 +599,9 @@ flowchart TB
     style SB fill:#ffebee
 ```
 
-#### 1. Capability Boundaries
+#### 1. 能力边界 (Capability Boundaries)
 
-**Define what the agent can and cannot do:**
+**明确 Agent 的职权范围：**
 
 ```java
 @Service
@@ -628,7 +628,7 @@ public class CapabilityBoundaryService {
 
     public boolean canExecuteTool(String toolName) {
         if (!allowedTools.contains(toolName)) {
-            log.warn("Tool not in allowlist: {}", toolName);
+            log.warn("工具不在白名单中: {}", toolName);
             return false;
         }
         return true;
@@ -636,7 +636,7 @@ public class CapabilityBoundaryService {
 
     public boolean canPerformOperation(String operation) {
         if (!allowedOperations.contains(operation)) {
-            log.warn("Operation not allowed: {}", operation);
+            log.warn("操作不被允许: {}", operation);
             return false;
         }
         return true;
@@ -645,22 +645,22 @@ public class CapabilityBoundaryService {
     public void validateAction(ToolCall call) {
         if (!canExecuteTool(call.getToolName())) {
             throw new CapabilityBoundaryException(
-                "Tool not allowed: " + call.getToolName()
+                "工具不被允许: " + call.getToolName()
             );
         }
 
         if (!canPerformOperation(call.getOperation())) {
             throw new CapabilityBoundaryException(
-                "Operation not allowed: " + call.getOperation()
+                "操作不被允许: " + call.getOperation()
             );
         }
     }
 }
 ```
 
-#### 2. Resource Boundaries
+#### 2. 资源边界 (Resource Boundaries)
 
-**Limit resource consumption:**
+**限制资源消耗：**
 
 ```java
 @Service
@@ -694,7 +694,7 @@ public class ResourceBoundaryService {
 
         if (boundary.anyLimitExceeded()) {
             throw new ResourceBoundaryException(
-                "Resource limit exceeded: " +
+                "超出资源限制: " +
                 boundary.getExceededLimits()
             );
         }
@@ -704,9 +704,9 @@ public class ResourceBoundaryService {
 }
 ```
 
-#### 3. Temporal Boundaries
+#### 3. 时间边界 (Temporal Boundaries)
 
-**Control how long agents can run:**
+**控制运行时长：**
 
 ```java
 @Service
@@ -718,23 +718,23 @@ public class TemporalBoundaryService {
     private final LocalTime workingHoursEnd;
 
     public boolean canExecute(AgentContext context) {
-        // Check maximum execution time
+        // 检查最大执行时间
         Duration elapsed = Duration.between(
             context.getStartTime(),
             Instant.now()
         );
 
         if (elapsed.compareTo(maxExecutionTime) > 0) {
-            log.warn("Maximum execution time exceeded");
+            log.warn("超出最大执行时间");
             return false;
         }
 
-        // Check working hours (if configured)
+        // 检查工作时间（如果配置了的话）
         if (workingHoursStart != null && workingHoursEnd != null) {
             LocalTime now = LocalTime.now();
             if (now.isBefore(workingHoursStart) ||
                 now.isAfter(workingHoursEnd)) {
-                log.warn("Outside working hours");
+                log.warn("非工作时间段");
                 return false;
             }
         }
@@ -743,7 +743,7 @@ public class TemporalBoundaryService {
     }
 
     public Duration getToolTimeout(String toolName) {
-        // Tool-specific timeouts
+        // 工具特定的超时设置
         if (toolName.equals("web_search")) {
             return Duration.ofSeconds(30);
         } else if (toolName.equals("database_query")) {
@@ -754,9 +754,9 @@ public class TemporalBoundaryService {
 }
 ```
 
-#### 4. Security Boundaries
+#### 4. 安全边界 (Security Boundaries)
 
-**Enforce security constraints:**
+**执行安全约束：**
 
 ```java
 @Service
@@ -772,29 +772,29 @@ public class SecurityBoundaryService {
         String userId,
         ToolCall call
     ) {
-        // Check user permissions
+        // 检查用户权限
         if (!permissionService.hasPermission(
             userId,
             call.getToolName()
         )) {
             throw new SecurityException(
-                "User not authorized for tool: " +
+                "用户无权使用该工具: " +
                 call.getToolName()
             );
         }
 
-        // Sanitize inputs
+        // 输入脱敏与校验
         String sanitizedInput = inputSanitizer.sanitize(
             call.getInput()
         );
 
         if (sanitizedInput == null) {
             throw new SecurityException(
-                "Input validation failed"
+                "输入校验失败"
             );
         }
 
-        // Check for sensitive operations
+        // 敏感操作需额外审批
         if (call.isSensitive()) {
             requireApproval(userId, call);
         }
@@ -812,7 +812,7 @@ public class SecurityBoundaryService {
 }
 ```
 
-### Boundary Enforcement
+### 边界强制执行 (Boundary Enforcement)
 
 ```java
 @Service
@@ -835,22 +835,22 @@ public class BoundaryEnforcementService {
         AgentContext context,
         ToolCall call
     ) {
-        // Check all boundaries before execution
+        // 执行前检查所有边界
 
-        // 1. Capability boundaries
+        // 1. 能力边界
         capabilityBoundary.validateAction(call);
 
-        // 2. Resource boundaries
+        // 2. 资源边界
         resourceBoundary.checkLimits(context);
 
-        // 3. Temporal boundaries
+        // 3. 时间边界
         if (!temporalBoundary.canExecute(context)) {
             throw new TemporalBoundaryException(
-                "Temporal boundary exceeded"
+                "超出时间边界限制"
             );
         }
 
-        // 4. Security boundaries
+        // 4. 安全边界
         securityBoundary.validateToolCall(userId, call);
     }
 }
@@ -858,46 +858,46 @@ public class BoundaryEnforcementService {
 
 ---
 
-## 1.4 Key Takeaways
+## 1.4 核心要点总结
 
-### Control Loops
+### 控制循环
 
-1. **OODA Loop**: Observe → Orient → Decide → Act → Reflect
-2. **Continuous Feedback**: Each loop iteration improves decisions
-3. **Self-Correction**: Reflection enables autonomous adjustment
+1. **OODA 循环**：观察 → 定向 → 决策 → 行动 → 反思。
+2. **持续反馈**：每一次循环迭代都会优化后续决策。
+3. **自我修正**：反思机制使 Agent 能够实现自主调整。
 
-### Feedback Systems
+### 反馈系统
 
-| Type | Source | Purpose |
+| 类型 | 来源 | 目的 |
 |------|--------|---------|
-| **Tool Result** | Tool execution | Immediate error correction |
-| **Human-in-the-Loop** | Human guidance | Handle ambiguity |
-| **Environment** | System signals | Adapt to conditions |
-| **Self-Reflection** | Agent assessment | Improve performance |
+| **工具结果** | 工具执行过程 | 即时纠错 |
+| **人机协作** | 人类指导意见 | 处理模糊性 |
+| **环境反馈** | 系统信号 | 适应环境变化 |
+| **自我反思** | Agent 自我评估 | 提升整体表现 |
 
-### Agent Boundaries
+### 智能体边界
 
-- **Capability**: What the agent can do
-- **Resource**: Limits on consumption
-- **Temporal**: Time-based constraints
-- **Security**: Access and approval controls
+- **能力 (Capability)**：Agent 的职权范围。
+- **资源 (Resource)**：消耗上限。
+- **时间 (Temporal)**：时间维度约束。
+- **安全 (Security)**：访问与审批控制。
 
-### Production Pattern
+### 生产环境模式示例
 
 ```java
-// Complete control loop with boundaries
+// 带边界检查的完整控制循环
 for (int i = 0; i < MAX_ITERATIONS; i++) {
-    // Enforce boundaries
+    // 强制执行边界检查
     boundaryEnforcement.enforceBoundaries(userId, context, action);
 
-    // Execute control loop
+    // 执行控制循环
     Observation observation = observe(context);
     Orientation orientation = orient(observation);
     Decision decision = decide(orientation);
     ActionResult result = act(decision);
     Reflection reflection = reflect(result, decision);
 
-    // Check for completion
+    // 检查任务是否完成
     if (reflection.isGoalAchieved()) {
         return result;
     }
@@ -906,22 +906,22 @@ for (int i = 0; i < MAX_ITERATIONS; i++) {
 
 ---
 
-## 1.5 Next Steps
+## 1.5 下一步行动
 
-**Continue your journey:**
-- → **[2. Tool Orchestration](../orchestration)** - Managing tool execution at scale
-- → **[3. State Management](../state-management)** - Persisting and recovering agent state
+**继续您的学习之旅：**
+- → **[2. 工具编排](../orchestration)** - 规模化管理工具执行
+- → **[3. 状态管理](../state-management)** - 实现 Agent 状态的持久化与恢复
 
 ---
 
-:::tip Control Loops Are Fundamental
-Every production agent needs a control loop. Start with a simple ReAct loop, then add feedback and boundaries as needed.
+:::tip 控制循环是根基
+每一个生产级 Agent 都需要一个控制循环。建议从简单的 ReAct 循环开始，随后根据需要逐步添加反馈和边界机制。
 :::
 
-:::warning Don't Skip Boundaries
-Without proper boundaries, agents will exceed budgets, get stuck in loops, and create security risks. Always implement boundaries before scaling.
+:::warning 边界机制不容忽视
+缺乏合适的边界，Agent 可能会超出预算、陷入无限循环并带来安全风险。在规模化部署前，请务必实现边界控制。
 :::
 
-:::info Feedback Quality Matters
-High-quality feedback enables better decisions. Invest in comprehensive tracing and logging to improve feedback signals.
+:::info 反馈质量决定上限
+高质量的反馈能带来更明智的决策。建议投资完善全链路追踪和日志记录，以提升反馈信号的质量。
 :::

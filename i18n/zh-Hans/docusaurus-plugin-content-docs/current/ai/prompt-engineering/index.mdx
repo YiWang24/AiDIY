@@ -1,265 +1,106 @@
 ---
 id: index
-title: Prompt Engineering
+title: 提示词工程
 sidebar_label: 概览
-description: 大语言模型提示词工程的基础知识和高级技巧
+description: 提示词工程的基础理论、核心原则及大语言模型的高效引导技术
 ---
 
-# Prompt Engineering
+# 提示词工程 (Prompt Engineering)
 
-提示词工程是设计有效输入（prompt）以引导大语言模型（LLM）产生预期输出的艺术与科学。这门学科融合了对 LLM 行为的理解、语言精确性和迭代优化。
+提示词工程是一门通过精心设计输入（提示词）来引导大语言模型（LLM）产生预期输出的艺术与科学。这门学科融合了对 LLM 行为的深度理解、语言的精确表达以及持续的迭代优化。
 
-## 概览
-
-### 什么是提示词工程？
-
-**提示词工程**是设计和优化提示词以从语言模型中引出特定、高质量响应的实践。它包括：
-
-- **清晰的指令**：明确表达你希望模型做什么
-- **提供上下文**：给出相关背景信息
-- **格式规范**：定义预期的输出结构
-- **提供示例**：向模型展示好的输出是什么样的
-- **设置约束**：确立边界和限制
-
-### 为什么它很重要
-
-| 方面 | 影响 |
-|------|------|
-| **准确性** | 精心设计的提示词显著减少幻觉和错误 |
-| **一致性** | 可靠的提示词在不同会话中产生可重复的结果 |
-| **效率** | 好的提示词减少多次迭代的需要 |
-| **能力** | 适当的提示词能解锁模型的高级能力 |
+---
 
 ## 核心原则
 
-### 1. 具体而明确
+### 1. 具体且明确 (Be Specific)
+模糊的提示词只会得到模糊的答案。请精确描述你的需求。
 
-模糊的提示词导致模糊的输出。精确描述你想要什么。
+**❌ 错误示范：**
+> “写点关于 AI 的东西。”
 
-**差的：**
-```
-Write something about AI.
-```
+**✅ 正确示范：**
+> “请写一段关于大语言模型（LLM）的技术简介。要求：包含架构简述、训练流程及常见用例；篇幅为 3 个段落；目标读者为软件工程师。”
 
-**好的：**
-```
-Write a 3-paragraph technical introduction to Large Language Models,
-covering their architecture, training process, and common use cases.
-Target audience: software engineers.
-```
+### 2. 提供充分的背景信息 (Context)
+为模型提供相关的背景，使其能做出更贴合场景的决策。
 
-### 2. 提供上下文
+> **背景**：你是一位资深的 Java 架构师，正在评审一个处理支付交易的 Spring Boot 应用。该应用集成了 Spring AI 进行欺诈检测，需支撑每秒 1 万次的并发交易。
+> 
+> **任务**：请评审以下控制层代码，识别潜在的性能瓶颈...
 
-给模型相关的背景信息来指导其响应。
+### 3. 使用示例 (Few-Shot Learning)
+通过展示“输入-输出”对，让模型快速掌握你期望的模式。
 
-```
-Context: You are a senior Java architect reviewing a Spring Boot application
-that processes payment transactions. The application uses Spring AI for
-fraud detection and needs to handle 10,000 transactions per second.
+> 将以下技术术语从正式转换为非正式：
+> 
+> 输入：异步编程 -> 输出：异步代码
+> 输入：微服务架构 -> 输出：微服务
+> 输入：服务器端渲染 -> 输出：SSR
 
-Task: Review the following controller code for potential performance bottlenecks...
-```
+### 4. 规定输出格式 (Output Format)
+明确告诉模型响应应如何组织（如 JSON、Markdown 表格或特定标题）。
 
-### 3. 使用示例（少样本学习）
+> 请分析以下代码并按此格式输出：
+> ## 安全隐患
+> - [漏洞列表]
+> ## 性能建议
+> - [调优建议]
 
-向模型展示你期望的输入-输出模式示例。
+### 5. 设定硬性约束 (Constraints)
+为响应划定明确的边界。
 
-```
-Convert the following technical terms from formal to casual:
+> 请编写一个验证邮箱地址的 Python 函数。
+> **约束**：代码行数不超过 50 行；仅使用标准库；包含类型注解；提供 3 个测试案例。
 
-Input: Asynchronous Programming
-Output: async code
+---
 
-Input: Microservices Architecture
-Output: microservices
-
-Input: Event-Driven Architecture
-Output: event-based systems
-
-Input: Server-Side Rendering
-Output: SSR
-```
-
-### 4. 指定输出格式
-
-精确告诉模型你希望响应如何组织。
-
-```
-Analyze the following code and provide your response in this format:
-
-## Security Issues
-- [List any security vulnerabilities]
-
-## Performance Issues
-- [List performance concerns]
-
-## Recommendations
-1. [First recommendation]
-2. [Second recommendation]
-3. [Third recommendation]
-```
-
-### 5. 设置约束
-
-为响应确立清晰的边界。
-
-```
-Write a Python function to validate email addresses.
-
-Constraints:
-- Maximum 50 lines of code
-- Use only standard library (no external packages)
-- Include docstring and type hints
-- Must handle edge cases (null input, empty string, invalid formats)
-- Provide 3 test cases
-```
-
-## 高级技巧
-
-### 思维链提示（Chain-of-Thought）
-
-引导模型进行逐步推理。
-
-```
-To solve this problem, let's think through it step by step:
-
-1. First, identify what the question is asking
-2. Then, break down the information given
-3. Consider different approaches
-4. Choose the best approach
-5. Verify your answer
-
-Question: [Your question here]
-```
-
-### 角色提示
-
-为模型分配特定角色以获得一致的视角。
-
-```
-You are a principal software architect with 15 years of experience
-building distributed systems at scale. You specialize in Spring Boot,
-event-driven architectures, and cloud-native applications. You favor
-pragmatic solutions over theoretical purity.
-
-Review the following system design proposal...
-```
-
-### 自洽性
-
-让模型用多种方式解决同一问题并进行比较。
-
-```
-Solve the following problem in three different ways, then identify
-the best approach and explain your reasoning.
-
-Problem: [Your problem here]
-```
-
-### 生成知识提示
-
-让模型在回答前先生成相关上下文。
-
-```
-Step 1: Generate 5-7 key concepts about [topic] that are relevant to [question]
-
-Step 2: Using these concepts, answer: [your question]
-```
-
-## 提示词模式
+## 常用提示词框架
 
 ### CO-STAR 框架
-
-1. **C**ontext（上下文）- 背景信息
-2. **O**bjective（目标）- 你想要达成什么
-3. **S**tyle（风格）- 期望的语气/格式
-4. **T**one（调性）- 声音/态度
-5. **A**udience（受众）- 谁会阅读这些内容
-6. **R**esponse（响应）- 输出格式
-
-```
-Context: I'm preparing a technical presentation for CTO-level executives
-about adopting Spring AI in our payment processing platform.
-
-Objective: Explain the business value and technical approach in 5 minutes
-of speaking time.
-
-Style: Executive summary with technical depth available on request
-
-Tone: Confident but realistic about challenges
-
-Audience: Technical decision-makers who understand software architecture
-
-Response: A structured outline with key points, supporting arguments, and
-risk mitigation strategies.
-```
+1. **C**ontext (上下文) - 设定背景。
+2. **O**bjective (目标) - 明确任务。
+3. **S**tyle (风格) - 规定语气。
+4. **T**one (基调) - 设定情感色彩。
+5. **A**udience (受众) - 针对谁写。
+6. **R**esponse (响应) - 规定格式。
 
 ### RTF 框架
+1. **R**ole (角色) - 模型是谁（如：高级 DevOps 工程师）。
+2. **T**ask (任务) - 要做什么（如：设计 K8s 部署方案）。
+3. **F**ormat (格式) - 怎么呈现（如：架构图描述 + 检查清单）。
 
-1. **R**ole（角色）- 模型应该扮演谁
-2. **T**ask（任务）- 需要做什么
-3. **F**ormat（格式）- 如何呈现输出
+---
 
-```
-Role: Senior DevOps engineer specializing in Kubernetes and AWS
+## 进阶技术
 
-Task: Design a deployment strategy for a Spring Boot application using
-Spring AI, including CI/CD pipeline, monitoring, and disaster recovery
+- **思路链 (Chain-of-Thought)**：通过“让我们一步步思考”引导模型进行逻辑推演，显著提升复杂数学和逻辑问题的准确率。
+- **自洽性 (Self-Consistency)**：让模型生成多个答案并进行内部对比或投票，以排除随机错误。
+- **角色扮演 (Role Prompting)**：赋予模型特定的职业身份（如“资深 Linux 内核开发者”），激发其专业领域的深度知识。
 
-Format: Architecture diagram with annotations, plus implementation checklist
-```
+---
 
-## 常见陷阱
-
-### 陷阱 1：过长的提示词
-
-过长的提示词可能超出模型的上下文窗口并导致性能下降。
-
-**解决方案**：保持简洁。删除不必要的信息。尽可能使用引用而非内联数据。
-
-### 陷阱 2：相互冲突的指令
-
-当提示词包含矛盾要求时，模型可能难以确定优先级。
-
-**解决方案**：审查提示词的内部一致性。使用清晰的层级关系："主要目标：X。次要目标：Y。如有冲突，X 优先于 Y。"
-
-### 陷阱 3：模糊的成功标准
-
-没有明确的"完成"标准，模型可能产出不完整的输出。
-
-**解决方案**：定义明确的完成条件："当你提供了 X、Y 和 Z 后，响应才算完成。"
-
-### 陷阱 4：缺少反面示例
-
-只展示应该做什么，而不展示不该做什么，可能导致常见错误。
-
-**解决方案**：包含反模式："这是一个糟糕输出的示例：[示例]。请避免这些问题。"
-
-## 最佳实践
+## 生产环境最佳实践
 
 ### 开发阶段
-
-1. **版本化你的提示词**：像对待代码一样对待提示词。跟踪变更和结果
-2. **系统化测试**：在多样化输入上评估提示词
-3. **衡量性能**：跟踪准确性、延迟和成本指标
-4. **记录模式**：构建可复用的提示词模板库
+1. **版本化管理**：像管理代码一样管理提示词，追踪变更与效果。
+2. **系统化测试**：在多样化的输入集上验证提示词的鲁棒性。
+3. **量化评估**：跟踪准确率、延迟和 Token 成本。
 
 ### 生产阶段
+1. **输入校验**：在提示词模板填充前进行安全性检查（防止注入攻击）。
+2. **输出监控**：实时监控响应质量，捕获异常输出。
+3. **A/B 测试**：持续对比不同提示词方案的业务转化率。
 
-1. **验证输入**：部署前检查提示词模板
-2. **监控输出**：跟踪生产环境中的质量指标
-3. **处理边界情况**：为异常输入准备备用提示词
-4. **A/B 测试提示词**：持续优化以获得更好的结果
+---
 
-## 工具与框架
+## 总结
 
-- **Promptfoo**：开源提示词测试框架
-- **PromptLayer**：提示词版本管理和分析平台
-- **LangChain**：提示词模板和管理
-- **Guidance**：微软的结构化提示词框架
+提示词工程的核心在于**消除歧义**。
+1. **结构化** 优于 **碎片化**。
+2. **引导性** 优于 **命令性**。
+3. **工程化** 优于 **随机性**。
 
-## 延伸阅读
-
-- [OpenAI 提示词工程指南](https://platform.openai.com/docs/prompt-engineering)
-- [Anthropic 提示词库](https://docs.anthropic.com/claude/prompt-library)
-- [提示词工程指南](https://www.promptingguide.ai/)
+---
+**下一章**：[2.1 提示词剖析](./02-prompt-anatomy.mdx) →
+ stone

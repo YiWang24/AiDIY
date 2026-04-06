@@ -1,19 +1,19 @@
 ---
 id: index
-title: Backend开发
-sidebar_label: index
-description: Spring Boot、并发编程、JVM 和后端架构模式
+title: 后端开发
+sidebar_label: 概览
+description: Spring Boot、并发编程、JVM 原理及后端架构模式
 ---
 
-# 后端开发
+# ☕ 后端开发
 
-> **"精心设计的后端是任何可扩展应用的基石。"**
+> **“设计精良的后端是任何可扩展应用的基石。”**
 
 掌握 Java 生态系统，构建健壮、高性能的后端服务。
 
 ---
 
-## Spring Boot
+## 🍃 Spring Boot
 
 ### 核心概念
 
@@ -22,194 +22,131 @@ description: Spring Boot、并发编程、JVM 和后端架构模式
 ```mermaid
 flowchart LR
     A[Main 方法] --> B[SpringApplication.run]
-    B --> C[加载配置]
+    B --> C[加载配置属性]
     C --> D[自动配置]
-    D --> E[Bean 创建]
-    E --> F[内嵌服务器启动]
-    F --> G[应用就绪]
+    D --> E[Bean 创建与初始化]
+    E --> F[嵌入式服务器启动]
+    F --> G[应用准备就绪]
 ```
 
 #### 常用注解
 
 | 注解 | 用途 |
 |------------|---------|
-| `@SpringBootApplication` | 入口（组合了 3 个注解）|
-| `@RestController` | REST API 端点 |
-| `@Service` | 业务逻辑 Bean |
-| `@Repository` | 数据访问 Bean |
-| `@Configuration` | 基于 Java 的配置 |
+| `@SpringBootApplication` | 启动入口（组合三个注解） |
+| `@RestController` | 定义 REST API 端点 |
+| `@Service` | 标记业务逻辑 Bean |
+| `@Repository` | 标记数据访问 Bean |
+| `@Configuration` | Java 配置类 |
 | `@Bean` | 定义 Spring 管理的 Bean |
 | `@Autowired` | 依赖注入 |
 
 #### 自动配置
-
-```java
-// Spring Boot 基于 classpath 自动配置
-// 添加 starter → 获得配置
-@ConditionalOnClass(DataSource.class)
-@ConditionalOnProperty(name = "spring.datasource.url")
-@AutoConfiguration
-public class DataSourceAutoConfiguration {
-    // 自动创建 DataSource Bean
-}
-```
+Spring Boot 根据 classpath 中的依赖自动配置 Bean。
 
 ### 请求处理
-
-```java
-@RestController
-@RequestMapping("/api/v1/users")
-public class UserController {
-    
-    private final UserService userService;
-    
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id) {
-        return userService.findById(id)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-    }
-    
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@Valid @RequestBody CreateUserRequest request) {
-        return userService.create(request);
-    }
-    
-    @ExceptionHandler(UserNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFound(UserNotFoundException ex) {
-        return new ErrorResponse(ex.getMessage());
-    }
-}
-```
+示例：一个处理用户 REST 请求的 Controller。
 
 ---
 
-## 并发编程（JUC）
+## ⚡ 并发编程 (JUC)
 
 ### 线程池
 
 ```java
-// 推荐：使用线程池，不要直接创建线程
+// 推荐：使用线程池，而非手动创建线程
 ExecutorService executor = Executors.newFixedThreadPool(10);
 
-// 更好的方式：自定义 ThreadPoolExecutor，调整参数
+// 最佳实践：自定义 ThreadPoolExecutor，精细调优参数
 ThreadPoolExecutor executor = new ThreadPoolExecutor(
     5,                      // corePoolSize
     10,                     // maxPoolSize
     60L, TimeUnit.SECONDS,  // keepAliveTime
-    new LinkedBlockingQueue<>(100),  // workQueue
-    new ThreadPoolExecutor.CallerRunsPolicy()  // 拒绝策略
+    new LinkedBlockingQueue<>(100),  // workQueue (有界队列)
+    new ThreadPoolExecutor.CallerRunsPolicy()  // 拒绝策略 (背压控制)
 );
 ```
 
 ### CompletableFuture
 
 ```java
-// 异步组合
+// 异步组合与编排
 public CompletableFuture<OrderSummary> processOrder(Order order) {
     return CompletableFuture
-        .supplyAsync(() -> validateOrder(order))
-        .thenCompose(this::checkInventory)
-        .thenCombine(calculateShipping(order), this::createSummary)
-        .exceptionally(ex -> handleError(ex));
+        .supplyAsync(() -> validateOrder(order)) // 异步执行验证
+        .thenCompose(this::checkInventory)     // 串联异步操作
+        .thenCombine(calculateShipping(order), this::createSummary) // 合并异步结果
+        .exceptionally(ex -> handleError(ex)); // 异常处理
 }
 
-// 并行运行多个任务
+// 并行执行多个任务
 CompletableFuture.allOf(task1, task2, task3)
     .thenAccept(v -> {
-        // 所有任务完成
+        // 所有任务完成后执行
     });
 ```
 
-### 锁和同步
+### 锁与同步
 
-| 机制 | 使用场景 |
+| 机制 | 用途 |
 |-----------|----------|
 | `synchronized` | 简单互斥 |
-| `ReentrantLock` | 更多控制（tryLock、公平锁）|
-| `ReadWriteLock` | 多读单写 |
-| `StampedLock` | 乐观读锁 |
+| `ReentrantLock` | 更精细的控制（可尝试锁、公平锁） |
+| `ReadWriteLock` | 多读单写场景 |
+| `StampedLock` | 乐观读锁，极致性能 |
 | `Semaphore` | 限制并发访问 |
-
-```java
-// ReentrantLock 带超时
-private final ReentrantLock lock = new ReentrantLock();
-
-public void updateResource() {
-    try {
-        if (lock.tryLock(1, TimeUnit.SECONDS)) {
-            try {
-                // 临界区
-            } finally {
-                lock.unlock();
-            }
-        } else {
-            throw new TimeoutException("无法获取锁");
-        }
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-    }
-}
-```
 
 ---
 
-## JVM 内部原理
+## 🧠 JVM 内部原理
 
 ### 内存模型
 
 ```mermaid
 flowchart TB
-    subgraph "堆内存"
-        A[年轻代]
-        B[老年代]
-        A --> |晋升| B
+    subgraph "堆 (Heap)"
+        A[年轻代 (Young Generation)]
+        B[老年代 (Old Generation)]
+        A --> |对象晋升| B
     end
     
-    subgraph "非堆内存"
-        C[Metaspace]
-        D[Code Cache]
-        E[线程栈]
+    subgraph "非堆区 (Non-Heap)"
+        C[元空间 (Metaspace)]
+        D[代码缓存 (Code Cache)]
+        E[线程栈 (Thread Stacks)]
     end
     
-    subgraph "年轻代"
-        F[Eden]
-        G[Survivor 0]
-        H[Survivor 1]
+    subgraph "年轻代 (Young Generation)"
+        F[Eden 区]
+        G[Survivor 0 区]
+        H[Survivor 1 区]
     end
 ```
 
-### 垃圾收集
+### 垃圾回收 (Garbage Collection)
 
-| GC 类型 | 特点 | 适用场景 |
-|---------|-----------------|----------|
-| **G1** | 低延迟、均衡 | 通用（默认）|
-| **ZGC** | 超低暂停（10ms 以下）| 大堆内存、延迟敏感 |
-| **Parallel** | 高吞吐 | 批处理 |
-| **Shenandoah** | 低暂停、并发 | RedHat/OpenJDK |
+| GC 类型 | 特点 | 最适合场景 |
+|---------|----------------|----------|
+| **G1** | 低延迟，均衡 | 通用场景（默认） |
+| **ZGC** | 超低停顿（< 10ms） | 大堆内存、对延迟敏感的场景 |
+| **Parallel** | 高吞吐量 | 批处理 |
 
 ### JVM 调优参数
 
 ```bash
-# 常见生产环境设置
-java -Xms4g -Xmx4g \           # 堆大小（最小 = 最大）
+# 常用生产环境设置
+java -Xms4g -Xmx4g \           # 堆内存大小（最小 = 最大）
      -XX:+UseG1GC \             # 使用 G1 垃圾收集器
-     -XX:MaxGCPauseMillis=200 \ # 目标暂停时间
-     -XX:+HeapDumpOnOutOfMemoryError \
-     -Xlog:gc*:file=gc.log \    # GC 日志
+     -XX:MaxGCPauseMillis=200 \ # 目标停顿时间
+     -XX:+HeapDumpOnOutOfMemoryError 
+     -Xlog:gc*:file=gc.log \    # GC 日志记录
      -jar app.jar
 ```
 
-### 性能分析和监控
+### 性能分析与监控
 
 ```bash
-# JFR（Java Flight Recorder）
+# JFR (Java Flight Recorder)
 jcmd <pid> JFR.start duration=60s filename=recording.jfr
 
 # jstat - GC 统计
@@ -221,22 +158,22 @@ jmap -dump:live,format=b,file=heap.hprof <pid>
 
 ---
 
-## API 设计
+## 📐 API 设计
 
-### REST 最佳实践
+### RESTful API 最佳实践
 
-| HTTP 方法 | 用途 | 幂等 |
-|-------------|---------|------|
+| HTTP 方法 | 用途 | 幂等性 |
+|-------------|---------|------------|
 | GET | 获取资源 | 是 |
 | POST | 创建资源 | 否 |
 | PUT | 替换资源 | 是 |
 | PATCH | 部分更新 | 是 |
-| DELETE | 删除资源 | 是 |
+| DELETE | 移除资源 | 是 |
 
-### 响应结构
+### 统一响应结构
 
 ```java
-// 统一 API 响应
+// 统一的 API 响应格式
 public record ApiResponse<T>(
     boolean success,
     T data,
@@ -255,21 +192,21 @@ public record ApiResponse<T>(
 
 ---
 
-## 详细主题
+## 📝 详细主题
 
 - **[并发编程](/docs/engineering/backend/concurrency)** - 从基础到虚拟线程和 AI Agent 应用
 - [Spring Security](/docs/engineering/backend/spring-security)
-- [数据库访问（JPA/JDBC）](/docs/engineering/backend/database)
+- [数据库访问 (JPA/JDBC)](/docs/engineering/backend/database)
 - [缓存策略](/docs/engineering/backend/caching)
 - [微服务模式](/docs/engineering/backend/microservices)
 - [测试最佳实践](/docs/engineering/backend/testing)
 
 ---
 
-:::tip 性能优化建议
-1. **连接池** - 使用 HikariCP（Spring Boot 默认）
-2. **懒加载** - 只在需要时获取数据
-3. **批量操作** - 减少数据库往返
-4. **尽量异步** - 不要阻塞 I/O
-5. **先分析再优化** - 测量优先
+:::tip 性能优化提示
+1. **连接池** - 使用 HikariCP (Spring Boot 默认)
+2. **懒加载** - 仅在需要时才获取数据
+3. **批量操作** - 减少数据库往返次数
+4. **异步化** - 尽可能异步处理 I/O 操作
+5. **先分析再优化** - 先度量，后优化
 :::

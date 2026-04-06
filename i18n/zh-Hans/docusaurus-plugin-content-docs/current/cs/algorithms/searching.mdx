@@ -1,44 +1,47 @@
 ---
 id: searching
-title: Search Strategies
+title: 搜索策略
 sidebar_label: "16. 搜索策略"
-description: 线性搜索优化、插值搜索、指数搜索和有序矩阵搜索
+description: 线性搜索优化、插值搜索、指数搜索以及在有序矩阵中查找数据
 ---
 
-# Search Strategies
+# 搜索策略
 
 ## 为什么搜索很重要
 
-搜索是数据访问和检索的基础：
+搜索是数据访问和检索的核心基础：
 
-- **数据库查询**：查找匹配条件的记录
-- **文件系统**：按名称或内容定位文件
-- **Web 搜索**：查找相关页面
-- **API**：过滤和搜索集合
+- **数据库查询**：寻找符合特定条件的记录。
+- **文件系统**：通过名称或内容定位文件。
+- **网页搜索**：在海量互联网数据中发现相关页面。
+- **API 接口**：对集合数据进行过滤和检索。
 
 **实际影响**：
-- 10 亿个元素的二分搜索：约 30 次比较
-- 线性搜索：约 5 亿次比较
-- **快 1600 万倍**
+- 在 10 亿个元素中进行**二分查找**：仅需约 30 次比较。
+- **线性搜索**：平均需要 5 亿次比较。
+- **效率提升 1600 万倍**。
+
+---
 
 ## 核心概念
 
 ### 搜索算法对比
 
-| 算法 | 时间复杂度 | 前提条件 | 最佳适用场景 |
-|------|-----------|---------|-------------|
-| **线性搜索** | O(n) | 无 | 无序数据、小数组 |
-| **二分搜索** | O(log n) | 有序数组 | 大型有序数据集 |
-| **插值搜索** | O(log log n) 平均 | 均匀分布的有序数据 | 数值数据、均匀分布 |
-| **指数搜索** | O(log n) | 无限/无界有序数组 | 未知大小、无限数组 |
+| 算法 | 时间复杂度 | 前提条件 | 最适合场景 |
+|-----------|------|---------------|----------|
+| **线性搜索** | O(n) | 无 | 无序数据、小型数组 |
+| **二分查找** | O(log n) | 有序数组 | 大型有序数据集 |
+| **插值搜索** | 平均 O(log log n) | 均匀分布的有序数组 | 数值型、均匀分布的数据 |
+| **指数搜索** | O(log n) | 无界/无限大的有序数组 | 长度未知、流式数据 |
 
-### 二分搜索回顾
+### 二分查找复习
 
 ```java
 public int binarySearch(int[] arr, int target) {
     int left = 0, right = arr.length - 1;
 
     while (left <= right) {
+        // 防止 (left + right) / 2 导致的整型溢出
         int mid = left + (right - left) / 2;
 
         if (arr[mid] == target) return mid;
@@ -49,199 +52,59 @@ public int binarySearch(int[] arr, int target) {
     return -1;
 }
 ```
+
+---
 
 ## 深入理解
 
-### 插值搜索
+### 插值搜索 (Interpolation Search)
 
-利用值分布估计位置：
+**原理**：根据目标值在已知范围内的位置进行“智能估算”。类似于你在字典中找“Zoo”会直接翻到最后几页，而不是从中间开始。
 
-```java
-public int interpolationSearch(int[] arr, int target) {
-    int left = 0, right = arr.length - 1;
+**最佳情况**：对于均匀分布的数据可达 O(1)。
+**最差情况**：数据分布极度不均时退化为 O(n)。
 
-    while (left <= right && target >= arr[left] && target <= arr[right]) {
-        if (left == right) {
-            return arr[left] == target ? left : -1;
-        }
+### 指数搜索 (Exponential Search)
 
-        // 估计位置
-        int pos = left + ((target - arr[left]) * (right - left)) /
-                          (arr[right] - arr[left]);
+**适用场景**：数组大小未知或无限大。
+**策略**：先通过倍增步长 (1, 2, 4, 8...) 确定目标所在的范围，再在该范围内执行标准二分查找。
 
-        if (arr[pos] == target) return pos;
-        if (arr[pos] < target) left = pos + 1;
-        else right = pos - 1;
-    }
+### 矩阵查找 (Sorted Matrix Search)
 
-    return -1;
-}
-```
+在行和列均有序的 2D 矩阵中查找：
 
-**最优情况**：均匀分布时 O(1)
-**最差情况**：偏斜分布时 O(n)
+**策略**：从**右上角**开始。
+- 若当前值 > 目标：向左移（列减 1）。
+- 若当前值 < 目标：向下移（行加 1）。
+**时间复杂度**：O(m + n)，其中 m 为行数，n 为列数。
 
-### 指数搜索
+---
 
-适用于未知或无限大小的数组：
+## 实战应用
 
-```java
-public int exponentialSearch(int[] arr, int target) {
-    if (arr[0] == target) return 0;
-
-    // 找到目标可能存在的范围
-    int i = 1;
-    while (i < arr.length && arr[i] <= target) {
-        i = i * 2;
-    }
-
-    // 在找到的范围内进行二分搜索
-    return binarySearch(arr, i / 2, Math.min(i, arr.length - 1), target);
-}
-
-private int binarySearch(int[] arr, int left, int right, int target) {
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-
-        if (arr[mid] == target) return mid;
-        if (arr[mid] < target) left = mid + 1;
-        else right = mid - 1;
-    }
-
-    return -1;
-}
-```
-
-### 有序矩阵搜索
-
-行和列均已排序的矩阵：
-
-```java
-public boolean searchMatrix(int[][] matrix, int target) {
-    if (matrix == null || matrix.length == 0) return false;
-
-    int row = 0, col = matrix[0].length - 1;  // 从右上角开始
-
-    while (row < matrix.length && col >= 0) {
-        if (matrix[row][col] == target) return true;
-        if (matrix[row][col] > target) {
-            col--;  // 向左移动
-        } else {
-            row++;  // 向下移动
-        }
-    }
-
-    return false;
-}
-```
-
-**时间复杂度**：O(m + n)，其中 m = 行数，n = 列数
-
-## 实际应用
-
-### 旋转有序数组搜索
-
-```java
-public int search(int[] nums, int target) {
-    int left = 0, right = nums.length - 1;
-
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-
-        if (nums[mid] == target) return mid;
-
-        if (nums[left] <= nums[mid]) {  // 左半部分有序
-            if (target >= nums[left] && target < nums[mid]) {
-                right = mid - 1;
-            } else {
-                left = mid + 1;
-            }
-        } else {  // 右半部分有序
-            if (target > nums[mid] && target <= nums[right]) {
-                left = mid + 1;
-            } else {
-                right = mid - 1;
-            }
-        }
-    }
-
-    return -1;
-}
-```
+### 搜索旋转排序数组
+**核心**：即使数组被旋转了，其中一半依然是有序的。利用这一特性，每次排除掉不可能的一半。
 
 ### 搜索插入位置
+**核心**：二分查找的变体。当找不到目标值时，返回 `left` 指针的位置即为应插入的索引。
 
-```java
-public int searchInsert(int[] nums, int target) {
-    int left = 0, right = nums.length;
+---
 
-    while (left < right) {
-        int mid = left + (right - left) / 2;
+## 面试高频题
 
-        if (nums[mid] < target) {
-            left = mid + 1;
-        } else {
-            right = mid;
-        }
-    }
+### Q1: 既然二分查找这么快，为什么不一直用它？
+**回答**：二分查找有两个硬性开销：
+1. **必须有序**：排序本身通常需要 O(n log n)。
+2. **随机访问**：需要支持 O(1) 随机访问（如数组）。在链表上执行二分查找由于寻址开销，效率并不高。
 
-    return left;
-}
-```
+### Q2: 如何在不知道长度的有序流中查找数据？
+**回答**：使用**指数搜索 (Exponential Search)**。首先检查索引 0, 1, 2, 4, 8... 找到第一个大于目标值的索引，确定边界后在 `[i/2, i]` 区间内进行二分查找。
 
-## 面试题
-
-### Q1：二分搜索（简单）
-
-**问题**：经典二分搜索实现。
-
-**方法**：标准二分搜索
-
-**复杂度**：O(log n) 时间
-
-```java
-public int search(int[] nums, int target) {
-    int left = 0, right = nums.length - 1;
-
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-
-        if (nums[mid] == target) return mid;
-        if (nums[mid] < target) left = mid + 1;
-        else right = mid - 1;
-    }
-
-    return -1;
-}
-```
-
-### Q2：搜索二维矩阵 II（中等）
-
-**问题**：在行和列均已排序的矩阵中搜索。
-
-**方法**：从右上角或左下角开始
-
-**复杂度**：O(m + n) 时间
-
-```java
-public boolean searchMatrix(int[][] matrix, int target) {
-    if (matrix == null || matrix.length == 0) return false;
-
-    int row = 0, col = matrix[0].length - 1;
-
-    while (row < matrix.length && col >= 0) {
-        if (matrix[row][col] == target) return true;
-        if (matrix[row][col] > target) col--;
-        else row++;
-    }
-
-    return false;
-}
-```
+---
 
 ## 延伸阅读
 
-- **二分搜索**：专门的搜索技术
-- **双指针**：搜索中经常使用
-- **树**：BST 搜索
-- **LeetCode**：[搜索问题](https://leetcode.com/tag/search/)
+- **二分查找变体**：查找第一个/最后一个出现的元素。
+- **双指针技术**：常与搜索策略结合使用。
+- **树结构搜索**：理解 BST 和 B+ 树的查找逻辑。
+- **LeetCode**：[搜索标签题目](https://leetcode.com/tag/search/)

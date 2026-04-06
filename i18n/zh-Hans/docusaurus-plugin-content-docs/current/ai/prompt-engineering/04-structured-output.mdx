@@ -1,1010 +1,193 @@
 ---
 title: "4 结构化输出工程"
-description: "掌握 JSON 模式、XML 标签、模式强制执行以及针对生产级 LLM 输出的提供商特定技术"
+description: "掌握 JSON 模式、XML 标签、Schema 强制执行以及针对不同供应商的生产级 LLM 输出技术"
 published: 2025-01-21
 tags: ["prompt-engineering", "structured-output", "json", "schema", "spring-ai"]
 category: "prompt-engineering"
-series: "提示工程指南"
+series: "提示词工程指南"
 seriesOrder: 3
 draft: false
 ---
 
 ## 为什么结构化输出很重要
 
-**结构化输出强制执行在企业应用中可提高 3-5 倍的可靠性**。没有它，LLM 输出是不可预测的字符串，需要复杂的解析、错误处理和重试逻辑。
+在企业级应用中，**强制执行结构化输出能将可靠性提升 3-5 倍**。如果没有它，LLM 的输出将是不可预测的字符串，需要复杂的正则解析、错误处理和重试逻辑。
 
-### 可靠性问题
+### 可靠性难题
 
 ```plaintext
-无结构化输出时：
+无结构化输出:
 ┌─────────────────────────────────────────────────────────────┐
-│ LLM 响应："这里是分析：                                   │
-│ - 收入：可能在 5000 万左右                               │
-│ - 增长：强劲！约 15%                                     │
-│ - 风险：中等（详见下文）                                 │
-│ 注意：数字是估算..."                                     │
+│ LLM 响应: "这是分析结果：                                     │
+│ - 营收：可能在 5000 万美元左右                                │
+│ - 增长：强劲！约 15%                                         │
+│ - 风险：中等（见下方备注）                                    │
+│ 备注：数字均为估算..."                                        │
 └─────────────────────────────────────────────────────────────┘
                         ↓ 解析地狱
-         - 正则提取在边缘情况下失败
-         - 数字格式多样（"$50M" vs "50000000"）
-         - 风险等级不一致（"Medium" vs "3/5"）
-         - 额外文本破坏 JSON 解析
+         - 正则提取在边缘案例下失效
+         - 数字格式不统一 ("$50M" vs "50000000")
+         - 风险等级不一致 ("Medium" vs "3/5")
+         - 额外的解释性文本导致 JSON 解析崩溃
 
-结构化输出时：
+有结构化输出:
 ┌─────────────────────────────────────────────────────────────┐
-│ {                                                         │
-│   "revenue": 50000000,                                    │
-│   "growthRate": 0.15,                                     │
+│ {                                                          │
+│   "revenue": 50000000,                                     │
+│   "growthRate": 0.15,                                      │
 │   "riskLevel": "MEDIUM",                                   │
-│   "confidence": 0.85                                      │
-│ }                                                         │
+│   "confidence": 0.85                                       │
+│ }                                                          │
 └─────────────────────────────────────────────────────────────┘
                         ↓ 直接解析
-         - JSON.parse() 每次都成功
-         - 类型安全的反序列化
-         - 对照模式验证
-         - 无歧义
+         - JSON.parse() 每次都能成功
+         - 类型安全的序列化与反序列化
+         - 自动根据 Schema 进行校验
+         - 消除歧义
 ```
-
-### 业务影响
-
-| 指标 | 无结构 | 有结构 | 改进 |
-|--------|-------------------|----------------|-------------|
-| 解析成功率 | 75-85% | 99.9%+ | +15-25% |
-| 重试率 | 15-25% | 少于 1% | -95% |
-| 令牌浪费 | 高（冗长） | 低（精确） | -30-50% |
-| 集成时间 | 天/周 | 小时 | 快 10 倍 |
-| 生产事件 | 每周 | 罕见 | -90% |
 
 ---
 
-## 1. JSON 模式：提供商实现
+## 1. JSON 模式：各供应商实现
 
-### 1.1 OpenAI 结构化输出（2024）
+### 1.1 OpenAI 结构化输出 (2024)
 
-OpenAI 的结构化输出功能通过**受限制解码**保证 **100% 的模式遵循**。模型在数学上被限制为只生成符合您模式的令牌。
+OpenAI 的“结构化输出 (Structured Outputs)”功能通过**受约束的解码 (Constrained Decoding)** 保证了 **100% 的 Schema 符合率**。模型在数学层面上被约束，只能生成符合你定义的 JSON Schema 的 Token。
 
 :::tip[关键创新]
-与仅确保有效 JSON 的"JSON 模式"不同，结构化输出确保**完全符合您模式的**有效 JSON。这是通过在令牌生成级别的受限解码实现的。
+与仅保证 JSON 语法正确的“JSON 模式”不同，结构化输出确保生成的 JSON **完全匹配你定义的 Schema**。这是通过在 Token 生成级别限制概率分布实现的。
 :::
 
-**工作原理**：
-```plaintext
-传统 JSON 模式：
-  模型生成 → 有效 JSON（任何结构）→ 希望它匹配
-
-结构化输出：
-  模式 → 受限令牌空间 → 只生成有效令牌
-
-  示例：如果模式要求 "status": enum["active", "inactive"]
-  其他值的令牌概率 = 0
-```
-
-**实现**：
+**实现示例 (TypeScript)**：
 
 ```typescript
-import OpenAI from 'openai';
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
 
-// 使用 Zod 定义模式
+// 使用 Zod 定义 Schema
 const AnalysisResult = z.object({
   sentiment: z.enum(['positive', 'negative', 'neutral']),
   confidence: z.number().min(0).max(1),
-  keyTopics: z.array(z.object({
-    topic: z.string(),
-    relevance: z.number().min(0).max(1),
-    mentions: z.number().int().positive()
-  })),
-  summary: z.string().max(500),
-  actionItems: z.array(z.string()).optional()
+  summary: z.string().max(500)
 });
-
-const client = new OpenAI();
 
 const response = await client.beta.chat.completions.parse({
   model: 'gpt-4o-2024-08-06',
-  messages: [
-    { role: 'system', content: '分析客户反馈并提取见解。' },
-    { role: 'user', content: feedbackText }
-  ],
+  messages: [{ role: 'user', content: feedbackText }],
   response_format: zodResponseFormat(AnalysisResult, 'analysis')
 });
 
-// 完全类型化的响应 - 无需解析！
+// 完全类型化的响应 —— 无需手动解析！
 const analysis = response.choices[0].message.parsed;
-console.log(analysis.sentiment); // TypeScript 知道这是 'positive' | 'negative' | 'neutral'
 ```
 
-**支持的模式特性**：
+### 1.2 Anthropic：工具调用方案
 
-| 特性 | 支持 | 备注 |
-|---------|---------|-------|
-| `string`, `number`, `boolean` | ✅ 完整 | 基本类型 |
-| `array` | ✅ 完整 | 带类型化项目 |
-| `object` | ✅ 完整 | 支持嵌套对象 |
-| `enum` | ✅ 完整 | 字符串枚举 |
-| `anyOf` | ✅ 完整 | 联合类型 |
-| `$ref` / definitions | ✅ 完整 | 递归模式 |
-| `additionalProperties: false` | ⚠️ 必需 | 必须设置 |
-| `required` | ⚠️ 必需 | 所有属性都必须必需 |
+Anthropic 的 Claude 没有原生的 JSON 模式，但通过**工具调用 (Tool Use / Function Calling)** 实现了极佳的结构化输出效果。
 
-**限制**：
-- 最多 5 层嵌套
-- 最多 100 个属性总数
-- 不支持 `additionalProperties: true`
-- 所有字段都必须是 `required`（使用 `anyOf` 与 `null` 表示可选）
-
-### 1.2 Anthropic：工具使用变通方案
-
-Anthropic 的 Claude 没有原生 JSON 模式，但通过**工具使用**（函数调用）实现结构化输出。
-
-:::info[Anthropic 的方法]
-不使用专门的 JSON 模式，Anthropic 建议使用工具定义作为模式。模型"调用"具有结构化参数的工具，有效地产生 JSON 输出。
+:::info[Anthropic 的思路]
+Anthropic 建议将工具定义作为“输出 Schema”。模型通过调用带有结构化参数的工具，间接地生成了完美的 JSON 输出。
 :::
-
-```python
-import anthropic
-
-client = anthropic.Anthropic()
-
-# 将"输出模式"定义为工具
-tools = [{
-    "name": "submit_analysis",
-    "description": "提交结构化分析结果",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "sentiment": {
-                "type": "string",
-                "enum": ["positive", "negative", "neutral"],
-                "description": "文本的整体情感"
-            },
-            "confidence": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1,
-                "description": "0 到 1 之间的置信度分数"
-            },
-            "key_phrases": {
-                "type": "array",
-                "items": {"type": "string"},
-                "description": "从文本中提取的重要短语"
-            },
-            "summary": {
-                "type": "string",
-                "maxLength": 500,
-                "description": "内容的简要总结"
-            }
-        },
-        "required": ["sentiment", "confidence", "key_phrases", "summary"]
-    }
-}]
-
-response = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    max_tokens=1024,
-    tools=tools,
-    tool_choice={"type": "tool", "name": "submit_analysis"},  # 强制工具使用
-    messages=[{
-        "role": "user",
-        "content": f"分析此客户反馈并提交您的分析：\n\n{feedback_text}"
-    }]
-)
-
-# 从工具调用中提取结构化数据
-tool_use = next(block for block in response.content if block.type == "tool_use")
-analysis = tool_use.input  # 这是您的结构化 JSON
-```
-
-### 1.3 Google Gemini
-
-Gemini 支持带模式强制执行的 JSON 模式：
-
-```python
-import google.generativeai as genai
-from google.generativeai.types import GenerationConfig
-
-# 定义模式
-response_schema = {
-    "type": "object",
-    "properties": {
-        "sentiment": {"type": "string", "enum": ["positive", "negative", "neutral"]},
-        "score": {"type": "number"},
-        "themes": {
-            "type": "array",
-            "items": {"type": "string"}
-        }
-    },
-    "required": ["sentiment", "score", "themes"]
-}
-
-model = genai.GenerativeModel(
-    'gemini-1.5-pro',
-    generation_config=GenerationConfig(
-        response_mime_type="application/json",
-        response_schema=response_schema
-    )
-)
-
-response = model.generate_content("分析: " + text)
-result = json.loads(response.text)
-```
-
-### 1.4 提供商比较矩阵
-
-| 特性 | OpenAI | Anthropic | Gemini | Mistral |
-|---------|--------|-----------|--------|---------|
-| 原生 JSON 模式 | ✅ | ❌ | ✅ | ✅ |
-| 模式强制执行 | ✅ 100% | 通过工具 | ✅ | ⚠️ 部分支持 |
-| 受限解码 | ✅ | ❌ | ✅ | ❌ |
-| 嵌套对象 | ✅ 5 层 | ✅ 无限 | ✅ | ✅ |
-| 递归模式 | ✅ | ✅ | ⚠️ 有限 | ❌ |
-| 流式支持 | ✅ | ✅ | ✅ | ✅ |
-| 令牌效率 | 高 | 中等 | 高 | 中等 |
 
 ---
 
-## 2. XML 标签：无模式的结构
+## 2. XML 标签：无 Schema 的结构化
 
-XML 标签提供轻量级结构而不需要 API 级别的模式强制执行。这种方法适用于**任何 LLM**，并且在 Claude 中特别有效。
+XML 标签提供了一种轻量级的结构化方式，无需 API 级别的 Schema 强制。这种方法适用于 **任何 LLM**，且在 Claude 上表现尤为出色。
 
 ### 2.1 为什么 XML 优于 Markdown 分隔符
 
 ```plaintext
-Markdown 分隔符（有问题）：
+Markdown 分隔符 (容易混淆):
 ┌─────────────────────────────────────────────────────────────┐
-│ ## 说明                                                   │
-│ 检查代码                                                 │
-│                                                         │
-│ ## 上下文                                                │
-│ 电子商务平台                                             │
-│                                                         │
-│ 问题：# 和 ## 出现在代码、markdown、对话中                 │
-│ LLM 经常混淆部分边界                                     │
+│ ## 指令                                                     │
+│ 评审这段代码                                                │
+│                                                            │
+│ ## 上下文                                                   │
+│ 电商平台                                                    │
+│                                                            │
+│ 问题：# 和 ## 经常出现在代码注释或正文中，模型易混淆边界          │
 └─────────────────────────────────────────────────────────────┘
 
-XML 标签（可靠）：
+XML 标签 (极其可靠):
 ┌─────────────────────────────────────────────────────────────┐
-│ <instructions>                                            │
-│ 检查代码                                                 │
-│ </instructions>                                          │
-│                                                         │
-│ <context>                                                │
-│ 电子商务平台                                             │
-│ </context>                                               │
-│                                                         │
-│ 优势：                                                  │
-│ - 无歧义的边界                                           │
-│ - 分层嵌套                                               │
-│ +25% 指令遵循（Anthropic 研究）                          │
-│ - 易于程序化解析                                         │
+│ <instructions>                                             │
+│ 评审这段代码                                                │
+│ </instructions>                                            │
+│                                                            │
+│ <context>                                                  │
+│ 电商平台                                                    │
+│ </context>                                                 │
+│                                                            │
+│ 优势：边界无歧义、支持嵌套、便于程序化提取                     │
 └─────────────────────────────────────────────────────────────┘
-```
-
-### 2.2 XML 标签模式
-
-**模式 1：输入组织**
-
-```xml
-<system_context>
-您是一家金融科技公司的高级代码审查员。
-您的审查优先考虑安全性、性能和可维护性。
-</system_context>
-
-<code_to_review language="typescript">
-async function processPayment(userId: string, amount: number) {
-  const user = await db.users.findById(userId);
-  const result = await paymentGateway.charge(user.cardToken, amount);
-  return result;
-}
-</code_to_review>
-
-<review_focus>
-<item priority="high">安全漏洞</item>
-<item priority="high">错误处理</item>
-<item priority="medium">性能影响</item>
-<item priority="low">代码风格</item>
-</review_focus>
-
-<output_requirements>
-以以下格式提供您的审查：
-<review>
-<finding severity="critical|high|medium|low">
-<location>文件:行号</location>
-<issue>描述</issue>
-<recommendation>修复建议</recommendation>
-<code_example>修正后的代码</code_example>
-</finding>
-</review>
-</output_requirements>
-```
-
-**模式 2：多文档处理**
-
-```xml
-<documents>
-<document id="1" type="contract">
-[合同文本]
-</document>
-
-<document id="2" type="amendment">
-[修正案文本]
-</document>
-
-<document id="3" type="correspondence">
-[邮件线程]
-</document>
-</documents>
-
-<task>
-交叉引用所有文档并识别：
-1. 合同和修正案之间的冲突条款
-2. 通信中承诺但未在合同中的内容
-3. 缺少签名或日期
-</task>
-
-<output>
-<analysis>
-<conflict doc_refs="1,2">
-<section>付款条款</section>
-<original>净 30 天</original>
-<amended>净 45 天</amended>
-<resolution_needed>true</resolution_needed>
-</conflict>
-</analysis>
-</output>
-```
-
-**模式 3：带 XML 的思维链**
-
-```xml
-<problem>
-A 站点 9:00 AM 发出一列火车，速度为 60 mph。
-B 站点 10:00 AM 发出另一列火车，速度为 80 mph。
-站点相距 280 英里。它们何时相遇？
-</problem>
-
-<instructions>
-逐步解决，显示您的工作。
-</instructions>
-
-<response_format>
-<solution>
-<step number="1">
-<action>您正在计算的</action>
-<calculation>数学表达式</calculation>
-<result>中间结果</result>
-</step>
-<!-- 更多步骤 -->
-<answer>带单位的最终答案</answer>
-<verification>检查您的答案</verification>
-</solution>
-</response_format>
-```
-
-### 2.3 解析 XML 响应
-
-```typescript
-// 简单的正则提取（用于格式良好的响应）
-function extractXMLContent(response: string, tag: string): string | null {
-  const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
-  const match = response.match(regex);
-  return match ? match[1].trim() : null;
-}
-
-// 提取所有发现
-function extractFindings(response: string): Finding[] {
-  const findings: Finding[] = [];
-  const regex = /<finding severity="([^"]+)">([\s\S]*?)<\/finding>/gi;
-  let match;
-
-  while ((match = regex.exec(response)) !== null) {
-    const [, severity, content] = match;
-    findings.push({
-      severity: severity as Severity,
-      location: extractXMLContent(content, 'location'),
-      issue: extractXMLContent(content, 'issue'),
-      recommendation: extractXMLContent(content, 'recommendation')
-    });
-  }
-
-  return findings;
-}
-
-// 使用方法
-const review = extractXMLContent(response, 'review');
-const findings = extractFindings(review);
 ```
 
 ---
 
-## 3. Anthropic 预填充：控制输出开始
+## 3. Anthropic Prefilling (前缀预填充)
 
-Anthropic 独特的**预填充**功能让您可以预填充助手的响应，强制特定的输出格式。
-
-### 3.1 预填充如何工作
-
-```plaintext
-正常流程：
-用户："分析这些数据"
-助手："我很乐意分析这些数据。这是我发现的结果..."
-            ↑ 模型决定如何开始
-
-使用预填充：
-用户："分析这些数据"
-助手：{"analysis":    ← 您提供这个
-       "sentiment": "positive", ...}
-            ↑ 模型从您的开头继续
-```
-
-### 3.2 预填充模式
-
-**模式 1：强制 JSON 输出**
+这是 Anthropic 的独家绝技，允许你预先填充助手的第一个回复片段，从而强行规定输出格式。
 
 ```python
-response = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    max_tokens=1024,
-    messages=[
-        {
-            "role": "user",
-            "content": "从以下内容提取实体：'Apple CEO Tim Cook 在 Cupertino 宣布了 iPhone 16'"
-        },
-        {
-            "role": "assistant",
-            "content": '{"entities": ['  # 预填充强制 JSON 数组
-        }
-    ]
-)
-
-# 响应继续：'"Apple", "Tim Cook", "iPhone 16", "Cupertino"]}'
-full_json = '{"entities": [' + response.content[0].text
-result = json.loads(full_json)
+# 强制模型直接输出 JSON 数组，跳过废话
+messages=[
+    {"role": "user", "content": "提取实体：Tim Cook 在加州宣布了 iPhone 16。"},
+    {"role": "assistant", "content": '{"entities": ['}  # 预填充
+]
+# 模型将接着输出: '"Tim Cook", "California", "iPhone 16"]}'
 ```
-
-**模式 2：强制特定格式**
-
-```python
-# 强制 markdown 表格输出
-response = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    messages=[
-        {"role": "user", "content": "比较 Python vs JavaScript"},
-        {"role": "assistant", "content": "| 特性 | Python | JavaScript |\n|---------|--------|------------|\n|"}
-    ]
-)
-
-# 强制代码块
-response = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    messages=[
-        {"role": "user", "content": "编写一个反转字符串的函数"},
-        {"role": "assistant", "content": "```python\ndef reverse_string(s: str) -> str:\n    "}
-    ]
-)
-```
-
-**模式 3：跳过序言**
-
-```python
-# 无预填充时：
-# "我很乐意帮助！这是翻译..."
-
-# 使用预填充 - 直接输出：
-response = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    messages=[
-        {"role": "user", "content": "翻译成法语：Hello, how are you?"},
-        {"role": "assistant", "content": "Bonjour"}  # 强制直接翻译
-    ]
-)
-# 响应：", comment allez-vous?"
-```
-
-**模式 4：XML 结构预填充**
-
-````python
-response = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    messages=[
-        {
-            "role": "user",
-            "content": """
-分析此代码的安全问题：
-```python
-def login(username, password):
-    query = f"SELECT * FROM users WHERE name='{username}' AND pass='{password}'"
-    return db.execute(query)
-```
-"""
-        },
-        {
-            "role": "assistant",
-            "content": "<security_analysis>\n<vulnerability severity=\"critical\">\n<type>"
-        }
-    ]
-)
-````
-
-### 3.3 预填充最佳实践
-
-| 做 | 不做 |
-|----|-------|
-| 用于一致的输出格式 | 预填充完整的想法（模型可能矛盾） |
-| 开始 JSON 对象/数组 | 预填充 JSON 值的中间部分 |
-| 强制直接答案（跳过序言） | 使用过长的预填充 |
-| 匹配预期的输出结构 | 使用无效的语法预填充 |
 
 ---
 
 ## 4. Spring AI：生产级结构化输出
 
-Spring AI 通过 `OutputConverter` 实现，特别是 `BeanOutputConverter`，提供**类型安全的结构化输出**。
+Spring AI 通过 `OutputConverter`（尤其是 `BeanOutputConverter`）提供了**类型安全**的结构化输出支持。
 
-### 4.1 BeanOutputConverter 深入了解
+### 4.1 核心实现流
 
 ```java
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.converter.BeanOutputConverter;
-
-// 1. 定义响应类型
-@JsonClassDescription("客户反馈的完整分析")
+// 1. 定义你的 Java Record
 public record FeedbackAnalysis(
-    @JsonPropertyDescription("整体情感：POSITIVE、NEGATIVE 或 NEUTRAL")
-    @JsonProperty(required = true)
-    Sentiment sentiment,
-
-    @JsonPropertyDescription("0 到 1 之间的置信度分数")
-    @JsonProperty(required = true)
-    Double confidence,
-
-    @JsonPropertyDescription("从反馈中提取的关键主题")
-    @JsonProperty(required = true)
-    List<Theme> themes,
-
-    @JsonPropertyDescription("基于反馈的建议行动")
-    List<String> actionItems,
-
-    @JsonPropertyDescription("响应的优先级")
-    @JsonProperty(required = true)
-    Priority priority
-) {
-    public enum Sentiment { POSITIVE, NEGATIVE, NEUTRAL, MIXED }
-    public enum Priority { LOW, MEDIUM, HIGH, CRITICAL }
-}
-
-public record Theme(
-    @JsonProperty(required = true) String name,
-    @JsonProperty(required = true) Double relevance,
-    @JsonProperty(required = true) Integer mentionCount,
-    List<String> exampleQuotes
+    @JsonPropertyDescription("整体情感") Sentiment sentiment,
+    @JsonPropertyDescription("置信度 0-1") Double confidence,
+    List<String> actionItems
 ) {}
 
-// 2. 服务实现
+// 2. Service 层集成
 @Service
-@Slf4j
-public class FeedbackAnalysisService {
-
+public class AnalysisService {
     private final ChatClient chatClient;
 
-    public FeedbackAnalysisService(ChatClient.Builder builder) {
-        this.chatClient = builder.build();
-    }
-
-    public FeedbackAnalysis analyzeFeedback(String feedbackText) {
-        // 创建转换器 - 从 Java 类型生成 JSON 模式
-        BeanOutputConverter<FeedbackAnalysis> converter =
-            new BeanOutputConverter<>(FeedbackAnalysis.class);
-
-        String prompt = """
-            分析以下客户反馈并提取见解。
-
-            反馈：
-            {feedback}
-
-            {format}
-            """;
-
-        FeedbackAnalysis result = chatClient.prompt()
-            .user(u -> u.text(prompt)
-                .param("feedback", feedbackText)
-                .param("format", converter.getFormat()))  // 注入 JSON 模式
-            .call()
-            .entity(FeedbackAnalysis.class);  // 类型安全转换
-
-        log.info("分析完成：sentiment={}, confidence={}",
-            result.sentiment(), result.confidence());
-
-        return result;
-    }
-}
-```
-
-### 4.2 生成模式示例
-
-`BeanOutputConverter` 自动生成以下模式：
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "description": "客户反馈的完整分析",
-  "properties": {
-    "sentiment": {
-      "type": "string",
-      "enum": ["POSITIVE", "NEGATIVE", "NEUTRAL", "MIXED"],
-      "description": "整体情感：POSITIVE、NEGATIVE 或 NEUTRAL"
-    },
-    "confidence": {
-      "type": "number",
-      "description": "0 到 1 之间的置信度分数"
-    },
-    "themes": {
-      "type": "array",
-      "description": "从反馈中提取的关键主题",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "relevance": { "type": "number" },
-          "mentionCount": { "type": "integer" },
-          "exampleQuotes": {
-            "type": "array",
-            "items": { "type": "string" }
-          }
-        },
-        "required": ["name", "relevance", "mentionCount"]
-      }
-    },
-    "actionItems": {
-      "type": "array",
-      "items": { "type": "string" }
-    },
-    "priority": {
-      "type": "string",
-      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
-    }
-  },
-  "required": ["sentiment", "confidence", "themes", "priority"]
-}
-```
-
-### 4.3 列表和复杂类型转换
-
-```java
-// 对象列表
-@Service
-public class ProductExtractor {
-
-    private final ChatClient chatClient;
-
-    public List<Product> extractProducts(String description) {
-        // 使用 ParameterizedTypeReference 处理泛型类型
+    public FeedbackAnalysis analyze(String text) {
         return chatClient.prompt()
-            .user("提取提到的所有产品：" + description)
+            .user(u -> u.text("{text}\n\n{format}")
+                .param("text", text)
+                .param("format", new BeanOutputConverter<>(FeedbackAnalysis.class).getFormat()))
             .call()
-            .entity(new ParameterizedTypeReference<List<Product>>() {});
-    }
-}
-
-// 嵌套复杂类型
-public record OrderAnalysis(
-    @JsonProperty(required = true)
-    Customer customer,
-
-    @JsonProperty(required = true)
-    List<OrderItem> items,
-
-    @JsonProperty(required = true)
-    PaymentInfo payment,
-
-    ShippingDetails shipping,
-
-    @JsonProperty(required = true)
-    OrderStatus status
-) {
-    public record Customer(String id, String name, String email, CustomerTier tier) {}
-    public record OrderItem(String productId, String name, int quantity, BigDecimal price) {}
-    public record PaymentInfo(String method, String last4, BigDecimal total) {}
-    public record ShippingDetails(String address, String carrier, LocalDate estimatedDelivery) {}
-    public enum CustomerTier { STANDARD, PREMIUM, VIP }
-    public enum OrderStatus { PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED }
-}
-```
-
-### 4.4 错误处理和验证
-
-```java
-@Service
-public class RobustStructuredOutputService {
-
-    private final ChatClient chatClient;
-    private final Validator validator;
-
-    public <T> T getStructuredOutput(String prompt, Class<T> responseType) {
-        BeanOutputConverter<T> converter = new BeanOutputConverter<>(responseType);
-
-        int maxRetries = 3;
-        Exception lastException = null;
-
-        for (int attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                T result = chatClient.prompt()
-                    .user(prompt + "\n\n" + converter.getFormat())
-                    .call()
-                    .entity(responseType);
-
-                // 使用 Bean Validation 验证
-                Set<ConstraintViolation<T>> violations = validator.validate(result);
-                if (!violations.isEmpty()) {
-                    String errors = violations.stream()
-                        .map(v -> v.getPropertyPath() + ": " + v.getMessage())
-                        .collect(Collectors.joining(", "));
-                    throw new ValidationException("验证失败：" + errors);
-                }
-
-                return result;
-
-            } catch (JsonParseException | ValidationException e) {
-                lastException = e;
-                log.warn("尝试 {} 失败：{}", attempt, e.getMessage());
-
-                if (attempt < maxRetries) {
-                    // 添加澄清以供重试
-                    prompt = prompt + "\n\n前一次尝试失败。 " +
-                        "请确保有效的 JSON 精确匹配模式。";
-                }
-            }
-        }
-
-        throw new StructuredOutputException(
-            "尝试 " + maxRetries + " 次后失败", lastException);
-    }
-}
-```
-
-### 4.5 用于动态模式的 MapOutputConverter
-
-当您没有预定义类时：
-
-```java
-@Service
-public class DynamicAnalysisService {
-
-    private final ChatClient chatClient;
-
-    public Map<String, Object> analyzeWithDynamicSchema(String content, String schemaDescription) {
-        MapOutputConverter converter = new MapOutputConverter();
-
-        String prompt = """
-            分析以下内容并返回结构化数据。
-
-            内容：{content}
-
-            必需字段：{schema}
-
-            {format}
-            """;
-
-        return chatClient.prompt()
-            .user(u -> u.text(prompt)
-                .param("content", content)
-                .param("schema", schemaDescription)
-                .param("format", converter.getFormat()))
-            .call()
-            .entity(new ParameterizedTypeReference<Map<String, Object>>() {});
+            .entity(FeedbackAnalysis.class); // 自动反序列化为 Java 对象
     }
 }
 ```
 
 ---
 
-## 5. 高级结构化输出模式
+## 5. 常见错误与对策
 
-### 5.1 流式结构化输出
-
-```java
-@Service
-public class StreamingStructuredService {
-
-    private final ChatClient chatClient;
-
-    public Flux<PartialAnalysis> streamAnalysis(String content) {
-        return chatClient.prompt()
-            .user("分析：" + content)
-            .stream()
-            .content()
-            .bufferUntil(chunk -> chunk.contains("},"))  // 缓冲到完整对象
-            .map(this::parsePartialJson)
-            .filter(Objects::nonNull);
-    }
-
-    // 用于带验证的流式结构化输出
-    public Flux<StreamingEvent> streamWithProgress(String content) {
-        AtomicReference<StringBuilder> buffer = new AtomicReference<>(new StringBuilder());
-
-        return chatClient.prompt()
-            .user(buildPromptWithStreamingFormat(content))
-            .stream()
-            .content()
-            .map(chunk -> {
-                buffer.get().append(chunk);
-                return parseStreamingEvent(buffer.get().toString());
-            })
-            .filter(event -> event.type() != EventType.INCOMPLETE);
-    }
-}
-```
-
-### 5.2 多格式输出
-
-```java
-public record MultiFormatResponse(
-    @JsonProperty(required = true)
-    Summary summary,
-
-    @JsonProperty(required = true)
-    List<DataPoint> data,
-
-    @JsonProperty(required = true)
-    String markdownReport,
-
-    @JsonProperty(required = true)
-    String sqlQuery,
-
-    Visualization visualization
-) {
-    public record Summary(String title, String description, List<String> keyFindings) {}
-    public record DataPoint(String label, Double value, String unit, String trend) {}
-    public record Visualization(String type, Map<String, Object> config) {}
-}
-
-// 多格式提示
-String prompt = """
-    分析销售数据并提供：
-    1. 结构化摘要
-    2. 作为 JSON 的关键数据点
-    3. 面向利益相关者的 markdown 报告
-    4. 重复此分析的 SQL 查询
-    5. 可视化配置
-
-    数据：
-    {data}
-
-    {format}
-    """;
-```
-
-### 5.3 条件模式选择
-
-```java
-@Service
-public class AdaptiveOutputService {
-
-    private final ChatClient chatClient;
-
-    public Object analyzeWithAdaptiveSchema(String content, AnalysisType type) {
-        return switch (type) {
-            case SENTIMENT -> analyze(content, SentimentAnalysis.class);
-            case ENTITIES -> analyze(content, EntityExtraction.class);
-            case SUMMARY -> analyze(content, DocumentSummary.class);
-            case CLASSIFICATION -> analyze(content, ClassificationResult.class);
-            case FULL -> analyze(content, ComprehensiveAnalysis.class);
-        };
-    }
-
-    private <T> T analyze(String content, Class<T> schemaClass) {
-        BeanOutputConverter<T> converter = new BeanOutputConverter<>(schemaClass);
-
-        return chatClient.prompt()
-            .system(getSystemPromptForType(schemaClass))
-            .user(u -> u.text("{content}\n\n{format}")
-                .param("content", content)
-                .param("format", converter.getFormat()))
-            .call()
-            .entity(schemaClass);
-    }
-}
-```
+1. **Schema 过于复杂**：嵌套超过 5 层会导致模型遵循率下降。**对策**：尽量打平结构。
+2. **缺乏校验**：即使有结构化输出，也可能出现数值越界。**对策**：在解析后增加 Bean Validation (JSR 303)。
+3. **忽略解析失败**：网络波动或模型偶尔的失误。**对策**：实现带有明确错误反馈的重试机制。
 
 ---
 
-## 6. 常见错误和解决方案
-
-### 错误 1：过于复杂的模式
-
-```java
-// ❌ 错误：太多嵌套层，到处都是可选字段
-public record OverlyComplexAnalysis(
-    Optional<Level1> level1,
-    Optional<List<Optional<Level2>>> level2s,
-    Map<String, Optional<Level3>> level3Map
-    // ... 50 多个字段
-) {}
-
-// ✅ 正确：扁平的、必需字段、清晰目的
-public record FocusedAnalysis(
-    @JsonProperty(required = true) String category,
-    @JsonProperty(required = true) Double score,
-    @JsonProperty(required = true) List<String> reasons
-) {}
-```
-
-### 错误 2：缺少模式说明
-
-```java
-// ❌ 错误：没有格式说明
-return chatClient.prompt()
-    .user("分析这个：" + content)
-    .call()
-    .entity(Analysis.class);  // 模型不知道模式！
-
-// ✅ 正确：包含格式说明
-BeanOutputConverter<Analysis> converter = new BeanOutputConverter<>(Analysis.class);
-return chatClient.prompt()
-    .user(content + "\n\n" + converter.getFormat())  // 包含模式
-    .call()
-    .entity(Analysis.class);
-```
-
-### 错误 3：没有验证
-
-```java
-// ❌ 错误：盲目信任模型输出
-Analysis result = chatClient.prompt().user(prompt).call().entity(Analysis.class);
-return result;  // 如果置信度是 -5 或 200 怎么办？
-
-// ✅ 正确：验证输出
-Analysis result = chatClient.prompt().user(prompt).call().entity(Analysis.class);
-
-if (result.confidence() < 0 || result.confidence() > 1) {
-    throw new InvalidOutputException("置信度超出范围：" + result.confidence());
-}
-if (result.categories().isEmpty()) {
-    throw new InvalidOutputException("至少需要一个类别");
-}
-return result;
-```
-
-### 错误 4：忽略部分失败
-
-```java
-// ❌ 错误：全有或全无
-public List<ProductAnalysis> analyzeProducts(List<String> products) {
-    return products.stream()
-        .map(p -> chatClient.prompt().user("分析：" + p).call().entity(ProductAnalysis.class))
-        .toList();  // 一次失败就全部失败
-}
-
-// ✅ 正确：优雅降级
-public AnalysisBatch analyzeProducts(List<String> products) {
-    List<ProductAnalysis> successes = new ArrayList<>();
-    List<FailedAnalysis> failures = new ArrayList<>();
-
-    for (String product : products) {
-        try {
-            successes.add(analyze(product));
-        } catch (Exception e) {
-            failures.add(new FailedAnalysis(product, e.getMessage()));
-        }
-    }
-
-    return new AnalysisBatch(successes, failures,
-        (double) successes.size() / products.size());
-}
-```
-
----
-
-## 7. 结构化输出决策树
+## 6. 结构化输出决策树
 
 ```plaintext
 需要结构化输出？
         │
         ▼
 ┌───────────────────────────────────────┐
-│ 您需要 100% 模式 compliance？         │
+│ 是否需要 100% 严格遵守 Schema？         │
 └───────────────────────────────────────┘
         │
     ┌───┴───┐
@@ -1013,72 +196,30 @@ public AnalysisBatch analyzeProducts(List<String> products) {
     │       │
     ▼       ▼
 ┌─────────┐ ┌─────────────────────────────┐
-│ OpenAI？ │ │ 仅轻量级结构？               │
+│ OpenAI? │ │ 是否仅需轻量化结构？           │
 └─────────┘ └─────────────────────────────┘
     │               │
 ┌───┴───┐       ┌───┴───┐
 │       │       │       │
-是       否     是       否
+是      否      是      否
 │       │       │       │
 ▼       ▼       ▼       ▼
-使用     使用     使用     使用
-结构化   工具     XML     JSON
-输出     使用     标签     模式
-        (任何)   (任何)   +重试
+使用    使用    使用    使用标准
+OpenAI  工具    XML     JSON 模式
+专有    调用    标签    并配合
+接口    (任意)  (任意)  校验/重试
 ```
 
-**快速参考**：
-
-| 场景 | 推荐方法 |
-|----------|---------------------|
-| OpenAI + 关键可靠性 | 结构化输出（100% 保证） |
-| Anthropic + 任何结构化需求 | 工具使用作为模式 |
-| 多提供商 + 可移植性 | XML 标签带解析 |
-| 简单 JSON + 可接受重试 | JSON 模式 + 验证 |
-| Spring AI + 类型安全 | BeanOutputConverter |
-
 ---
 
-## 8. 快速参考
+## 总结
 
-### 格式说明模板
-
-```plaintext
-您的响应必须与此模式匹配的有效 JSON：
-
-{schema}
-
-要求：
-- 仅输出 JSON 对象，无额外文本
-- 所有必需字段必须存在
-- 枚举必须使用指定的确切值
-- 数字必须在指定范围内
-- 数组可以为空但如果必需则必须存在
-```
-
-### 验证清单
-
-- [ ] 模式复杂度适当（≤5 层嵌套）
-- [ ] 所有字段都有清晰的描述
-- [ ] 必需与可选明确标记
-- [ ] 枚举有完整值集
-- [ ] 适用处指定数字范围
-- [ ] 实现重试逻辑
-- [ ] 解析后验证层
-- [ ] 解析失败的错误处理
-- [ ] 调试日志
+结构化输出是 **Agentic 系统** 的生命线。
+1. **JSON 模式** 是不同系统间集成的标准。
+2. **XML 标签** 是复杂输入组织的最优解。
+3. **Spring AI** 提供了 Java 开发者所需的类型安全与工程化封装。
 
 ---
-
-## 参考文献
-
-1. OpenAI. (2024). *结构化输出*. [OpenAI 文档](https://platform.openai.com/docs/guides/structured-outputs)
-2. Anthropic. (2024). *用于结构化输出的工具使用*. [Anthropic 文档](https://docs.anthropic.com/en/docs/build-with-claude/tool-use)
-3. Google. (2024). *Gemini JSON 模式*. [Google AI 文档](https://ai.google.dev/gemini-api/docs/json-mode)
-4. Spring AI. (2024). *结构化输出转换器*. [Spring AI 参考](https://docs.spring.io/spring-ai/reference/api/structured-output-converter.html)
-5. Willison, S. (2024). *结构化输出比较*. [博客文章](https://simonwillison.net/2024/structured-outputs/)
-
----
-
-**上一个**：[2.2 核心推理模式](./03-reasoning-patterns.mdx) ←
-**下一个**：[2.4 Spring AI 实现](./05-spring-ai.mdx) →
+**上一章**：[2.2 核心推理模式](./03-reasoning-patterns.mdx) ←
+**下一章**：[2.4 Spring AI 提示词实战](./05-spring-ai.mdx) →
+ stone

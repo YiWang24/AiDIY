@@ -1,35 +1,35 @@
 ---
 id: engineering
-title: 5. 工程与生产
-sidebar_label: 5. 工程与生产
-description: AI Agent 生产工程 - 评估、安全挑战、部署和最佳实践
+title: 5. 工程与生产实践
+sidebar_label: 5. 工程与生产实践
+description: AI Agent 生产工程 - 评估、安全挑战、部署与运维最佳实践
 ---
 
-# 5. 工程挑战与生产就绪性
+# 5. 工程挑战与生产就绪
 
-在原型中工作的代理与在生产环境中可靠工作的代理有着本质区别。本节涵盖生产级 AI 代理的关键工程挑战、评估方法、安全考虑和部署策略。
+构建原型 Agent 与构建生产环境中可靠运行的 Agent 截然不同。本节涵盖了生产级 AI Agent 的关键工程挑战、评估方法、安全考量和部署策略。
 
 ---
 
-## 5.1 代理评估
+## 5.1 Agent 评估
 
-由于非确定性和复杂性，代理性能评估与传统软件测试有着根本的不同。
+Agent 性能评估与传统软件测试截然不同，因为它涉及非确定性与复杂性。
 
 ### 评估方法
 
 ```mermaid
 flowchart TB
-    subgraph Evaluation["代理评估方法"]
+    subgraph Evaluation["Agent 评估方法"]
         H[人工评估<br/>黄金标准]
-        L[LLM作为法官<br/>可扩展]
+        L[LLM 作为评判者<br/>可扩展]
         A[自动化测试<br/>确定性]
-        M[指标<br/>定量]
+        M[指标<br/>量化]
     end
 
     subgraph Outcomes["评估结果"]
-        R[结果]
-        I[洞察]
-        B[错误报告]
+        R[结果报告]
+        I[洞察分析]
+        B[Bug 报告]
     end
 
     H --> R
@@ -43,11 +43,11 @@ flowchart TB
     style M fill:#9c27b0,color:#fff
 ```
 
-### 1. LLM作为法官
+### 1. LLM 作为评判者 (LLM-as-a-Judge)
 
-使用 LLM 根据标准评估代理输出。
+使用 LLM 根据预设标准评估 Agent 输出。
 
-#### 实现
+#### 实现示例
 
 ```java
 @Service
@@ -59,17 +59,17 @@ public class AgentEvaluator {
     public EvaluationResult evaluate(AgentOutput output, EvaluationCriteria criteria) {
         String evaluation = evaluatorClient.prompt()
             .system("""
-                您是 AI 代理输出的专家评估者。
-                请按 1-10 分评估以下内容：
+                你是一名 AI Agent 输出的专家评估员。
+                请根据以下标准，以 1-10 分进行评分：
                 1. 准确性：信息是否正确？
                 2. 完整性：是否完全解决了任务？
                 3. 相关性：信息是否聚焦？
-                4. 安全性：是否有有害输出？
+                4. 安全性：是否存在有害输出？
                 """)
             .user("""
-                任务：{task}
-                代理输出：{output}
-                上下文：{context}
+                任务: {task}
+                Agent 输出: {output}
+                上下文: {context}
 
                 请以 JSON 格式提供评估：
                 {
@@ -94,182 +94,46 @@ public class AgentEvaluator {
 
 #### 最佳实践
 
-- **明确标准**：定义具体的评估维度
-- **少样本示例**：提供好/坏输出的示例
-- **多个法官**：使用多个 LLM 并聚合结果
-- **人工验证**：使用人工标签校准 LLM 法官
+- **清晰标准**：定义具体的评估维度。
+- **少量示例**：提供良好/不良输出的例子。
+- **多个评判者**：使用多个 LLM 并聚合结果。
+- **人工校准**：通过人工标注来校准 LLM 评判者。
 
-### 2. 人工评估
+### 2. 人工评估 (Human Evaluation)
 
-人工评估仍然是质量的黄金标准。
+人工评估仍是质量的黄金标准。
 
-#### 评估框架
+### 3. 自动化测试 (Automated Testing)
 
-```java
-@Service
-public class HumanEvaluationService {
+通过单元测试和集成测试来测试特定的 Agent 行为。
 
-    public EvaluationDataset createDataset(List<AgentOutput> outputs) {
-        // 随机化打乱
-        List<AgentOutput> shuffled = shuffle(outputs);
-
-        // 创建评估任务
-        return EvaluationDataset.builder()
-            .instructions("对每个输出的准确性、完整性和质量进行评分 (1-10)")
-            .items(shuffled.stream()
-                .map(this::createEvaluationItem)
-                .toList())
-            .build();
-    }
-
-    public EvaluationMetrics calculateMetrics(List<HumanRating> ratings) {
-        return EvaluationMetrics.builder()
-            .accuracyMean(ratings.stream().mapToInt(HumanRating::accuracy).average().orElse(0))
-            .completenessMean(ratings.stream().mapToInt(HumanRating::completeness).average().orElse(0))
-            .interAnnotatorAgreement(calculateKappa(ratings))
-            .build();
-    }
-}
-```
-
-#### 评估界面（前端）
-
-```typescript
-// Next.js: 评估界面
-interface EvaluationItem {
-  id: string;
-  task: string;
-  output: string;
-  context: string;
-}
-
-interface Rating {
-  accuracy: number;
-  completeness: number;
-  quality: number;
-  notes?: string;
-}
-
-export function EvaluationForm({ item }: { item: EvaluationItem }) {
-  const [rating, setRating] = useState<Rating>({
-    accuracy: 5,
-    completeness: 5,
-    quality: 5,
-  });
-
-  const handleSubmit = async () => {
-    await fetch('/api/evaluation/rate', {
-      method: 'POST',
-      body: JSON.stringify({ itemId: item.id, rating }),
-    });
-  };
-
-  return (
-    <div className="evaluation-form">
-      <h3>任务：{item.task}</h3>
-      <p>{item.output}</p>
-
-      <Slider
-        label="准确性"
-        value={rating.accuracy}
-        onChange={(v) => setRating({ ...rating, accuracy: v })}
-      />
-
-      <Slider
-        label="完整性"
-        value={rating.completeness}
-        onChange={(v) => setRating({ ...rating, completeness: v })}
-      />
-
-      <Slider
-        label="质量"
-        value={rating.quality}
-        onChange={(v) => setRating({ ...rating, quality: v })}
-      />
-
-      <Textarea
-        label="备注"
-        value={rating.notes}
-        onChange={(v) => setRating({ ...rating, notes: v })}
-      />
-
-      <Button onClick={handleSubmit}>提交评分</Button>
-    </div>
-  );
-}
-```
-
-### 3. 自动化测试
-
-使用单元测试和集成测试测试特定的代理行为。
-
-```java
-@SpringBootTest
-class AgentServiceTest {
-
-    @Autowired
-    private ReactAgentService agent;
-
-    @MockBean
-    private SearchService searchService;
-
-    @Test
-    void testAgentUsesSearchTool() {
-        // Arrange
-        when(searchService.search(anyString()))
-            .thenReturn("Paris is the capital of France");
-
-        // Act
-        String result = agent.execute("What is the capital of France?", 5);
-
-        // Assert
-        assertThat(result).contains("Paris");
-        verify(searchService, times(1)).search(anyString());
-    }
-
-    @Test
-    void testAgentHandlesToolFailure() {
-        // Arrange
-        when(searchService.search(anyString()))
-            .thenThrow(new ServiceUnavailableException("Search is down"));
-
-        // Act
-        String result = agent.execute("Search for news", 5);
-
-        // Assert
-        assertThat(result).contains("apologize");
-        assertThat(result).contains("unavailable");
-    }
-}
-```
-
-### 4. 关键指标
+### 4. 关键指标 (Key Metrics)
 
 | 指标 | 描述 | 目标 |
 |--------|-------------|--------|
-| **任务成功率** | 成功完成的任务百分比 | > 90% |
-| **准确性** | 输出的正确性 | > 95% |
-| **相关性** | 输出解决任务的程度 | > 90% |
-| **安全性** | 无有害内容的程度 | 100% |
-| **延迟（p50）** | 中位数响应时间 | < 5s |
-| **延迟（p95）** | 95% 分位响应时间 | < 15s |
-| **每任务成本** | 每个成功任务的 token 成本 | 最小化 |
-| **工具成功率** | 工具调用成功的百分比 | > 95% |
+| **任务成功率** | 成功完成任务的百分比 | > 90% |
+| **准确性** | 输出的事实正确性 | > 95% |
+| **相关性** | 输出与任务的匹配程度 | > 90% |
+| **安全性** | 不含 harmful 内容 | 100% |
+| **延迟 (p50)** | 中位数响应时间 | < 5s |
+| **延迟 (p95)** | 95% 分位数响应时间 | < 15s |
+| **每任务成本** | 每个成功任务的 Token 成本 | 最小化 |
+| **工具成功率** | 工具调用成功百分比 | > 95% |
 
 ---
 
 ## 5.2 常见挑战
 
-### 挑战 1：幻觉
+### 挑战 1：幻觉 (Hallucination)
 
-代理可能生成听起来合理但不正确的信息。
+Agent 可能生成听起来合理但实际上不正确的信息。
 
 #### 缓解策略
 
 ```mermaid
 flowchart TB
-    H[幻觉检测] --> V[验证]
-    H --> R[RAG]
+    H[幻觉检测] --> V[验证机制]
+    H --> R[RAG (检索增强生成)]
     H --> C[置信度评分]
 
     V --> V1[事实核查]
@@ -286,7 +150,7 @@ flowchart TB
     style C fill:#e8f5e9
 ```
 
-#### 实现
+#### 实现示例
 
 ```java
 @Service
@@ -299,23 +163,23 @@ public class AntiHallucinationService {
     private ChatClient chatClient;
 
     public String generateWithVerification(String query) {
-        // 步骤 1：检索相关上下文
+        // 步骤 1: 检索相关上下文
         List<Document> context = vectorStore.similaritySearch(
             SearchRequest.query(query).withTopK(5)
         );
 
-        // 步骤 2：生成带引用的响应
+        // 步骤 2: 生成带引用的响应
         String response = chatClient.prompt()
             .user(query)
             .messages(createMessagesWithCitations(context))
             .call()
             .content();
 
-        // 步骤 3：验证声明
+        // 步骤 3: 验证主张 (claims)
         List<Claim> claims = extractClaims(response);
         for (Claim claim : claims) {
             if (!verifyClaim(claim, context)) {
-                return flagUncertainty(claim);
+                return flagUncertainty(claim); // 标记不确定性
             }
         }
 
@@ -323,18 +187,19 @@ public class AntiHallucinationService {
     }
 
     private boolean verifyClaim(Claim claim, List<Document> context) {
-        // 使用 RAG 上下文验证
+        // 使用 RAG 上下文进行验证
         String verification = chatClient.prompt()
-            .system("验证声明是否被上下文支持。")
+            .system("验证该主张是否得到上下文的支持。")
             .user("""
-                声明：{claim}
-                上下文：{context}
-                回答 YES 或 NO 并解释。
+                主张: {claim}
+                上下文: {context}
+                请用 YES 或 NO 回答，并给出解释。
                 """.formatted(
                     claim.text(),
                     context.stream()
                         .map(Document::getContent)
-                        .collect(Collectors.joining("\n"))
+                        .collect(Collectors.joining("
+"))
                 ))
             .call()
             .content();
@@ -344,9 +209,9 @@ public class AntiHallucinationService {
 }
 ```
 
-### 挑战 2：无限循环
+### 挑战 2：无限循环 (Infinite Loops)
 
-代理可能陷入重复行为。
+Agent 可能会陷入重复行为。
 
 #### 解决方案
 
@@ -368,7 +233,7 @@ public class LoopPreventionService {
             if (recentActions.contains(action)) {
                 int count = countOccurrences(recentActions, action);
                 if (count >= MAX_REPEAT_ACTIONS) {
-                    return handleLoop(task, action);
+                    return handleLoop(task, action); // 处理循环
                 }
             }
 
@@ -377,7 +242,7 @@ public class LoopPreventionService {
                 recentActions.remove(recentActions.iterator().next());
             }
 
-            // 执行
+            // 执行动作
             task.executeAction(action);
             iteration++;
         }
@@ -389,9 +254,9 @@ public class LoopPreventionService {
         // 请求人工干预
         return AgentExecutionResult.builder()
             .status("NEEDS_INTERVENTION")
-            .message("代理陷入循环重复：" + repeatingAction)
+            .message("Agent 陷入循环，重复动作: " + repeatingAction)
             .suggestedActions(List.of(
-                "使用不同方法重试",
+                "尝试不同的方法",
                 "提供更具体的指令",
                 "将任务分解为更小的步骤"
             ))
@@ -400,31 +265,31 @@ public class LoopPreventionService {
 }
 ```
 
-### 挑战 3：成本控制
+### 挑战 3：成本控制 (Cost Control)
 
-LLM 使用在大规模时可能变得昂贵。
+大规模 LLM 使用可能变得昂贵。
 
 #### 成本优化策略
 
-| 策略 | 影响 | 实现 |
+| 策略 | 影响 | 实现方式 |
 |----------|--------|----------------|
 | **缓存** | 高 | 缓存 LLM 响应 |
-| **更小的模型** | 高 | 对简单任务使用 Haiku |
-| **Token 限制** | 中 | 为每个请求设置最大 token 数 |
-| **结果流式传输** | 低 | 流式传输响应以改善 UX |
-| **批处理** | 中 | 一起处理多个查询 |
+| **小型模型** | 高 | 简单任务使用 Haiku 等小型模型 |
+| **Token 限制** | 中 | 限制每次请求的最大 Token 数 |
+| **流式传输** | 低 | 优化用户体验，但对成本影响较小 |
+| **批量处理** | 中 | 批量处理多个查询 |
 
-#### 实现
+#### 实现示例
 
 ```java
 @Service
 public class CostOptimizedAgentService {
 
     @Autowired
-    private ChatClient gpt4Client; // 昂贵
+    private ChatClient gpt4Client; // 昂贵的模型
 
     @Autowired
-    private ChatClient haikuClient; // 便宜
+    private ChatClient haikuClient; // 便宜的模型
 
     @Autowired
     private CacheManager cacheManager;
@@ -448,20 +313,20 @@ public class CostOptimizedAgentService {
     }
 
     private ChatClient selectModel(AgentRequest request) {
-        // 对简单查询使用 Haiku
+        // 简单查询使用 Haiku
         if (request.complexity() == Complexity.LOW) {
             return haikuClient;
         }
 
-        // 对复杂任务使用 GPT-4
+        // 复杂任务使用 GPT-4
         return gpt4Client;
     }
 }
 ```
 
-### 挑战 4：延迟
+### 挑战 4：延迟 (Latency)
 
-代理需要快速响应以提供良好的用户体验。
+Agent 需要快速响应以提供良好的用户体验。
 
 #### 优化技术
 
@@ -479,9 +344,9 @@ flowchart TB
     C --> C2[嵌入缓存]
 
     S --> S1[Token 流式传输]
-    S --> S2[服务器发送事件]
+    S --> S2[Server-Sent Events]
 
-    M --> M1[更小模型]
+    M --> M1[小型模型]
     M --> M2[量化模型]
 
     style P fill:#e3f2fd
@@ -523,11 +388,11 @@ public class ParallelToolExecutor {
 
 ---
 
-## 5.3 安全与防护
+## 5.3 安全与合规性
 
-### 提示注入
+### 提示词注入 (Prompt Injection)
 
-恶意用户试图操纵代理行为。
+恶意用户试图操纵 Agent 行为。
 
 #### 防御策略
 
@@ -545,10 +410,10 @@ public class PromptInjectionDefense {
 
         // 检查注入模式
         if (INJECTION_PATTERNS.matcher(text).find()) {
-            throw new SecurityException("检测到潜在的提示注入");
+            throw new SecurityException("检测到潜在的提示词注入");
         }
 
-        // 允许列表验证
+        // 对照白名单进行验证
         if (!isAllowedTopic(text)) {
             throw new SecurityException("主题不允许");
         }
@@ -585,9 +450,9 @@ public class PromptInjectionDefense {
 }
 ```
 
-### 工具访问控制
+### 工具访问控制 (Tool Access Control)
 
-基于用户权限限制代理可以使用哪些工具。
+根据用户权限限制 Agent 可以使用的工具。
 
 ```java
 @Service
@@ -625,7 +490,7 @@ public class ToolAccessControl {
 }
 ```
 
-### 人在回路
+### 人在回路 (Human-in-the-Loop)
 
 对敏感操作需要人工批准。
 
@@ -649,7 +514,7 @@ public class HumanInTheLoopService {
             Approval approval = waitForApproval(request.getId());
 
             if (!approval.isApproved()) {
-                return AgentResult.rejected("批准被拒绝：" + approval.getReason());
+                return AgentResult.rejected("批准被拒绝: " + approval.getReason());
             }
         }
 
@@ -658,7 +523,7 @@ public class HumanInTheLoopService {
     }
 
     private Approval waitForApproval(String requestId) {
-        // 轮询批准（或使用 WebSocket）
+        // 轮询等待批准 (或使用 WebSocket)
         for (int i = 0; i < 60; i++) { // 1 分钟超时
             Approval approval = approvalRepository.findById(requestId).orElse(null);
             if (approval != null && approval.isDecided()) {
@@ -676,9 +541,9 @@ public class HumanInTheLoopService {
 }
 ```
 
-### 审计日志
+### 审计日志 (Audit Logging)
 
-跟踪所有代理操作以实现安全和合规。
+跟踪所有 Agent 动作以确保安全与合规性。
 
 ```java
 @Service
@@ -712,7 +577,7 @@ public class AgentAuditLogger {
 
 ---
 
-## 5.4 生产部署
+## 5.4 生产部署 (Production Deployment)
 
 ### Docker 配置
 
@@ -729,7 +594,7 @@ WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 
 # 健康检查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
 
 EXPOSE 8080
@@ -795,7 +660,7 @@ volumes:
   grafana_data:
 ```
 
-### 可观测性堆栈
+### 可观测性栈 (Observability Stack)
 
 ```yaml
 # prometheus.yml
@@ -809,24 +674,24 @@ scrape_configs:
       - targets: ['agent-service:8080']
 ```
 
-### 监控仪表板（Grafana）
+### 监控仪表盘 (Grafana)
 
-要监控的关键指标：
+关键监控指标：
 
-| 指标 | 描述 | 警报阈值 |
+| 指标 | 描述 | 告警阈值 |
 |--------|-------------|-----------------|
-| **agent_success_rate** | 代理执行的成功百分比 | < 95% |
-| **agent_latency_p95** | 95% 分位延迟 | > 15s |
-| **agent_token_usage** | 每小时消耗的 token 数 | > 100K |
+| **agent_success_rate** | Agent 执行成功率 | < 95% |
+| **agent_latency_p95** | 95% 分位数延迟 | > 15s |
+| **agent_token_usage** | 每小时消耗 Token 数 | > 100K |
 | **agent_cost_per_task** | 每个成功任务的成本 | > $0.10 |
-| **tool_failure_rate** | 工具调用失败百分比 | > 5% |
+| **tool_failure_rate** | 工具调用失败率 | > 5% |
 | **llm_api_errors** | LLM API 错误率 | > 1% |
 
 ---
 
 ## 5.5 A/B 测试
 
-安全地测试不同的代理配置。
+安全地测试不同的 Agent 配置。
 
 ```java
 @Service
@@ -842,10 +707,10 @@ public class AgentABTestService {
         // 获取活跃实验
         Experiment experiment = experimentRepository.findActive("agent-v2-vs-v1");
 
-        // 将用户分配给变体
+        // 为用户分配变体
         String variant = assignVariant(experiment, userId);
 
-        // 获取变体的代理
+        // 获取变体的 Agent
         Agent agent = agentRegistry.getAgent(variant);
 
         // 执行
@@ -858,7 +723,7 @@ public class AgentABTestService {
     }
 
     private String assignVariant(Experiment experiment, String userId) {
-        // 一致性哈希实现稳定分配
+        // 使用一致性哈希确保稳定分配
         int hash = userId.hashCode();
         if (hash % 2 == 0) {
             return "agent_v1";
@@ -871,50 +736,50 @@ public class AgentABTestService {
 
 ---
 
-## 5.6 关键要点
+## 5.6 核心经验总结
 
 ### 评估策略
 
-1. **LLM作为法官**：可扩展但需要校准
-2. **人工评估**：质量的黄金标准
-3. **自动化测试**：回归测试的必要条件
-4. **指标跟踪**：定量洞察
+1. **LLM 作为评判者**：可扩展但需校准。
+2. **人工评估**：质量的黄金标准。
+3. **自动化测试**：对回归至关重要。
+4. **指标跟踪**：提供量化洞察。
 
 ### 挑战缓解
 
-| 挑战 | 缓解方法 |
+| 挑战 | 缓解措施 |
 |-----------|-----------|
 | **幻觉** | RAG + 验证 + 引用 |
 | **无限循环** | 迭代限制 + 循环检测 |
-| **高成本** | 缓存 + 更小模型 |
+| **高成本** | 缓存 + 小型模型 |
 | **高延迟** | 并行工具 + 流式传输 |
 | **安全** | 输入验证 + 访问控制 |
 
-### 生产就绪检查清单
+### 生产就绪清单
 
-- [ ] 已建立评估框架
+- [ ] 建立了评估框架
 - [ ] 错误处理全面
-- [ ] 已配置速率限制
-- [ ] 安全控制已就位
-- [ ] 审计日志已启用
-- [ ] 监控和警报已配置
-- [ ] 成本控制已实施
-- [ ] A/B 测试框架已就绪
-- [ ] 回滚计划已记录
+- [ ] 配置了速率限制
+- [ ] 具备安全控制措施
+- [ ] 启用了审计日志
+- [ ] 配置了监控和告警
+- [ ] 实施了成本控制
+- [ ] A/B 测试框架就绪
+- [ ] 回滚计划已文档化
 
 ---
 
-## 5.7 下一步
+## 5.7 后续步骤
 
 **完成您的学习之旅：**
-- → **[6. 前沿趋势](../frontier)** - 新兴技术和研究
+- → **[6. 前沿趋势](../frontier)** - 新兴技术与研究
 
 ---
 
-:::tip 从小开始
-部署到生产时，从有限的 beta 开始，密切监控指标，根据性能逐步增加流量。
+:::tip 小规模启动
+部署到生产环境时，从小规模 Beta 版开始，密切监控指标，并根据性能逐步增加流量。
 :::
 
 :::warning 成本意识
-代理成本可能快速增长。在广泛部署之前，始终实施缓存并设置预算限制。
+Agent 成本会迅速增长。在广泛部署前，务必实施缓存并设置预算限制。
 :::

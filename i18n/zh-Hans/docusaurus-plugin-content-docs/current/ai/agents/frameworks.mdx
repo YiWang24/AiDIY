@@ -7,27 +7,27 @@ description: AI Agent 框架 - LangChain、LangGraph、Semantic Kernel、AutoGen
 
 # 4. 框架与技术栈
 
-构建生产级代理需要选择合适的框架并理解如何实现核心模式。本节比较主要框架并为 Java/Spring Boot 开发者提供详细的 Spring AI 实现指南。
+构建生产级 Agent 需要选择合适的框架并理解如何实现核心模式。本节对比了主流框架，并为 Java/Spring Boot 开发者提供了详细的 Spring AI 实现指南。
 
 ---
 
-## 4.1 框架比较
+## 4.1 框架对比
 
-### 主要框架概述
+### 主流框架概览
 
 ```mermaid
 graph TB
     subgraph Python["Python 生态系统"]
-        LC[LangChain<br/>最流行]
+        LC[LangChain<br/>最受欢迎]
         LG[LangGraph<br/>有状态工作流]
         SK[Semantic Kernel<br/>微软]
-        AG[AutoGen<br/>多代理]
+        AG[AutoGen<br/>多 Agent]
         CR[CrewAI<br/>角色扮演]
     end
 
     subgraph Java["Java 生态系统"]
-        SA[Spring AI<br/>Spring 原生]
-        LA[LangChain4j<br/>Java 端口]
+        SA[Spring AI<br/>Spring 原生支持]
+        LA[LangChain4j<br/>Java 移植版]
     end
 
     subgraph JS["JavaScript 生态系统"]
@@ -40,34 +40,34 @@ graph TB
     style LSC fill:#2196f3,color:#fff
 ```
 
-### 比较矩阵
+### 对比矩阵
 
-| 框架 | 语言 | 成熟度 | 多代理 | 有状态 | 最佳用途 |
+| 框架 | 语言 | 成熟度 | 多 Agent | 有状态 | 最适合场景 |
 |-----------|----------|----------|-------------|----------|----------|
-| **Spring AI** | Java | 增长中 | 基础 | 是 | 企业 Java |
+| **Spring AI** | Java | 发展中 | 基础 | 是 | 企业级 Java 应用 |
 | **LangChain** | Python | 成熟 | 基础 | 有限 | 快速原型开发 |
-| **LangGraph** | Python | 增长中 | 优秀 | 是 | 复杂工作流 |
+| **LangGraph** | Python | 发展中 | 优秀 | 是 | 复杂工作流 |
 | **Semantic Kernel** | Python/C# | 成熟 | 良好 | 是 | 微软技术栈 |
-| **AutoGen** | Python | 成熟 | 优秀 | 是 | 研究 |
-| **CrewAI** | Python | 新 | 优秀 | 是 | 基于角色的代理 |
-| **LangChain4j** | Java | 增长中 | 基础 | 是 | LangChain 的 Java 端口 |
+| **AutoGen** | Python | 成熟 | 优秀 | 是 | 研究探索 |
+| **CrewAI** | Python | 新兴 | 优秀 | 是 | 基于角色的 Agent |
+| **LangChain4j** | Java | 发展中 | 基础 | 是 | LangChain 的 Java 移植版 |
 
-### 功能比较
+### 功能对比
 
 | 功能 | Spring AI | LangGraph | Semantic Kernel | AutoGen |
 |---------|-----------|-----------|-----------------|---------|
-| **工具调用** | ✅ 原生 | ✅ 原生 | ✅ 原生 | ✅ 原生 |
+| **工具调用** | ✅ 原生支持 | ✅ 原生支持 | ✅ 原生支持 | ✅ 原生支持 |
 | **内存管理** | ✅ 强大 | ✅ 强大 | ✅ 良好 | ✅ 基础 |
-| **多代理** | ⚠️ 基础 | ✅ 优秀 | ✅ 良好 | ✅ 优秀 |
+| **多 Agent** | ⚠️ 基础 | ✅ 优秀 | ✅ 良好 | ✅ 优秀 |
 | **状态持久化** | ✅ 是 | ✅ 优秀 | ✅ 良好 | ✅ 基础 |
-| **可观测性** | ✅ Spring Boot Actuator | ✅ LangSmith | ✅ 遥测 | ⚠️ 基础 |
+| **可观测性** | ✅ Spring Boot Actuator | ✅ LangSmith | ✅ Telemetry | ⚠️ 基础 |
 | **企业支持** | ✅ 优秀 | ⚠️ 有限 | ✅ 良好 | ⚠️ 有限 |
 
 ---
 
-## 4.2 Spring AI 深入讲解
+## 4.2 Spring AI 深度解析
 
-Spring AI 为构建代理系统的 Java/Spring Boot 开发者提供了最无缝的体验。
+Spring AI 为 Java/Spring Boot 开发者构建 Agent 系统提供了最无缝的体验。
 
 ### 架构
 
@@ -78,13 +78,13 @@ flowchart TB
             C1[AgentController]
         end
 
-        subgraph Services["代理服务"]
+        subgraph Services["Agent 服务"]
             AS[AgentService]
             TS[ToolService]
             MS[MemoryService]
         end
 
-        subgraph SpringAI["Spring AI"]
+        subgraph SpringAI["Spring AI 核心"]
             CC[ChatClient]
             CM[ChatMemory]
             FC[FunctionCallback]
@@ -113,24 +113,24 @@ flowchart TB
 
 ### 项目设置
 
-#### 依赖项 (build.gradle)
+#### 依赖 (build.gradle)
 
 ```groovy
 dependencies {
-    // Spring AI OpenAI
+    // Spring AI OpenAI 集成
     implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0'
 
-    // Spring AI MCP
+    // Spring AI MCP (Model Context Protocol) 集成
     implementation 'org.springframework.ai:spring-ai-mcp-spring-boot-starter:1.0.0'
 
-    // Spring AI Vector Store (PostgreSQL + pgvector)
+    // Spring AI 向量存储 (PostgreSQL + pgvector)
     implementation 'org.springframework.ai:spring-ai-pgvector-store-spring-boot-starter:1.0.0'
 
-    // Spring Boot
+    // Spring Boot 核心 Web 与监控
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-    // 环境变量 (Doppler 集成)
+    // 环境变量管理 (Doppler 集成)
     developmentOnly 'io.github.c-d-m:spring-boot-doppler:0.1.0'
 }
 ```
@@ -186,7 +186,7 @@ public class ChatClientConfig {
     @Bean
     public ChatClient chatClient(OpenAiChatModel model) {
         return ChatClient.builder(model)
-            .defaultSystem("You are a helpful AI assistant with access to tools.")
+            .defaultSystem("你是一个能使用工具的有用 AI 助手。")
             .defaultOptions(OpenAiChatOptions.builder()
                 .model("gpt-4-turbo")
                 .temperature(0.7)
@@ -196,7 +196,7 @@ public class ChatClientConfig {
 }
 ```
 
-#### 2. 工具定义
+#### 2. 工具定义 (Tool Definition)
 
 ```java
 @Component
@@ -212,7 +212,7 @@ public class AgentTools {
     public FunctionCallback searchTool() {
         return FunctionCallback.builder()
             .function("search_web", this::searchWeb)
-            .description("Search the web for current information")
+            .description("在网络上搜索最新信息")
             .inputType(SearchRequest.class)
             .build();
     }
@@ -221,14 +221,14 @@ public class AgentTools {
     public FunctionCallback databaseQueryTool() {
         return FunctionCallback.builder()
             .function("query_database", this::queryDatabase)
-            .description("Query the database for structured data")
+            .description("查询数据库以获取结构化数据")
             .inputType(DatabaseQuery.class)
             .build();
     }
 
     public record SearchRequest(
-        @Description("The search query string") String query,
-        @Description("Number of results to return") @DefaultValue("5") int numResults
+        @Description("搜索查询字符串") String query,
+        @Description("返回结果的数量") @DefaultValue("5") int numResults
     ) {}
 
     public String searchWeb(SearchRequest request) {
@@ -236,7 +236,7 @@ public class AgentTools {
     }
 
     public record DatabaseQuery(
-        @Description("SQL query to execute") String sql
+        @Description("要执行的 SQL 查询") String sql
     ) {}
 
     public String queryDatabase(DatabaseQuery query) {
@@ -245,7 +245,7 @@ public class AgentTools {
 }
 ```
 
-#### 3. 内存配置
+#### 3. 内存配置 (Memory Configuration)
 
 ```java
 @Configuration
@@ -253,7 +253,7 @@ public class MemoryConfig {
 
     @Bean
     public ChatMemory bufferMemory() {
-        return new MessageWindowChatMemory(10); // 最后 10 条消息
+        return new MessageWindowChatMemory(10); // 最近 10 条消息
     }
 
     @Bean
@@ -268,9 +268,9 @@ public class MemoryConfig {
 }
 ```
 
-### 完整代理实现
+### 完整 Agent 实现
 
-#### 使用 Spring AI 的 ReAct 代理
+#### ReAct Agent 与 Spring AI
 
 ```java
 @Service
@@ -289,10 +289,10 @@ public class ReactAgentService {
         AgentContext context = new AgentContext(query, memory);
 
         for (int i = 0; i < maxIterations; i++) {
-            // 生成思考并决定行动
+            // 生成思考并决定动作
             AgentResponse response = thinkAndAct(context);
 
-            // 检查代理是否想直接回答
+            // 检查 Agent 是否想直接回答
             if (response.isFinal()) {
                 return response.getContent();
             }
@@ -307,7 +307,7 @@ public class ReactAgentService {
             memory.add(response.getMessage());
         }
 
-        return "Max iterations reached";
+        return "达到最大迭代次数";
     }
 
     private AgentResponse thinkAndAct(AgentContext context) {
@@ -355,14 +355,16 @@ public class AgentController {
     @PostMapping("/stream")
     public Flux<String> chatStream(@RequestBody ChatRequest request) {
         return reactAgent.executeStream(request.getMessage())
-            .map(chunk -> "data: " + chunk + "\n\n");
+            .map(chunk -> "data: " + chunk + "
+
+");
     }
 }
 ```
 
-### 多代理实现
+### 多 Agent 实现
 
-#### 使用 Spring AI 的监督者模式
+#### 主管模式 (Supervisor Pattern) 与 Spring AI
 
 ```java
 @Service
@@ -381,18 +383,18 @@ public class SupervisorAgent {
         SupervisorState state = new SupervisorState(task, memory);
 
         for (int iteration = 0; iteration < 10; iteration++) {
-            // 监督者决定下一个工作者和任务
+            // 主管决定下一个工作 Agent 和任务
             String decision = chatClient.prompt()
                 .messages(state.getMessages())
                 .system("""
-                    You are a supervisor coordinating specialized workers.
-                    Available workers: {workers}
+                    你是一名协调专业工作 Agent 的主管。
+                    可用工作 Agent: {workers}
 
-                    Respond in JSON format:
+                    请以 JSON 格式响应：
                     {
-                        "worker": "worker_name",
-                        "task": "specific task for worker",
-                        "done": false
+                        "worker": "工作 Agent 名称",
+                        "task": "给工作 Agent 的具体任务",
+                        ""done": false"
                     }
                     """.formatted(
                         workers.keySet().stream().collect(Collectors.joining(", "))
@@ -407,7 +409,7 @@ public class SupervisorAgent {
                 return supervisorDecision.getFinalAnswer();
             }
 
-            // 执行工作者
+            // 执行工作 Agent
             WorkerAgent worker = workers.get(supervisorDecision.getWorker());
             String result = worker.execute(supervisorDecision.getTask());
 
@@ -424,7 +426,7 @@ public class SupervisorAgent {
 }
 ```
 
-#### 工作者代理
+#### 工作 Agent (Worker Agents)
 
 ```java
 @Component("researcher")
@@ -441,12 +443,12 @@ public class ResearcherWorker implements WorkerAgent {
         // 搜索信息
         String searchResults = searchService.search(task);
 
-        // 分析和总结
+        // 分析并总结
         return chatClient.prompt()
-            .system("You are a research specialist. Analyze search results and provide key findings.")
+            .system("你是一名研究专家。分析搜索结果并提供关键发现。")
             .user("""
-                Task: {task}
-                Search Results: {results}
+                任务: {task}
+                搜索结果: {results}
                 """.formatted(task, searchResults))
             .call()
             .content();
@@ -462,7 +464,7 @@ public class WriterWorker implements WorkerAgent {
     @Override
     public String execute(String task) {
         return chatClient.prompt()
-            .system("You are a professional writer. Create well-structured content.")
+            .system("你是一名专业作家。创建结构良好的内容。")
             .user(task)
             .call()
             .content();
@@ -478,7 +480,7 @@ public class CoderWorker implements WorkerAgent {
     @Override
     public String execute(String task) {
         return chatClient.prompt()
-            .system("You are an expert programmer. Write clean, efficient code.")
+            .system("你是一名专家程序员。编写清晰、高效的代码。")
             .user(task)
             .call()
             .content();
@@ -492,54 +494,11 @@ public class CoderWorker implements WorkerAgent {
 
 ### LangGraph (Python)
 
-LangGraph 在构建有状态的多代理应用方面表现出色。
-
-```python
-from langgraph.graph import StateGraph, END
-from typing import TypedDict
-
-class AgentState(TypedDict):
-    messages: list
-    next: str
-
-def supervisor_node(state: AgentState):
-    # Decide which agent acts next
-    return {"next": "researcher"}
-
-def researcher_node(state: AgentState):
-    # Research logic
-    return {"messages": ["Research results"]}
-
-# Build graph
-workflow = StateGraph(AgentState)
-workflow.add_node("supervisor", supervisor_node)
-workflow.add_node("researcher", researcher_node)
-
-workflow.add_edge("supervisor", "researcher")
-workflow.add_edge("researcher", "supervisor")
-
-workflow.set_entry_point("supervisor")
-app = workflow.compile()
-```
+LangGraph 擅长构建有状态的多 Agent 应用。它通过图论方法明确定义 Agent 间的状态转换和交互。
 
 ### Semantic Kernel (C#)
 
-微软的 Semantic Kernel 与 .NET 生态系统集成良好。
-
-```csharp
-// Build kernel
-var kernel = Kernel.CreateBuilder()
-    .AddOpenAIChatCompletion("gpt-4", apiKey)
-    .Build();
-
-// Add plugin
-kernel.ImportPluginFromObject(new WebSearchPlugin());
-
-// Run agent
-var result = await kernel.InvokePromptAsync(
-    "Search for latest AI news and summarize"
-);
-```
+微软的 Semantic Kernel 与 .NET 生态系统良好集成，提供插件式 AI 能力。
 
 ---
 
@@ -547,14 +506,14 @@ var result = await kernel.InvokePromptAsync(
 
 ### 可观测性与调试
 
-| 工具 | 用途 | 集成 |
+| 工具 | 用途 | 集成方式 |
 |------|---------|-------------|
-| **LangSmith** | 调试和跟踪 LangChain | 与 LangGraph 内置 |
-| **Spring Boot Actuator** | 指标和跟踪 | 与 Spring AI 原生集成 |
+| **LangSmith** | 调试与追踪 LangChain 应用 | LangGraph 内置集成 |
+| **Spring Boot Actuator** | 指标与追踪 | Spring AI 原生支持 |
 | **Arize Phoenix** | LLM 可观测性 | OpenTelemetry 集成 |
-| **PromptLayer** | 提示版本控制 | API 包装器 |
+| **PromptLayer** | 提示词版本控制 | API 包装器 |
 
-#### Spring Boot Actuator 设置
+### Spring Boot Actuator 设置
 
 ```yaml
 # application.yml
@@ -572,7 +531,7 @@ management:
       probability: 1.0
 ```
 
-#### OpenTelemetry 集成
+### OpenTelemetry 集成
 
 ```java
 @Configuration
@@ -597,7 +556,7 @@ public class TracingConfig {
 
 ---
 
-## 4.5 完整示例：研究代理
+## 4.5 完整示例：研究 Agent
 
 ### 项目结构
 
@@ -623,7 +582,7 @@ research-agent/
 └── build.gradle
 ```
 
-### 主应用程序
+### 主应用
 
 ```java
 @SpringBootApplication
@@ -636,7 +595,7 @@ public class ResearchAgentApplication {
 }
 ```
 
-### 请求/响应 DTO
+### 请求/响应 DTOs
 
 ```java
 public record ChatRequest(
@@ -664,7 +623,7 @@ class AgentControllerTest {
     @Test
     void testChatEndpoint() throws Exception {
         String request = """
-            {"message": "What's the latest news about AI?"}
+            {"message": "关于 AI 的最新消息是什么？"}
             """;
 
         mockMvc.perform(post("/api/agents/chat")
@@ -678,52 +637,52 @@ class AgentControllerTest {
 
 ---
 
-## 4.6 关键要点
+## 4.6 核心经验总结
 
 ### 框架选择
 
-| 用例 | 推荐框架 |
+| 用途 | 推荐框架 |
 |----------|---------------------|
 | **Java 企业级应用** | Spring AI |
 | **Python 原型开发** | LangChain |
-| **复杂多代理** | LangGraph |
+| **复杂多 Agent** | LangGraph |
 | **微软技术栈** | Semantic Kernel |
-| **研究用途** | AutoGen |
+| **研究** | AutoGen |
 
 ### Spring AI 优势
 
-1. **原生 Spring 集成**：与 Spring Boot 无缝集成
-2. **类型安全**：使用 records 强类型
-3. **依赖注入**：易于测试和配置
-4. **可观测性**：Actuator 内置支持
-5. **企业支持**：生产就绪特性
+1. **原生 Spring 集成**：与 Spring Boot 无缝结合。
+2. **类型安全**：使用 Java Record 确保强类型。
+3. **依赖注入**：易于测试和配置。
+4. **可观测性**：内置 Actuator 支持。
+5. **企业支持**：生产级特性支持。
 
 ### 最佳实践
 
-1. **环境变量**：使用 Doppler 管理密钥
-2. **结构化输出**：使用 records 保证类型安全
-3. **内存管理**：选择合适的内存类型
-4. **错误处理**：健壮的工具执行
-5. **测试**：单元测试时模拟工具
+1. **环境变量**：使用 Doppler 安全管理敏感信息。
+2. **结构化输出**：使用 Record 实现类型安全。
+3. **内存管理**：选择合适的对话记忆类型。
+4. **错误处理**：健壮的工具执行与异常处理。
+5. **测试**：模拟工具进行单元测试。
 
 ---
 
-## 4.7 下一步
+## 4.7 后续步骤
 
-现在您已经掌握了框架知识：
+既然您已掌握框架知识：
 
-**用于生产环境：**
-- → **[5. 工程与生产](../engineering)** - 部署、评估、安全
+**面向生产环境：**
+- → **[5. 工程与生产实践](../engineering)** - 部署、评估、安全
 
-**用于未来学习：**
-- → **[6. 前沿趋势](../frontier)** - 新兴技术
+**面向未来：**
+- → **[6. 前沿趋势](../frontier)** - 新兴技术与研究
 
 ---
 
 :::tip 从 Spring AI 开始
-如果您是 Java/Spring Boot 开发者，**Spring AI** 提供了构建生产代理的最平滑路径。请参考上面的完整示例了解实现模式。
+如果您是 Java/Spring Boot 开发者，**Spring AI** 是构建生产级 Agent 的最平滑路径。请参考上述完整示例以了解实现模式。
 :::
 
-:::info 环境管理
-请记得使用 **Doppler** 管理所有环境变量。永远不要在代码库中硬编码 API 密钥或密钥。
+:::info 环境变量管理
+请记住使用 **Doppler** 管理所有环境变量。切勿在代码库中硬编码 API 密钥或敏感信息。
 :::
