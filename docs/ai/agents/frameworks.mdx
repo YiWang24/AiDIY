@@ -21,8 +21,9 @@ graph TB
         LC[LangChain<br/>Most popular]
         LG[LangGraph<br/>Stateful workflows]
         SK[Semantic Kernel<br/>Microsoft]
-        AG[AutoGen<br/>Multi-agent]
+        AG[AutoGen<br/>→ MAF 1.0]
         CR[CrewAI<br/>Role-playing]
+        OA[OpenAI SDK<br/>Sandbox Agents]
     end
 
     subgraph Java["Java Ecosystem"]
@@ -47,20 +48,17 @@ graph TB
 | **Spring AI** | Java | Growing | Basic | Yes | Enterprise Java |
 | **LangChain** | Python | Mature | Basic | Limited | Quick prototyping |
 | **LangGraph** | Python | Growing | Excellent | Yes | Complex workflows |
-| **Semantic Kernel** | Python/C# | Mature | Good | Yes | Microsoft stack |
-|| **AutoGen** | Python | Mature (0.4+)† | Excellent | Yes | Research ||
-|| **CrewAI** | Python | Mature | Excellent | Yes | Role-based agents ||
-|| **LangChain4j** | Java | Growing | Basic | Yes | Java port of LangChain |
-|| **OpenAI Agents SDK** | Python | New | Good | Yes | OpenAI native agents |
-|| **Google ADK** | Python | New | Good | Yes | Gemini-native agents |
+| **Microsoft Agent Framework** | Python/.NET | LTS | Excellent | Yes | Production agents (replaces AutoGen + Semantic Kernel) |
+| **OpenAI Agents SDK** | Python | Growing | Good | Yes | Sandbox-native agent orchestration |
+| **CrewAI** | Python | Mature | Excellent | Yes | Role-based agents |
+| **LangChain4j** | Java | Growing | Basic | Yes | Java port of LangChain |
+| **Google ADK** | Python | New | Good | Yes | Gemini-native agents |
 
-> **† AutoGen 0.4+ Note**: AutoGen 0.4 introduced significant architectural changes from earlier versions, including a new async-first API and redesigned agent communication patterns. Teams upgrading from 0.2/0.3 should expect migration effort.
-
-> **CrewAI**: Matured rapidly from "New" to "Mature" with the release of CrewAI Enterprise, providing production-grade features including observability, guardrails, and deployment tooling.
+> **April 2026 Update**: Microsoft shipped **Agent Framework 1.0** (April 7, 2026), officially unifying AutoGen and Semantic Kernel into a single LTS SDK for .NET and Python. Native MCP support, durable workflows, and a browser-based DevUI are included. AutoGen as a standalone project is now deprecated — migrate to Microsoft Agent Framework. OpenAI's Agents SDK (April 15 update) introduced sandbox execution and a model-native harness, making it a strong choice for GPT-model-based agent workflows.
 
 ### Feature Comparison
 
-| Feature | Spring AI | LangGraph | Semantic Kernel | AutoGen |
+| Feature | Spring AI | LangGraph | Microsoft Agent Framework | OpenAI Agents SDK |
 |---------|-----------|-----------|-----------------|---------|
 | **Tool Calling** | ✅ Native | ✅ Native | ✅ Native | ✅ Native |
 | **Memory Management** | ✅ Strong | ✅ Strong | ✅ Good | ✅ Basic |
@@ -747,15 +745,15 @@ class AgentControllerTest {
 
 ### Framework Selection
 
-|| Use Case | Recommended Framework ||
-||----------|---------------------||
-|| **Java Enterprise** | Spring AI ||
-|| **Python Prototyping** | LangChain ||
-|| **Complex Multi-Agent** | LangGraph ||
-|| **Microsoft Stack** | Semantic Kernel ||
-|| **Research** | AutoGen ||
-|| **OpenAI Native** | OpenAI Agents SDK ||
-|| **Gemini/Google Cloud** | Google ADK ||
+| Use Case | Recommended Framework |
+|----------|---------------------|
+| **Java Enterprise** | Spring AI |
+| **Python Prototyping** | LangChain |
+| **Complex Multi-Agent** | LangGraph |
+| **Microsoft Stack** | Microsoft Agent Framework (replaces Semantic Kernel / AutoGen) |
+| **GPT-based Agents** | OpenAI Agents SDK |
+| **Role-based Teams** | CrewAI |
+| **Gemini/Google Cloud** | Google ADK |
 
 ### Spring AI Advantages
 
