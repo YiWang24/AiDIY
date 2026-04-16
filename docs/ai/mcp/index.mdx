@@ -90,6 +90,25 @@ MCP is **transport-agnostic**—the protocol semantics are decoupled from the wi
 - **Advantages**: Scalable (serves thousands of clients), persistent, works with standard infrastructure
 - **Security**: Requires OAuth/Bearer Tokens and TLS encryption
 
+#### Streamable HTTP Transport (2025 Update)
+
+MCP 规范在 2025 年引入了 **Streamable HTTP** 作为新的传输方式，逐步替代纯 SSE 传输：
+
+| Feature | Stdio | SSE/HTTP | Streamable HTTP |
+|---------|-------|----------|-----------------|
+| **Direction** | Bidirectional | Server→Client stream | Bidirectional |
+| **State** | Stateful | Stateless | Stateless |
+| **Resumability** | N/A | Limited | Session-based |
+| **Best for** | Local tools | Web apps | Production systems |
+
+Streamable HTTP 支持：
+- **POST 请求**发起通信
+- **SSE 流式**响应
+- **GET** 用于服务器推送通知
+- **会话恢复**机制（Session-based resumability）
+
+> **Migration Note**: Streamable HTTP 设计为向后兼容 SSE，现有 SSE 部署可以渐进式迁移。新项目建议直接采用 Streamable HTTP。
+
 ### 2.3 JSON-RPC 2.0: The Linguistic Substrate
 
 The wire protocol of MCP is built upon **JSON-RPC 2.0**, a stateless, light-weight remote procedure call protocol.
@@ -123,6 +142,25 @@ Tools are the **executable capabilities** of the Server.
 - **Structure**: name, description, and inputSchema (JSON Schema)
 - **Execution**: Host pauses generation, Client sends `tools/call` request, Server executes, result returned to Model
 - **Side Effects**: Tools are assumed to have side effects, often triggering Human-in-the-Loop confirmations
+
+#### Tool Annotations (2025 Update)
+
+MCP 2025 规范新增 **Tool Annotations** 特性，允许 Server 为工具添加元数据注解：
+
+- **`readOnlyHint`**: 标记工具是否只读（无副作用）
+- **`destructiveHint`**: 标记工具是否可能执行破坏性操作
+- **`idempotentHint`**: 标记工具是否幂等（重复调用结果一致）
+- **`openWorldHint`**: 标记工具是否与外部系统交互
+
+这些注解帮助 Host/Client 在不调用工具的情况下理解工具行为，从而做出更好的安全决策。
+
+#### Completion API (2025 Update)
+
+MCP 还新增了 **Completion API**，支持为工具参数提供自动补全建议：
+
+- Server 可以在用户输入工具参数时提供候选项
+- 适用于枚举值、文件路径、数据库表名等场景
+- 通过 `completion/complete` 方法实现
 
 ### 3.3 Prompts: The Template Layer
 
@@ -177,11 +215,11 @@ The Host "maps the territory" by issuing:
 
 ### 5.1 Transport Security: Isolation vs. Encryption
 
-| Feature | Stdio (Local) | SSE / HTTP (Remote)
-|---------|---------------|---------------------
-| **Trust Boundary** | Process Isolation | Network Boundary
-| **Attack Surface** | Limited to local machine | Exposed to network
-| **Mitigation** | Sandboxing (Docker, microVMs) | TLS (HTTPS), VPN/VPC
+| Feature | Stdio (Local) | SSE / HTTP (Remote) | Streamable HTTP (2025) |
+|---------|---------------|---------------------|------------------------|
+| **Trust Boundary** | Process Isolation | Network Boundary | Network Boundary |
+| **Attack Surface** | Limited to local machine | Exposed to network | Exposed to network |
+| **Mitigation** | Sandboxing (Docker, microVMs) | TLS (HTTPS), VPN/VPC | TLS (HTTPS), OAuth 2.0 |
 
 ### 5.2 Authorization and "Human-in-the-Loop" (HITL)
 
@@ -231,16 +269,27 @@ Anthropic provides the **MCP Inspector**, a specialized developer tool:
 
 ## Appendix: Technical Reference Data
 
+### MCP Ecosystem Growth (2025)
+
+2025 年 MCP 生态经历了爆发式增长，从 Anthropic 主导的项目发展为全行业标准：
+
+- **OpenAI 采纳 MCP**（2025年3月）：OpenAI 宣布在其产品和 API 中支持 MCP 协议，标志着 MCP 成为行业标准。这是继 Anthropic 之后最重要的 MCP 采纳事件。
+- **IDE 原生支持**：VS Code（GitHub Copilot）、Cursor、Windsurf、JetBrains IDE 均原生支持 MCP，开发者无需额外配置即可使用 MCP 工具
+- **官方 Server 生态**：GitHub、PostgreSQL、Slack、Google Drive、Brave Search、Filesystem 等高质量官方 Server 持续增长
+- **MCP Registry**：社区驱动的 MCP 服务发现和注册机制，帮助开发者发现和分享 MCP Server
+- **企业级 MCP Gateway**：统一的 MCP 代理网关，提供认证、审计、限流等企业治理能力
+
 ### Table 1: Comparative Analysis of Transport Mechanisms
 
-| Feature | Stdio (Standard Input/Output) | SSE (Server-Sent Events) / HTTP
-|---------|-------------------------------|----------------------------------
-| **Topology** | Local, Process-bound (Parent-Child) | Remote, Network-bound (Client-Server)
-| **Connectivity** | 1:1 (Single Client per Server process) | 1:Many (Multiple Clients per Server instance)
-| **Security Context** | Inherits User OS Permissions | Requires Auth (OAuth/Token) & TLS
-| **Latency** | Minimal (In-memory pipes) | Network latency dependent
-| **State Persistence** | Ephemeral (Dies with Host session) | Persistent (Can survive Client disconnection)
-| **Ideal Use Case** | Desktop IDEs, Local File/Git access | Shared Enterprise Data (CRM, DBs), Cloud Agents
+| Feature | Stdio (Standard Input/Output) | SSE (Server-Sent Events) / HTTP | Streamable HTTP (2025) |
+|---------|-------------------------------|----------------------------------|------------------------|
+| **Topology** | Local, Process-bound (Parent-Child) | Remote, Network-bound (Client-Server) | Remote, Network-bound |
+| **Connectivity** | 1:1 (Single Client per Server process) | 1:Many (Multiple Clients per Server instance) | 1:Many |
+| **Security Context** | Inherits User OS Permissions | Requires Auth (OAuth/Token) & TLS | Requires Auth & TLS |
+| **Latency** | Minimal (In-memory pipes) | Network latency dependent | Network latency dependent |
+| **State Persistence** | Ephemeral (Dies with Host session) | Persistent (Can survive Client disconnection) | Stateless with Session resumability |
+| **Bidirectional** | ✅ Yes | ❌ Server→Client only (POST for reverse) | ✅ Yes |
+| **Ideal Use Case** | Desktop IDEs, Local File/Git access | Shared Enterprise Data (CRM, DBs), Cloud Agents | Production systems, scalable deployments |
 
 ### Table 2: MCP JSON-RPC Message Schema Examples
 

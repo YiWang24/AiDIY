@@ -874,6 +874,102 @@ public class CommunitySummaryService {
 
 ---
 
+### Contextual Retrieval (Anthropic, 2024)
+
+Anthropic 提出的 Contextual Retrieval 方法显著提升了检索质量：
+
+**核心思想**: 在每个 chunk 前添加文档级上下文，使 embedding 和 BM25 索引更准确。
+
+```python
+# Contextual Chunk Generation
+def create_contextual_chunk(document: str, chunk: str) -> str:
+    prompt = f"""<document>
+{document}
+</document>
+
+Here is the chunk we want to situate within the whole document:
+<chunk>
+{chunk}
+</chunk>
+
+Please give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval of the chunk. Answer only with the succinct context and nothing else."""
+    
+    context = llm.generate(prompt)
+    return f"{context}\n\n{chunk}"  # Prepend context to chunk
+```
+
+**效果**: 在多个基准测试中，Contextual Retrieval 将检索失败率降低了 49%（combined with BM25）到 67%（combined with embeddings）。
+
+### LazyGraphRAG (Microsoft, 2024)
+
+LazyGraphRAG 是 GraphRAG 的轻量级替代方案，大幅降低成本：
+
+- **成本降低 700x+**: 不需要昂贵的 LLM 抽取，使用 NLP 技术进行实体和关系抽取
+- **查询时图构建**: 在查询时才构建相关子图，而非预先构建全图
+- **适合场景**: 中小规模文档集、预算受限的项目
+
+### LightRAG
+
+LightRAG 是另一个轻量级图检索方案：
+
+- **双层检索**: 同时支持具体事实查询和抽象概念查询
+- **增量更新**: 支持新文档增量插入，无需重建索引
+- **更低资源需求**: 相比 GraphRAG 显著降低计算和存储需求
+
+### Multimodal RAG
+
+检索和生成不仅限于文本，还支持图片、表格、文档版面：
+
+| Method | Description | Best For |
+|--------|-------------|----------|
+| **Text-based** | OCR + text RAG | Scanned documents |
+| **ColPali** | Visual token matching | Document screenshots, PDFs |
+| **Multimodal Embedding** | Image+text joint embeddings | Mixed media collections |
+| **Native Multimodal** | Send images directly to VLM | Complex visual content |
+
+```python
+# ColPali: Vision-based document retrieval
+from colpali_engine.models import ColPali, ColPaliProcessor
+
+model = ColPali.from_pretrained("vidore/colpali-v1.2")
+processor = ColPaliProcessor.from_pretrained("vidore/colpali-v1.2")
+
+# Index document pages as images
+images = [load_image(page) for page in document_pages]
+embeddings = model.forward(processor.process_images(images))
+
+# Query
+query_embedding = model.forward(processor.process_queries(["What is the revenue?"]))
+scores = embeddings @ query_embedding.T
+```
+
+### Agentic RAG (补充)
+
+将 Agent 的自主决策能力融入 RAG 流程：
+
+```mermaid
+graph TD
+    Q[User Query] --> A[RAG Agent]
+    A -->|decide| R1[Vector Search]
+    A -->|decide| R2[Web Search]
+    A -->|decide| R3[SQL Query]
+    A -->|decide| R4[Knowledge Graph]
+    R1 --> A
+    R2 --> A
+    R3 --> A
+    R4 --> A
+    A -->|enough info?| G[Generate Answer]
+    A -->|need more| A
+```
+
+**核心能力**:
+- **自适应检索**: Agent 根据查询类型自动选择检索策略
+- **迭代检索**: 如果首次检索结果不够，Agent 可以改写查询重新检索
+- **多源融合**: 同时使用向量搜索、关键词搜索、知识图谱、SQL查询
+- **自我评估**: Agent 判断检索结果是否足以回答问题
+
+---
+
 ## 7.4 Agentic RAG - Autonomous Reasoning
 
 ### 7.4.1 From Reader to Researcher

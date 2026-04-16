@@ -126,7 +126,7 @@ public class LLMConfiguration {
     public ChatModel longContextModel() {
         return OpenAiChatModel.builder()
             .options(OpenAiChatOptions.builder()
-                .model("gpt-4-turbo")  // 128K context
+                .model("gpt-4o")  // 128K context
                 .maxTokens(4000)
                 .build())
             .build();

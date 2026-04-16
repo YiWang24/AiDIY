@@ -1414,7 +1414,7 @@ public class ContextManagementService {
         return chatClient.prompt()
             .user(new Prompt(new UserMessage(longText),
                 OpenAiChatOptions.builder()
-                    .model("gpt-4-turbo")  // 128K context
+                    .model("gpt-4o")  // 128K context
                     .maxTokens(4000)
                     .build()))
             .call()

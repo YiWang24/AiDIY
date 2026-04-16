@@ -496,7 +496,7 @@ def calculate_token_costs(query, docs, model="gpt-4"):
     # Cost calculation (example: GPT-4)
     costs = {
         "gpt-4": {"input": 0.03 / 1000, "output": 0.06 / 1000},
-        "gpt-4-turbo": {"input": 0.01 / 1000, "output": 0.03 / 1000},
+        "gpt-4o": {"input": 0.0025 / 1000, "output": 0.01 / 1000},
         "gpt-3.5-turbo": {"input": 0.0015 / 1000, "output": 0.002 / 1000}
     }
 
@@ -517,7 +517,7 @@ def calculate_token_costs(query, docs, model="gpt-4"):
 result = calculate_token_costs(
     query="How do I configure AdGuard DNS?",
     docs=[doc1, doc2, doc3, doc4, doc5],
-    model="gpt-4-turbo"
+    model="gpt-4o"
 )
 
 print(f"Input tokens: {result['input_tokens']}")

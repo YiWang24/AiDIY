@@ -137,7 +137,7 @@ console.log(analysis.sentiment); // TypeScript knows this is 'positive' | 'negat
 
 ### 1.2 Anthropic: Tool-Use Workaround
 
-Anthropic's Claude doesn't have native JSON mode, but achieves structured output through **tool use** (function calling).
+Anthropic's Claude doesn't have native JSON mode, but achieves structured output through **tool use** (function calling). As of 2025, Anthropic officially supports structured output via the `tool_use` mechanism, providing reliable schema-conformant JSON generation.
 
 :::info[Anthropic's Approach]
 Instead of a dedicated JSON mode, Anthropic recommends using tool definitions as schemas. The model "calls" a tool with structured arguments, effectively producing JSON output.
@@ -182,7 +182,7 @@ tools = [{
 }]
 
 response = client.messages.create(
-    model="claude-sonnet-4-20250514",
+    model="claude-3-7-sonnet-20250219",
     max_tokens=1024,
     tools=tools,
     tool_choice={"type": "tool", "name": "submit_analysis"},  # Force tool use
@@ -220,7 +220,7 @@ response_schema = {
 }
 
 model = genai.GenerativeModel(
-    'gemini-1.5-pro',
+    'gemini-2.0-flash',
     generation_config=GenerationConfig(
         response_mime_type="application/json",
         response_schema=response_schema
@@ -444,7 +444,7 @@ Assistant: {"analysis":     ← You provide this
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-20250514",
+    model="claude-3-7-sonnet-20250219",
     max_tokens=1024,
     messages=[
         {
@@ -468,7 +468,7 @@ result = json.loads(full_json)
 ```python
 # Force markdown table output
 response = client.messages.create(
-    model="claude-sonnet-4-20250514",
+    model="claude-3-7-sonnet-20250219",
     messages=[
         {"role": "user", "content": "Compare Python vs JavaScript"},
         {"role": "assistant", "content": "| Feature | Python | JavaScript |\n|---------|--------|------------|\n|"}
@@ -477,7 +477,7 @@ response = client.messages.create(
 
 # Force code block
 response = client.messages.create(
-    model="claude-sonnet-4-20250514",
+    model="claude-3-7-sonnet-20250219",
     messages=[
         {"role": "user", "content": "Write a function to reverse a string"},
         {"role": "assistant", "content": "```python\ndef reverse_string(s: str) -> str:\n    "}
@@ -493,7 +493,7 @@ response = client.messages.create(
 
 # With prefilling - direct output:
 response = client.messages.create(
-    model="claude-sonnet-4-20250514",
+    model="claude-3-7-sonnet-20250219",
     messages=[
         {"role": "user", "content": "Translate to French: Hello, how are you?"},
         {"role": "assistant", "content": "Bonjour"}  # Forces direct translation
@@ -506,7 +506,7 @@ response = client.messages.create(
 
 ````python
 response = client.messages.create(
-    model="claude-sonnet-4-20250514",
+    model="claude-3-7-sonnet-20250219",
     messages=[
         {
             "role": "user",

@@ -2212,6 +2212,65 @@ public class AdaptiveTechniqueService {
 }
 ```
 
+## Long Context Prompting
+
+With models like Gemini 2.5 Pro (1M+ tokens) and Claude 3.7 Sonnet (200K tokens), a new prompting paradigm has emerged:
+
+### When to Use Long Context vs RAG
+
+| Approach | Best When | Cost | Latency |
+|----------|-----------|------|---------|
+| **Long Context** | Documents fit in window, one-time analysis | Higher per-call | Longer TTFT |
+| **RAG** | Large knowledge base, frequent queries | Lower per-call | Faster |
+| **Hybrid** | Mix of static + dynamic content | Balanced | Balanced |
+
+### Long Context Best Practices
+
+1. **Put instructions at the top AND bottom** — Models sometimes "forget" early instructions
+2. **Use XML tags to structure sections** — `<document>`, `<query>`, `<rules>`
+3. **Reference specific sections** — "Based on section 3.2 of the document..."
+4. **Test with "needle in haystack"** — Verify the model actually attends to all content
+5. **Consider cost** — 1M input tokens = ~$3-10 depending on model
+
+## Prompt Compression
+
+Reduce prompt size without losing critical information:
+
+- **LLMLingua 2** (Microsoft, 2024): Trains a small model to identify and remove non-essential tokens
+  - Achieves 50-80% compression with <5% performance degradation
+  ```python
+  from llmlingua import PromptCompressor
+  compressor = PromptCompressor()
+  compressed = compressor.compress_prompt(original_prompt, rate=0.5)
+  ```
+
+- **Selective Context**: Removes redundant information based on information entropy
+- **Context distillation**: Use a strong model to summarize, then use the summary as context for a cheaper model
+
+## Agentic Prompting
+
+The convergence of prompting and agent patterns:
+
+```python
+# ReAct-style agentic prompt
+system_prompt = """You are an AI assistant with access to tools.
+
+For each user query:
+1. THINK: Reason about what you need to do
+2. ACT: Use appropriate tools (search, calculate, lookup)
+3. OBSERVE: Process the tool results
+4. Repeat until you have enough information
+5. RESPOND: Provide a comprehensive answer
+
+Always explain your reasoning before taking action."""
+```
+
+**Key Patterns**:
+- **Tool-use prompting**: Instruct the model when/how to use tools
+- **Planning prompts**: Ask the model to create a plan before executing
+- **Self-reflection prompts**: Ask the model to critique its own output
+- **Memory-augmented prompts**: Include conversation history and key facts
+
 ---
 
 ## References

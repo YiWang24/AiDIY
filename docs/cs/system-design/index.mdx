@@ -49,6 +49,59 @@ When deciding between designs, answer these questions explicitly:
 - Adding layers without owning their operational costs (on-call, monitoring, incident response).
 - Relying on retries everywhere without budgets (retry storms create outages).
 
+### Intelligence Layer (AI/ML Serving)
+
+Modern systems increasingly include an AI/ML serving layer:
+
+```
+┌─────────────────────────────────────────┐
+│         Client Layer (Web/Mobile)        │
+├─────────────────────────────────────────┤
+│         Entry Layer (LB/API Gateway)     │
+├─────────────────────────────────────────┤
+│         Service Layer (Business Logic)   │
+├─────────────────────────────────────────┤
+│      Intelligence Layer (AI/ML)    ← NEW │
+│  ┌─────────┐ ┌────────┐ ┌───────────┐  │
+│  │ LLM API │ │ RAG    │ │ Feature   │  │
+│  │ Gateway │ │ Engine │ │ Store     │  │
+│  └─────────┘ └────────┘ └───────────┘  │
+├─────────────────────────────────────────┤
+│         Data Layer (DB/Cache/MQ)         │
+└─────────────────────────────────────────┘
+```
+
+**Key Components**:
+| Component | Purpose | Examples |
+|-----------|---------|---------|
+| **Model Gateway** | Route to models, rate limit, cache | LiteLLM, OpenRouter, vLLM |
+| **RAG Engine** | Retrieval + generation pipeline | LlamaIndex, LangChain |
+| **Feature Store** | ML feature management | Feast, Tecton |
+| **Vector DB** | Semantic search, embeddings | Milvus, Pinecone, pgvector |
+| **Model Registry** | Version and deploy models | MLflow, W&B |
+
+**Design Considerations**:
+- **Latency**: LLM inference adds 100ms-10s; use streaming for perceived responsiveness
+- **Cost**: Token-based pricing requires careful caching and routing strategies
+- **Observability**: Trace full request path including model calls (OpenTelemetry + LangSmith)
+- **Fallback**: Always have a rule-based fallback when AI services are unavailable
+
+### Observability Layer
+
+Cross-cutting concern spanning all layers:
+
+| Pillar | Purpose | Tools |
+|--------|---------|-------|
+| **Logging** | Event records | ELK Stack, Loki, Fluentd |
+| **Metrics** | Numeric time-series | Prometheus, Grafana, Datadog |
+| **Tracing** | Request flow across services | Jaeger, Zipkin, OpenTelemetry |
+
+**OpenTelemetry** has become the standard for unified observability:
+- Single API for traces, metrics, and logs
+- Vendor-neutral instrumentation
+- Auto-instrumentation for Java, Python, Node.js, Go
+- Integrates with all major backends
+
 ## Navigation
 
 - [1. Entry Layer](./entry-layer.mdx)

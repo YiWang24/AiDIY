@@ -513,6 +513,98 @@ ZADD products:ranked 95.23 "product:1" 87.45 "product:2"
 ZRANGEBYSCORE products:ranked 90 100 WITHSCORES
 ```
 
+## Redis Streams (5.0+)
+
+Redis Streams 是类似 Kafka 的日志数据结构，支持消费者组模型：
+
+```bash
+# 添加消息
+XADD mystream * sensor-id 1234 temperature 23.5
+
+# 读取消息（消费者组）
+XREADGROUP GROUP mygroup consumer1 COUNT 1 BLOCK 2000 STREAMS mystream >
+
+# 查看流信息
+XINFO STREAM mystream
+```
+
+**核心概念**：
+- **Entry ID**: 自动生成的时间戳 ID（`1640995200000-0`）
+- **Consumer Group**: 多个消费者协同处理同一流
+- **Pending Entries List (PEL)**: 已发送但未确认的消息
+- **Maxlen/XTRIM**: 控制流大小，自动清理旧消息
+
+**适用场景**: 事件溯源、消息队列、实时数据管道、活动跟踪
+
+## Advanced Data Types
+
+### Bitmap
+
+```bash
+SETBIT user:login:20250401 123 1    # 用户123在2025-04-01登录
+GETBIT user:login:20250401 123      # 检查是否登录
+BITCOUNT user:login:20250401         # 当天登录总人数
+```
+
+**适用场景**: 用户签到、在线状态、布隆过滤器底层
+
+### HyperLogLog
+
+```bash
+PFADD unique:visitors:20250401 user1 user2 user3
+PFCOUNT unique:visitors:20250401     # 近似唯一访客数
+PFMERGE total:month unique:day1 unique:day2  # 合并
+```
+
+**适用场景**: UV统计、基数估计（0.81%标准误差，仅12KB内存）
+
+### GEO
+
+```bash
+GEOADD locations 13.361389 38.115556 "Palermo" 15.087269 37.502669 "Catania"
+GEORADIUS locations 15 37 200 km ASC COUNT 10
+GEOSEARCH locations FROMLONLAT 15 37 BYRADIUS 200 km ASC
+```
+
+**适用场景**: 附近的人、门店搜索、地理围栏
+
+## Redis 7.x/8.x 新特性
+
+### Redis Functions（替代 Lua 脚本）
+
+```bash
+# 注册函数
+FUNCTION LOAD "#!lua name=mylib \n redis.register_function('my_func', function(keys, args) return args[1] end)"
+
+# 调用函数
+FCALL my_func 0 hello
+```
+
+### Redis 8.0 Vector Search
+
+Redis 8.0 原生支持向量相似性搜索（通过 RediSearch 模块集成）：
+
+```bash
+# 创建向量索引
+FT.CREATE my_index ON HASH PREFIX 1 doc: SCHEMA content VECTOR HNSW 6 TYPE FLOAT32 DIM 768 DISTANCE_METRIC COSINE
+
+# 添加向量文档
+HSET doc:1 content <vector_bytes> title "Example Document"
+
+# 向量搜索
+FT.SEARCH my_index "*=>[KNN 5 @content $query_vec]" PARAMS 2 query_vec <vector_bytes> DIALECT 2
+```
+
+**适用场景**: AI/RAG 应用中的语义搜索、推荐系统
+
+### 其他 Redis 7.x 改进
+
+- **Client-side caching**: 客户端缓存协议，减少服务端压力
+- **ACL v2**: 更细粒度的权限控制（按命令、key pattern）
+- **Sharded Pub/Sub**: 集群模式的发布订阅
+- **Multi-part AOF**: AOF 持久化性能优化
+- **listpack 替代 ziplist**: 更高效的内存编码
+
 ## Data Structure Comparison
 
 | Structure | Ordered | Unique | Operations | Use Case |

@@ -715,6 +715,54 @@ public class PromptCompressionService {
 | **Cost** | $0.10 | $0.05 | $0.03 |
 | **Accuracy** | 100% | 98% | 95% |
 
+### Prompt Caching (2025)
+
+Both OpenAI and Anthropic support prompt caching, offering significant cost savings for RAG systems:
+
+**How it works**: When the same prompt prefix is sent repeatedly (e.g., system prompt + retrieved context template), the LLM provider caches the KV pairs. Subsequent requests with the same prefix only compute the new tokens.
+
+| Provider | Min Tokens | Discount | TTL |
+|----------|-----------|----------|-----|
+| OpenAI | 1,024 | 50% off input | 5 min (extendable) |
+| Anthropic | 1,024 (tool) / 2,048 (prompt) | 90% off input | 5 min |
+
+```python
+# Anthropic prompt caching
+response = client.messages.create(
+    model="claude-3-7-sonnet-20250219",
+    system=[
+        {
+            "type": "text",
+            "text": long_system_prompt,  # This will be cached
+            "cache_control": {"type": "ephemeral"}
+        }
+    ],
+    messages=[...],
+)
+```
+
+**RAG Cost Impact**: For a system with a 4K system prompt + 8K retrieved context:
+- Without caching: $0.015 per query (input tokens)
+- With caching: $0.003 per query (80% savings)
+- At 1M queries/day: ~$4,380/day savings
+
+### Batch API
+
+For non-real-time RAG workloads (document processing, evaluation, bulk indexing):
+
+```python
+# OpenAI Batch API (50% discount, 24-hour turnaround)
+client.batches.create(
+    input_file_id="file-abc123",
+    endpoint="/v1/chat/completions",
+    completion_window="24h"
+)
+```
+
+- **50% cost discount** vs real-time API
+- **24-hour completion window**
+- Perfect for: document indexing, evaluation runs, bulk embeddings
+
 ---
 
 ## 8.4 Guardrails & Security

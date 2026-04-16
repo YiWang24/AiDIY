@@ -197,6 +197,57 @@ Memory safety bugs (buffer overflows, use-after-free) account for ~70% of securi
 ### 9.3 Cloud-Native OS
 Kernels are being optimized for container density. Technologies like **KVM** and **Firecracker** (MicroVMs) blur the line between traditional virtualization and containers.
 
+### 9.4 Rust in the Linux Kernel
+
+Since Linux 6.1 (December 2022), Rust is officially supported as a second language for kernel development:
+
+- **First Rust network driver** merged in Linux 6.8 (2024)
+- **Rust PHY driver** and additional subsystem support in 6.9+
+- **Goal**: Reduce memory-safety bugs (which account for ~70% of CVEs in kernel)
+- **Limitations**: Still early — no Rust filesystem or block drivers yet
+
+### 9.5 io_uring: Next-Gen Async I/O
+
+`io_uring` (Linux 5.1+) is revolutionizing high-performance I/O:
+
+```c
+// Traditional: read() blocks the thread
+// io_uring: submit async requests via shared ring buffer
+
+struct io_uring ring;
+io_uring_queue_init(32, &ring, 0);
+
+// Submit async read
+struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+io_uring_prep_read(sqe, fd, buffer, size, offset);
+io_uring_submit(&ring);
+
+// Wait for completion
+struct io_uring_cqe *cqe;
+io_uring_wait_cqe(&ring, &cqe);
+```
+
+**Advantages over epoll/aio**:
+- Zero system calls for I/O operations (after setup)
+- Batched submission and completion
+- Works for both files and network sockets
+- Adopted by: libuv (Node.js), libpq (PostgreSQL), Rust tokio
+
+### 9.6 ARM Architecture Rise
+
+- **Apple Silicon (M1/M2/M3/M4)**: Proved ARM can match/beat x86 in desktop performance
+- **AWS Graviton (v3/v4)**: 40% better price-performance than x86 instances
+- **Impact on OS**: ARM64 is now a tier-1 architecture for all major OS
+- **Server market**: ARM expected to reach 30%+ server share by 2026
+
+### 9.7 Confidential Computing
+
+Hardware-based Trusted Execution Environments (TEEs):
+- **Intel TDX**: Trusted Domain Extensions for VM isolation
+- **AMD SEV-SNP**: Secure Encrypted Virtualization
+- **ARM CCA**: Confidential Computing Architecture
+- **Use cases**: Multi-party computation, secure AI inference, privacy-preserving analytics
+
 ---
 
 ## 10. Summary Checklist: Key Concepts to Master

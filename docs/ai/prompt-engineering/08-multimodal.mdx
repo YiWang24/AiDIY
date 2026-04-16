@@ -11,7 +11,7 @@ draft: false
 
 ## Introduction
 
-**Multimodal AI** represents the convergence of different input modalities—text, images, audio, video, and documents—into unified reasoning systems. Modern Vision-Language Models (VLMs) like GPT-4V, Claude 4, and Gemini 2.0 can understand complex visual scenes, extract information from documents, analyze charts, and reason across multiple images simultaneously.
+**Multimodal AI** represents the convergence of different input modalities—text, images, audio, video, and documents—into unified reasoning systems. Modern Vision-Language Models (VLMs) like GPT-4V, Claude 3.7 Sonnet, and Gemini 2.0 can understand complex visual scenes, extract information from documents, analyze charts, and reason across multiple images simultaneously.
 
 This chapter covers practical prompting techniques for multimodal systems, with production-ready Spring AI implementations.
 
@@ -58,7 +58,7 @@ Understanding model strengths helps select the right tool for each task:
 
 ### Capability Matrix
 
-| Feature | **GPT-4o** | **Claude 4** | **Gemini 2.0** |
+| Feature | **GPT-4o** | **Claude 3.7 Sonnet** | **Gemini 2.0** |
 |---------|------------|--------------|----------------|
 | **Image Input** | ✅ Native | ✅ Native | ✅ Native |
 | **Multiple Images** | ✅ Up to 20 | ✅ Up to 20 | ✅ Up to 3600 |
@@ -89,12 +89,12 @@ Understanding model strengths helps select the right tool for each task:
 │   │          │          │              │               │               │
 │   │          │          │              │               │               │
 │   ▼          ▼          ▼              ▼               ▼               │
-│ Any       Claude 4   Gemini 2.0   GPT-4o/      Gemini 2.0             │
+│ Any       Claude 3.7   Gemini 2.0   GPT-4o/      Gemini 2.0             │
 │ Model     (PDF native) (native)   Gemini       (best cross-           │
 │           GPT-4o                              modal)                   │
 │           Gemini                                                       │
 │                                                                         │
-│   For OCR/extraction: Claude 4 > Gemini > GPT-4o                       │
+│   For OCR/extraction: Claude 3.7 > Gemini > GPT-4o                       │
 │   For creative tasks: GPT-4o (with DALL-E) > Gemini > Claude           │
 │   For long context: Gemini (2M tokens) > Claude (200K) > GPT (128K)    │
 │                                                                         │
