@@ -2714,7 +2714,7 @@ public class AgentCostManager {
     public AgentCostManager(MeterRegistry registry) {
         this.registry = registry;
         this.modelPricing = Map.of(
-            "gpt-4-turbo", new ModelPricing(10.0, 30.0),      // per 1M tokens
+            "gpt-4o", new ModelPricing(10.0, 30.0),      // per 1M tokens
             "gpt-4o", new ModelPricing(5.0, 15.0),
             "gpt-4o-mini", new ModelPricing(0.15, 0.6),
             "claude-3-5-sonnet", new ModelPricing(3.0, 15.0),

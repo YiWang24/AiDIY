@@ -855,7 +855,7 @@ public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {
 
     while (!minHeap.isEmpty()) {
         int[] current = minHeap.poll();
-        int node = current[0], cost = current[1], stops = current[1];
+        int node = current[0], cost = current[1], stops = current[2];
 
         if (node == dst) return cost;
 

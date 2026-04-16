@@ -687,3 +687,52 @@ For further study, refer to:
 - [Official MCP Specification](https://modelcontextprotocol.io)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/authorization)
 - [Enterprise Deployment Guide](https://modelcontextprotocol.io/docs/deployment/overview)
+
+---
+
+## 7. 2025 Updates & Emerging Protocols
+
+### Q22: MCP 在 2025 年有哪些重要更新？
+
+**Answer:**
+
+2025 年 MCP 经历了多项重要更新，从协议规范到生态采用都取得了重大进展：
+
+1. **Streamable HTTP Transport**：新的传输方式，替代纯 SSE，支持无状态部署和会话恢复。设计为向后兼容 SSE，新项目建议直接采用 Streamable HTTP。
+2. **OpenAI 采纳 MCP**（2025年3月）：OpenAI 宣布在其产品和 API 中支持 MCP，使其成为事实标准。这是 MCP 从 Anthropic 主导走向全行业的关键转折点。
+3. **Tool Annotations**：工具元数据注解（readOnlyHint、destructiveHint、idempotentHint、openWorldHint），帮助客户端在不调用工具的情况下理解工具行为，做出更好的安全决策。
+4. **MCP Registry**：社区驱动的服务发现机制，帮助开发者发现、分享和管理 MCP Server。
+5. **Completion API**：支持为工具参数提供自动补全建议，改善开发体验。
+
+---
+
+### Q23: MCP 与 Google A2A 协议有什么区别？
+
+**Answer:**
+
+MCP 和 Google A2A（Agent-to-Agent）是互补的协议，解决不同层面的问题：
+
+| Aspect | MCP | Google A2A |
+|--------|-----|------------|
+| **解决的问题** | Agent 与工具/数据源的连接（N×M → N+M） | Agent 之间的通信和协作 |
+| **类比** | Agent 的"手和眼"（访问外部世界） | Agent 之间的"语言"（互相交流） |
+| **通信模式** | Host-Client-Server（三层架构） | Agent-to-Agent（对等架构） |
+| **主要操作** | 调用工具、读取资源、使用模板 | 任务委派、状态同步、结果汇总 |
+| **发布方** | Anthropic（2024年11月） | Google（2025年4月） |
+
+**互补关系**：
+
+```
+┌─────────────────────────────────────────────────┐
+│                  Agent System                    │
+│                                                  │
+│  Agent A ←── A2A ──→ Agent B ←── A2A ──→ Agent C │
+│    │                    │                    │    │
+│    │ MCP                │ MCP                │ MCP│
+│    ↓                    ↓                    ↓    │
+│  [Tools]              [Tools]              [Tools] │
+│  [Data]               [Data]               [Data] │
+└─────────────────────────────────────────────────┘
+```
+
+**关键洞察**：实际系统中，Agent 可能同时使用 **MCP**（访问工具和数据）和 **A2A**（与其他 Agent 协作）。MCP 解决的是"Agent 如何使用工具"，A2A 解决的是"Agent 如何与其他 Agent 合作"。

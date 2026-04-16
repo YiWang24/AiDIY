@@ -256,6 +256,55 @@ class AgentServiceTest {
 | **Cost per Task** | Token cost per successful task | Minimize |
 | **Tool Success Rate** | % of tool calls successful | > 95% |
 
+### Structured Output for Reliability
+
+One of the most significant advances in 2025 for agent reliability is the widespread adoption of **Structured Output**:
+
+- **OpenAI**: `response_format: { type: "json_schema", json_schema: {...} }` guarantees valid JSON
+- **Anthropic**: Tool use with strict schema enforcement ensures parseable responses
+- **Gemini**: `generationConfig.responseSchema` for JSON mode
+
+**Impact on Agents**:
+- Eliminates output parsing failures (a top source of agent crashes)
+- Enables reliable tool calling (tools receive valid parameters)
+- Reduces hallucination in structured tasks (schema constrains the output space)
+- Facilitates multi-agent communication (agents exchange JSON messages)
+
+### Modern Evaluation Tools
+
+| Tool | Type | Key Feature |
+|------|------|-------------|
+| **LangSmith** | Platform | End-to-end tracing, evaluation datasets, annotation queues |
+| **LangFuse** | Open Source | Self-hosted observability, prompt management, cost tracking |
+| **Ragas** | Library | RAG-specific metrics (faithfulness, relevance, context precision) |
+| **DeepEval** | Library | LLM-as-judge, assertion-based testing, CI/CD integration |
+| **Promptfoo** | CLI | Multi-model comparison, regression testing, eval datasets |
+| **Braintrust** | Platform | Online evals, scorecards, data logging |
+
+### Prompt Caching for Cost Optimization
+
+Both OpenAI and Anthropic now support **prompt caching**, which can reduce costs by 80-90% for repeated prompt prefixes:
+
+```python
+# Anthropic: Automatic caching for prompts > 1024 tokens
+# Cached tokens cost 90% less
+response = client.messages.create(
+    model="claude-3-7-sonnet-20250219",
+    system=large_system_prompt,  # This gets cached
+    messages=[{"role": "user", "content": "..."}],
+    extra_headers={"anthropic-beta": "prompt-caching-2024-07-31"}
+)
+
+# OpenAI: Automatic caching for prompts > 1024 tokens
+# Cached input tokens cost 50% less
+```
+
+**Agent Cost Optimization Strategy**:
+1. Cache system prompts and tool definitions (large, rarely change)
+2. Use cheaper models for routing/classification tasks
+3. Implement semantic caching for similar queries
+4. Batch API for non-real-time tasks (50% discount)
+
 ---
 
 ## 5.2 Common Challenges
@@ -739,7 +788,6 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 ### Docker Compose
 
 ```yaml
-version: '3.8'
 services:
   agent-service:
     build: .

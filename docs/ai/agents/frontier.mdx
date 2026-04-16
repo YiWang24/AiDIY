@@ -239,6 +239,10 @@ flowchart TB
 - **Multion**: AI assistant for web tasks
 - **Rabbit R1**: Purpose-built device for autonomous actions
 
+:::caution Rabbit R1 Market Update (2025)
+Despite initial hype, the Rabbit R1 struggled with market adoption due to limited functionality and performance issues. More successful GUI Agent implementations include **Anthropic's Computer Use** (integrated into Claude) and **OpenAI Operator**, which leverage existing devices rather than dedicated hardware.
+:::
+
 **Challenges**:
 - UI understanding and robustness
 - Error recovery
@@ -327,6 +331,34 @@ flowchart TB
 - **Governance**: Voting, consensus, rule-making
 - **Social Dynamics**: Cooperation, competition, emergence
 - **Ethics**: Moral frameworks, value alignment
+
+### Agentic Coding (2025)
+
+AI 辅助编程成为 2025 年最重要的 Agent 应用趋势之一：
+
+- **Claude Code**: Anthropic 的命令行 AI 编程助手，支持全栈开发
+- **Cursor Agent**: 集成 AI 的代码编辑器，支持多文件编辑和终端操作
+- **Windsurf (Codeium)**: AI-native IDE，具备 Cascade 多步推理能力
+- **Devin**: Cognition Labs 的自主 AI 软件工程师
+- **OpenHands**: 开源 AI 软件开发 Agent 平台
+
+核心特征：理解代码库上下文 → 制定修改计划 → 多文件并行编辑 → 自动测试验证 → 迭代修复
+
+```mermaid
+flowchart LR
+    U[User Request] --> C[Codebase Understanding]
+    C --> P[Modification Plan]
+    P --> E[Multi-file Edit]
+    E --> T[Auto Test]
+    T -->|Pass| D[Done]
+    T -->|Fail| F[Iterative Fix]
+    F --> E
+
+    style C fill:#e3f2fd
+    style P fill:#f3e5f5
+    style E fill:#e8f5e9
+    style T fill:#fff3e0
+```
 
 ---
 
@@ -434,9 +466,18 @@ mindmap
 
 ### Near-Term (2025-2026)
 
+**2025 Actual Events (已发生)**:
+
+- **DeepSeek R1 开源推理模型发布**（2025年1月）：中国团队发布的开源推理模型，以极低成本实现接近 OpenAI o1 的性能，震惊业界
+- **OpenAI Agents SDK 发布**（2025年2月）：OpenAI 发布官方 Agent 框架，提供 Agents、Handoffs、Guardrails、Tracing 等核心概念
+- **MCP 协议被 OpenAI 采纳**（2025年3月）：OpenAI 宣布在其产品和 API 中支持 MCP 协议，标志着 MCP 从 Anthropic 主导走向全行业标准
+- **Google A2A 协议发布**（2025年4月）：Google 发布 Agent-to-Agent 通信协议，解决 Agent 之间的协作问题，与 MCP 互补
+
+**Near-Term Predictions**:
+
 - **V2 Agents**: Long-term planning becomes common
 - **Self-Improvement**: Agents learn from feedback
-- **Multi-Agent Standard**: Common patterns emerge
+- **Multi-Agent Standard**: Common patterns emerge (MCP + A2A)
 - **GUI Agents**: Web task automation matures
 
 ### Mid-Term (2027-2028)

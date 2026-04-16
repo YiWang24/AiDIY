@@ -48,9 +48,15 @@ graph TB
 | **LangChain** | Python | Mature | Basic | Limited | Quick prototyping |
 | **LangGraph** | Python | Growing | Excellent | Yes | Complex workflows |
 | **Semantic Kernel** | Python/C# | Mature | Good | Yes | Microsoft stack |
-| **AutoGen** | Python | Mature | Excellent | Yes | Research |
-| **CrewAI** | Python | New | Excellent | Yes | Role-based agents |
-| **LangChain4j** | Java | Growing | Basic | Yes | Java port of LangChain |
+|| **AutoGen** | Python | Mature (0.4+)† | Excellent | Yes | Research ||
+|| **CrewAI** | Python | Mature | Excellent | Yes | Role-based agents ||
+|| **LangChain4j** | Java | Growing | Basic | Yes | Java port of LangChain |
+|| **OpenAI Agents SDK** | Python | New | Good | Yes | OpenAI native agents |
+|| **Google ADK** | Python | New | Good | Yes | Gemini-native agents |
+
+> **† AutoGen 0.4+ Note**: AutoGen 0.4 introduced significant architectural changes from earlier versions, including a new async-first API and redesigned agent communication patterns. Teams upgrading from 0.2/0.3 should expect migration effort.
+
+> **CrewAI**: Matured rapidly from "New" to "Mature" with the release of CrewAI Enterprise, providing production-grade features including observability, guardrails, and deployment tooling.
 
 ### Feature Comparison
 
@@ -144,7 +150,7 @@ spring:
       api-key: ${OPENAI_API_KEY}
       chat:
         options:
-          model: gpt-4-turbo
+          model: gpt-4o
           temperature: 0.7
 
     mcp:
@@ -188,7 +194,7 @@ public class ChatClientConfig {
         return ChatClient.builder(model)
             .defaultSystem("You are a helpful AI assistant with access to tools.")
             .defaultOptions(OpenAiChatOptions.builder()
-                .model("gpt-4-turbo")
+                .model("gpt-4o")
                 .temperature(0.7)
                 .build())
             .build();
@@ -541,6 +547,65 @@ var result = await kernel.InvokePromptAsync(
 );
 ```
 
+### OpenAI Agents SDK (2025.2)
+
+OpenAI 于 2025年2月发布的官方 Agent 框架，提供轻量级、原生的 Agent 构建体验。
+
+**核心概念**：
+
+| Concept | Description |
+|---------|-------------|
+| **Agents** | 带有指令（instructions）和工具（tools）的 LLM 封装，是基本的执行单元 |
+| **Handoffs** | Agent 间的任务转移机制，支持将对话路由到最合适的 Agent |
+| **Guardrails** | 输入/输出的安全检查，支持自定义验证规则 |
+| **Tracing** | 内置运行追踪，支持可视化调试和性能分析 |
+
+**代码示例（Python）**：
+
+```python
+from agents import Agent, Runner, function_tool
+
+@function_tool
+def get_weather(city: str) -> str:
+    return f"Weather in {city}: Sunny, 22°C"
+
+agent = Agent(
+    name="Weather Agent",
+    instructions="You are a helpful weather assistant.",
+    tools=[get_weather],
+)
+
+result = Runner.run_sync(agent, "What's the weather in Tokyo?")
+print(result.final_output)
+```
+
+**特点**：
+- 原生支持 OpenAI 模型（GPT-4o 等）
+- 与 OpenAI API 深度集成，开箱即用
+- 支持多 Agent 编排（通过 Handoffs）
+- 内置 Tracing 支持（可接入 OpenAI Dashboard）
+
+### Google Agent Development Kit (ADK) (2025.4)
+
+Google 于 2025年4月发布的开源 Agent 开发工具包，专为 Gemini 模型生态设计。
+
+**核心特性**：
+
+| Feature | Description |
+|---------|-------------|
+| **声明式 Agent 定义** | 通过配置和注解定义 Agent 行为，减少样板代码 |
+| **内置工具集成** | 原生支持 Google Search、Code Execution、Vertex AI 等 |
+| **多 Agent 编排** | 支持多 Agent 协作和层级式任务分配 |
+| **评估框架** | 内置 Agent 行为评估和基准测试工具 |
+
+**特点**：
+- 支持 Python，深度集成 Gemini 模型
+- 开源（Apache 2.0 许可）
+- 可部署到 Google Cloud（Vertex AI Agent Engine）
+- 目前处于早期阶段（Early Access），API 可能变更
+
+> **注意**：Google ADK 目前处于早期阶段，建议关注官方仓库获取最新更新。
+
 ---
 
 ## 4.4 Development Tools
@@ -682,13 +747,15 @@ class AgentControllerTest {
 
 ### Framework Selection
 
-| Use Case | Recommended Framework |
-|----------|---------------------|
-| **Java Enterprise** | Spring AI |
-| **Python Prototyping** | LangChain |
-| **Complex Multi-Agent** | LangGraph |
-| **Microsoft Stack** | Semantic Kernel |
-| **Research** | AutoGen |
+|| Use Case | Recommended Framework ||
+||----------|---------------------||
+|| **Java Enterprise** | Spring AI ||
+|| **Python Prototyping** | LangChain ||
+|| **Complex Multi-Agent** | LangGraph ||
+|| **Microsoft Stack** | Semantic Kernel ||
+|| **Research** | AutoGen ||
+|| **OpenAI Native** | OpenAI Agents SDK ||
+|| **Gemini/Google Cloud** | Google ADK ||
 
 ### Spring AI Advantages
 

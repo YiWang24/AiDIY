@@ -2,10 +2,153 @@
 id: nosql-comparison
 title: NoSQL Comparison
 sidebar_label: NoSQL Comparison
-description: "A conceptual comparison of major NoSQL categories and when to choose them."
+description: "Comprehensive comparison of NoSQL databases by data model, consistency, and use cases"
 ---
 
-# NoSQL Comparison
+# NoSQL Database Comparison
 
-This page is a placeholder. It will cover key-value, document, column-family, and search systems with selection trade-offs.
+## Overview
 
+NoSQL ("Not Only SQL") databases emerged to address scalability, flexibility, and performance challenges that relational databases struggle with in modern applications. This guide compares NoSQL databases across six major categories.
+
+## Database Categories
+
+### 1. Key-Value Stores
+
+| Database | Language | Consistency | Highlights |
+|----------|----------|-------------|------------|
+| **Redis** | C | Tunable | In-memory, sub-ms latency, rich data structures |
+| **DynamoDB** | Proprietary | Eventual/Strong | Fully managed, auto-scaling, AWS-native |
+| **etcd** | Go | Strong (Raft) | Distributed config, Kubernetes backing store |
+
+**Best for**: Caching, session management, rate limiting, real-time leaderboards
+
+### 2. Document Stores
+
+| Database | Language | Query | Highlights |
+|----------|----------|-------|------------|
+| **MongoDB** | C++ | MQL (MongoDB Query Language) | Most popular doc DB, flexible schema, Atlas cloud |
+| **Firestore** | Proprietary | Firebase SDK | Real-time sync, mobile/web first, Google Cloud |
+| **DynamoDB** | Proprietary | PartiQL | Also supports document model via JSON attributes |
+
+**Best for**: Content management, user profiles, IoT data, catalogs
+
+### 3. Wide Column Stores
+
+| Database | Language | Consistency | Highlights |
+|----------|----------|-------------|------------|
+| **Cassandra** | Java | Eventual (tunable) | Linear scalability, multi-datacenter, write-optimized |
+| **ScyllaDB** | C++ | Eventual (tunable) | Cassandra-compatible, 10x faster via shard-per-core |
+| **HBase** | Java | Strong | Hadoop ecosystem, large analytical workloads |
+
+**Best for**: Time-series data, IoT telemetry, messaging, logging at scale
+
+### 4. Graph Databases
+
+| Database | Language | Query Language | Highlights |
+|----------|----------|---------------|------------|
+| **Neo4j** | Java | Cypher | Most popular graph DB, ACID transactions |
+| **ArangoDB** | C++ | AQL | Multi-model (graph + document + key-value) |
+
+**Best for**: Social networks, fraud detection, recommendation engines, knowledge graphs
+
+### 5. Search Engines
+
+| Database | Language | Highlights |
+|----------|----------|------------|
+| **Elasticsearch** | Java | Full-text search, analytics, ELK stack |
+| **OpenSearch** | Java | Elasticsearch fork (AWS), open-source |
+| **Meilisearch** | Rust | Lightning-fast, easy setup, great UX |
+
+**Best for**: Full-text search, log analytics, application search, autocomplete
+
+### 6. Vector Databases (AI Era)
+
+| Database | Language | Highlights |
+|----------|----------|------------|
+| **Milvus** | Go/C++ | Open-source, GPU-accelerated, billion-scale vectors |
+| **Pinecone** | Managed | Fully managed, serverless option, production-proven |
+| **Weaviate** | Go | GraphQL API, multi-modal, hybrid search |
+| **Qdrant** | Rust | High performance, filtering, Rust-native |
+| **pgvector** | C | PostgreSQL extension, SQL-based vector search |
+
+**Best for**: LLM/RAG applications, semantic search, recommendation systems, image/audio similarity
+
+### 7. Time-Series Databases
+
+| Database | Highlights |
+|----------|------------|
+| **InfluxDB** | Purpose-built TSDB, Flux query language |
+| **TimescaleDB** | PostgreSQL extension, full SQL compatibility |
+| **ClickHouse** | Columnar OLAP, extremely fast analytics |
+
+### 8. NewSQL
+
+| Database | Highlights |
+|----------|------------|
+| **CockroachDB** | PostgreSQL-compatible, distributed SQL, strong consistency |
+| **TiDB** | MySQL-compatible, HTAP (hybrid transactional + analytical) |
+| **YugabyteDB** | PostgreSQL-compatible, cloud-native, global distribution |
+
+## Decision Framework
+
+```
+                    What's your primary need?
+                           │
+            ┌──────────────┼──────────────┐
+            │              │              │
+      Simple lookups  Complex data    Relationships
+      & caching        with varying     & traversals
+            │          schema            │
+            ▼              ▼              ▼
+      Key-Value      Document DB     Graph DB
+      (Redis,        (MongoDB,       (Neo4j,
+       DynamoDB)      Firestore)      ArangoDB)
+
+            ┌──────────────┼──────────────┐
+            │              │              │
+      Full-text       Time-series     AI/Semantic
+      search          & metrics       search
+            │              │              │
+            ▼              ▼              ▼
+      Search Engine   TSDB           Vector DB
+      (Elastic,       (InfluxDB,     (Milvus,
+       OpenSearch)     TimescaleDB)    Pinecone)
+
+            ┌──────────────┼──────────────┐
+            │              │              │
+      Massive writes   Need SQL       Columnar
+      at scale         + scale        analytics
+            │              │              │
+            ▼              ▼              ▼
+      Wide Column      NewSQL         OLAP Engine
+      (Cassandra,      (CockroachDB,  (ClickHouse,
+       ScyllaDB)        TiDB)          Doris)
+```
+
+## ACID vs BASE Comparison
+
+| Property | ACID (RDBMS) | BASE (Many NoSQL) |
+|----------|-------------|-------------------|
+| Consistency | Strong | Eventual |
+| Availability | May sacrifice | Prioritized |
+| Isolation | Strict | Loose |
+| Durability | Guaranteed | Often configurable |
+| Scalability | Vertical first | Horizontal first |
+| Examples | MySQL, PostgreSQL | Cassandra, DynamoDB, MongoDB |
+
+## When to Choose NoSQL vs SQL
+
+| Choose SQL When | Choose NoSQL When |
+|----------------|-------------------|
+| Data has clear schema | Schema evolves frequently |
+| Complex transactions needed | Simple access patterns |
+| Strong consistency required | Eventual consistency acceptable |
+| Ad-hoc queries common | Access patterns well-defined |
+| Data relationships complex | Horizontal scaling critical |
+
+## See Also
+
+- [MySQL Architecture](/docs/cs/database/mysql/architecture) — Relational DB internals
+- [Redis Data Structures](/docs/cs/database/redis/data-structures) — Redis deep dive
+- [RAG Index & Storage](/docs/ai/rag/03-index) — Vector databases for AI applications

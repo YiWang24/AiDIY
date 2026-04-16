@@ -444,7 +444,7 @@ public class LLMConfiguration {
     public ChatModel longContextModel() {
         return OpenAiChatModel.builder()
             .options(OpenAiChatOptions.builder()
-                .model("gpt-4-turbo")  // 128K context
+                .model("gpt-4o")  // 128K context
                 // When to use long context:
                 // - Document analysis > 50 pages
                 // - Codebase reviews
@@ -517,7 +517,7 @@ public class ModelSelectionService {
         return switch (task.toLowerCase()) {
             case "code", "debug", "refactor" -> "gpt-4",  // Best coding performance
             case "chat", "general", "qa" -> "gpt-3.5-turbo",  // Cost-effective
-            case "analysis", "document", "long" -> "gpt-4-turbo",  // 128K context
+            case "analysis", "document", "long" -> "gpt-4o",  // 128K context
             case "creative", "story", "poem" -> "gpt-4",  // Better creativity
             case "simple", "classification" -> "gpt-3.5-turbo",  // Faster, cheaper
             default -> "gpt-3.5-turbo"  // Default to cost-effective

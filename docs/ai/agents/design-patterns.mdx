@@ -8904,6 +8904,79 @@ public class RouterMetrics {
 
 ---
 
+### 11. Orchestrator-Workers Pattern (Anthropic Recommended)
+
+**Problem**: Complex tasks require different expertise, but a single agent can't handle all subtasks well.
+
+**Solution**: A central orchestrator analyzes the task and dynamically delegates subtasks to specialized worker agents.
+
+```mermaid
+graph TD
+    A[User Request] --> O[Orchestrator Agent]
+    O -->|analyze & plan| W1[Worker: Code Review]
+    O -->|analyze & plan| W2[Worker: Security Scan]
+    O -->|analyze & plan| W3[Worker: Performance Test]
+    W1 --> R[Aggregated Result]
+    W2 --> R
+    W3 --> R
+```
+
+**Key Characteristics**:
+- Orchestrator performs task decomposition and assignment
+- Workers are independent and specialized
+- Dynamic subtask creation based on input complexity
+- Orchestrator synthesizes all worker outputs
+
+**vs Supervisor Pattern**: Orchestrator-Workers is task-driven (one request → parallel subtasks), while Supervisor is loop-driven (continuous monitoring → delegation).
+
+### 12. Evaluator-Optimizer Pattern
+
+**Problem**: LLM output quality varies; a single pass may not produce optimal results.
+
+**Solution**: One agent generates output while another evaluates it, creating a refinement loop.
+
+```mermaid
+graph LR
+    G[Generator Agent] -->|output| E[Evaluator Agent]
+    E -->|feedback| G
+    E -->|pass| F[Final Output]
+```
+
+**Implementation Considerations**:
+- Define clear evaluation criteria (accuracy, completeness, style)
+- Set maximum iterations to prevent infinite loops
+- Evaluator can use a different (often cheaper) model
+- Works well with structured output for evaluation scores
+
+**Best For**: Content generation, code review, translation quality
+
+### 13. Mixture of Agents (MoA)
+
+**Problem**: Single model has inherent biases and blind spots.
+
+**Solution**: Multiple agents generate responses independently, then an aggregator synthesizes the best answer.
+
+```mermaid
+graph TD
+    A[Input] --> A1[Agent 1: GPT-4o]
+    A --> A2[Agent 2: Claude 3.7]
+    A --> A3[Agent 3: Gemini 2.5]
+    A1 --> AG[Aggregator Agent]
+    A2 --> AG
+    A3 --> AG
+    AG --> F[Final Output]
+```
+
+**Key Benefits**:
+- Reduces individual model biases
+- Combines strengths of different models
+- Higher quality through diversity
+- Can be layered (multi-round MoA)
+
+**Trade-offs**: Higher cost (N× API calls), increased latency, needs good aggregation prompt
+
+---
+
 ## 3.4 Case Studies
 
 ### Case Study 1: Code Review System
