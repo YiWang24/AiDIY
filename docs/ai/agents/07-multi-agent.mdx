@@ -1,0 +1,468 @@
+---
+id: 07-multi-agent
+title: 7. Multi-Agent & A2A
+sidebar_label: 7. Multi-Agent & A2A
+description: Multi-Agent Systems, A2A Protocol, AG-UI Protocol, Agent Collaboration Patterns, and Agent-to-Agent Communication Standards
+---
+
+# 7. Multi-Agent & A2A
+
+As individual agents mature, the frontier shifts to **agent collaboration** — how agents communicate, coordinate, and form societies. 2025 saw major standardization efforts with Google's A2A Protocol and the AG-UI Protocol for agent-user interaction.
+
+---
+
+## 7.1 Evolution of Multi-Agent Systems
+
+```mermaid
+timeline
+    title Multi-Agent Evolution
+    section 2023
+        Single Agent : One agent + tools<br/>Simple workflows
+        Prompt Chaining : Sequential agents<br/>Output → Input
+    section 2024 H1
+        Multi-Agent Patterns : Supervisor, Hierarchical<br/>Debate patterns
+        Frameworks : AutoGen, CrewAI<br/>LangGraph
+    section 2024 H2
+        Agentic Workflows : Complex orchestration<br/>State management
+        Computer Use : Agent + GUI interaction
+    section 2025 H1
+        A2A Protocol : Google Agent-to-Agent<br/>50+ companies
+        AG-UI Protocol : Agent-User Interaction<br/>CopilotKit
+        Agent SDKs : OpenAI, Google, Anthropic<br/>Official frameworks
+    section 2025 H2 - 2026
+        Agent Society : Self-organizing swarms<br/>Economic models
+        W3C ANP : Agent Network Protocol<br/>Web standardization
+        Agent Marketplace : Discoverable agents<br/>Composable services
+```
+
+---
+
+## 7.2 A2A Protocol (Google, 2025.4)
+
+The **Agent-to-Agent (A2A) Protocol** is Google's open standard for inter-agent communication, announced in April 2025 with support from 50+ companies.
+
+### Why A2A Matters
+
+```mermaid
+flowchart TB
+    subgraph Before["Before A2A"]
+        A1[Agent A] <-.->|Custom API| B1[Agent B]
+        A1 <-.->|Custom API| C1[Agent C]
+        B1 <-.->|Custom API| C1
+    end
+
+    subgraph After["After A2A"]
+        A2[Agent A] <-->|A2A| PROTO[A2A Protocol]
+        B2[Agent B] <-->|A2A| PROTO
+        C2[Agent C] <-->|A2A| PROTO
+    end
+
+    style Before fill:#ffebee
+    style After fill:#e8f5e9
+```
+
+| Problem Without A2A | Solution With A2A |
+|---------------------|-------------------|
+| Custom integration per agent pair | Standard protocol for all |
+| Vendor lock-in | Open, interoperable |
+| No discovery mechanism | Agent Cards for capability discovery |
+| Proprietary message formats | Standard JSON-RPC messages |
+| No task lifecycle management | Standardized task states |
+
+### Core Concepts
+
+| Concept | Description |
+|---------|-------------|
+| **Agent Card** | JSON metadata describing an agent's capabilities, endpoints, and authentication |
+| **Task** | A unit of work sent from one agent to another with lifecycle management |
+| **Message** | Communication within a task (text, files, forms) |
+| **Part** | Individual content pieces (text, file, data) within a message |
+| **Push Notification** | Async notification for long-running tasks |
+
+### Agent Card Example
+
+```json
+{
+  "name": "Research Agent",
+  "description": "Performs web research and synthesizes findings",
+  "url": "https://research-agent.example.com/a2a",
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": true
+  },
+  "skills": [
+    {
+      "id": "web-research",
+      "name": "Web Research",
+      "description": "Search and synthesize information from the web"
+    },
+    {
+      "id": "data-analysis",
+      "name": "Data Analysis",
+      "description": "Analyze datasets and generate reports"
+    }
+  ],
+  "authentication": {
+    "schemes": ["bearer"]
+  }
+}
+```
+
+### Task Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Submitted
+    Submitted --> Working
+    Working --> Working: Progress Updates
+    Working --> Completed
+    Working --> Failed
+    Working --> Cancelled
+    Completed --> [*]
+    Failed --> [*]
+    Cancelled --> [*]
+```
+
+### A2A vs MCP
+
+| Aspect | MCP (Model Context Protocol) | A2A (Agent-to-Agent) |
+|--------|------------------------------|----------------------|
+| **Purpose** | Agent-to-Tool communication | Agent-to-Agent communication |
+| **Analogy** | USB for connecting peripherals | HTTP for connecting services |
+| **Scope** | Single agent's tool ecosystem | Multi-agent collaboration |
+| **Transport** | stdio / SSE | HTTP / JSON-RPC |
+| **Discovery** | Server-configured | Agent Cards |
+| **Created by** | Anthropic (2024) | Google (2025) |
+| **Relationship** | Complementary | Complementary |
+
+```mermaid
+flowchart TB
+    subgraph Agent1["Agent A"]
+        A[Agent Core]
+        MCP1[MCP Client]
+    end
+
+    subgraph Tools["Tool Ecosystem"]
+        T1[Database]
+        T2[File System]
+        T3[Web Search]
+    end
+
+    subgraph Agent2["Agent B"]
+        B[Agent Core]
+        MCP2[MCP Client]
+    end
+
+    subgraph Tools2["Tool Ecosystem"]
+        T4[Calendar]
+        T5[Email]
+        T6[CRM]
+    end
+
+    A <-->|A2A Protocol| B
+    MCP1 <-->|MCP| Tools
+    MCP2 <-->|MCP| Tools2
+
+    style A fill:#e1f5fe
+    style B fill:#e1f5fe
+    style MCP1 fill:#f3e5f5
+    style MCP2 fill:#f3e5f5
+```
+
+---
+
+## 7.3 AG-UI Protocol (CopilotKit, 2025)
+
+The **Agent-User Interaction Protocol (AG-UI)** standardizes how agents interact with human users through UI components.
+
+### Why AG-UI Matters
+
+Traditional agents return text. AG-UI enables agents to:
+- Render rich UI components (forms, tables, charts)
+- Stream real-time progress indicators
+- Request structured user input
+- Display interactive elements
+
+### Architecture
+
+```mermaid
+flowchart TB
+    subgraph Agent["Agent Backend"]
+        AG[Agent Logic]
+        AGUI[AG-UI Server]
+    end
+
+    subgraph Protocol["AG-UI Protocol"]
+        E1[State Events]
+        E2[Tool Calls]
+        E3[UI Components]
+        E4[User Input]
+    end
+
+    subgraph Frontend["User Interface"]
+        FE[React Components]
+        FORM[Dynamic Forms]
+        TABLE[Data Tables]
+        CHART[Charts]
+    end
+
+    AG --> AGUI
+    AGUI --> Protocol
+    Protocol --> FE
+    FE --> FORM
+    FE --> TABLE
+    FE --> CHART
+
+    style AGUI fill:#e1f5fe
+    style Protocol fill:#f3e5f5
+```
+
+### Event Types
+
+| Event Type | Direction | Description |
+|------------|-----------|-------------|
+| **TextMessageStart/Content/End** | Agent → UI | Streaming text output |
+| **StateSnapshot / StateDelta** | Agent → UI | Agent state updates |
+| **ToolCallStart/Args/End** | Agent → UI | Tool execution progress |
+| **ToolCallResult** | Agent → UI | Tool results |
+| **RunStarted / RunFinished** | Agent → UI | Lifecycle events |
+
+---
+
+## 7.4 Multi-Agent Patterns
+
+### Common Orchestration Patterns
+
+#### 1. Supervisor Pattern
+
+A central supervisor agent delegates tasks to specialized workers.
+
+```mermaid
+flowchart TB
+    SUP[Supervisor] --> R[Researcher]
+    SUP --> W[Writer]
+    SUP --> C[Coder]
+    SUP --> Q[QA]
+
+    R -->|Findings| SUP
+    W -->|Draft| SUP
+    C -->|Code| SUP
+    Q -->|Test Results| SUP
+
+    style SUP fill:#e1f5fe
+```
+
+#### 2. Hierarchical Pattern
+
+Multi-level management with strategic and tactical planning.
+
+```mermaid
+flowchart TB
+    CEO[CEO Agent<br/>Strategic] --> PM1[PM Agent<br/>Product]
+    CEO --> PM2[PM Agent<br/>Engineering]
+
+    PM1 --> W1[Worker 1]
+    PM1 --> W2[Worker 2]
+    PM2 --> W3[Worker 3]
+    PM2 --> W4[Worker 4]
+
+    style CEO fill:#e1f5fe
+    style PM1 fill:#f3e5f5
+    style PM2 fill:#f3e5f5
+```
+
+#### 3. Mesh / Peer-to-Peer Pattern
+
+Agents communicate directly without a central coordinator.
+
+```mermaid
+flowchart TB
+    A1[Agent 1] <--> A2[Agent 2]
+    A2 <--> A3[Agent 3]
+    A3 <--> A4[Agent 4]
+    A4 <--> A1
+    A1 <--> A3
+
+    style A1 fill:#e1f5fe
+    style A2 fill:#f3e5f5
+    style A3 fill:#e8f5e9
+    style A4 fill:#fff3e0
+```
+
+#### 4. Debate Pattern
+
+Multiple agents discuss and reach consensus through structured debate.
+
+```mermaid
+flowchart LR
+    P[Proposer] --> C[Critic]
+    C -->|Feedback| P
+    P -->|Revised| J[Judge]
+    J -->|Decision| O[Output]
+
+    style P fill:#e1f5fe
+    style C fill:#ffebee
+    style J fill:#e8f5e9
+```
+
+### Pattern Comparison
+
+| Pattern | Complexity | Scalability | Best For |
+|---------|-----------|-------------|----------|
+| **Supervisor** | Low | Medium | Task delegation |
+| **Hierarchical** | Medium | High | Large organizations |
+| **Mesh** | High | Medium | Creative collaboration |
+| **Debate** | Medium | Low | Quality improvement |
+
+---
+
+## 7.5 Agent Society & Swarms
+
+### Self-Organizing Agents
+
+Agents that dynamically form teams based on task requirements.
+
+```mermaid
+flowchart TB
+    subgraph Society["Agent Society"]
+        subgraph Discovery["Discovery Layer"]
+            REG[Agent Registry]
+            DIS[Discovery Service]
+        end
+
+        subgraph Teams["Dynamic Teams"]
+            T1[Team A: Research]
+            T2[Team B: Analysis]
+            T3[Team C: Writing]
+        end
+
+        subgraph Economics["Economic Layer"]
+            MKT[Task Market]
+            BID[Bidding System]
+            REP[Reputation System]
+        end
+    end
+
+    REG --> DIS
+    DIS --> Teams
+    Teams --> MKT
+    MKT --> BID
+    BID --> REP
+    REP --> DIS
+
+    style REG fill:#e1f5fe
+    style MKT fill:#e8f5e9
+```
+
+### Key Concepts
+
+| Concept | Description |
+|---------|-------------|
+| **Agent Registry** | Directory of available agents and their capabilities |
+| **Dynamic Team Formation** | Agents self-organize based on task requirements |
+| **Task Market** | Tasks are posted and agents bid to complete them |
+| **Reputation System** | Track agent performance and reliability |
+| **Economic Model** | Token-based compensation for agent services |
+
+---
+
+## 7.6 W3C ANP (Agent Network Protocol)
+
+The W3C is working on standardizing agent networking through the **Agent Network Protocol (ANP)**.
+
+### Goals
+
+1. **Interoperability**: Agents from different vendors can communicate
+2. **Discovery**: Standard mechanism for finding agents
+3. **Trust**: Verification and reputation systems
+4. **Privacy**: Data sharing controls
+5. **Security**: Authentication and authorization
+
+### Relationship to Other Standards
+
+```
+W3C ANP (Agent Network Protocol)
+  ├── Builds on: A2A Protocol (Google)
+  ├── Complements: MCP (Anthropic)
+  ├── Inspired by: AG-UI (CopilotKit)
+  └── Aligns with: Web Standards (HTTP, JSON-LD)
+```
+
+---
+
+## 7.7 Implementation with Agent SDKs
+
+### OpenAI Agents SDK — Multi-Agent Handoff
+
+```python
+from agents import Agent, Runner
+
+researcher = Agent(
+    name="Researcher",
+    instructions="You research topics thoroughly.",
+)
+
+writer = Agent(
+    name="Writer",
+    instructions="You write clear, engaging content.",
+)
+
+coordinator = Agent(
+    name="Coordinator",
+    instructions="Route tasks to the right specialist.",
+    handoffs=[researcher, writer],
+)
+
+result = Runner.run_sync(coordinator, "Write a report on quantum computing")
+```
+
+### LangGraph — Supervisor Pattern
+
+```python
+from langgraph.graph import StateGraph, END
+from typing import TypedDict, Annotated
+import operator
+
+class State(TypedDict):
+    messages: Annotated[list, operator.add]
+    next: str
+
+def supervisor(state: State):
+    # Decide next agent
+    return {"next": "researcher"}
+
+def researcher(state: State):
+    # Research and return findings
+    return {"messages": ["Research findings..."]}
+
+workflow = StateGraph(State)
+workflow.add_node("supervisor", supervisor)
+workflow.add_node("researcher", researcher)
+workflow.add_conditional_edges("supervisor", lambda s: s["next"])
+workflow.add_edge("researcher", "supervisor")
+workflow.set_entry_point("supervisor")
+
+app = workflow.compile()
+```
+
+---
+
+## 7.8 Key Takeaways
+
+1. **A2A Protocol** is becoming the standard for inter-agent communication
+2. **AG-UI Protocol** bridges the gap between agents and rich user interfaces
+3. **MCP + A2A** are complementary — tools vs. agent collaboration
+4. **Multi-agent patterns** (Supervisor, Hierarchical, Mesh) solve different coordination needs
+5. **Agent societies** represent the frontier — self-organizing, economic systems
+
+---
+
+:::tip Start with Patterns
+Before building multi-agent systems, master the **Supervisor pattern** — it's the most practical for most use cases. Use **LangGraph** or **OpenAI Agents SDK** for implementation.
+:::
+
+:::info Protocol Selection
+- Need agent-to-tool communication? Use **MCP**
+- Need agent-to-agent communication? Use **A2A**
+- Need agent-to-user rich interaction? Use **AG-UI**
+:::

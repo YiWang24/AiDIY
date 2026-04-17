@@ -1,17 +1,17 @@
 ---
-id: engineering
-title: 5. Engineering & Production
-sidebar_label: 5. Engineering & Production
+id: 09-engineering
+title: 9. Engineering & Production
+sidebar_label: 9. Engineering & Production
 description: AI Agent Production Engineering - Evaluation, Security Challenges, Deployment, and Operational Best Practices
 ---
 
-# 5. Engineering Challenges & Production Readiness
+# 9. Engineering & Production
 
 Building agents that work in prototypes is different from building agents that work reliably in production. This section covers the critical engineering challenges, evaluation methods, security considerations, and deployment strategies for production-grade AI agents.
 
 ---
 
-## 5.1 Agent Evaluation
+## 9.1 Agent Evaluation
 
 Evaluating agent performance is fundamentally different from traditional software testing due to non-determinism and complexity.
 
@@ -307,7 +307,7 @@ response = client.messages.create(
 
 ---
 
-## 5.2 Common Challenges
+## 9.2 Common Challenges
 
 ### Challenge 1: Hallucination
 
@@ -572,7 +572,20 @@ public class ParallelToolExecutor {
 
 ---
 
-## 5.3 Security & Safety
+## 9.3 Security & Safety
+
+### 2025 Agent Threat Landscape
+
+Agents introduce new attack surfaces beyond traditional LLM risks:
+
+| Threat | Description | Example |
+|--------|-------------|---------|
+| **Tool Poisoning** | Malicious MCP server returns harmful data | Compromised tool injects instructions via response |
+| **Agent-to-Agent Attack** | One agent manipulates another via crafted messages | A2A protocol message with hidden instructions |
+| **Supply Chain (MCP)** | Malicious MCP plugin in marketplace | Trojaned tool exfiltrates data |
+| **Context Window Overflow** | Flooding context to hide malicious instructions | Long document with hidden prompt injection |
+| **Credential Harvesting** | Agent tricked into revealing API keys | Social engineering via tool output |
+| **Sandbox Escape** | Breaking out of execution environment | Computer Use agent accessing host filesystem |
 
 ### Prompt Injection
 
@@ -759,9 +772,60 @@ public class AgentAuditLogger {
 }
 ```
 
+### Agent-Specific Security Measures (2025)
+
+#### MCP Server Vetting
+
+```java
+@Service
+public class McpSecurityGateway {
+
+    private final Set<String> trustedServers = Set.of(
+        "official/filesystem", "official/github", "official/postgres"
+    );
+
+    public void validateToolCall(ToolCallRequest request) {
+        // Verify server is trusted
+        if (!trustedServers.contains(request.getServerId())) {
+            throw new SecurityException("Untrusted MCP server: " + request.getServerId());
+        }
+
+        // Sandbox tool execution
+        if (request.isDestructive()) {
+            requireApproval(request);
+        }
+
+        // Scan tool output for injection
+        scanForInjection(request.getToolOutput());
+    }
+}
+```
+
+#### Agent Communication Security (A2A)
+
+```java
+@Service
+public class A2ASecurityInterceptor {
+
+    public void validateIncomingMessage(A2AMessage message) {
+        // Verify sender identity
+        verifyAgentIdentity(message.getFromAgent());
+
+        // Rate limit per agent
+        checkAgentRateLimit(message.getFromAgent());
+
+        // Scan for cross-agent injection
+        scanForInjection(message.getContent());
+
+        // Log for audit trail
+        auditLog.logInterAgentMessage(message);
+    }
+}
+```
+
 ---
 
-## 5.4 Production Deployment
+## 9.4 Production Deployment
 
 ### Docker Configuration
 
@@ -872,7 +936,7 @@ Key metrics to monitor:
 
 ---
 
-## 5.5 A/B Testing
+## 9.5 A/B Testing
 
 Test different agent configurations safely.
 
@@ -919,7 +983,7 @@ public class AgentABTestService {
 
 ---
 
-## 5.6 Key Takeaways
+## 9.6 Key Takeaways
 
 ### Evaluation Strategy
 
@@ -952,10 +1016,10 @@ public class AgentABTestService {
 
 ---
 
-## 5.7 Next Steps
+## 9.7 Next Steps
 
 **Complete your learning journey:**
-- → **[6. Frontier Trends](../frontier)** - Emerging technologies and research
+- → **[10. Frontier Trends](/docs/ai/agents/10-frontier)** - Emerging technologies and research
 
 ---
 

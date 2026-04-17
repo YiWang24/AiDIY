@@ -1,0 +1,417 @@
+---
+id: 05-coding-agents
+title: 5. Coding Agents
+sidebar_label: 5. Coding Agents
+description: AI Coding Agents - Claude Code, Devin, Cursor, Windsurf, SWE-Agent and the Evolution of Autonomous Software Engineering
+---
+
+# 5. Coding Agents
+
+Coding Agents represent one of the most impactful applications of AI agent technology — autonomous systems that can understand codebases, plan modifications, write code, run tests, and iterate until tasks are complete.
+
+---
+
+## 5.1 Evolution of AI-Assisted Coding
+
+```mermaid
+timeline
+    title AI Coding Evolution
+    section 2022-2023
+        Code Completion : GitHub Copilot<br/>Autocomplete
+        Chat Assistants : ChatGPT code gen<br/>Paste-based help
+    section 2024 H1
+        AI IDEs : Cursor<br/>Context-aware editing
+        CLI Agents : Aider<br/>Terminal-based
+    section 2024 H2
+        Autonomous SWE : Devin demo<br/>End-to-end tasks
+        Claude Code : Anthropic CLI agent<br/>Full-stack dev
+    section 2025-2026
+        Agent IDEs : Cursor Agent Mode<br/>Windsurf Cascade
+        Multi-Agent : Agent SDKs<br/>SWE-bench progress
+        Production : Real-world adoption<br/>Enterprise deployment
+```
+
+### The Coding Agent Spectrum
+
+```
+Autocomplete → Chat Assist → Inline Edit → Agent Mode → Autonomous SWE
+     ↓              ↓             ↓             ↓              ↓
+  Copilot      ChatGPT       Cursor       Claude Code      Devin
+```
+
+---
+
+## 5.2 Major Coding Agents
+
+### Claude Code (Anthropic, 2025)
+
+Anthropic's CLI-based coding agent, deeply integrated with the development workflow.
+
+**Key Features**:
+- **Agentic coding**: Plans, reads, writes, and tests code autonomously
+- **Context awareness**: Understands full codebase structure
+- **Tool ecosystem**: Built-in file editing, bash execution, web search
+- **MCP integration**: Extends capabilities via Model Context Protocol
+- **Multi-model**: Supports Claude Opus, Sonnet, and Haiku
+
+**Architecture**:
+
+```mermaid
+flowchart TB
+    subgraph CLI["Claude Code CLI"]
+        U[User Prompt] --> P[Planner]
+        P --> R[Repo Reader]
+        R --> E[Editor]
+        E --> B[Bash Runner]
+        B --> T[Test Runner]
+        T -->|Pass| D[Done]
+        T -->|Fail| P
+    end
+
+    subgraph Tools["Tool Ecosystem"]
+        M[MCP Servers]
+        W[Web Search]
+        G[Git Operations]
+    end
+
+    P --> Tools
+    Tools --> E
+
+    style P fill:#e1f5fe
+    style E fill:#f3e5f5
+    style T fill:#e8f5e9
+```
+
+**Usage**:
+
+```bash
+# Install
+npm install -g @anthropic-ai/claude-code
+
+# Interactive mode
+claude
+
+# One-shot command
+claude "Refactor the authentication module to use JWT"
+
+# With specific model
+claude --model claude-opus-4-7 "Design a caching layer for the API"
+```
+
+### Devin (Cognition, 2024)
+
+The first autonomous AI software engineer, designed to handle full software engineering tasks end-to-end.
+
+**Key Features**:
+- **Autonomous execution**: Plans and completes tasks without human intervention
+- **Browser access**: Can research documentation and APIs
+- **Code execution**: Writes, runs, and debugs code in a sandboxed environment
+- **Collaboration**: Can work alongside human engineers
+
+**Architecture**:
+
+```mermaid
+flowchart TB
+    subgraph Devin["Devin Agent"]
+        P[Task Planner] --> B[Browser]
+        P --> E[Code Editor]
+        P --> T[Terminal]
+        B -->|Docs/APIs| P
+        E -->|Code| T
+        T -->|Output| P
+        P -->|Debug| E
+    end
+
+    style P fill:#e1f5fe
+    style B fill:#fff3e0
+    style E fill:#f3e5f5
+```
+
+**Limitations**:
+- Higher cost per task compared to assisted coding
+- Performance varies significantly by task complexity
+- Requires clear task specifications
+- Still evolving — early versions showed mixed results
+
+### AI-Powered IDEs (2025-2026)
+
+#### Cursor
+
+AI-native code editor built on VS Code, with deep codebase understanding.
+
+| Feature | Description |
+|---------|-------------|
+| **Tab Completion** | Context-aware multi-line completions |
+| **Cmd+K** | Inline code generation and editing |
+| **Chat** | Codebase-aware chat with file references |
+| **Agent Mode** (2025) | Autonomous multi-file editing and terminal operations |
+| **Composer** | Multi-file generation with project context |
+
+#### Windsurf (Codeium)
+
+AI-native IDE with Cascade reasoning engine.
+
+**Key Features**:
+- **Cascade**: Multi-step reasoning for complex tasks
+- **Flow**: Real-time awareness of developer actions
+- **Context Engine**: Deep codebase understanding
+- **Multi-file Edit**: Coordinated changes across files
+
+#### Augment
+
+Enterprise-focused AI coding assistant.
+
+- Deep codebase understanding for large repos
+- Team knowledge sharing
+- Enterprise security and compliance
+- Integration with existing workflows
+
+### Open Source Coding Agents
+
+#### OpenHands (formerly OpenDevin)
+
+Open-source platform for AI software development agents.
+
+```mermaid
+flowchart LR
+    U[User Task] --> OH[OpenHands Agent]
+    OH --> WS[Workspace<br/>Sandboxed]
+    OH --> BR[Browser]
+    OH --> SH[Shell]
+
+    WS --> C[Code Files]
+    WS --> T[Tests]
+    BR -->|Docs| OH
+    SH -->|Output| OH
+
+    style OH fill:#e8f5e9
+```
+
+**Features**:
+- Sandbox environment for safe code execution
+- Multiple LLM backend support
+- Web browsing for documentation
+- Action-based architecture
+
+#### SWE-Agent (Princeton)
+
+Research-focused agent for automated software engineering.
+
+- Turns LLMs into software engineering agents
+- Agent-computer interface (ACI) design
+- Strong performance on SWE-bench benchmarks
+- Research-oriented, open-source
+
+#### Aider
+
+CLI-based AI pair programming tool.
+
+```bash
+# Install
+pip install aider-chat
+
+# Use with a repo
+cd my-project
+aider main.py utils.py
+
+# Ask for changes
+aider "Add error handling to all API endpoints"
+```
+
+**Features**:
+- Git-integrated workflow
+- Multiple model support
+- Repository map for context
+- Auto-commit changes
+
+---
+
+## 5.3 How Coding Agents Work
+
+### Core Workflow
+
+```mermaid
+flowchart TB
+    U[User Request] --> U1[Understand Codebase]
+    U1 --> P[Plan Changes]
+    P --> E[Edit Files]
+    E --> T[Run Tests]
+    T -->|Pass| V[Verify]
+    T -->|Fail| D[Debug & Fix]
+    D --> E
+    V -->|Pass| D2[Done]
+    V -->|Fail| P
+
+    style U1 fill:#e1f5fe
+    style P fill:#f3e5f5
+    style E fill:#e8f5e9
+    style T fill:#fff3e0
+```
+
+### Key Capabilities
+
+| Capability | Description | Importance |
+|------------|-------------|------------|
+| **Repo Map** | Build mental model of codebase structure | Critical |
+| **Multi-file Edit** | Coordinate changes across multiple files | High |
+| **Test Execution** | Run tests and interpret results | High |
+| **Error Recovery** | Debug and fix issues autonomously | High |
+| **Context Management** | Manage token budget for large codebases | Medium |
+| **Git Operations** | Commit, branch, resolve conflicts | Medium |
+
+### Repo Map / Codebase Understanding
+
+Coding agents build an internal representation of the codebase:
+
+```
+Repository Map:
+├── src/
+│   ├── controllers/
+│   │   ├── auth.ts      ← handles login/register
+│   │   └── api.ts       ← REST endpoints
+│   ├── services/
+│   │   ├── auth.ts      ← JWT validation
+│   │   └── database.ts  ← PostgreSQL connection
+│   └── utils/
+│       └── helpers.ts   ← shared utilities
+├── tests/
+│   └── auth.test.ts     ← auth tests
+└── package.json         ← dependencies
+```
+
+This allows agents to:
+1. **Navigate** to relevant files without reading everything
+2. **Understand dependencies** between modules
+3. **Plan changes** that affect multiple files
+4. **Avoid breaking** existing functionality
+
+---
+
+## 5.4 Benchmarks & Evaluation
+
+### SWE-bench
+
+The primary benchmark for evaluating coding agents on real-world software engineering tasks.
+
+**What it measures**:
+- Given a GitHub issue, can the agent produce a patch that resolves it?
+- Evaluated against real issues from popular open-source projects
+
+| Metric | Description |
+|--------|-------------|
+| **SWE-bench Lite** | 300 issues, simplified evaluation |
+| **SWE-bench Verified** | Human-verified subset for reliable evaluation |
+| **SWE-bench Full** | 2,294 issues from 12 popular Python repos |
+
+### Leaderboard (2025-2026 Progress)
+
+```mermaid
+xychart-beta
+    title "SWE-bench Verified Score Progress (%)"
+    x-axis ["2024 Q1", "2024 Q2", "2024 Q3", "2024 Q4", "2025 Q1", "2025 Q2", "2026 Q1"]
+    y-axis "Resolution Rate" 0 --> 60
+    line [4, 12, 22, 33, 42, 48, 53]
+```
+
+| Agent | SWE-bench Verified | Type |
+|-------|-------------------|------|
+| **OpenAI Codex** | ~48% | Cloud API |
+| **Claude Code** | ~45% | CLI Agent |
+| **Devin** | ~40% | Autonomous |
+| **SWE-Agent + GPT-4** | ~33% | Open Source |
+| **Aider** | ~30% | CLI Tool |
+| **AutoCodeRover** | ~28% | Research |
+
+:::info Benchmark Context
+SWE-bench scores improve rapidly. The numbers above represent approximate snapshots — check the [official leaderboard](https://www.swebench.com/) for current results.
+:::
+
+---
+
+## 5.5 Production Use Cases
+
+### When Coding Agents Excel
+
+| Use Case | Description | Best Agent |
+|----------|-------------|------------|
+| **Bug Fixes** | Locate and fix bugs with tests | Claude Code, Aider |
+| **Refactoring** | Large-scale code restructuring | Claude Code, Cursor |
+| **Documentation** | Generate docs from code | Any agent |
+| **Test Writing** | Generate comprehensive tests | Claude Code, Cursor |
+| **Code Review** | Review PRs for issues | Claude Code |
+| **Migration** | Framework/library upgrades | Claude Code, Devin |
+
+### When to Be Cautious
+
+- **Security-critical code**: Always review agent-generated auth/crypto code
+- **Performance-sensitive paths**: Agent may not understand all constraints
+- **Novel architectures**: Agents work best with familiar patterns
+- **Large legacy codebases**: Context limits may miss important constraints
+
+---
+
+## 5.6 Best Practices
+
+### Effective Agent Usage
+
+1. **Clear Instructions**: Provide specific, detailed requirements
+2. **Incremental Tasks**: Break large tasks into smaller, reviewable chunks
+3. **Verify Output**: Always review and test agent-generated code
+4. **Provide Context**: Share relevant files, docs, and constraints
+5. **Use Version Control**: Commit before agent modifications for easy rollback
+
+### Security Considerations
+
+```mermaid
+flowchart TB
+    subgraph Risks["Security Risks"]
+        R1[Code Injection]
+        R2[Secrets Exposure]
+        R3[Dependency Confusion]
+        R4[Logic Bugs]
+    end
+
+    subgraph Mitigations["Mitigations"]
+        M1[Review all changes]
+        M2[Scan for secrets]
+        M3[Verify dependencies]
+        M4[Run test suite]
+    end
+
+    R1 --> M1
+    R2 --> M2
+    R3 --> M3
+    R4 --> M4
+
+    style Risks fill:#ffebee
+    style Mitigations fill:#e8f5e9
+```
+
+### Cost Optimization
+
+| Strategy | Description | Savings |
+|----------|-------------|---------|
+| **Smaller Models** | Use Haiku for simple tasks | 3-5x cheaper |
+| **Targeted Context** | Only include relevant files | 2-3x fewer tokens |
+| **Caching** | Reuse previous completions | Variable |
+| **Batch Tasks** | Group similar operations | Moderate |
+
+---
+
+## 5.7 Key Takeaways
+
+1. **Coding agents are production-ready** for many software engineering tasks
+2. **Claude Code leads** for developer-integrated agentic coding
+3. **SWE-bench progress** shows rapid improvement in autonomous capabilities
+4. **Human review remains essential** — especially for security-critical code
+5. **The field evolves fast** — new agents and capabilities emerge monthly
+
+---
+
+:::tip Try It Yourself
+Start with **Claude Code** for an integrated CLI coding agent experience, or **Cursor** for an AI-native IDE. Both offer free tiers to get started.
+:::
+
+:::info Open Source Options
+For self-hosted or research use, **OpenHands** and **SWE-Agent** provide fully open-source coding agent platforms.
+:::

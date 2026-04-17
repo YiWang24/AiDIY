@@ -1,5 +1,5 @@
 ---
-id: architecture
+id: 02-architecture
 title: 2. Architecture Components
 sidebar_label: 2. Architecture Components
 description: Building AI Agent Architecture - The Agent Loop, Memory Systems, Tool Integration, and Planning Mechanisms
@@ -2060,6 +2060,17 @@ graph TB
 | **Very long context** | Hierarchical storage (MemGPT) |
 | **Multi-agent system** | Shared memory + Pub-sub sync |
 | **Learning agent** | Episodic memory + Reflection |
+| **Coding agent** | File-level context + Repo map + Procedural memory |
+| **Computer use agent** | Screenshot buffer + Action history + Visual memory |
+
+#### 2025 Memory Patterns
+
+| Pattern | Description | Use Case |
+|---------|-------------|----------|
+| **Procedural Memory** | Store learned skills and workflows as reusable prompts | Agents that improve over repeated tasks |
+| **Episodic Bundles** | Group related memories into task-level episodes | Complex multi-step task recall |
+| **Cross-Agent Memory** | Shared memory with access control via A2A protocol | Multi-agent collaboration |
+| **Compressed Long-Term** | LLM-generated summaries replacing raw memories | Cost-efficient long-running agents |
 
 ---
 
@@ -2205,7 +2216,26 @@ public class ResilientToolExecutor {
 
 ### 5. MCP Integration
 
-Model Context Protocol provides a standardized way to integrate tools.
+Model Context Protocol (MCP) provides a standardized way to integrate tools. As of 2025, MCP v2 adds streaming, sampling, and enhanced tool discovery.
+
+```mermaid
+flowchart LR
+    subgraph MCPv2["MCP v2 Architecture"]
+        Agent[Agent] --> Client[MCP Client]
+        Client --> S1[Filesystem<br/>Server]
+        Client --> S2[GitHub<br/>Server]
+        Client --> S3[Database<br/>Server]
+        Client --> S4[Custom<br/>Server]
+    end
+
+    Client -->|Stream| Agent
+    S1 -->|Tools/Resources| Client
+    S2 -->|Tools/Resources| Client
+    S3 -->|Tools/Resources| Client
+    S4 -->|Tools/Resources| Client
+
+    style MCPv2 fill:#f5f5f5
+```
 
 ```java
 // Spring AI: MCP Server Integration
@@ -2220,6 +2250,12 @@ public McpClient mcpClient() {
         .build();
 }
 ```
+
+**MCP v2 Key Features (2025):**
+- **Streaming**: Tools can stream results for long-running operations
+- **Sampling**: Servers can request LLM completions via the client
+- **Tool Discovery**: Dynamic tool listing and capability negotiation
+- **Resource Templates**: Parameterized resource URIs for flexible data access
 
 ---
 
@@ -2474,12 +2510,12 @@ flowchart TB
 Now that you understand the foundational architecture:
 
 **For Implementation:**
-- → **[3. Design Patterns](../design-patterns)** - Learn proven patterns for structuring agents
-- → **[4. Frameworks](../frameworks)** - See how to implement with Spring AI
+- → **[3. Design Patterns](/docs/ai/agents/03-design-patterns)** - Learn proven patterns for structuring agents
+- → **[4. Frameworks](/docs/ai/agents/04-frameworks)** - See how to implement with Spring AI
 
 **For Advanced Topics:**
-- → **[5. Engineering](../engineering)** - Production deployment and evaluation
-- → **[6. Frontier](../frontier)** - Emerging trends and research
+- → **[9. Engineering](/docs/ai/agents/09-engineering)** - Production deployment and evaluation
+- → **[10. Frontier](/docs/ai/agents/10-frontier)** - Emerging trends and research
 
 ---
 
@@ -2488,5 +2524,5 @@ The ReAct loop (Reason → Act → Observe) is the foundation of most agent arch
 :::
 
 :::info Spring AI Developers
-See **[4. Frameworks & Tech Stack](../frameworks)** for complete Spring AI implementation examples of all these components.
+See **[4. Frameworks & Tech Stack](/docs/ai/agents/04-frameworks)** for complete Spring AI implementation examples of all these components.
 :::

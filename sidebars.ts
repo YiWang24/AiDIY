@@ -470,42 +470,17 @@ const sidebars: SidebarsConfig = {
       label: "Agents",
       collapsed: false,
       items: [
-        {
-          type: "doc",
-          id: "ai/agents/index",
-          label: "Overview",
-          key: "ai-agents-overview",
-        },
-        {
-          type: "doc",
-          id: "ai/agents/introduction",
-          label: "1. Core Concepts & Definition",
-        },
-        {
-          type: "doc",
-          id: "ai/agents/architecture",
-          label: "2. Architecture Components",
-        },
-        {
-          type: "doc",
-          id: "ai/agents/design-patterns",
-          label: "3. Design Patterns",
-        },
-        {
-          type: "doc",
-          id: "ai/agents/frameworks",
-          label: "4. Frameworks & Tech Stack",
-        },
-        {
-          type: "doc",
-          id: "ai/agents/engineering",
-          label: "5. Engineering & Production",
-        },
-        {
-          type: "doc",
-          id: "ai/agents/frontier",
-          label: "6. Frontier Trends",
-        },
+        { type: "doc", id: "ai/agents/index", label: "Overview" },
+        { type: "doc", id: "ai/agents/01-introduction", label: "1. Core Concepts", key: "ai-agents-core-concepts" },
+        { type: "doc", id: "ai/agents/02-architecture", label: "2. Architecture" },
+        { type: "doc", id: "ai/agents/03-design-patterns", label: "3. Design Patterns" },
+        { type: "doc", id: "ai/agents/04-frameworks", label: "4. Frameworks & SDK" },
+        { type: "doc", id: "ai/agents/05-coding-agents", label: "5. Coding Agents" },
+        { type: "doc", id: "ai/agents/06-computer-use", label: "6. Computer Use & GUI Agents" },
+        { type: "doc", id: "ai/agents/07-multi-agent", label: "7. Multi-Agent & A2A" },
+        { type: "doc", id: "ai/agents/08-evaluation", label: "8. Evaluation & Benchmarks" },
+        { type: "doc", id: "ai/agents/09-engineering", label: "9. Engineering & Production" },
+        { type: "doc", id: "ai/agents/10-frontier", label: "10. Frontier Trends" },
       ],
     },
     {

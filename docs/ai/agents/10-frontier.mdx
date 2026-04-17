@@ -1,17 +1,17 @@
 ---
-id: frontier
-title: 6. Frontier Trends
-sidebar_label: 6. Frontier Trends
+id: 10-frontier
+title: 10. Frontier Trends
+sidebar_label: 10. Frontier Trends
 description: The Future of AI Agents - Agentic V2, Self-Improving Systems, Multi-Agent Research, and Emerging Technologies
 ---
 
-# 6. Frontier Trends & Future Directions
+# 10. Frontier Trends & Future Directions
 
 AI agent technology is evolving rapidly. This section explores cutting-edge research, emerging trends, and the future trajectory of agentic AI systems.
 
 ---
 
-## 6.1 Agentic V2: The Next Generation
+## 10.1 Agentic V2: The Next Generation
 
 ### Evolution from Tool Use to Autonomy
 
@@ -41,7 +41,7 @@ timeline
 
 ---
 
-## 6.2 Long-Term Planning
+## 10.2 Long-Term Planning
 
 ### Hierarchical Task Networks
 
@@ -98,7 +98,7 @@ public interface HierarchicalPlanner {
 
 ---
 
-## 6.3 Self-Improving Agents
+## 10.3 Self-Improving Agents
 
 ### Learning from Experience
 
@@ -130,7 +130,7 @@ flowchart TB
 
 ---
 
-## 6.4 Multi-Agent Research Frontiers
+## 10.4 Multi-Agent Research Frontiers
 
 ### MetaGPT: Software Company Simulation
 
@@ -202,7 +202,7 @@ flowchart LR
 
 ---
 
-## 6.5 Emerging Directions
+## 10.5 Emerging Directions
 
 ### GUI Agents
 
@@ -362,7 +362,7 @@ flowchart LR
 
 ---
 
-## 6.6 Technical Frontiers
+## 10.6 Technical Frontiers
 
 ### 1. RecG Agents: Recursive Critic and Generator
 
@@ -421,7 +421,106 @@ Evaluate all branches and select best.
 
 ---
 
-## 6.7 Challenges & Open Problems
+## 10.7 Emerging Paradigms (2025–2026)
+
+### Agent Economy
+
+AI Agents are beginning to participate in economic activities autonomously — hiring services, purchasing data, and negotiating contracts.
+
+```mermaid
+flowchart TB
+    subgraph Economy["Agent Economy"]
+        BA[Buyer Agent<br/>Identifies need]
+        SA[Seller Agent<br/>Provides service]
+        MA[Marketplace<br/>Match & transact]
+        RA[Reputation<br/>Trust scoring]
+    end
+
+    BA --> MA
+    SA --> MA
+    MA --> RA
+    RA --> BA
+    RA --> SA
+
+    style MA fill:#e8f5e9
+    style RA fill:#fff3e0
+```
+
+| Component | Description | Status |
+|-----------|-------------|--------|
+| **Agent Wallets** | Crypto/fiat wallets for autonomous transactions | Early prototypes |
+| **Agent Marketplaces** | Platforms where agents list and discover services | Emerging |
+| **Reputation Systems** | Trust scores based on transaction history | Research |
+| **Smart Contracts** | Automated enforcement of agent agreements | Active development |
+| **Pricing Protocols** | Dynamic negotiation between agents | Research |
+
+### Agent-Native Applications
+
+A new generation of applications designed from the ground up for agent interaction, replacing human-centric UIs.
+
+```mermaid
+flowchart LR
+    subgraph Traditional["Traditional App"]
+        UI1[Human UI<br/>Click-based]
+        API1[REST API<br/>Secondary]
+    end
+
+    subgraph AgentNative["Agent-Native App"]
+        API2[Agent API<br/>Primary interface]
+        PROTO[Protocol<br/>MCP / A2A / AG-UI]
+        STATE[State Machine<br/>Task-oriented]
+    end
+
+    Traditional -->|evolves to| AgentNative
+
+    style API2 fill:#e8f5e9
+    style PROTO fill:#e3f2fd
+```
+
+**Characteristics of Agent-Native Apps**:
+- **Protocol-first**: Expose capabilities via MCP/A2A rather than REST
+- **Task-oriented**: Accept high-level goals, not step-by-step instructions
+- **Stateful**: Maintain conversation and task context across interactions
+- **Streaming**: Provide real-time progress updates via SSE/WebSocket
+- **Composable**: Designed to be chained with other agent services
+
+**Examples (2025–2026)**:
+- **Vercel v0**: Agent-native UI generation
+- **Replit Agent**: Agent-native development environment
+- **Linear**: Agent-native project management via MCP
+
+### Self-Evolving Agents
+
+Agents that can modify their own behavior, prompts, and tool configurations based on experience.
+
+```mermaid
+flowchart TB
+    E[Execute Task] --> O[Observe Outcome]
+    O --> S{Success?}
+    S -->|Yes| R1[Reinforce Pattern<br/>Update success memory]
+    S -->|No| R2[Analyze Failure<br/>Generate fix hypothesis]
+    R2 --> P[Prompt Self-Edit<br/>Modify own instructions]
+    P --> T[Tool Self-Config<br/>Add/remove tools]
+    R1 --> M[Meta-Memory<br/>Long-term strategy]
+    T --> M
+    M --> E
+
+    style P fill:#f3e5f5
+    style T fill:#e8f5e9
+    style M fill:#fff3e0
+```
+
+**Approaches**:
+- **Prompt Optimization**: Agents rewrite their own system prompts (e.g., DSPy, OPRO)
+- **Tool Synthesis**: Agents create new tools from combinations of existing ones
+- **Experience Replay**: Agents review past executions to extract heuristics
+- **Constitutional Self-Modification**: Agents follow meta-rules governing what they can change about themselves
+
+> **Safety Note**: Self-evolving agents require strict guardrails. Changes to behavior should be logged, reversible, and bounded by a constitution that prevents self-modification of safety constraints.
+
+---
+
+## 10.8 Challenges & Open Problems
 
 ### Technical Challenges
 
@@ -462,7 +561,7 @@ mindmap
 
 ---
 
-## 6.8 Predictions: 2025-2030
+## 10.9 Predictions: 2025-2030
 
 ### Near-Term (2025-2026)
 
@@ -496,7 +595,7 @@ mindmap
 
 ---
 
-## 6.9 How to Stay Current
+## 10.10 How to Stay Current
 
 ### Research Sources
 
@@ -525,7 +624,7 @@ mindmap
 
 ---
 
-## 6.10 Key Takeaways
+## 10.11 Key Takeaways
 
 ### The Frontier is Moving Fast
 
@@ -550,16 +649,20 @@ mindmap
 
 ---
 
-## 6.11 Learning Path Complete
+## 10.12 Learning Path Complete
 
 You've completed the AI Agent journey:
 
 ✅ **1. Core Concepts**: Understanding agents
 ✅ **2. Architecture**: Building blocks
 ✅ **3. Design Patterns**: Proven solutions
-✅ **4. Frameworks**: Implementation tools
-✅ **5. Engineering**: Production readiness
-✅ **6. Frontier**: Future directions
+✅ **4. Frameworks & SDK**: Implementation tools
+✅ **5. Coding Agents**: AI-powered software development
+✅ **6. Computer Use**: GUI automation agents
+✅ **7. Multi-Agent & A2A**: Agent collaboration protocols
+✅ **8. Evaluation**: Benchmarks and reliability
+✅ **9. Engineering**: Production readiness
+✅ **10. Frontier**: Future directions
 
 ### Next Steps
 

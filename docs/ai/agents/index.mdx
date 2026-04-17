@@ -2,23 +2,23 @@
 id: index
 title: AI Agent Systems
 sidebar_label: Overview
-description: From LLM Chatbots to Autonomous Agents - Building Intelligent Systems that Reason, Plan, and Act
+description: From LLM Chatbots to Autonomous Agents - Building Intelligent Systems that Reason, Plan, and Act (Updated 2026)
 ---
 
 # AI Agent Systems
 
 > **"The future of AI is not just conversation—it's action."**
 
-AI Agents represent the evolution from passive chatbots to autonomous systems that can reason, plan, use tools, and complete complex multi-step tasks. This chapter covers everything from foundational concepts to production deployment.
+AI Agents represent the evolution from passive chatbots to autonomous systems that can reason, plan, use tools, and complete complex multi-step tasks. This chapter covers everything from foundational concepts to production deployment, updated for 2025-2026 developments.
 
 ## What Are AI Agents?
 
 | Component | Description | Example |
 |-----------|-------------|---------|
-| **Model (Brain)** | Core reasoning and decision-making engine | GPT-4, Claude 3.5, Llama 3 |
+| **Model (Brain)** | Core reasoning and decision-making engine | GPT-4o, Claude 4, Gemini 2.5 |
 | **Prompt (Instruction)** | System behavior and task guidance | "You are a helpful research assistant..." |
 | **Memory** | Context, history, and knowledge retrieval | Conversation history, RAG, Vector DB |
-| **Tools** | Capabilities to interact with the world | APIs, databases, code execution |
+| **Tools** | Capabilities to interact with the world | MCP, APIs, databases, code execution |
 | **Planning** | Breaking down complex tasks into steps | "Search → Analyze → Write → Review" |
 
 ### The Core Formula
@@ -39,29 +39,36 @@ Agent = Model (Brain) + Prompt (Instruction) + Memory (RAG/Context)
 
 ---
 
-## From Chatbots to Agents
+## Evolution Timeline
 
 ```mermaid
 timeline
-    title Evolution of AI Systems
+    title Evolution of AI Agent Systems
     section 2023
         Chatbots : Static Q&A<br/>No tools
+        Tool Use : Function calling<br/>API integration (OpenAI)
     section Early 2024
-        Tool Use : Function calling<br/>API integration
-    section Mid 2024
         RAG Agents : Knowledge retrieval<br/>Context awareness
-    section Late 2024
+        MCP v1 : Anthropic Model Context Protocol<br/>Standardized tool protocol
+    section Mid-Late 2024
         Agentic AI : Autonomous planning<br/>Multi-agent collaboration
-    section 2025+
-        Agent Society : Self-improving<br/>Specialized roles
+        Computer Use : Claude Computer Use<br/>GUI interaction
+    section 2025 H1
+        Coding Agents : Claude Code, Devin<br/>Autonomous SWE
+        Agent SDKs : OpenAI Agents SDK<br/>Google ADK, Claude SDK
+        A2A Protocol : Google Agent-to-Agent<br/>50+ companies
+    section 2025 H2 - 2026
+        Agent Economy : Agent-native apps<br/>Agent marketplace
+        AG-UI Protocol : Agent-User Interaction<br/>Standardized UI protocol
+        Agent Society : Self-organizing<br/>Specialized swarms
 ```
 
 ### The Agentic Spectrum
 
 ```
-Passive Chat → Tool-Using → Task-Planning → Multi-Agent → Autonomous
-     ↓             ↓              ↓              ↓            ↓
-   Q&A Only     Functions     Workflows     Collaboration  Self-Driving
+Passive Chat → Tool-Using → Task-Planning → Coding Agent → Multi-Agent → Autonomous Society
+     ↓             ↓              ↓              ↓             ↓              ↓
+   Q&A Only     Functions     Workflows     SWE-bench     A2A/AG-UI    Self-Organizing
 ```
 
 ---
@@ -83,7 +90,7 @@ flowchart TB
 
     subgraph Tools["🔧 Tool Ecosystem"]
         T1[MCP Servers]
-        T2[APIs]
+        T2[APIs / A2A]
         T3[Database]
         T4[Code Runner]
     end
@@ -115,92 +122,85 @@ flowchart TB
 
 ## Chapter Roadmap
 
-This chapter is structured to take you from fundamentals to production-ready systems:
+This chapter is structured by the chronological evolution of agent technology:
 
-### 1. [Introduction](./introduction) - Core Concepts
+### 1. [Core Concepts](/docs/ai/agents/01-introduction) - Foundations
 - **What makes something an "Agent"?**
 - The evolution from chatbots to autonomous systems
 - Core capabilities: Perception, Reasoning, Action, Reflection
 - When to use agents vs. traditional automation
 
-### 2. [Architecture](./architecture) - Building Blocks
+### 2. [Architecture](/docs/ai/agents/02-architecture) - Building Blocks
 - **The Agent Loop**: Observe → Reason → Act → Observe
 - **Memory Systems**: Buffer, Summary, Vector, Entity, Episodic
-- **Tool Systems**: MCP, Function Calling, Error Handling
+- **Tool Systems**: MCP v2, Function Calling, Error Handling
 - **Planning**: Task decomposition, Re-planning, Goal-directed
 
-### 3. [Design Patterns](./design-patterns) - Proven Solutions
+### 3. [Design Patterns](/docs/ai/agents/03-design-patterns) - Proven Solutions
 - **Single-Agent Patterns**: ReAct, Reflection, Self-Consistency
 - **Multi-Agent Patterns**: Supervisor, Hierarchical, Debate
 - **Router Pattern**: Query classification and routing
-- **Case Studies**: Real-world implementations
+- **Advanced Patterns**: Plan-and-Execute, LATS
 
-### 4. [Frameworks](./frameworks) - Tech Stack & Tools
+### 4. [Frameworks & SDK](/docs/ai/agents/04-frameworks) - Tech Stack
+- **Official SDKs**: OpenAI Agents SDK, Google ADK, Claude Agent SDK
 - **Framework Comparison**: LangChain, LangGraph, Semantic Kernel, AutoGen
-- **Spring AI Deep Dive**: Building production agents with Java
+- **Spring AI**: Building production agents with Java
 - **Developer Tools**: LangSmith, Arize Phoenix, PromptLayer
-- **Complete Example**: End-to-end Spring Boot agent
 
-### 5. [Engineering](./engineering) - Production Readiness
-- **Evaluation**: LLM-as-a-Judge, metrics, testing frameworks
+### 5. [Coding Agents](/docs/ai/agents/05-coding-agents) - Software Engineering Agents
+- **Claude Code**: CLI-based coding agent (Anthropic)
+- **Devin**: Autonomous AI software engineer (Cognition)
+- **AI IDEs**: Cursor, Windsurf, Augment
+- **Open Source**: OpenHands, SWE-Agent
+- **Benchmarks**: SWE-bench, SWE-bench Verified
+
+### 6. [Computer Use & GUI Agents](/docs/ai/agents/06-computer-use) - Screen Interaction
+- **Claude Computer Use**: Anthropic's screen interaction agent
+- **OpenAI Operator**: Web browsing agent
+- **GUI Agent Architecture**: Screenshot → Accessibility Tree → Action
+- **Safety & Sandbox**: Isolated execution environments
+
+### 7. [Multi-Agent & A2A](/docs/ai/agents/07-multi-agent) - Agent Collaboration
+- **A2A Protocol**: Google Agent-to-Agent (2025)
+- **AG-UI Protocol**: Agent-User Interaction standard
+- **Agent Society**: Self-organizing multi-agent systems
+- **W3C ANP**: Agent Network Protocol standardization
+
+### 8. [Evaluation & Benchmarks](/docs/ai/agents/08-evaluation) - Measuring Performance
+- **SWE-bench**: Software engineering benchmarks
+- **WebArena / OSWorld**: GUI and OS interaction benchmarks
+- **GAIA / AgentBench**: General agent evaluation
+- **LLM-as-a-Judge**: Automated quality assessment
+
+### 9. [Engineering](/docs/ai/agents/09-engineering) - Production Readiness
+- **Evaluation**: Metrics, testing frameworks
 - **Challenges**: Hallucination, infinite loops, cost control
 - **Security**: Prompt injection, access control, HITL
 - **Deployment**: Docker, observability, A/B testing
 
-### 6. [Frontier](./frontier) - Future Trends
-- **Agentic V2**: Long-term planning, self-improvement
-- **Multi-Agent Research**: MetaGPT, ChatDev, AgentVerse
-- **Emerging Directions**: GUI agents, embodied agents
+### 10. [Frontier](/docs/ai/agents/10-frontier) - Future Trends
+- **Agent Economy**: Agent-native applications
+- **Self-Evolving Agents**: Long-term learning and adaptation
+- **Emerging Directions**: Embodied agents, agent marketplace
 - **Challenges & Opportunities**: The road ahead
 
 ---
 
-## Quick Start Patterns
+## Key Technologies (2025-2026)
 
-### Pattern 1: ReAct Agent (Reasoning + Acting)
-
-```markdown
-Question: What's the population of the largest city in Japan?
-
-Thought: I need to find the largest city in Japan first
-Action: Search("largest city in Japan")
-Observation: Tokyo is the largest city
-
-Thought: Now I need Tokyo's population
-Action: Search("Tokyo population 2024")
-Observation: Approximately 14 million
-
-Thought: I have all the information needed
-Answer: Tokyo, Japan's largest city, has about 14 million people.
-```
-
-### Pattern 2: Supervisor Multi-Agent
-
-```
-User Request → Supervisor Agent
-                ↓
-    ┌───────────┼───────────┐
-    ↓           ↓           ↓
-Researcher   Writer    Reviewer
-    ↓           ↓           ↓
-    └───────────┴───────────┘
-                ↓
-          Supervisor
-                ↓
-          Final Output
-```
-
----
-
-## Key Technologies
-
-| Technology | Role | Integration |
-|------------|------|-------------|
-| **Spring AI** | Java framework for agents | `spring-ai-openai-spring-boot-starter` |
-| **MCP** | Standardized tool protocol | Model Context Protocol servers |
+| Technology | Role | Status |
+|------------|------|--------|
+| **OpenAI Agents SDK** | Official Python agent framework | Released 2025 |
+| **Google ADK** | Agent Development Kit | Released 2025 |
+| **Claude Agent SDK** | Anthropic's agent framework | Released 2025 |
+| **A2A Protocol** | Agent-to-Agent communication | Google, 2025 |
+| **AG-UI Protocol** | Agent-User Interaction | CopilotKit, 2025 |
+| **MCP v2** | Standardized tool protocol | Anthropic, 2025 |
+| **Claude Code** | CLI coding agent | Anthropic, 2025 |
+| **Spring AI** | Java framework for agents | Enterprise-ready |
 | **Vector DB** | Semantic memory | Pinecone, Weaviate, pgvector |
-| **LangGraph** | Multi-agent workflows | Stateful agent orchestration |
-| **LangSmith** | Debugging & tracing | Agent observability |
+| **LangGraph** | Multi-agent workflows | Stateful orchestration |
 
 ---
 
@@ -250,21 +250,21 @@ Before diving into agents, make sure you're comfortable with:
 
 ### For Java/Spring Boot Developers
 
-**Path**: 01 → 02 → 04 (Spring AI focus) → 05
+**Path**: 01 → 02 → 04 (Spring AI focus) → 09
 
 Focus on production-ready Spring Boot agents with MCP integration.
 
 ### For AI Engineers
 
-**Path**: 01 → 02 → 03 (Design patterns) → 05 → 06
+**Path**: 01 → 03 (Design patterns) → 04 → 05 → 07 (Multi-Agent) → 08
 
-Focus on multi-agent systems and advanced patterns.
+Focus on multi-agent systems, evaluation, and advanced patterns.
 
 ### For Full-Stack Developers
 
-**Path**: 01 → 02 → 04 (Framework comparison) → 05
+**Path**: 01 → 04 (SDKs) → 05 (Coding Agents) → 06 (Computer Use) → 09
 
-Focus on Next.js frontend + Spring Boot backend integration.
+Focus on Agent SDKs, coding agents, and practical applications.
 
 ---
 
@@ -299,13 +299,13 @@ Before deploying an agent to production:
 ---
 
 :::tip Get Started
-New to agents? Start with **[01 Introduction](./introduction)** to understand the core concepts and evolution from chatbots to autonomous systems.
+New to agents? Start with **[01 Core Concepts](/docs/ai/agents/01-introduction)** to understand the fundamentals and evolution from chatbots to autonomous systems.
 :::
 
-:::info For Spring Boot Developers
-If you're building agents with Java, jump to **[04 Frameworks](./frameworks)** for Spring AI implementation guides and complete code examples.
+:::info For Developers
+Building with the latest SDKs? Jump to **[04 Frameworks & SDK](/docs/ai/agents/04-frameworks)** for OpenAI Agents SDK, Google ADK, and Claude Agent SDK guides.
 :::
 
 :::warning Production Readiness
-Deploying agents to production requires careful planning. See **[05 Engineering](./engineering)** for evaluation, security, and deployment best practices.
+Deploying agents to production requires careful planning. See **[09 Engineering](/docs/ai/agents/09-engineering)** for evaluation, security, and deployment best practices.
 :::
