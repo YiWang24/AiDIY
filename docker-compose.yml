@@ -1,6 +1,6 @@
 services:
   kb-api:
-    image: ${ACR_LOGIN_SERVER}/${ACR_REPOSITORY}:${IMAGE_TAG:-latest}
+    image: ${REGISTRY}/kb-api:${IMAGE_TAG:-latest}
     container_name: kb-api
     restart: unless-stopped
     ports:
