@@ -1,8 +1,8 @@
 ---
-id: frameworks
-title: 4. Frameworks & Tech Stack
-sidebar_label: 4. Frameworks & Tech Stack
-description: AI Agent Frameworks - LangChain, LangGraph, Semantic Kernel, AutoGen, and Spring AI Implementation Guide
+id: 04-frameworks
+title: 4. Frameworks & SDK
+sidebar_label: 4. Frameworks & SDK
+description: AI Agent Frameworks & SDK - LangChain, LangGraph, OpenAI Agents SDK, Claude Agent SDK, Google Agent SDK, Spring AI
 ---
 
 # 4. Frameworks & Tech Stack
@@ -53,6 +53,7 @@ graph TB
 | **CrewAI** | Python | Mature | Excellent | Yes | Role-based agents |
 | **LangChain4j** | Java | Growing | Basic | Yes | Java port of LangChain |
 | **Google ADK** | Python | New | Good | Yes | Gemini-native agents |
+| **Claude Agent SDK** | Python | Growing | Good | Yes | Claude-native agents |
 
 > **April 2026 Update**: Microsoft shipped **Agent Framework 1.0** (April 7, 2026), officially unifying AutoGen and Semantic Kernel into a single LTS SDK for .NET and Python. Native MCP support, durable workflows, and a browser-based DevUI are included. AutoGen as a standalone project is now deprecated — migrate to Microsoft Agent Framework. OpenAI's Agents SDK (April 15 update) introduced sandbox execution and a model-native harness, making it a strong choice for GPT-model-based agent workflows.
 
@@ -604,6 +605,71 @@ Google 于 2025年4月发布的开源 Agent 开发工具包，专为 Gemini 模�
 
 > **注意**：Google ADK 目前处于早期阶段，建议关注官方仓库获取最新更新。
 
+### Claude Agent SDK (Anthropic)
+
+Anthropic 发布的 Agent SDK，为 Claude 模型提供原生的 Agent 构建能力，支持工具调用、多步推理和持久化工作流。
+
+**核心特性**：
+
+| Feature | Description |
+|---------|-------------|
+| **Tool Use** | 原生支持 Claude 的 tool_use 功能，定义 JSON Schema 工具 |
+| **Multi-turn Conversation** | 自动管理多轮对话上下文和工具调用循环 |
+| **Streaming** | 支持实时流式输出，包括 thinking 和 tool_use 事件 |
+| **Guardrails** | 输入/输出验证，可自定义安全检查规则 |
+
+**代码示例（Python）**：
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Define tools
+tools = [
+    {
+        "name": "get_weather",
+        "description": "Get weather for a city",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "city": {"type": "string", "description": "City name"}
+            },
+            "required": ["city"]
+        }
+    }
+]
+
+# Agent loop
+messages = [{"role": "user", "content": "What's the weather in Tokyo?"}]
+
+while True:
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        tools=tools,
+        messages=messages,
+    )
+
+    # Check if agent wants to use a tool
+    if response.stop_reason == "tool_use":
+        # Execute tool and continue
+        tool_result = execute_tool(response)
+        messages.append({"role": "assistant", "content": response.content})
+        messages.append({"role": "user", "content": tool_result})
+    else:
+        print(response.content[0].text)
+        break
+```
+
+**特点**：
+- 原生 Claude 模型集成，支持 Claude 4 系列
+- 可与 MCP（Model Context Protocol）无缝结合
+- 支持 prompt caching 降低延迟和成本
+- 提供 Claude Code CLI 工具用于编程场景
+
+> **提示**：Claude Agent SDK 的核心是 Anthropic Messages API 的 tool_use 能力。结合 MCP 协议可以快速构建具有丰富工具的 Agent 系统。详见 [MCP Module](/docs/ai/mcp/)。
+
 ---
 
 ## 4.4 Development Tools
@@ -754,6 +820,7 @@ class AgentControllerTest {
 | **GPT-based Agents** | OpenAI Agents SDK |
 | **Role-based Teams** | CrewAI |
 | **Gemini/Google Cloud** | Google ADK |
+| **Claude-native Agents** | Claude Agent SDK |
 
 ### Spring AI Advantages
 
@@ -777,11 +844,15 @@ class AgentControllerTest {
 
 Now that you have the framework knowledge:
 
+**For Deeper Learning:**
+- → **[5. Coding Agents](/docs/ai/agents/05-coding-agents)** - Claude Code, Devin, SWE-bench
+- → **[6. Computer Use & GUI Agents](/docs/ai/agents/06-computer-use)** - Claude Computer Use, Operator
+
 **For Production:**
-- → **[5. Engineering & Production](../engineering)** - Deployment, evaluation, security
+- → **[9. Engineering & Production](/docs/ai/agents/09-engineering)** - Deployment, evaluation, security
 
 **For Future:**
-- → **[6. Frontier Trends](../frontier)** - Emerging technologies
+- → **[10. Frontier Trends](/docs/ai/agents/10-frontier)** - Emerging technologies
 
 ---
 

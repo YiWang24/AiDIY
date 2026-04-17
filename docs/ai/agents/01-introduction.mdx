@@ -1,5 +1,5 @@
 ---
-id: introduction
+id: 01-introduction
 title: 1. Core Concepts & Definition
 sidebar_label: 1. Core Concepts & Definition
 description: Understanding AI Agents - From LLM Chatbots to Autonomous Systems with Perception, Reasoning, Action, and Reflection capabilities
@@ -28,8 +28,15 @@ timeline
         RAG Agents : Knowledge retrieval<br/>Context awareness
     section Late 2024
         Agentic AI : Autonomous planning<br/>Multi-step workflows
-    section 2025+
+        Coding Agents : Claude Code, Devin<br/>SWE-bench
+        Computer Use : Claude Computer Use<br/>GUI automation
+    section Early 2025
+        Agent SDKs : OpenAI Agents SDK<br/>Google ADK, Claude SDK
+        A2A Protocol : Google Agent-to-Agent<br/>50+ companies
+        AG-UI Protocol : Agent-User Interaction<br/>CopilotKit
+    section 2026+
         Agent Society : Self-improving<br/>Multi-agent collaboration
+        Agent Economy : Autonomous commerce<br/>Agent-native apps
 ```
 
 ### Key Differences
@@ -95,18 +102,19 @@ flowchart LR
 
 ```
 Agent = Model (Brain) + Prompt (Instruction) + Memory (Context)
-        + Tools (Capabilities) + Planning (Architecture)
+        + Tools (Capabilities) + Planning (Architecture) + Orchestration (Protocol)
 ```
 
 #### Component Breakdown
 
 | Component | Role | Example |
 |-----------|------|---------|
-| **Model** | Reasoning engine | GPT-4, Claude 3.5, Llama 3 |
+| **Model** | Reasoning engine | GPT-4.1, Claude 4, Gemini 2.5, Llama 4 |
 | **Prompt** | Behavior definition | System prompts, task instructions |
 | **Memory** | Context & knowledge | Conversation history, RAG, Vector DB |
-| **Tools** | World interaction | APIs, databases, code execution |
+| **Tools** | World interaction | APIs, databases, code execution, MCP servers |
 | **Planning** | Task orchestration | ReAct, Plan-and-Execute, Reflection |
+| **Orchestration** | Multi-agent coordination | A2A Protocol, MCP v2, AG-UI |
 
 ### Component Deep Dive
 
@@ -393,7 +401,7 @@ Before proceeding to the next sections, ensure you understand:
    - Retrieval strategies
    - Context management
 
-4. **MCP Protocol** ([Module 05](/docs/ai/mcp/))
+4. **MCP Protocol** ([Module 06](/docs/ai/mcp/))
    - Tool definition
    - Server implementation
    - Integration patterns
@@ -401,9 +409,9 @@ Before proceeding to the next sections, ensure you understand:
 ---
 
 :::tip Next Steps
-Now that you understand the core concepts, explore **[2. Architecture Components](../architecture)** to learn how to build the foundational systems that power AI agents.
+Now that you understand the core concepts, explore **[2. Architecture Components](/docs/ai/agents/02-architecture)** to learn how to build the foundational systems that power AI agents.
 :::
 
 :::info For Spring Boot Developers
-If you're eager to start coding, jump to **[4. Frameworks & Tech Stack](../frameworks)** for Spring AI implementation guides.
+If you're eager to start coding, jump to **[4. Frameworks & Tech Stack](/docs/ai/agents/04-frameworks)** for Spring AI implementation guides.
 :::

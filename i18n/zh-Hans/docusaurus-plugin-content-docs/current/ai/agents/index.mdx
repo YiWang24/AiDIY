@@ -117,40 +117,65 @@ flowchart TB
 
 本章结构带你从基础到生产就绪系统：
 
-### 1. [入门介绍](./introduction) - 核心概念
+### 1. [核心概念](/docs/ai/agents/01-introduction) - 基础
 - **什么构成了"Agent"？**
 - 从聊天机器人到自主系统的演进
 - 核心能力：感知、推理、行动、反思
 - 何时使用 Agent vs 传统自动化
 
-### 2. [架构](./architecture) - 构建模块
+### 2. [架构](/docs/ai/agents/02-architecture) - 构建模块
 - **Agent 循环**：观察 → 推理 → 行动 → 观察
 - **记忆系统**：缓冲、摘要、向量、实体、情景
-- **工具系统**：MCP、函数调用、错误处理
+- **工具系统**：MCP v2、函数调用、错误处理
 - **规划**：任务分解、重规划、目标导向
 
-### 3. [设计模式](./design-patterns) - 经过验证的解决方案
+### 3. [设计模式](/docs/ai/agents/03-design-patterns) - 经过验证的解决方案
 - **单 Agent 模式**：ReAct、反思、自一致性
 - **多 Agent 模式**：监督者、层级式、辩论
 - **路由模式**：查询分类和路由
-- **案例研究**：实际实现
+- **高级模式**：Plan-and-Execute、LATS
 
-### 4. [框架](./frameworks) - 技术栈与工具
+### 4. [框架与 SDK](/docs/ai/agents/04-frameworks) - 技术栈
+- **官方 SDK**：OpenAI Agents SDK、Google ADK、Claude Agent SDK
 - **框架对比**：LangChain、LangGraph、Semantic Kernel、AutoGen
-- **Spring AI 深入**：用 Java 构建生产级 Agent
+- **Spring AI**：用 Java 构建生产级 Agent
 - **开发者工具**：LangSmith、Arize Phoenix、PromptLayer
-- **完整示例**：端到端 Spring Boot Agent
 
-### 5. [工程化](./engineering) - 生产就绪
-- **评估**：LLM-as-a-Judge、指标、测试框架
+### 5. [编程 Agent](/docs/ai/agents/05-coding-agents) - 软件工程 Agent
+- **Claude Code**：CLI 编程 Agent（Anthropic）
+- **Devin**：自主 AI 软件工程师（Cognition）
+- **AI IDE**：Cursor、Windsurf、Augment
+- **开源方案**：OpenHands、SWE-Agent
+- **基准评测**：SWE-bench、SWE-bench Verified
+
+### 6. [Computer Use 与 GUI Agent](/docs/ai/agents/06-computer-use) - 屏幕交互
+- **Claude Computer Use**：Anthropic 屏幕交互 Agent
+- **OpenAI Operator**：网页浏览 Agent
+- **GUI Agent 架构**：截图 → 无障碍树 → 动作
+- **安全与沙箱**：隔离执行环境
+
+### 7. [多 Agent 与 A2A](/docs/ai/agents/07-multi-agent) - Agent 协作
+- **A2A 协议**：Google Agent-to-Agent（2025）
+- **AG-UI 协议**：Agent-用户交互标准
+- **Agent 社会**：自组织多 Agent 系统
+- **W3C ANP**：Agent 网络协议标准化
+
+### 8. [评估与基准](/docs/ai/agents/08-evaluation) - 性能度量
+- **SWE-bench**：软件工程基准
+- **WebArena / OSWorld**：GUI 和 OS 交互基准
+- **GAIA / AgentBench**：通用 Agent 评估
+- **LLM-as-a-Judge**：自动化质量评估
+
+### 9. [工程化](/docs/ai/agents/09-engineering) - 生产就绪
+- **评估**：指标、测试框架
 - **挑战**：幻觉、无限循环、成本控制
-- **安全**：Prompt 注入、访问控制、HITL
+- **安全**：Prompt 注入防御、访问控制、HITL
 - **部署**：Docker、可观测性、A/B 测试
 
-### 6. [前沿](./frontier) - 未来趋势
-- **Agentic V2**：长期规划、自我改进
-- **多 Agent 研究**：MetaGPT、ChatDev、AgentVerse
-- **新兴方向**：GUI Agent、具身 Agent
+### 10. [前沿](/docs/ai/agents/10-frontier) - 未来趋势
+- **Agent 经济**：Agent 原生应用
+- **自进化 Agent**：长期学习与适应
+- **新兴方向**：具身 Agent、Agent 市场
 - **挑战与机遇**：未来之路
 
 ---
@@ -299,13 +324,13 @@ Answer: 东京是日本最大的城市，约有 1400 万人口。
 ---
 
 :::tip 开始使用
-Agent 新手？从 **[01 入门介绍](./introduction)** 开始，了解核心概念和从聊天机器人到自主系统的演进。
+Agent 新手？从 **[01 核心概念](/docs/ai/agents/01-introduction)** 开始，了解核心概念和从聊天机器人到自主系统的演进。
 :::
 
 :::info Spring Boot 开发者
-如果你用 Java 构建 Agent，请跳转到 **[04 框架](./frameworks)** 查看 Spring AI 实现指南和完整代码示例。
+使用最新 SDK 构建？跳转到 **[04 框架与 SDK](/docs/ai/agents/04-frameworks)** 查看 OpenAI Agents SDK、Google ADK 和 Claude Agent SDK 指南。
 :::
 
 :::warning 生产就绪
-部署 Agent 到生产环境需要仔细规划。请参阅 **[05 工程化](./engineering)** 了解评估、安全和部署最佳实践。
+部署 Agent 到生产环境需要仔细规划。请参阅 **[09 工程化](/docs/ai/agents/09-engineering)** 了解评估、安全和部署最佳实践。
 :::
