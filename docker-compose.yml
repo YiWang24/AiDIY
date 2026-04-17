@@ -1,6 +1,8 @@
 services:
   kb-api:
-    image: ${REGISTRY}/kb-api:${IMAGE_TAG:-latest}
+    build:
+      context: ${BUILD_CONTEXT:-.}
+    image: kb-api:local
     container_name: kb-api
     restart: unless-stopped
     ports:
