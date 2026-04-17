@@ -99,28 +99,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Verify registry DNS resolution
+      - name: Add registry to /etc/hosts (DNS fallback)
         shell: bash
         run: |
-          set -euo pipefail
-          REGISTRY_HOST="${{ secrets.ACR_LOGIN_SERVER }}"
-          echo "Resolving $REGISTRY_HOST..."
-          for i in $(seq 1 5); do
-            if nslookup "$REGISTRY_HOST" 8.8.8.8 >/dev/null 2>&1; then
-              IP=$(dig +short "$REGISTRY_HOST" @8.8.8.8 | tail -1)
-              echo "$REGISTRY_HOST resolves to $IP"
-              # Ensure the runner's /etc/hosts can resolve it as a fallback
-              if ! getent hosts "$REGISTRY_HOST" >/dev/null 2>&1; then
-                echo "Adding $REGISTRY_HOST to /etc/hosts as fallback"
-                echo "$IP $REGISTRY_HOST" | sudo tee -a /etc/hosts
-              fi
-              exit 0
-            fi
-            echo "Attempt $i failed, retrying in 5s..."
-            sleep 5
-          done
-          echo "ERROR: Cannot resolve $REGISTRY_HOST"
-          exit 1
+          echo "155.248.217.200 ${{ secrets.ACR_LOGIN_SERVER }}" | sudo tee -a /etc/hosts
+          echo "Added registry host to /etc/hosts"
 
       - name: Log in to Docker Registry
         uses: docker/login-action@v3
