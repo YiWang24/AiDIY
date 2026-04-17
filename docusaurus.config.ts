@@ -59,6 +59,7 @@ const config = {
         },
         blog: {
           showReadingTime: true,
+          blogSidebarCount: "ALL",
           authorsMapPath: "authors.yml",
           feedOptions: {
             type: ["rss", "atom"],
