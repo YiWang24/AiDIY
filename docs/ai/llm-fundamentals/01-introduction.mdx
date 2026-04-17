@@ -90,14 +90,15 @@ Choosing the right model depends on your use case, budget, and performance requi
 
 | Use Case | Recommended Model | Why |
 |----------|------------------|-----|
-| **Code Generation & Debugging** | Claude Opus 4.6 or GLM-5.1 | Top SWE-Bench Pro scores, GLM-5.1 is MIT-licensed |
+| **Code Generation & Debugging** | Claude Opus 4.7 or GLM-5.1 | 87.6% SWE-bench Verified (Opus 4.7), GLM-5.1 is MIT-licensed |
 | **General-Purpose Chat** | GPT-5.4 or Gemini 3.1 Pro | Strong reasoning, native multimodal |
-| **Long Document Analysis** | Gemini 3.1 Pro | 1M–2M token context window |
+| **Long Document Analysis** | Claude Opus 4.7 or Gemini 3.1 Pro | 1M token context (Opus 4.7), 1M–2M tokens (Gemini) |
 | **Cost-Sensitive Applications** | Gemma 4 26B MoE (self-hosted) | Apache 2.0, outperforms models 20x its size |
 | **On-Premise Deployment** | GLM-5.1 (MIT) or Gemma 4 (Apache 2.0) | Fully open-source, frontier-grade |
 | **Multilingual Applications** | Qwen 3.6-Plus or Gemma 4 (140+ languages) | Strong non-English, agentic capabilities |
-| **Complex Reasoning** | OpenAI o3/o4 or Claude Opus 4.6 | Explicit reasoning chains, math/science tasks |
+| **Complex Reasoning** | OpenAI o3/o4 or Claude Opus 4.7 | Explicit reasoning chains, math/science tasks |
 | **Edge / Mobile** | Gemma 4 E2B/E4B | 128K context on mobile/IoT devices |
+| **Life Sciences / Drug Discovery** | GPT-Rosalind | First LLM purpose-built for biology and genomics research |
 
 ### Configuration Example
 
@@ -213,8 +214,8 @@ As of April 2026, the LLM landscape has undergone dramatic shifts: open-source m
 | Model | Parameters | Context Window | Key Strengths | Best For |
 |-------|-----------|----------------|---------------|----------|
 | **GPT-5.4** | Trillions (MoE) | 128K tokens | Advanced reasoning, complex analytics, multimodal | General-purpose, enterprise analytics, complex reasoning |
-| **Claude Opus 4.6** | ~175B+ | 200K tokens | Coding, long-form autonomy, agentic workflows | Software development, deep analysis, production agents |
-| **Claude Mythos** | Unknown | Large | **Most capable Anthropic model**, cybersecurity scanning | Gated access only (Project Glasswing, ~50 partners) |
+| **Claude Opus 4.7** | ~175B+ | **1M tokens** | **87.6% SWE-bench**, 94.2% GPQA, 3.3x higher-res vision, xhigh effort level | Software development, agentic coding, vision tasks |
+| **Claude Mythos** | Unknown | Large | **Most capable Anthropic model** (93.9% SWE-bench), cybersecurity scanning | Gated access only (Project Glasswing, ~50 partners) |
 | **Gemini 3.1 Pro / Ultra** | ~500B+ (est.) | 1M–2M tokens | Native multimodal (text/image/audio/video), real-time voice (90+ langs) | Long-document analysis, multimodal workflows, enterprise |
 | **OpenAI o3/o4 series** | Unknown | Moderate | **Explicit reasoning chains**, advanced math/problem-solving | Scientific reasoning, complex math, research tasks |
 
@@ -231,7 +232,7 @@ As of April 2026, the LLM landscape has undergone dramatic shifts: open-source m
 
 ### Key Insights for 2026
 
-1. **The Open vs. Gated Split**: The defining story of 2026 is the philosophical fracture. Anthropic locked Claude Mythos behind a 50-company firewall ($25/$125 per M tokens), while Zhipu AI open-sourced GLM-5.1 (744B MoE, MIT license) — and it beat both GPT-5.4 and Claude Opus 4.6 on SWE-Bench Pro. The gap is no longer about capability; it's about access philosophy.
+1. **The Open vs. Gated Split**: The defining story of 2026 is the philosophical fracture. Anthropic locked Claude Mythos behind a 50-company firewall ($25/$125 per M tokens), while Zhipu AI open-sourced GLM-5.1 (744B MoE, MIT license) — and it beat both GPT-5.4 and Claude Opus 4.6 on SWE-Bench Pro. Meanwhile, Mozilla launched **Thunderbolt**, an open-source AI client for self-hosted AI infrastructure, further empowering the sovereign AI movement.
 
 2. **Cognitive Density over Raw Scale**: The industry is pivoting from "biggest model wins" to **cognitive density** — packing more reasoning into smaller, efficient models. Gemma 4 26B MoE (3.8B active params) outperforms models 20x its size. This is driven by cost, speed, and practicality.
 
@@ -386,7 +387,7 @@ To "teach" an LLM new knowledge, you have three options:
 1. **LLMs are probabilistic next-token predictors** that exhibit emergent reasoning capabilities at scale.
 2. **Transformer architecture** (2017) enabled parallel training and long-range dependencies, but **hybrid models** (2024+) are improving efficiency.
 3. **Three main architectures**: Encoder-only (BERT), Decoder-only (GPT, Llama), Encoder-Decoder (T5). **Decoder-only dominates** generative AI.
-4. **2026 state-of-the-art**: GPT-5.4 (reasoning), Claude Opus 4.6 (coding), Gemini 3.1 Pro (multimodal, 1M+ context), GLM-5.1 (open-source frontier), Gemma 4 (edge-to-cloud).
+4. **2026 state-of-the-art**: GPT-5.4 (reasoning), Claude Opus 4.7 (coding, 87.6% SWE-bench), Gemini 3.1 Pro (multimodal, 1M+ context), GLM-5.1 (open-source frontier), Gemma 4 (edge-to-cloud), GPT-Rosalind (life sciences).
 5. **Mixture-of-Experts (MoE)** is ubiquitous — nearly all frontier models use MoE to scale efficiently.
 6. **Training pipeline**: Pre-training → SFT → Alignment (RLHF/DPO/GRPO).
 7. **In-context learning ≠ learning**: Weights are frozen; use RAG for external knowledge.
