@@ -6,6 +6,7 @@ tags: [hello, docusaurus]
 ---
 
 Welcome to the new documentation site!
+<!-- truncate -->
 
 This blog will feature technical deep-dives, tutorials, and insights from full-stack and AI engineering projects.
 
