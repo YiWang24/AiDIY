@@ -55,7 +55,12 @@ graph TB
 | **Google ADK** | Python | New | Good | Yes | Gemini-native agents |
 | **Claude Agent SDK** | Python | Growing | Good | Yes | Claude-native agents |
 
-> **April 2026 Update**: Microsoft shipped **Agent Framework 1.0** (April 7, 2026), officially unifying AutoGen and Semantic Kernel into a single LTS SDK for .NET and Python. Native MCP support, durable workflows, and a browser-based DevUI are included. AutoGen as a standalone project is now deprecated — migrate to Microsoft Agent Framework. OpenAI's Agents SDK (April 15 update) introduced sandbox execution and a model-native harness, making it a strong choice for GPT-model-based agent workflows.
+|> **April 2026 Update**: Microsoft shipped **Agent Framework 1.0** (April 7, 2026), officially unifying AutoGen and Semantic Kernel into a single LTS SDK for .NET and Python. Native MCP support, durable workflows, and a browser-based DevUI are included. AutoGen as a standalone project is now deprecated — migrate to Microsoft Agent Framework. OpenAI's Agents SDK (April 15 update) introduced sandbox execution and a model-native harness, making it a strong choice for GPT-model-based agent workflows.
+>
+> **Additional April 2026 developments:**
+> - **Microsoft Agent Governance Toolkit** (April 3, MIT license): Open-source runtime security covering all 10 OWASP Agentic AI risks with sub-0.1ms policy enforcement. Framework-agnostic — integrates with LangGraph, OpenAI Agents SDK, LlamaIndex, PydanticAI, Dify. Includes Agent OS (policy engine), Agent Mesh (cryptographic identity), Agent Runtime (privilege rings, kill switch), Agent SRE (SLOs, circuit breakers), and Agent Compliance (EU AI Act, HIPAA, SOC2 mapping).
+> - **Anthropic Managed Agents** (mid-April): A service layer providing sandboxing, permissions, error recovery, and audit trails — absorbing the operational "grunt work" of running agents in production. Agent infrastructure is becoming a commodity.
+> - **Windows 11 AI Agents** (April 18): Microsoft bringing agents to the Windows 11 taskbar via MCP for third-party agent integration.
 
 ### Feature Comparison
 
