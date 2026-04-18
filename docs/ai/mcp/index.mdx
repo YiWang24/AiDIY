@@ -368,6 +368,17 @@ For developers and enterprise architects, the strategic imperative is clear: **s
 MCP has reached **97 million installs** with **400+ community servers**. The Linux Foundation's **Agentic AI Foundation** now formalizes MCP alongside Google's A2A protocol and OpenAI's AGENTS.md as foundational standards. Every major agent framework—LangGraph, CrewAI, Microsoft Agent Framework, OpenAI Agents SDK—now ships native MCP support. The "protocol wars" are settled: MCP wins tool access, A2A wins agent-to-agent networking. The analogy holds: **MCP is TCP/IP for tools; A2A is TCP/IP for agents**.
 :::
 
+:::info MCP 2026 Roadmap (March 2026)
+The MCP maintainer team published their [2026 roadmap](https://modelcontextprotocol.io/development/roadmap), targeting four priority areas for production readiness:
+
+1. **Transport Evolution & Scalability** — Evolving the long-lived, stateful session model for horizontal scaling behind load balancers. Introducing `.well-known` endpoint for server discovery without live connections.
+2. **Agent Communication** — Clearer lifecycle rules for long-running asynchronous Tasks, including retry semantics and result persistence policies.
+3. **Governance Maturation** — Transitioning from full-core-review of every SEP (Specification Enhancement Proposal) to domain-specific Working Groups for faster iteration.
+4. **Enterprise Readiness** — Addressing audit trails, corporate identity integration, gateway controls, and environment-portable configuration. Maintainers are actively soliciting input from production teams.
+
+Key community-led working groups are advancing: triggers/event-driven updates, new result types, and deeper security/authorization work. The protocol deliberately keeps the transport set small to maintain focus.
+:::
+
 :::info Key Takeaway
 MCP positions itself as the foundational TCP/IP equivalent for the Agentic Web—enabling organizations to keep their data where it is (Siloed) while making it accessible (Connected) to the reasoning engines of the future.
 :::
