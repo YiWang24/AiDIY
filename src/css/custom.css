@@ -318,6 +318,15 @@ code,
   transition: none !important;
 }
 
+/* Navbar sidebar must use its own transform/opacity/visibility transition
+   (defined by Infima). The global * selector above overrides it and breaks
+   mobile hamburger menu animation — sidebar won't slide in. */
+.navbar-sidebar,
+.navbar-sidebar__backdrop,
+.navbar-sidebar__items {
+  transition-property: opacity, visibility, transform !important;
+}
+
 /* ============================================
    HOME PAGE - BUILDER HERO SECTION (FULL-SCREEN)
    ============================================ */
