@@ -618,9 +618,25 @@ mindmap
 ### Open Source Projects
 
 - **LangChain/LangGraph**: Rapidly evolving frameworks
-- **AutoGen**: Microsoft's multi-agent framework
+- **Microsoft Agent Framework**: Unified LTS SDK (replaces AutoGen + Semantic Kernel)
 - **CrewAI**: Role-playing agents
 - **MetaGPT**: Software company simulation
+
+### 2026 年 4月前沿研究动态
+
+| 方向 | 论文 | 关键发现 |
+|------|------|----------|
+| **LLM 评估可靠性** | [Diagnosing LLM Judge Reliability](https://arxiv.org/abs/2604.15302) | 揭示 LLM-as-Judge 在逐输入评估中存在广泛不一致性 |
+| **多 Agent 合作** | [CoopEval](https://arxiv.org/abs/2604.15267) | 推理能力更强的 LLM 在社会困境中反而更不合作 |
+| **推理加速** | [Verification-Aware Speculative Decoding](https://arxiv.org/abs/2604.15244) | 从 Token 级推测解码升级到步骤级，防止多步推理中的错误传播 |
+| **测试时计算扩展** | [Looped Transformers](https://arxiv.org/abs/2604.15259) | 研究循环式 Transformer 的固定点框架，分析哪些架构能真正泛化 |
+| **医疗 Agent** | [RadAgent](https://arxiv.org/abs/2604.15231) | 使用 VLM + 工具调用的可解释胸部 CT 分析 Agent |
+| **Agentic RAG** | [CorpusGraph](https://arxiv.org/abs/2604.14572) | 从被动检索转向 Agent 主动导航企业知识图谱 |
+
+**关键趋势**：
+1. **Agentic RAG 快速兴起** — 多篇论文从被动检索转向 Agent 主动导航、查询改写、证据整合
+2. **LLM-as-Judge 可靠性受质疑** — 社区正在重新审视自动化评估的可信度
+3. **推理能力与合作性负相关** — 更强的模型在社会困境中更不合作，引发多 Agent 部署安全担忧
 
 ---
 
