@@ -287,8 +287,11 @@ flowchart TB
 
 **Key Research**:
 - **RT-2**: Robotic Transformer 2 (Google DeepMind)
+- **Gemini Robotics-ER 1.6**（2026年4月）: Google 增强空间推理能力，新增多视角理解、任务规划和仪器读数能力（与 Boston Dynamics 合作开发），被称为 Google "最安全的机器人模型"
 - **VoxPoser**: LLM for robot manipulation
 - **Hello Robot**: Stretch for home tasks
+
+> 💡 **行业数据**：2025 年人形机器人领域投资达 $61 亿，是 2024 年的 4 倍。机器人学习正从规则驱动转向数据驱动的 AI 模型——通过传感器数据预测下一步动作。（来源：MIT Technology Review, 2026年4月）
 
 ### Agent Societies
 
@@ -624,6 +627,8 @@ mindmap
 
 ### 2026 年 4月前沿研究动态
 
+#### 上周重点（4月19日）
+
 | 方向 | 论文 | 关键发现 |
 |------|------|----------|
 | **LLM 评估可靠性** | [Diagnosing LLM Judge Reliability](https://arxiv.org/abs/2604.15302) | 揭示 LLM-as-Judge 在逐输入评估中存在广泛不一致性 |
@@ -633,11 +638,28 @@ mindmap
 | **医疗 Agent** | [RadAgent](https://arxiv.org/abs/2604.15231) | 使用 VLM + 工具调用的可解释胸部 CT 分析 Agent |
 | **Agentic RAG** | [CorpusGraph](https://arxiv.org/abs/2604.14572) | 从被动检索转向 Agent 主动导航企业知识图谱 |
 
+#### 本周新增（4月20日）
+
+| 方向 | 论文 | 关键发现 |
+|------|------|----------|
+| **AI 安全审计** | [ASMR-Bench](https://arxiv.org/abs/2604.16286) | 首个评估审计员检测自主研究中恶意缺陷能力的基准，针对 AI 自主研究安全性 |
+| **RL 奖励作弊检测** | [Gradient Fingerprints](https://arxiv.org/abs/2604.16242) | 提出梯度指纹方法检测和抑制 RLVR 中的奖励作弊（reward hacking）行为 |
+| **VLM 推理质疑** | [Do VLMs Truly Reason?](https://arxiv.org/abs/2604.16256) | 质疑视觉语言模型是否真正进行视觉推理，还是依赖语言先验 |
+| **RL 与 Agent 演化** | [Beyond Distribution Sharpening](https://arxiv.org/abs/2604.16259) | 研究 RL 是否真正改善推理能力，以及任务奖励如何驱动模型从推理器进化为智能 Agent |
+| **定理证明** | [Learning to Reason with Insight](https://arxiv.org/abs/2604.16278) | 识别"洞察力缺失"为 LLM 非形式化定理证明的主要瓶颈 |
+| **机器人导航 Agent** | [FineCog-Nav](https://arxiv.org/abs/2604.16298) | 集成细粒度认知模块实现零样本 UAV 视觉语言导航 |
+
+**行业关键指标**（Stanford 2026 AI Index）：
+- Agent 任务成功率：**12% → 66%**（年同比大幅提升）
+- AI Agent 网络流量增长：**+7,851%**（年同比）
+- 预计年底 **40%** 企业应用将集成 Agent 能力
+
 **关键趋势**：
 1. **Agentic RAG 快速兴起** — 多篇论文从被动检索转向 Agent 主动导航、查询改写、证据整合
 2. **LLM-as-Judge 可靠性受质疑** — 社区正在重新审视自动化评估的可信度
 3. **推理能力与合作性负相关** — 更强的模型在社会困境中更不合作，引发多 Agent 部署安全担忧
-
+4. **AI 安全审计需求紧迫** — ASMR-Bench 等工作凸显自主研究 Agent 的安全验证缺口
+5. **RL 奖励作弊成为焦点** — 梯度指纹方法为 RLVR 训练提供作弊检测手段
 ---
 
 ## 10.11 Key Takeaways
