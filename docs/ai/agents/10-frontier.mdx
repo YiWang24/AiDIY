@@ -649,10 +649,29 @@ mindmap
 | **定理证明** | [Learning to Reason with Insight](https://arxiv.org/abs/2604.16278) | 识别"洞察力缺失"为 LLM 非形式化定理证明的主要瓶颈 |
 | **机器人导航 Agent** | [FineCog-Nav](https://arxiv.org/abs/2604.16298) | 集成细粒度认知模块实现零样本 UAV 视觉语言导航 |
 
+#### 本周新增（4月21日）
+
+| 方向 | 论文 | 关键发现 |
+|------|------|----------|
+| **数学推理基准** | [MathNet](https://arxiv.org/abs/2604.18584) | 全球多模态数学推理与检索基准，覆盖 Olympiad 级别题目 |
+| **序列模型架构** | [Sessa: Selective State Space Attention](https://arxiv.org/abs/2604.18580) | 在注意力扩散场景下用选择性状态空间替代自注意力，Transformer 新替代方案 |
+| **RL 优化** | [Bounded Ratio RL](https://arxiv.org/abs/2604.18578) | 弥合 PPO 裁剪启发式与信任区域理论基础之间的差距 |
+| **Agentic 预测** | [BLF: Bayesian Linguistic Forecaster](https://arxiv.org/abs/2604.18576) | Agentic 系统在 ForecastBench 上达到 SOTA，结合贝叶斯语言信念状态 |
+| **弱监督推理** | [RLVR with Weak Supervision](https://arxiv.org/abs/2604.18574) | 研究 RLVR 在弱监督信号下何时能有效提升推理能力 |
+| **推理纠错** | [Latent Phase-Shift Rollback](https://arxiv.org/abs/2604.18567) | 监控残差流并在推理错误时回滚 KV-Cache，实现推理时自动纠错 |
+| **多模态医疗** | [Apollo](https://arxiv.org/abs/2604.18570) | 多模态时序基础模型，整合 30 年临床记录构建统一患者表征 |
+
 **行业关键指标**（Stanford 2026 AI Index）：
 - Agent 任务成功率：**12% → 66%**（年同比大幅提升）
 - AI Agent 网络流量增长：**+7,851%**（年同比）
 - 预计年底 **40%** 企业应用将集成 Agent 能力
+
+**2026 年 4月模型发布格局**：
+- **GLM-5.1**（Zhipu AI）：744B MoE，40B 活跃参数，MIT 许可，据称在 SWE-Bench Pro 上超越 Claude Opus 4.6 和 GPT-5.4
+- **Gemma 4**（Google）：全系列开放（27B Dense / 26B MoE / E4B / E2B），Apache 2.0，统一多模态（文本+图像+音频）
+- **Qwen 3.6-Plus**（Alibaba）：1M token 上下文，为自主编码优化，~$0.28/M tokens
+- **Claude Mythos**（Anthropic）：仅限 ~50 个合作组织访问，专注网络安全防御，$25/$125/M tokens
+- **Bonsai 8B**（PrismML）：1-bit 量化，14x 压缩，可在树莓派上运行
 
 **关键趋势**：
 1. **Agentic RAG 快速兴起** — 多篇论文从被动检索转向 Agent 主动导航、查询改写、证据整合
@@ -660,6 +679,9 @@ mindmap
 3. **推理能力与合作性负相关** — 更强的模型在社会困境中更不合作，引发多 Agent 部署安全担忧
 4. **AI 安全审计需求紧迫** — ASMR-Bench 等工作凸显自主研究 Agent 的安全验证缺口
 5. **RL 奖励作弊成为焦点** — 梯度指纹方法为 RLVR 训练提供作弊检测手段
+6. **开源模型追平闭源** — GLM-5.1 在特定基准上超越 GPT-5.4，"开源落后6个月"叙事已终结
+7. **认知密度取代参数规模** — 行业从追求最大模型转向在更小、更高效的模型中实现更强推理能力
+8. **MCP 成为 AI 工具标配** — 2026 Q2 所有主流 AI 工具的 MCP 支持成为"必须项"
 ---
 
 ## 10.11 Key Takeaways
