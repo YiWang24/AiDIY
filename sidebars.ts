@@ -315,6 +315,34 @@ const sidebars: SidebarsConfig = {
         },
       ],
     },
+    {
+      type: "category",
+      label: "Design Patterns",
+      collapsed: false,
+      items: [
+        {
+          type: "doc",
+          id: "cs/design-patterns/index",
+          label: "Overview",
+          key: "cs-design-patterns-overview",
+        },
+        {
+          type: "doc",
+          id: "cs/design-patterns/creational-patterns",
+          label: "1. Creational Patterns",
+        },
+        {
+          type: "doc",
+          id: "cs/design-patterns/structural-patterns",
+          label: "2. Structural Patterns",
+        },
+        {
+          type: "doc",
+          id: "cs/design-patterns/behavioral-patterns",
+          label: "3. Behavioral Patterns",
+        },
+      ],
+    },
   ],
 
   // AI & Agents Sidebar

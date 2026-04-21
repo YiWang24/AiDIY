@@ -1,0 +1,122 @@
+---
+id: index
+title: Design Patterns
+sidebar_label: Overview
+description: 23 GoF design patterns explained with AI Agent development applications
+---
+
+# Design Patterns
+
+> **"Each pattern describes a problem which occurs over and over again in our environment, and then describes the core of the solution to that problem."** — Christopher Alexander
+
+Design patterns are **reusable solutions to commonly occurring problems** in software design. The 23 patterns documented by the Gang of Four (GoF) in 1994 remain the foundational vocabulary of software architecture.
+
+This guide goes beyond textbook explanations — each pattern is paired with its **practical application in AI Agent development**, showing how classic design wisdom maps directly to modern LLM-powered systems.
+
+---
+
+## The 23 Patterns at a Glance
+
+Patterns are organized into three categories based on their purpose:
+
+### Creational Patterns (5)
+
+How objects are created — controlling instantiation to provide flexibility and reuse.
+
+| Pattern | Intent | Agent Application |
+|---------|--------|-------------------|
+| **Singleton** | Ensure only one instance exists | Global Agent config center, LLM client connection pool |
+| **Factory Method** | Delegate instantiation to subclasses | Agent type factory (ReAct / Plan-and-Execute / Reflexion) |
+| **Abstract Factory** | Create families of related objects | Multi-LLM Provider adaptation (OpenAI / Claude / Gemini) |
+| **Builder** | Step-by-step complex object construction | Complex Prompt builder, Agent config chain assembly |
+| **Prototype** | Clone existing objects | Agent template cloning, conversation session snapshots |
+
+### Structural Patterns (7)
+
+How objects are composed — building relationships between classes and objects.
+
+| Pattern | Intent | Agent Application |
+|---------|--------|-------------------|
+| **Adapter** | Bridge incompatible interfaces | Unified LLM API adapter, MCP Tool protocol conversion |
+| **Bridge** | Decouple abstraction from implementation | Agent reasoning engine decoupled from tool sets |
+| **Composite** | Tree structures of objects | Multi-level Agent composition (Supervisor → Worker → Sub-agent) |
+| **Decorator** | Add responsibilities dynamically | Runtime Agent capability injection (RAG, Memory, Guardrails) |
+| **Facade** | Simplified interface to complex subsystem | Simplified Agent API hiding orchestration complexity |
+| **Flyweight** | Share objects to support large quantities | Shared Tool schemas, Embedding cache, Prompt token dedup |
+| **Proxy** | Placeholder controlling access | Agent access control, lazy loading, rate limiting |
+
+### Behavioral Patterns (11)
+
+How objects communicate — assigning responsibilities and algorithms.
+
+| Pattern | Intent | Agent Application |
+|---------|--------|-------------------|
+| **Chain of Responsibility** | Pass request along handler chain | Agent middleware pipeline (Validation → Preprocessing → LLM → Post-processing) |
+| **Command** | Encapsulate request as object | Agent Action objectification (Undo/Redo, Action log, Replay) |
+| **Interpreter** | Define a grammar and interpreter | Agent DSL parsing (natural language → structured instructions) |
+| **Iterator** | Sequential access to collection | Streaming token iteration, document chunk traversal |
+| **Mediator** | Centralize communication between objects | Multi-Agent coordination center (Event Bus, Message Router) |
+| **Memento** | Capture and restore object state | Agent state snapshot & recovery (Checkpoint, version rollback) |
+| **Observer** | Notify dependents of state changes | Agent event-driven architecture (state change notifications, progress monitoring) |
+| **State** | Alter behavior when state changes | Agent state machine (Idle → Thinking → Acting → Observing) |
+| **Strategy** | Encapsulate interchangeable algorithms | Reasoning strategy switching (ReAct vs CoT vs ToT) |
+| **Template Method** | Define algorithm skeleton in base class | Agent execution framework (custom Pre/Post hooks) |
+| **Visitor** | Separate operations from object structure | Agent output post-processing pipeline (safety review, format conversion, quality scoring) |
+
+---
+
+## Why Learn Design Patterns for Agent Development?
+
+Building AI Agent systems involves many of the same structural challenges that GoF patterns solve:
+
+1. **Managing complexity** — Agent orchestration with multiple LLM calls, tool invocations, and state transitions mirrors classic workflow patterns
+2. **Extensibility** — New tools, providers, and reasoning strategies should plug in without rewriting core logic
+3. **Testability** — Clean separation of concerns (Strategy, Bridge) makes it possible to unit-test Agent behavior
+4. **Maintainability** — Well-structured Agent code (Facade, Mediator) is easier to debug and evolve
+
+---
+
+## Learning Path
+
+### For Beginners
+
+1. Start with **Creational Patterns** — understand how to control object creation
+2. Move to **Structural Patterns** — learn how to compose flexible architectures
+3. Finish with **Behavioral Patterns** — master object communication and responsibility
+
+### For Agent Developers
+
+1. Read the **Agent Application** section of each pattern
+2. Look for patterns you're already using implicitly — give them names
+3. Apply patterns deliberately when designing new Agent features
+4. Use the Mermaid diagrams to communicate your architecture to teammates
+
+---
+
+## Relationship to Agent Architecture Patterns
+
+This guide covers **classic GoF design patterns** (object-level, code-level solutions). For **Agent-specific architectural patterns** (system-level, multi-agent coordination), see:
+
+- **[Agent Design Patterns](/docs/ai/agents/03-design-patterns)** — Single Agent, Multi-Agent, Routing, and orchestration patterns
+
+The two complement each other: GoF patterns are the building blocks; Agent patterns are the blueprints.
+
+---
+
+## Quick Reference
+
+| Category | Patterns | Key Insight |
+|----------|----------|-------------|
+| **Creational** | 5 patterns | Control *how* and *when* objects are created |
+| **Structural** | 7 patterns | Control *how* objects are composed and connected |
+| **Behavioral** | 11 patterns | Control *how* objects communicate and divide work |
+
+---
+
+## Next Steps
+
+Dive into each category:
+
+- **[Creational Patterns](./01-creational-patterns)** — Singleton, Factory Method, Abstract Factory, Builder, Prototype
+- **[Structural Patterns](./02-structural-patterns)** — Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy
+- **[Behavioral Patterns](./03-behavioral-patterns)** — Chain of Responsibility, Command, Interpreter, Iterator, Mediator, Memento, Observer, State, Strategy, Template Method, Visitor
