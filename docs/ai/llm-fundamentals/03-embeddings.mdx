@@ -29,17 +29,20 @@ Now scale this up to **4,096 dimensions** (Llama 3/4) or **12,288 dimensions** (
 
 Vectors capture semantic relationships between concepts. For example, the vector for "King" minus "Man" plus "Woman" results in a vector very close to "Queen." This isn't hard-coded—it emerges from training on massive text datasets.
 
-### 2025: Embedding Dimensions by Model
+### 2025–2026: Embedding Dimensions by Model
 
 | Model | Embedding Dimension | Type |
 |-------|-------------------|------|
 | **GPT-4o** | 12,288 | Contextual (decoder) |
 | **Llama 3/4** | 4,096 | Contextual (decoder) |
 | **Claude 3.5** | ~12,288 | Contextual (decoder) |
+| **Gemini Embedding 2** | 可变 | 多模态（文本/图像/视频/音频），2026年4月 GA |
 | **OpenAI ada-002** | 1,536 | Static (sentence encoder) |
 | **all-MiniLM-L6-v2** | 384 | Static (sentence encoder) |
 | **BERT-base** | 768 | Contextual (encoder) |
 | **RoBERTa** | 1,024 | Contextual (encoder) |
+
+> **2026年4月更新**：Google 发布 **Gemini Embedding 2** GA 版本，这是首个原生多模态嵌入模型，支持文本、图像、视频和音频的统一向量表示。通过 Gemini API 和 Gemini Enterprise Agent Platform 提供，适用于电商搜索、视频分析等跨模态检索场景。
 
 ---
 

@@ -647,6 +647,51 @@ mindmap
 | **VLM 推理质疑** | [Do VLMs Truly Reason?](https://arxiv.org/abs/2604.16256) | 质疑视觉语言模型是否真正进行视觉推理，还是依赖语言先验 |
 | **RL 与 Agent 演化** | [Beyond Distribution Sharpening](https://arxiv.org/abs/2604.16259) | 研究 RL 是否真正改善推理能力，以及任务奖励如何驱动模型从推理器进化为智能 Agent |
 | **定理证明** | [Learning to Reason with Insight](https://arxiv.org/abs/2604.16278) | 识别"洞察力缺失"为 LLM 非形式化定理证明的主要瓶颈 |
+
+#### 本周新增（4月22–23日）— 行业重大事件
+
+##### Google Cloud Next '26：全面拥抱 Agentic 架构
+
+Google 在 Cloud Next '26 大会上宣布了一系列重大更新：
+
+- **Gemini Enterprise Agent Platform**：将 Vertex AI 重新品牌为企业级 Agent 平台，集成 Agent Designer（可视化工作流）、Agent Engine（会话与记忆）、Agent Garden（预构建 Agent 模板）和 Express 免费层。支持 Gemini 3.1 Pro/Flash、Anthropic Claude 和 Llama 等 200+ 模型。
+- **Workspace Studio**：无代码 Agent 构建工具，业务用户可用自然语言在 Gmail、Docs、Sheets 等中创建自动化 Agent，支持 Jira、Salesforce 等第三方集成。
+- **TPU 第八代（TPU 8t / 8i）**：两款专用芯片——TPU 8t 用于训练（~3x 性能提升，121 ExaFlops），TPU 8i 用于推理（高内存带宽、低延迟），专为 Agentic AI 工作负载设计。
+- **Deep Research / Deep Research Max**：基于 Gemini 3.1 Pro 的自主研究 Agent，支持 MCP 协议、原生数据可视化和文件上传。Max 版本使用扩展推理时间计算，适用于金融、生命科学等深度分析场景。
+- **A2A 协议扩展**：Agent-to-Agent 协议已在 150+ 组织中部署。
+- **Gemini Embedding 2 GA**：首个原生多模态嵌入模型正式发布。
+
+##### Anthropic Project Glasswing：AI 驱动的网络安全防御
+
+Anthropic 发布 [Project Glasswing](https://www.anthropic.com/glasswing)，联合 AWS、Apple、Google、Microsoft、NVIDIA 等 40+ 组织，使用 AI 进行防御性网络安全研究：
+
+- **Claude Mythos**：未发布的通用前沿模型，展现了突破性的漏洞发现能力——发现数千个高严重性漏洞，包括 OpenBSD 27 年老漏洞、Linux 内核和所有主流浏览器中的问题。
+- Mythos **不会公开发布**，仅通过安全验证程序提供给安全专业人员。
+- 核心洞察：AI 网络安全能力是"锯齿状"的——不随模型大小平滑缩放，而是依赖系统设计和领域专业知识。
+
+##### Gemma 4：Apache 2.0 开源模型
+
+Google DeepMind 发布 [Gemma 4](https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/) 系列开源模型（Apache 2.0 许可）：
+
+| 模型 | 架构 | 活跃参数 | 上下文窗口 |
+|------|------|---------|-----------|
+| **E2B** | Dense | ~2B | 128K |
+| **E4B** | Dense | ~4B | 128K |
+| **26B MoE** | Mixture of Experts | 3.8B active | 256K |
+| **31B Dense** | Dense | 31B | 256K |
+
+31B 模型在 Arena AI 排行榜位列全球开源模型第 3 名。全部模型支持原生函数调用、结构化 JSON 输出、视觉/音频理解，训练覆盖 140+ 语言。
+
+##### Kubernetes v1.36 "Haru" 发布
+
+[Kubernetes v1.36](https://kubernetes.io/blog/2026/04/22/kubernetes-v1-36-release/) 于 4 月 22 日发布，包含 70 项增强：
+- **GA**：细粒度 Kubelet API 授权、Linux User Namespaces
+- **Beta**：Resource Health Status（硬件健康状态报告）
+- **Alpha**：Workload Aware Scheduling（工作负载感知调度）
+
+##### Docker Hub 供应链攻击：KICS 事件
+
+继 3 月 Trivy 供应链攻击后，[Checkmarx KICS Docker 镜像被入侵](https://www.docker.com/blog/trivy-kics-and-the-shape-of-supply-chain-attacks-so-far-in-2026/)（4 月 22 日），攻击者使用窃取的发布者凭据推送恶意镜像，将扫描结果加密外传至攻击者控制的基础设施。Docker 基础设施本身未被入侵，但这凸显了供应链安全的严峻挑战。
 | **机器人导航 Agent** | [FineCog-Nav](https://arxiv.org/abs/2604.16298) | 集成细粒度认知模块实现零样本 UAV 视觉语言导航 |
 
 #### 本周新增（4月21日）

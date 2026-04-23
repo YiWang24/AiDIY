@@ -52,7 +52,7 @@ graph TB
 | **OpenAI Agents SDK** | Python | Growing | Good | Yes | Sandbox-native agent orchestration |
 | **CrewAI** | Python | Mature | Excellent | Yes | Role-based agents |
 | **LangChain4j** | Java | Growing | Basic | Yes | Java port of LangChain |
-| **Google ADK** | Python | New | Good | Yes | Gemini-native agents |
+| **Google ADK** | Python | Growing | Good | Yes | Gemini-native agents (2.0 at Cloud Next '26) |
 | **Claude Agent SDK** | Python | Growing | Good | Yes | Claude-native agents |
 
 |> **April 2026 Update**: Microsoft shipped **Agent Framework 1.0** (April 7, 2026), officially unifying AutoGen and Semantic Kernel into a single LTS SDK for .NET and Python. Native MCP support, durable workflows, and a browser-based DevUI are included. AutoGen as a standalone project is now deprecated — migrate to Microsoft Agent Framework. OpenAI's Agents SDK (April 15 update) introduced sandbox execution and a model-native harness, making it a strong choice for GPT-model-based agent workflows.
@@ -61,6 +61,9 @@ graph TB
 > - **Microsoft Agent Governance Toolkit** (April 3, MIT license): Open-source runtime security covering all 10 OWASP Agentic AI risks with sub-0.1ms policy enforcement. Framework-agnostic — integrates with LangGraph, OpenAI Agents SDK, LlamaIndex, PydanticAI, Dify. Includes Agent OS (policy engine), Agent Mesh (cryptographic identity), Agent Runtime (privilege rings, kill switch), Agent SRE (SLOs, circuit breakers), and Agent Compliance (EU AI Act, HIPAA, SOC2 mapping).
 > - **Anthropic Managed Agents** (mid-April): A service layer providing sandboxing, permissions, error recovery, and audit trails — absorbing the operational "grunt work" of running agents in production. Agent infrastructure is becoming a commodity.
 > - **Windows 11 AI Agents** (April 18): Microsoft bringing agents to the Windows 11 taskbar via MCP for third-party agent integration.
+> - **Google Gemini Enterprise Agent Platform** (April 22, Cloud Next '26): Vertex AI 重新品牌为企业级 Agent 平台，集成 Agent Designer（可视化工作流编辑器）、Agent Engine（会话持久化与记忆）、Agent Garden（预构建 Agent 模板）、Model Garden（200+ 模型含 Gemini、Claude、Llama）。新增 Express 免费层降低入门门槛。同时推出 Workspace Studio，允许业务用户用自然语言在 Google Workspace 中构建自动化 Agent。
+> - **Google ADK 2.0** (Cloud Next '26): Agent Development Kit 重大更新，与 Gemini Enterprise Agent Platform 深度集成，支持 Gemini-native 和第三方模型。
+> - **Anthropic Project Glasswing** (April 22): 联合 AWS、Apple、Google、Microsoft、NVIDIA 等 40+ 组织的安全联盟。Claude Mythos（未发布前沿模型）展现了突破性的漏洞发现能力，但不会公开发布。
 
 ### Feature Comparison
 
