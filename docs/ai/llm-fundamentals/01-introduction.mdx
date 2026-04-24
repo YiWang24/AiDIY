@@ -228,7 +228,8 @@ As of April 2026, the LLM landscape has undergone dramatic shifts: open-source m
 | **Gemma 4 26B MoE** (Google) | 26B (3.8B active) | 256K tokens | **#6 open model**, outperforms models 20x its size, Apache 2.0 | Latency-sensitive applications, local inference |
 | **Llama 4 Scout / Maverick** (Meta) | MoE | 128K tokens | Open-weight, competitive with frontier models | Open-source alternatives to closed models |
 | **Qwen 3.6-Plus** (Alibaba) | MoE | 128K tokens | Strong agentic capabilities, multilingual | Asian languages, agentic workflows |
-| **DeepSeek V4** | ~1T (est.) | Large | Runs on Huawei Ascend chips (no Nvidia), multimodal | Geopolitically independent AI stack |
+| **DeepSeek V4 Pro** (DeepSeek) | 1.6T MoE (49B active) | **1M tokens** | Hybrid Attention (CSA+HCA), KV cache 降至 2%, Agent 优化 | Agentic 工作负载，长上下文推理 |
+| **DeepSeek V4 Flash** (DeepSeek) | 284B MoE (13B active) | **1M tokens** | 轻量推理，per-token FLOPs 降至 V3 的 10-27% | 高吞吐推理，成本敏感场景 |
 
 ### Key Insights for 2026
 
@@ -241,12 +242,13 @@ As of April 2026, the LLM landscape has undergone dramatic shifts: open-source m
 4. **Context Window Evolution**:
    - Standard: 128K tokens
    - Long-context: 200K–256K tokens (Claude, Gemma 4)
-   - Massive: 1M–2M tokens (Gemini 3.1 Pro)
+   - Massive: 1M tokens (DeepSeek V4 Pro/Flash, Gemini 3.1 Pro)
+   - The real innovation is making massive context **usable for agentic workloads** — DeepSeek V4's Hybrid Attention reduces KV cache to ~2% of standard GQA
    - GPT-6 "Spud" is rumored to support 1M–2M tokens
 
 5. **Agentic Capabilities Are Table Stakes**: Models now ship with native function-calling, structured JSON output, and system instructions for autonomous agents. Gemma 4, Qwen 3.6, and Claude all emphasize agentic workflows as a core feature.
 
-6. **The US-China AI Divide**: DeepSeek V4 runs entirely on Huawei Ascend chips, completely bypassing Nvidia/CUDA. OpenAI, Anthropic, and Google are collaborating to combat model distillation by Chinese competitors. This geopolitical dimension is reshaping the entire supply chain.
+6. **The US-China AI Divide**: DeepSeek V4 Pro (1.6T MoE, 1M context) runs on Huawei Ascend chips, completely bypassing Nvidia/CUDA. Its Hybrid Attention architecture (Compressed Sparse Attention + Hierarchical Context Attention) specifically targets agentic failure modes like context blowup and KV cache exhaustion. OpenAI, Anthropic, and Google are collaborating to combat model distillation by Chinese competitors. This geopolitical dimension is reshaping the entire supply chain.
 
 ---
 
