@@ -213,6 +213,7 @@ As of April 2026, the LLM landscape has undergone dramatic shifts: open-source m
 
 | Model | Parameters | Context Window | Key Strengths | Best For |
 |-------|-----------|----------------|---------------|----------|
+| **GPT-5.5** | Trillions (MoE) | **1M tokens** | Terminal-Bench 2.0 SOTA (82.7%), SWE-Bench Pro 58.6%, agentic coding, computer use, scientific research | Agentic coding, computer use, knowledge work, research |
 | **GPT-5.4** | Trillions (MoE) | 128K tokens | Advanced reasoning, complex analytics, multimodal | General-purpose, enterprise analytics, complex reasoning |
 | **Claude Opus 4.7** | ~175B+ | **1M tokens** | **87.6% SWE-bench**, 94.2% GPQA, 3.3x higher-res vision, xhigh effort level | Software development, agentic coding, vision tasks |
 | **Claude Mythos** | Unknown | Large | **Most capable Anthropic model** (93.9% SWE-bench), cybersecurity scanning | Gated access only (Project Glasswing, ~50 partners) |
@@ -227,7 +228,7 @@ As of April 2026, the LLM landscape has undergone dramatic shifts: open-source m
 | **Gemma 4 31B** (Google) | 31B dense | 256K tokens | **#3 open model** on Arena AI, Apache 2.0, native vision+audio+agentic | On-premise deployment, edge-to-cloud |
 | **Gemma 4 26B MoE** (Google) | 26B (3.8B active) | 256K tokens | **#6 open model**, outperforms models 20x its size, Apache 2.0 | Latency-sensitive applications, local inference |
 | **Llama 4 Scout / Maverick** (Meta) | MoE | 128K tokens | Open-weight, competitive with frontier models | Open-source alternatives to closed models |
-| **Qwen 3.6-Plus** (Alibaba) | MoE | 128K tokens | Strong agentic capabilities, multilingual | Asian languages, agentic workflows |
+| **Qwen 3.6-Plus** (Alibaba) | MoE | **1M tokens** | Strong agentic capabilities, multilingual, agentic coding | Asian languages, agentic workflows |
 | **DeepSeek V4 Pro** (DeepSeek) | 1.6T MoE (49B active) | **1M tokens** | Hybrid Attention (CSA+HCA), KV cache 降至 2%, Agent 优化 | Agentic 工作负载，长上下文推理 |
 | **DeepSeek V4 Flash** (DeepSeek) | 284B MoE (13B active) | **1M tokens** | 轻量推理，per-token FLOPs 降至 V3 的 10-27% | 高吞吐推理，成本敏感场景 |
 
@@ -246,9 +247,11 @@ As of April 2026, the LLM landscape has undergone dramatic shifts: open-source m
    - The real innovation is making massive context **usable for agentic workloads** — DeepSeek V4's Hybrid Attention reduces KV cache to ~2% of standard GQA
    - GPT-6 "Spud" is rumored to support 1M–2M tokens
 
-5. **Agentic Capabilities Are Table Stakes**: Models now ship with native function-calling, structured JSON output, and system instructions for autonomous agents. Gemma 4, Qwen 3.6, and Claude all emphasize agentic workflows as a core feature.
+5. **Agentic Capabilities Are Table Stakes**: Models now ship with native function-calling, structured JSON output, and system instructions for autonomous agents. GPT-5.5 achieved 82.7% on Terminal-Bench 2.0 and 58.6% on SWE-Bench Pro, making agentic coding its defining capability. Gemma 4, Qwen 3.6, and Claude all emphasize agentic workflows as a core feature.
 
-6. **The US-China AI Divide**: DeepSeek V4 Pro (1.6T MoE, 1M context) runs on Huawei Ascend chips, completely bypassing Nvidia/CUDA. Its Hybrid Attention architecture (Compressed Sparse Attention + Hierarchical Context Attention) specifically targets agentic failure modes like context blowup and KV cache exhaustion. OpenAI, Anthropic, and Google are collaborating to combat model distillation by Chinese competitors. This geopolitical dimension is reshaping the entire supply chain.
+6. **Frontier Model Pricing War**: GPT-5.5 delivers frontier intelligence at half the cost of competitive coding models ($5/$30 per M tokens), while DeepSeek V4 Flash offers 1M context at rock-bottom prices. The race is no longer just about capability — it's about capability-per-dollar.
+
+7. **The US-China AI Divide**: DeepSeek V4 Pro (1.6T MoE, 1M context) runs on Huawei Ascend chips, completely bypassing Nvidia/CUDA. Its Hybrid Attention architecture (Compressed Sparse Attention + Hierarchical Context Attention) specifically targets agentic failure modes like context blowup and KV cache exhaustion. OpenAI, Anthropic, and Google are collaborating to combat model distillation by Chinese competitors. This geopolitical dimension is reshaping the entire supply chain.
 
 ---
 

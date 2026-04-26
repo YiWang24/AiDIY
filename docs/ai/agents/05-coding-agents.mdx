@@ -308,22 +308,23 @@ The primary benchmark for evaluating coding agents on real-world software engine
 ```mermaid
 xychart-beta
     title "SWE-bench Verified Score Progress (%)"
-    x-axis ["2024 Q1", "2024 Q2", "2024 Q3", "2024 Q4", "2025 Q1", "2025 Q2", "2026 Q1"]
-    y-axis "Resolution Rate" 0 --> 60
-    line [4, 12, 22, 33, 42, 48, 53]
+    x-axis ["2024 Q1", "2024 Q2", "2024 Q3", "2024 Q4", "2025 Q1", "2025 Q2", "2026 Q1", "2026 Q2"]
+    y-axis "Resolution Rate" 0 --> 70
+    line [4, 12, 22, 33, 42, 48, 53, 59]
 ```
 
 | Agent | SWE-bench Verified | Type |
 |-------|-------------------|------|
-| **OpenAI Codex** | ~48% | Cloud API |
+| **OpenAI Codex (GPT-5.5)** | ~59% | Cloud API |
 | **Claude Code** | ~45% | CLI Agent |
+| **OpenAI Codex (GPT-5.4)** | ~48% | Cloud API |
 | **Devin** | ~40% | Autonomous |
 | **SWE-Agent + GPT-4** | ~33% | Open Source |
 | **Aider** | ~30% | CLI Tool |
 | **AutoCodeRover** | ~28% | Research |
 
 :::info Benchmark Context
-SWE-bench scores improve rapidly. The numbers above represent approximate snapshots — check the [official leaderboard](https://www.swebench.com/) for current results.
+SWE-bench scores improve rapidly. GPT-5.5 (April 23, 2026) achieved 58.6% on SWE-Bench Pro and 82.7% on Terminal-Bench 2.0, setting new SOTA for agentic coding. The numbers above represent approximate snapshots — check the [official leaderboard](https://www.swebench.com/) for current results.
 :::
 
 ---
