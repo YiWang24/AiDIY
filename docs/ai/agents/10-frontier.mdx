@@ -706,6 +706,35 @@ Google DeepMind 发布 [Gemma 4](https://blog.google/innovation-and-ai/technolog
 | **推理纠错** | [Latent Phase-Shift Rollback](https://arxiv.org/abs/2604.18567) | 监控残差流并在推理错误时回滚 KV-Cache，实现推理时自动纠错 |
 | **多模态医疗** | [Apollo](https://arxiv.org/abs/2604.18570) | 多模态时序基础模型，整合 30 年临床记录构建统一患者表征 |
 
+#### 本周新增（4月24–27日）— 行业生态深化
+
+##### Anthropic 与 AWS 深化合作（4月27日）
+
+Anthropic 与 AWS 联合宣布一系列重大合作进展：
+
+- **Claude 在 AWS Trainium 上训练**：Anthropic 现在在 AWS Trainium 和 Graviton 基础设施上训练其最先进的基础模型，与 Annapurna Labs 在芯片层面进行联合工程优化
+- **Claude Cowork**：正式上线 Amazon Bedrock，支持团队在现有 Bedrock 环境中与 Claude 协作，数据安全保留在 AWS 内
+- **Claude Platform on AWS**（即将推出）：统一的开发者体验，无需离开 AWS 即可构建、部署和扩展 Claude 驱动的应用
+- **Bedrock AgentCore CLI**：支持通过 AWS CDK 以 IaC 治理方式部署 Agent（Terraform 支持即将推出），14 个 AWS 区域可用
+- **Bedrock AgentCore Managed Harness**（预览）：只需定义模型 + Prompt + 工具即可创建 Agent，无需编写编排代码
+
+##### Meta 部署数千万 AWS Graviton 核心
+
+Meta 与 AWS 签署大规模协议，部署数千万个 Graviton 核心，用于驱动 CPU 密集型 Agentic AI 工作负载，包括实时推理、代码生成、搜索和多步任务编排。
+
+##### OpenAI 开源 Privacy Filter（4月27日）
+
+OpenAI 发布 1.5B 参数（50M 活跃）的开源 PII 检测器（Apache 2.0），可在单次 128K 上下文前向传播中检测 8 类个人身份信息。附带三个 Gradio 演示应用：Document Privacy Explorer、Image Anonymizer 和 SmartRedact Paste。
+
+##### arXiv 前沿论文
+
+| 方向 | 论文 | 关键发现 |
+|------|------|----------|
+| **Agentic World Model** | [Agentic World Modeling](https://arxiv.org/abs/2604.22748) | 综合 400+ 工作的综述，提出"能力等级 x 治理法则"分类框架（L1 Predictor → L2 Simulator → L3 Evolver），覆盖物理/数字/社会/科学四个领域 |
+| **Agent Token 经济学** | [Token Consumption in Agentic Coding](https://arxiv.org/abs/2604.22750) | Agentic 任务消耗 1000x 于代码推理的 token，同一任务 token 用量可差 30x，更多 token 不等于更高准确率。Kimi-K2 和 Claude Sonnet 4.5 比 GPT-5 平均多消耗 150 万 token |
+| **RAG 检索优化** | [Aligning Dense Retrievers with LLM Utility](https://arxiv.org/abs/2604.22722) | 通过蒸馏将 LLM 重排序效用对齐到密集检索器，减少 RAG 推理开销 |
+| **高效推理** | [Thinking Without Words](https://arxiv.org/abs/2604.22709) | 抽象思维链（Abstract CoT）实现非语言推理，在更短生成长度下保持性能 |
+
 **行业关键指标**（Stanford 2026 AI Index）：
 - Agent 任务成功率：**12% → 66%**（年同比大幅提升）
 - AI Agent 网络流量增长：**+7,851%**（年同比）
