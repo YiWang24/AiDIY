@@ -94,6 +94,7 @@ Choosing the right model depends on your use case, budget, and performance requi
 | **General-Purpose Chat** | GPT-5.4 or Gemini 3.1 Pro | Strong reasoning, native multimodal |
 | **Long Document Analysis** | Claude Opus 4.7 or Gemini 3.1 Pro | 1M token context (Opus 4.7), 1M–2M tokens (Gemini) |
 | **Cost-Sensitive Applications** | Gemma 4 26B MoE (self-hosted) | Apache 2.0, outperforms models 20x its size |
+| **Enterprise Self-Hosted** | Granite 4.1 8B/30B (IBM) | Apache 2.0, 8B matches 32B MoE, 512K context |
 | **On-Premise Deployment** | GLM-5.1 (MIT) or Gemma 4 (Apache 2.0) | Fully open-source, frontier-grade |
 | **Multilingual Applications** | Qwen 3.6-Plus or Gemma 4 (140+ languages) | Strong non-English, agentic capabilities |
 | **Complex Reasoning** | OpenAI o3/o4 or Claude Opus 4.7 | Explicit reasoning chains, math/science tasks |
@@ -231,6 +232,8 @@ As of April 2026, the LLM landscape has undergone dramatic shifts: open-source m
 | **Qwen 3.6-Plus** (Alibaba) | MoE | **1M tokens** | Strong agentic capabilities, multilingual, agentic coding | Asian languages, agentic workflows |
 | **DeepSeek V4 Pro** (DeepSeek) | 1.6T MoE (49B active) | **1M tokens** | Hybrid Attention (CSA+HCA), KV cache 降至 2%, Agent 优化 | Agentic 工作负载，长上下文推理 |
 | **DeepSeek V4 Flash** (DeepSeek) | 284B MoE (13B active) | **1M tokens** | 轻量推理，per-token FLOPs 降至 V3 的 10-27% | 高吞吐推理，成本敏感场景 |
+| **Kimi K2.6** (Moonshot AI) | ~1T MoE (32B active) | 262K tokens | 开源 SOTA 编码能力，原生多模态（视觉+文本），Agent 优化 | Agentic 编码，多模态理解 |
+| **Granite 4.1** (IBM) | 3B / 8B / 30B dense | 512K tokens | 5 阶段渐进式预训练，8B dense 匹配 Granite 4.0 32B MoE，Apache 2.0 | 企业级部署，自托管推理 |
 
 ### Key Insights for 2026
 
