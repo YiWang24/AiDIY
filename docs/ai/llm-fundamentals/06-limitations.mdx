@@ -150,6 +150,20 @@ prompt = "The capital of Australia is"
 | **Human oversight** | Review critical outputs | Very High | Still essential |
 | **Chain of Oversight** | Multi-model verification | High | 2025 breakthrough |
 | **Constitutional AI** | Enforce principles during generation | Medium-High | Research stage |
+| **Mechanistic Interpretability** | Identify & adjust hallucination-causing neurons during training | High (root cause) | 2026 breakthrough (Goodfire Silico) |
+
+### 2026: Mechanistic Interpretability Tools
+
+**Goodfire's Silico** (released April 2026) represents a paradigm shift in hallucination mitigation — instead of working around hallucinations at inference time, it targets the root cause inside the model during training:
+
+- **How it works**: Uses sparse autoencoders (SAEs) to identify specific neurons responsible for hallucination patterns, then adjusts their parameters during training
+- **Key finding**: Models already contain "ethical reasoning circuitry" that can be amplified — e.g., boosting transparency-associated neurons flipped a model's answer from hiding AI deception to disclosing it
+- **Practical example**: Identified that "9.11 > 9.9" errors stem from Bible verse neurons (9:9 comes before 9:11) contaminating mathematical reasoning — fixable by training the model to suppress those neurons during math tasks
+- **Industry impact**: MIT Technology Review selected mechanistic interpretability as one of its 10 Breakthrough Technologies of 2026
+
+> **Key insight**: Rather than adding guardrails around hallucinations, mechanistic interpretability lets you find and fix the neurons that cause them. This is moving AI development from "alchemy" toward "precision engineering."
+
+🔗 参考：[MIT Technology Review: Goodfire Silico](https://www.technologyreview.com/2026/04/30/1136721/this-startups-new-mechanistic-interpretability-tool-lets-you-debug-llms/) | [Goodfire Research](https://www.goodfire.ai/research/rlfr)
 
 ### 2025: Chain of Oversight
 

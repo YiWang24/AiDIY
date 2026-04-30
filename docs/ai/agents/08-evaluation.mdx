@@ -290,7 +290,39 @@ flowchart TB
 
 ---
 
-## 8.8 Key Takeaways
+## 8.8 Evaluation Costs: The Emerging Bottleneck (2026)
+
+Evaluation is becoming prohibitively expensive — in some cases rivaling training costs:
+
+| Benchmark | Cost | Details |
+|-----------|------|---------|
+| **HAL (Agent Leaderboard)** | ~$40,000 | 21,730 agent rollouts across 9 models |
+| **GAIA (single frontier model)** | $2,829 | Per run, before caching |
+| **MLE-Bench (full sweep)** | ~$100,000 | 75 competitions × 3 seeds × 6 models |
+| **HELM (30 models)** | ~$100,000 | Aggregate API + GPU costs |
+| **The Well (scientific ML)** | 960 H100-hours | Single architecture evaluation |
+
+### Why Agent Evals Are Especially Expensive
+
+- **Scaffold sensitivity**: Exgentic's $22K sweep found a **33× cost spread** on identical tasks just from scaffold choice
+- **Non-compressibility**: Unlike static benchmarks (MMLU compressible from 14K to 100 items with 2% error), agent benchmarks are noisy and scaffold-sensitive
+- **Repeated runs**: Adding reliability requires multiple runs, multiplying costs
+- **Inference scaling**: UK-AISI scaled agentic steps into millions to study inference-time compute
+
+### Cost Reduction Strategies
+
+1. **Flash-HELM approach**: Run cheap evaluations first, spend high-resolution compute only on top candidates (100-200× reduction)
+2. **Anchor Points**: 1-30 examples can rank-order 87 model/prompt pairs on GLUE
+3. **tinyBenchmarks**: Item Response Theory to select minimal representative subsets
+4. **Caching**: Reuse rollouts across evaluations where possible
+
+> **Industry implication**: As models improve, evaluation becomes the bottleneck. Teams must budget for eval compute alongside training compute.
+
+🔗 参考：[HuggingFace: AI evals are becoming the new compute bottleneck](https://huggingface.co/blog/evaleval/eval-costs-bottleneck)
+
+---
+
+## 8.9 Key Takeaways
 
 1. **Agent evaluation is multi-dimensional** — not just text quality
 2. **SWE-bench** is the standard for coding agent evaluation
