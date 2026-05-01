@@ -229,7 +229,39 @@ flowchart TB
 
 ---
 
-## 7.4 Multi-Agent Patterns
+## 7.4 Real-World Case Study: Docker Agent Fleet (2026)
+
+Docker 团队在其 Coding Agent Sandboxes（sbx）项目中构建了一个由 7 个 AI Agent 角色组成的 "虚拟团队"，用于自动化 CI/CD 流程。这是多 Agent 协作在工程生产中的一个典型落地案例。
+
+### 核心设计理念
+
+- **角色而非脚本**：每个 Agent 是一个 SKILL.md 文件，定义角色（persona）、职责和可用工具，而非固定的执行步骤
+- **本地优先，CI 其次**：所有 Skill 先在开发者本地验证，确认行为正确后再接入 CI
+- **同一套 Skill，两个运行时**：本地终端和 CI 环境运行完全相同的 Skill 文件
+
+### 七个 Agent 角色
+
+| 角色 | 职责 |
+|------|------|
+| `/build-engineer` | 构建二进制文件、容器模板、平台特定构建标志 |
+| `/project-manager` | 去重发现结果、管理 GitHub Projects、自动化 Triage |
+| `/product-owner` | 将 commit 翻译为人类可读的发布说明 |
+| `/cli-tester` | 探索性测试，52+ 测试场景，14 个测试层级 |
+| `/performance-tester` | 生命周期耐久性测试、I/O 性能基准 |
+| `/upgrade-tester` | 四阶段升级回归测试 |
+| `/software-engineer` | 响应 GitHub issue 标签，自动修复 Bug |
+
+### 关键创新
+
+1. **PR 自动审查**：当有人在 PR 中评论 `/cli-tester-review`，CI 在 MacOS、Linux、Windows 三个平台上并行运行探索性测试，结果直接作为 PR 评论发布
+2. **去重机制**：project-manager 在创建 issue 前会通过 GraphQL 分页扫描整个项目板，避免重复
+3. **渐进式自主性**：本地运行时交互式提问，CI 中完全自动模式
+
+> 来源：[Docker Blog - A Virtual Agent team at Docker](https://www.docker.com/blog/a-virtual-agent-team-at-docker-how-the-coding-agent-sandboxes-team-uses-a-fleet-of-agents-to-ship-faster/)（2026-05-01）
+
+---
+
+## 7.5 Multi-Agent Patterns
 
 ### Common Orchestration Patterns
 
