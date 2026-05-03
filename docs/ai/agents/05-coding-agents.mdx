@@ -224,6 +224,29 @@ aider "Add error handling to all API endpoints"
 - Repository map for context
 - Auto-commit changes
 
+### Docker Agent Fleet（2026）
+
+Docker 的 Coding Agent Sandboxes（sbx）团队展示了一种全新的 Agent 使用模式——**"虚拟 Agent 团队"**：使用 Claude Code 的 Skills（Markdown 文件）定义 7 个不同的 Agent 角色，形成一个自治的 Fleet，负责测试产品、分流问题、发布笔记和修复 Bug。
+
+**设计原则**："Local First, CI Second"——每个 Skill 先在本地运行验证，再接入 CI 流水线。
+
+**7 个 Agent 角色**：
+| 角色 | 职责 |
+|------|------|
+| `/build-engineer` | 构建和部署自动化 |
+| `/project-manager` | 项目管理和任务分配 |
+| `/product-owner` | 产品决策和优先级 |
+| `/cli-tester` | 52+ 测试场景，覆盖 14 个层级 |
+| 其他 3 个角色 | 各司其职的自治 Agent |
+
+**关键启示**：
+- Agent 不再是单个工具，而是**团队化的自治系统**
+- Claude Code Skills 提供了一种轻量级的 Agent 角色定义方式
+- 20 个 Skills 中有 7 个是自治 Fleet 角色，其余是辅助功能
+- "Local First" 策略确保 Agent 行为可预测后再接入 CI
+
+> 来源：[Docker Blog](https://www.docker.com/blog/a-virtual-agent-team-at-docker-how-the-coding-agent-sandboxes-team-uses-a-fleet-of-agents-to-ship-faster/)（2026-05-01）
+
 ---
 
 ## 5.3 How Coding Agents Work
