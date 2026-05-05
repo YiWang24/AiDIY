@@ -341,13 +341,47 @@ Traditional RPA (Robotic Process Automation) is being transformed by GUI agents:
 
 ---
 
-## 6.8 Key Takeaways
+## 6.8 Computer Use vs Structured API：成本对比
+
+2026 年 5 月，Reflex.dev 发布了一项重要的基准测试，量化了 **Computer Use（视觉 Agent）** 与 **Structured API（结构化工具调用）** 之间的成本差异。
+
+### 测试设置
+
+- **任务**：在管理面板中查找特定客户、定位待处理订单、审核评论、标记发货
+- **对比方案**：同使用 Claude Sonnet，一个通过浏览器截图操作 UI，另一个通过 API 调用
+- **变量**：仅交互界面不同（屏幕 vs API）
+
+### 核心发现
+
+| 指标 | Vision Agent (Computer Use) | API Agent (Tool Use) | 差异 |
+|------|---------------------------|---------------------|------|
+| **完成步骤数** | 53 步 | 8 次调用 | 6.6x |
+| **Token 消耗** | ~551K tokens | ~12K tokens | **45x** |
+| **耗时** | 14-22 分钟 | 数秒 | ~100x |
+| **首次成功率** | 0%（需手动 walkthrough） | 100% | — |
+| **额外工程成本** | 需编写 14 步详细指引 | 无 | — |
+
+### 关键洞察
+
+1. **Computer Use 的隐性成本**：除了 token 费用，还需要为每个应用编写详细的 UI 操作 walkthrough，这是额外的工程投入
+2. **分页和折叠内容是盲区**：Vision Agent 无法感知屏幕外的内容（如需要滚动的列表项），而 API 可以直接获取完整数据
+3. **API 优先仍是最佳实践**：当目标应用提供 API 时，结构化调用在成本、速度和可靠性上全面碾压 Computer Use
+4. **Computer Use 的适用场景**：确实没有 API 的遗留系统、快速原型验证、一次性自动化任务
+
+> **Agent 架构启示**：在设计 Agent 系统时，应优先考虑通过 MCP/REST 暴露结构化 API，Computer Use 作为最后手段。为每个内部工具维护 API 表面的成本远低于持续支付 45 倍的 token 费用。
+
+> 来源：[Reflex.dev - Computer use is 45x More Expensive Than Structured APIs](https://reflex.dev/blog/computer-use-is-45x-more-expensive-than-structured-apis/)
+
+---
+
+## 6.9 Key Takeaways
 
 1. **GUI agents bridge the last mile** — interacting with applications without APIs
 2. **Claude Computer Use leads** for desktop-level interaction
 3. **OpenAI Operator leads** for web-based task automation
 4. **Safety is paramount** — always sandbox and audit agent actions
 5. **Performance gap remains** — desktop agents are still early-stage
+6. **API 优先**：Computer Use 成本是结构化 API 的 45 倍，优先使用 MCP/REST API
 
 ---
 
@@ -357,4 +391,8 @@ For web automation, try **OpenAI Operator** or open-source **Browser Use**. For 
 
 :::caution Safety First
 Never run GUI agents with access to sensitive systems without proper sandboxing and human oversight. Always review actions before they execute on production systems.
+:::
+
+:::info Cost Consideration
+根据 Reflex.dev 的基准测试，Computer Use 的 token 消耗是结构化 API 的 **45 倍**。在 Agent 架构设计中，应优先通过 MCP 或 REST API 暴露结构化接口，仅在无 API 可用时才考虑 Computer Use。
 :::

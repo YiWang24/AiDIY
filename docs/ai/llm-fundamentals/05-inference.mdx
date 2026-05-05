@@ -1038,6 +1038,33 @@ def dequantize_vector(x_q: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
 - **No training**: Works with any base model
 - **2-3x speedup**: For repetitive text
 
+### 2026: Gemma 4 Multi-Token Prediction (MTP)
+
+**Gemma 4** (Google, 2026) 采用 **Multi-Token Prediction (MTP)** 作为推理加速的核心技术，实现最高 **3x 推理加速**。与传统 speculative decoding 使用独立 draft model 不同，Gemma 4 的 MTP drafter 直接集成在模型架构中。
+
+**核心原理：**
+
+| 技术 | 传统 Speculative Decoding | Gemma 4 MTP |
+|------|--------------------------|-------------|
+| Draft 模型 | 独立的小模型 | 模型内置 MTP head |
+| 额外参数 | 完整 draft model | 轻量级线性层 |
+| 推理开销 | 需要两次前向传播 | 单次前向传播 + 多头预测 |
+| 加速比 | 2-3x | 最高 3x |
+
+**MTP Drafter 工作流程：**
+
+1. **训练阶段**：主模型额外训练多个 prediction head，每个 head 预测未来第 N 个 token
+2. **推理阶段**：主模型生成当前 token 的同时，MTP heads 并行预测后续 token
+3. **验证阶段**：使用 tree attention 一次性验证所有候选 token
+4. **接受/拒绝**：通过 acceptance criterion 决定接受多少 token
+
+**与 Medusa 的关键区别：**
+- Medusa 的 heads 是事后添加的线性层，MTP heads 与主模型联合训练
+- MTP 利用模型内部隐状态的更深层次信息
+- 在长序列场景下优势更明显
+
+> 来源：[Google Blog - Multi-token-prediction in Gemma 4](https://blog.google/innovation-and-ai/technology/developers-tools/multi-token-prediction-gemma-4/)
+
 ### Quantization
 
 Reduce precision to speed up computation and reduce memory.
