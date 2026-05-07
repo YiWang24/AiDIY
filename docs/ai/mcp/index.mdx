@@ -368,6 +368,17 @@ For developers and enterprise architects, the strategic imperative is clear: **s
 MCP has reached **97 million installs** with **400+ community servers**. The Linux Foundation's **Agentic AI Foundation** now formalizes MCP alongside Google's A2A protocol and OpenAI's AGENTS.md as foundational standards. Every major agent framework—LangGraph, CrewAI, Microsoft Agent Framework, OpenAI Agents SDK—now ships native MCP support. The "protocol wars" are settled: MCP wins tool access, A2A wins agent-to-agent networking. The analogy holds: **MCP is TCP/IP for tools; A2A is TCP/IP for agents**.
 :::
 
+:::warning May 2026: MCP 安全风险浮出水面
+MCP 被称为"AI 的 USB-C"，已被 AWS、Microsoft、Google、Apple（Xcode 26.3）及 Pinterest、SAP、Adobe 等企业广泛采用。然而，安全社区揭露了多项严重隐患：
+
+- **系统性设计漏洞**：影响约 1.5 亿次下载和 20 万个 MCP 服务器，安全专家称"无法通过补丁修复"
+- **OWASP MCP Top 10**：OWASP 发布了 MCP 专项风险清单，覆盖工具注入、权限提升、数据泄露等关键风险
+- **木马化 MCP 服务器事件**：已发现部署信息窃取恶意软件的恶意 MCP 服务器
+- **企业安全建议**：部署 MCP 网关进行流量审计和权限控制，实施最小权限原则，对第三方 MCP 服务器进行安全审查
+
+MCP 的快速普及带来了"安全债"，企业采用时需将安全审查提升为第一优先级。
+:::
+
 :::info MCP 2026 Roadmap (March 2026)
 The MCP maintainer team published their [2026 roadmap](https://modelcontextprotocol.io/development/roadmap), targeting four priority areas for production readiness:
 

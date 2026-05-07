@@ -65,6 +65,14 @@ graph TB
 > - **Google ADK 2.0** (Cloud Next '26): Agent Development Kit 重大更新，与 Gemini Enterprise Agent Platform 深度集成，支持 Gemini-native 和第三方模型。
 > - **Anthropic Project Glasswing** (April 22): 联合 AWS、Apple、Google、Microsoft、NVIDIA 等 40+ 组织的安全联盟。Claude Mythos（未发布前沿模型）展现了突破性的漏洞发现能力，但不会公开发布。
 
+|> **May 2026 developments:**
+> - **LongSeeker: Context-ReAct 弹性上下文编排**（arXiv, May 6）: 提出五种原子操作（Skip、Compress、Rollback、Snippet、Delete）动态管理 Agent 工作记忆，在 BrowseComp 上达到 61.5%，大幅超越现有方案。基于 Qwen3-30B-A3B 微调，代表了长周期搜索 Agent 的新范式。
+> - **Uno-Orchestra: 多 Agent 统一编排策略**（arXiv, May 6）: 使用强化学习联合优化任务分解、Worker/模型选择和推理预算，在 13 个基准上达到 77.0% macro pass@1（比最强基线高 16%），单次查询成本降低约 10 倍。
+> - **DecodingTrust-Agent Platform (DTap)**（arXiv, May 6）: 首个可控、交互式 AI Agent 红队测试平台，覆盖 14 个真实领域和 50+ 模拟环境（Google Workspace、PayPal、Slack），系统性发现提示注入、工具注入、技能注入等攻击向量。
+> - **Design Conductor 2.0**（arXiv, May 6）: 多 Agent 系统在 80 小时内构建 TurboQuant 推理加速器，展示了 Agent 在硬件设计领域的突破性应用。
+> - **Anthropic Claude "Dreaming"**: Anthropic 开始让 Claude 在会话间隙"做梦"——回顾历史会话发现模式并自我改进，同时大幅提升使用限额。
+> - **DeepMind AlphaEvolve**: Google DeepMind 的进化编码 Agent，结合进化搜索与 LLM 代码生成用于科学发现，已在多个领域产生实际影响。
+
 ### Feature Comparison
 
 | Feature | Spring AI | LangGraph | Microsoft Agent Framework | OpenAI Agents SDK |
