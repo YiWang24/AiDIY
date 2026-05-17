@@ -14,7 +14,7 @@
 @source "../components/ai-elements/**/*.{ts,tsx}";
 
 @theme {
-  --dark-mode: selector('[data-theme="dark"]');
+  --dark-mode: selector("[data-theme='dark']");
 }
 
 /* ---- shadcn design tokens, mapped to Docusaurus theme vars ---- */
