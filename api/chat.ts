@@ -6,6 +6,7 @@ import {
   type UIMessage,
 } from "ai";
 import { z } from "zod";
+import { waitUntil } from "@vercel/functions";
 import { glm, GLM_CHAT_MODEL } from "../lib/ai/provider";
 import { retrieve } from "../lib/rag/retrieve";
 import { ensureSession, saveMessages } from "../lib/db/queries";
@@ -60,6 +61,12 @@ export default async function handler(req: Request): Promise<Response> {
     system: SYSTEM_PROMPT,
     messages: convertToModelMessages(messages),
     stopWhen: stepCountIs(4),
+    // GLM-4.x reasoning models (e.g. glm-4.7) otherwise emit the final answer
+    // as `reasoning_content`, leaving `content` empty — the assistant bubble
+    // would render blank. Disable thinking for this docs Q&A bot.
+    providerOptions: {
+      glm: { thinking: { type: "disabled" } },
+    },
     tools: {
       kb_search: tool({
         description:
@@ -81,14 +88,17 @@ export default async function handler(req: Request): Promise<Response> {
 
   return result.toUIMessageStreamResponse({
     originalMessages: messages,
-    onFinish: async ({ messages: full }) => {
-      try {
-        await saveMessages(sessionId, full);
-      } catch (err) {
-        process.stderr.write(
-          `[api/chat] persistence failed: ${(err as Error).message ?? err}\n`,
-        );
-      }
+    onFinish: ({ messages: full }) => {
+      // Edge/Fluid runtimes terminate the function once the response body has
+      // been flushed. waitUntil keeps it alive so the Neon HTTP writes in
+      // saveMessages actually reach the database.
+      waitUntil(
+        saveMessages(sessionId, full).catch((err) => {
+          console.error(
+            `[api/chat] persistence failed: ${(err as Error).message ?? err}`,
+          );
+        }),
+      );
     },
   });
 }

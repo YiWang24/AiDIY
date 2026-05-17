@@ -161,15 +161,23 @@ export async function listMessages(
   `) as PersistedMessage[];
 }
 
+function generateMessageId(): string {
+  // 16 hex chars from cryptographic randomness; available in edge + Node 19+.
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export async function saveMessages(
   sessionId: string,
   messages: UIMessage[],
 ): Promise<void> {
   if (messages.length === 0) return;
   for (const m of messages) {
+    const id = m.id && m.id.length > 0 ? m.id : `msg-${generateMessageId()}`;
     await sql`
       INSERT INTO chat_messages (id, session_id, role, parts, metadata)
-      VALUES (${m.id}, ${sessionId}, ${m.role},
+      VALUES (${id}, ${sessionId}, ${m.role},
               ${JSON.stringify(m.parts)}::jsonb,
               ${m.metadata ? JSON.stringify(m.metadata) : null}::jsonb)
       ON CONFLICT (id) DO UPDATE
