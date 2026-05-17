@@ -41,10 +41,16 @@ export default async function handler(req: Request): Promise<Response> {
     });
   }
 
-  const { id: sessionId, messages } = body;
+  // Prefer the persistent session id from the AiDIY widget header; fall back
+  // to body.id for any non-widget caller (e.g. curl smoke tests).
+  const sessionId =
+    req.headers.get("x-aidiy-session") || (body.id as string);
+  const { messages } = body;
   if (!sessionId || !Array.isArray(messages)) {
     return new Response(
-      JSON.stringify({ error: "Request must include {id, messages}" }),
+      JSON.stringify({
+        error: "Request must include a session id (header x-aidiy-session or body.id) and messages",
+      }),
       { status: 400, headers: { "content-type": "application/json" } },
     );
   }
@@ -60,7 +66,9 @@ export default async function handler(req: Request): Promise<Response> {
     model: glm.chatModel(GLM_CHAT_MODEL),
     system: SYSTEM_PROMPT,
     messages: convertToModelMessages(messages),
-    stopWhen: stepCountIs(4),
+    // Allow up to 6 steps so the model has room for several refinement
+    // searches plus a final text answer (each tool call eats one step).
+    stopWhen: stepCountIs(6),
     // GLM-4.x reasoning models (e.g. glm-4.7) otherwise emit the final answer
     // as `reasoning_content`, leaving `content` empty — the assistant bubble
     // would render blank. Disable thinking for this docs Q&A bot.
