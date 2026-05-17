@@ -10,8 +10,7 @@ import { glm, GLM_CHAT_MODEL } from "../lib/ai/provider";
 import { retrieve } from "../lib/rag/retrieve";
 import { ensureSession, saveMessages } from "../lib/db/queries";
 
-export const config = { runtime: "nodejs" };
-export const maxDuration = 300;
+export const config = { runtime: "edge" };
 
 const SYSTEM_PROMPT = `You are the AiDIY documentation assistant.
 

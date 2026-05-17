@@ -3,7 +3,7 @@
 import type { UIMessage } from "ai";
 import { listMessages } from "../lib/db/queries";
 
-export const config = { runtime: "nodejs" };
+export const config = { runtime: "edge" };
 
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== "GET") {
