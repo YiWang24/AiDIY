@@ -1065,6 +1065,28 @@ def dequantize_vector(x_q: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
 
 > 来源：[Google Blog - Multi-token-prediction in Gemma 4](https://blog.google/innovation-and-ai/technology/developers-tools/multi-token-prediction-gemma-4/)
 
+### 2026: 异步 Continuous Batching
+
+Hugging Face 于 2026 年 5 月发布 **异步 Continuous Batching** 技术，将 LLM 推理的 GPU 利用率从 ~75% 提升至接近 100%。
+
+**核心原理：**
+
+传统 Continuous Batching 中，CPU 准备下一个 batch（tokenization、采样）与 GPU 推理是串行的，约 25% 的 GPU 时间浪费在空闲间隙上。异步 batching 将 CPU batch 准备与 GPU 计算解耦并行：
+
+| 对比维度 | 同步 Batching | 异步 Batching |
+|---------|-------------|-------------|
+| CPU/GPU 关系 | 串行（CPU 准备 → GPU 计算） | 并行（CPU 准备 ∥ GPU 计算） |
+| GPU 利用率 | ~75%（存在空闲间隙） | 接近 100% |
+| 延迟 | 较高 | 降低 |
+| 吞吐量 | 基准 | 提升 ~30% |
+
+**技术实现：**
+- CPU 端独立线程处理 prefill 请求的 tokenization 和 KV cache 分配
+- GPU 端持续执行 decode 步骤，不被 CPU 操作阻塞
+- 双缓冲区机制确保数据一致性和无锁交换
+
+> 来源：[Hugging Face Blog - Unlocking Asynchronicity in Continuous Batching](https://huggingface.co/blog/continuous_async)（May 14, 2026）
+
 ### Quantization
 
 Reduce precision to speed up computation and reduce memory.
