@@ -22,7 +22,7 @@ import {
   PromptInput,
   PromptInputBody,
   PromptInputTextarea,
-  PromptInputToolbar,
+  PromptInputFooter,
   PromptInputSubmit,
   type PromptInputMessage,
 } from "src/components/ai-elements/prompt-input";
@@ -174,9 +174,9 @@ export default function AIChatWidget(): JSX.Element {
                 ref={inputRef as React.Ref<HTMLTextAreaElement>}
                 placeholder="Ask about the docs..."
               />
-              <PromptInputToolbar className="justify-end">
+              <PromptInputFooter className="justify-end">
                 <PromptInputSubmit status={status} />
-              </PromptInputToolbar>
+              </PromptInputFooter>
             </PromptInputBody>
           </PromptInput>
         </div>
