@@ -3,5 +3,16 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "framework": "docusaurus-2",
-  "outputDirectory": "build"
+  "outputDirectory": "build",
+  "functions": {
+    "api/chat.ts": {
+      "maxDuration": 300
+    },
+    "api/messages.ts": {
+      "maxDuration": 30
+    },
+    "api/sessions.ts": {
+      "maxDuration": 30
+    }
+  }
 }

@@ -1,0 +1,46 @@
+name: Ingest docs into Neon
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "blog/**"
+      - "lib/rag/**"
+      - "lib/ai/**"
+      - "lib/db/schema.sql"
+      - "scripts/ingest.ts"
+      - "kb/tools/mdx-clean/**"
+  workflow_dispatch: {}
+
+concurrency:
+  group: ingest-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL_UNPOOLED || secrets.DATABASE_URL }}
+      GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+      GLM_BASE_URL: ${{ secrets.GLM_BASE_URL }}
+      GLM_CHAT_MODEL: ${{ secrets.GLM_CHAT_MODEL }}
+      GLM_EMBED_MODEL: ${{ secrets.GLM_EMBED_MODEL }}
+      GLM_EMBED_DIM: ${{ secrets.GLM_EMBED_DIM }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply schema (idempotent)
+        run: npx tsx scripts/migrate.ts
+
+      - name: Ingest docs
+        run: npx tsx scripts/ingest.ts

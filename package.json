@@ -12,16 +12,22 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "kb:clean": "node kb/tools/mdx-clean/bin/clean.mjs"
+    "kb:clean": "node kb/tools/mdx-clean/bin/clean.mjs",
+    "db:migrate": "node --env-file=.env.local --import tsx scripts/migrate.ts",
+    "ingest": "node --env-file=.env.local --import tsx scripts/ingest.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^1.0.0",
+    "@ai-sdk/react": "^2.0.0",
     "@docusaurus/core": "^3.7.0",
     "@docusaurus/preset-classic": "^3.7.0",
     "@docusaurus/remark-plugin-npm2yarn": "^3.9.2",
     "@docusaurus/theme-live-codeblock": "^3.9.2",
     "@docusaurus/theme-mermaid": "^3.9.2",
     "@mdx-js/react": "^3.0.0",
+    "@neondatabase/serverless": "^1.0.0",
     "@vercel/analytics": "^1.6.1",
+    "ai": "^5.0.0",
     "clsx": "^2.1.1",
     "docusaurus-plugin-copy-page-button": "^0.3.5",
     "docusaurus-plugin-image-zoom": "^3.0.1",
@@ -37,12 +43,15 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "typedoc": "^0.28.16",
-    "typedoc-plugin-markdown": "^4.9.0"
+    "typedoc-plugin-markdown": "^4.9.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.7.0",
     "@docusaurus/tsconfig": "^3.7.0",
     "@docusaurus/types": "^3.7.0",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.6.3"
   },
   "browserslist": {

@@ -1,16 +1,32 @@
 import React from "react";
 import Translate from "@docusaurus/Translate";
-import { Citation } from "../hooks/useChatSession";
+import type { RetrievedChunk } from "../types";
 import styles from "../AIChatWidget.module.css";
 
-export default function CitationList({
-  citations,
-  deduplicate,
-}: {
-  citations: Citation[];
-  deduplicate: (citations: Citation[]) => Citation[];
-}): JSX.Element | null {
-  const unique = deduplicate(citations);
+function deduplicate(chunks: RetrievedChunk[]): RetrievedChunk[] {
+  const seen = new Set<string>();
+  return chunks.filter((c) => {
+    const key = `${c.doc_id}::${c.path}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function toDocLink(rawPath: string): string {
+  // rawPath looks like "docs/cs/algorithms/index.md" — normalize to a Docusaurus
+  // route by stripping extension and any /index suffix.
+  const noExt = rawPath.replace(/\.(mdx?|MDX?)$/i, "");
+  const noIndex = noExt.replace(/\/index$/i, "");
+  return "/" + noIndex.replace(/^\/+/, "");
+}
+
+interface Props {
+  chunks: RetrievedChunk[];
+}
+
+export default function CitationList({ chunks }: Props): JSX.Element | null {
+  const unique = deduplicate(chunks);
   if (unique.length === 0) return null;
 
   return (
@@ -19,18 +35,18 @@ export default function CitationList({
         <Translate id="chatbot.sources">Sources</Translate>
       </p>
       <ul className={styles.citationsList}>
-        {unique.map((citation) => (
-          <li key={citation.id}>
+        {unique.map((c) => (
+          <li key={c.chunk_id}>
             <a
-              href={citation.path}
+              href={toDocLink(c.path)}
               target="_blank"
               rel="noopener noreferrer"
               className={styles.citationLink}
             >
-              {citation.title}
+              {c.title ?? c.path}
             </a>
             <span className={styles.citationScore}>
-              ({(citation.score * 100).toFixed(0)}%{" "}
+              ({(c.score * 100).toFixed(0)}%{" "}
               <Translate id="chatbot.match">match</Translate>)
             </span>
           </li>
