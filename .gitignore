@@ -42,9 +42,12 @@ yarn-error.log*
 # Vercel
 .vercel/
 
-# Project lib/ — global gitignore excludes lib/ by default; force-include here.
+# Project lib/ + src/lib/ — global gitignore excludes any lib/ by default;
+# force-include the project ones here.
 !/lib
 !/lib/**
+!src/lib
+!src/lib/**
 
 # OS
 Thumbs.db

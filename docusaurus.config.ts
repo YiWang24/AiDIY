@@ -71,7 +71,10 @@ const config = {
           rehypePlugins: [require('rehype-katex')],
         },
         theme: {
-          customCss: require.resolve("./src/css/custom.css"),
+          customCss: [
+            require.resolve("./src/css/custom.css"),
+            require.resolve("./src/css/tailwind.css"),
+          ],
         },
       }),
     ],
@@ -88,6 +91,34 @@ const config = {
   plugins: [
     "docusaurus-plugin-image-zoom", // Click to zoom images
     "docusaurus-plugin-copy-page-button", // Copy entire page as markdown
+    // Tailwind v4 — adds @tailwindcss/postcss into Docusaurus's PostCSS pipeline.
+    // Scoped to .ai-chat-widget via tailwind.css to avoid touching docs content.
+    function tailwindcssPlugin() {
+      return {
+        name: "tailwindcss-plugin",
+        configurePostCss(postcssOptions: { plugins: unknown[] }) {
+          postcssOptions.plugins.push(require("@tailwindcss/postcss"));
+          return postcssOptions;
+        },
+      };
+    },
+    // shadcn / AI Elements components use bare imports like "src/components/..."
+    // and "src/lib/utils". webpack doesn't read tsconfig baseUrl, so wire it here.
+    function webpackAliasPlugin() {
+      const path = require("path");
+      return {
+        name: "webpack-alias-plugin",
+        configureWebpack() {
+          return {
+            resolve: {
+              alias: {
+                src: path.resolve(__dirname, "src"),
+              },
+            },
+          };
+        },
+      };
+    },
   ],
 
   // Markdown settings - enable Mermaid and MDX
