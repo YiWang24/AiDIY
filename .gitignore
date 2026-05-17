@@ -76,3 +76,4 @@ htmlcov/
 dist/
 build/
 .vercel
+.gstack/
