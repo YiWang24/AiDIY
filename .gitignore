@@ -42,6 +42,10 @@ yarn-error.log*
 # Vercel
 .vercel/
 
+# Project lib/ — global gitignore excludes lib/ by default; force-include here.
+!/lib
+!/lib/**
+
 # OS
 Thumbs.db
 
@@ -68,3 +72,4 @@ htmlcov/
 *.egg-info/
 dist/
 build/
+.vercel

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Message } from "../hooks/useChatSession";
+import type { UIMessage } from "ai";
 import CitationList from "./CitationList";
+import type { RetrievalToolOutput } from "../types";
 import styles from "../AIChatWidget.module.css";
 
 function StreamingBar() {
@@ -11,7 +12,6 @@ function StreamingBar() {
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
-
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(text);
@@ -21,7 +21,6 @@ function CopyButton({ text }: { text: string }) {
       /* ignore */
     }
   };
-
   return (
     <button
       className={styles.messageActionBtn}
@@ -43,58 +42,68 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+interface Props {
+  message: UIMessage;
+  isStreaming: boolean;
+}
+
+// Extract text content across all text parts of a message.
+function extractText(message: UIMessage): string {
+  return (message.parts ?? [])
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map((p) => p.text)
+    .join("\n\n");
+}
+
+function isToolPart(
+  part: UIMessage["parts"][number],
+): part is { type: string; state?: string; output?: unknown; input?: unknown } {
+  return typeof part.type === "string" && part.type.startsWith("tool-");
+}
+
 export default function MessageBubble({
   message,
-  deduplicateCitations,
-}: {
-  message: Message;
-  deduplicateCitations: (citations: Message["citations"]) => NonNullable<Message["citations"]>;
-}): JSX.Element {
+  isStreaming,
+}: Props): JSX.Element {
   const isUser = message.role === "user";
+  const text = extractText(message);
+
+  const kbToolParts = (message.parts ?? []).filter(
+    (p) => isToolPart(p) && p.type === "tool-kb_search",
+  );
+
+  const allChunks = kbToolParts.flatMap((p) => {
+    const out = (p as { output?: RetrievalToolOutput }).output;
+    return out?.chunks ?? [];
+  });
+
+  const totalRetrievalMs = kbToolParts.reduce((sum, p) => {
+    const out = (p as { output?: RetrievalToolOutput }).output;
+    return sum + (out?.retrieval_time_ms ?? 0);
+  }, 0);
 
   return (
     <div
       className={`${styles.message} ${isUser ? styles.messageUser : styles.messageAssistant}`}
     >
       <div className={styles.messageBubble}>
-        {/* Retrieval Status */}
-        {message.isStreaming &&
-          message.retrievalChunks &&
-          message.retrievalChunks.length > 0 && (
-            <div className={styles.retrievalStatus}>
-              <span className={styles.retrievalBadge}>
-                Retrieved {message.retrievalChunks.length} chunks
-              </span>
-              {message.retrievalTimeMs && (
-                <span className={styles.timeBadge}>
-                  {message.retrievalTimeMs}ms
-                </span>
-              )}
-            </div>
-          )}
-
-        {/* Agent Type Badge */}
-        {message.agentType && (
-          <div className={styles.agentBadge}>
-            {message.agentType === "knowledge" && "Knowledge Base"}
-            {message.agentType === "web_search" && "Web Search"}
-            {message.agentType === "hybrid" && "Hybrid (KB + Web)"}
-            {message.agentType === "hybrid_knowledge" && "Knowledge Base"}
+        {isStreaming && allChunks.length > 0 && (
+          <div className={styles.retrievalStatus}>
+            <span className={styles.retrievalBadge}>
+              Retrieved {allChunks.length} chunks
+            </span>
+            {totalRetrievalMs > 0 && (
+              <span className={styles.timeBadge}>{totalRetrievalMs}ms</span>
+            )}
           </div>
         )}
 
-        {/* Content */}
-        {message.content ? (
+        {text ? (
           <div className={styles.markdownContent}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                code({
-                  inline,
-                  className,
-                  children,
-                  ...props
-                }: any) {
+                code({ inline, className, children, ...props }: any) {
                   return !inline ? (
                     <code className={className} {...props}>
                       {children}
@@ -114,43 +123,29 @@ export default function MessageBubble({
                 },
               }}
             >
-              {message.content}
+              {text}
             </ReactMarkdown>
           </div>
-        ) : message.isStreaming ? (
+        ) : isStreaming ? (
           <StreamingBar />
         ) : null}
 
-        {/* Performance Metrics */}
-        {!message.isStreaming &&
-          (message.retrievalTimeMs || message.generationTimeMs) && (
-            <div className={styles.performanceMetrics}>
-              {message.retrievalTimeMs && (
-                <span className={styles.metric}>
-                  Retrieval: {message.retrievalTimeMs}ms
-                </span>
-              )}
-              {message.generationTimeMs && (
-                <span className={styles.metric}>
-                  Generation: {message.generationTimeMs}ms
-                </span>
-              )}
-            </div>
-          )}
+        {!isStreaming && totalRetrievalMs > 0 && (
+          <div className={styles.performanceMetrics}>
+            <span className={styles.metric}>
+              Retrieval: {totalRetrievalMs}ms
+            </span>
+          </div>
+        )}
 
-        {/* Citations */}
-        {message.citations && message.citations.length > 0 && (
-          <CitationList
-            citations={message.citations}
-            deduplicate={deduplicateCitations}
-          />
+        {!isUser && allChunks.length > 0 && (
+          <CitationList chunks={allChunks} />
         )}
       </div>
 
-      {/* Message Actions — assistant only */}
-      {!isUser && message.content && !message.isStreaming && (
+      {!isUser && text && !isStreaming && (
         <div className={styles.messageActions}>
-          <CopyButton text={message.content} />
+          <CopyButton text={text} />
         </div>
       )}
     </div>
