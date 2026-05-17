@@ -168,6 +168,27 @@ flowchart LR
 | **Switch Transformer** | 1.6T | TBD | 2048 | 1 | Research milestone |
 | **GLaM** | 1.2T | TBD | 64 | 2 | Google's trillion-parameter model |
 
+### 2026: EMO — Emergent Modularity via End-to-End MoE Pretraining
+
+**EMO**（Ai2, May 2026）代表了 MoE 架构的新范式：让模块化结构从数据中自然涌现，而非人工设计路由规则。
+
+**核心创新：**
+- **端到端预训练**：整个 MoE 结构（包括路由和专家）从头联合训练，无需预定义专家分工
+- **涌现式模块化**：模型自动学会将不同能力分配给不同专家，形成可解释的功能专门化
+- **高效推理**：每个任务仅需激活 12.5% 的专家，同时保持接近全量模型的性能
+- **完全开源**：模型权重、代码和可视化工具全部公开
+
+**与 DeepSeek-V3 的对比：**
+
+| 维度 | DeepSeek-V3 | EMO |
+|------|------------|-----|
+| 专家数量 | 256 | 可变（涌现决定） |
+| 路由机制 | 预定义 Top-K | 端到端学习 |
+| 模块化来源 | 人工设计 | 从数据中涌现 |
+| 开源程度 | 模型权重 | 全栈（模型+代码+可视化） |
+
+> 来源：[Hugging Face Blog - EMO](https://huggingface.co/blog/allenai/emo)（May 8, 2026）
+
 ### Why MoE Matters
 
 **Training Efficiency**:

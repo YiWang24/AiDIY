@@ -41,8 +41,11 @@ Vectors capture semantic relationships between concepts. For example, the vector
 | **all-MiniLM-L6-v2** | 384 | Static (sentence encoder) |
 | **BERT-base** | 768 | Contextual (encoder) |
 | **RoBERTa** | 1,024 | Contextual (encoder) |
+| **Granite Embedding Multilingual R2** | 768/1024 | 多语言文本/代码，Apache 2.0，200+ 语言，32K 上下文 |
 
 > **2026年4月更新**：Google 发布 **Gemini Embedding 2** GA 版本，这是首个原生多模态嵌入模型，支持文本、图像、视频和音频的统一向量表示。通过 Gemini API 和 Gemini Enterprise Agent Platform 提供，适用于电商搜索、视频分析等跨模态检索场景。
+
+> **2026年5月更新**：IBM 发布 **Granite Embedding Multilingual R2**（Apache 2.0），基于 ModernBERT 架构的两个开源多语言嵌入模型——97M 紧凑版（MTEB Multilingual Retrieval 60.3，百 M 以下最佳）和 311M 标准版（MTEB 65.2）。支持 200+ 语言、32K token 上下文（比 R1 扩展 64 倍）、9 种编程语言的代码检索，以及 Matryoshka 维度截断。此模型填补了开源高质量多语言嵌入模型的空白。[Hugging Face Blog](https://huggingface.co/blog/ibm-granite/granite-embedding-multilingual-r2)（May 14, 2026）
 
 ---
 
