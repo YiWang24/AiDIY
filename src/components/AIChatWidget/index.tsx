@@ -5,6 +5,7 @@ import {
   ChevronDownIcon,
   ExternalLinkIcon,
   LinkIcon,
+  MessageCircleIcon,
   RotateCcwIcon,
   SearchCheckIcon,
   SparklesIcon,
@@ -126,11 +127,14 @@ function ChatWidgetInner({
         <AssistantModalPrimitive.Anchor className="fixed bottom-6 right-6 z-[60] size-14">
           <AssistantModalPrimitive.Trigger
             asChild
-            className="group size-full rounded-full bg-neutral-900 text-white shadow-xl ring-1 ring-black/5 transition hover:scale-[1.04] hover:bg-neutral-800 data-[state=open]:rotate-90 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
+            className="group size-full rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 text-white shadow-lg shadow-indigo-500/20 ring-1 ring-white/10 transition-all duration-300 hover:scale-110 hover:shadow-indigo-500/40 data-[state=open]:rotate-90"
             aria-label="AiDIY Assistant"
           >
             <button type="button">
-              <SparklesIcon className="mx-auto size-6 transition-transform group-data-[state=open]:opacity-0" />
+              <div className="relative flex size-full items-center justify-center transition-transform group-data-[state=open]:opacity-0">
+                <MessageCircleIcon className="size-8 fill-white/20" />
+                <SparklesIcon className="absolute top-2.5 right-2.5 size-4 fill-white" />
+              </div>
               <XIcon className="absolute inset-0 m-auto size-6 opacity-0 transition-opacity group-data-[state=open]:opacity-100" />
             </button>
           </AssistantModalPrimitive.Trigger>
@@ -138,7 +142,7 @@ function ChatWidgetInner({
 
         <AssistantModalPrimitive.Content
           sideOffset={16}
-          className="z-[70] flex h-[640px] max-h-[80vh] w-[420px] max-w-[92vw] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-950"
+          className="z-[70] flex h-[720px] max-h-[85vh] w-[440px] max-w-[95vw] flex-col overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-950 transition-all"
         >
           <Header onClear={onStartNew} />
           <Thread />

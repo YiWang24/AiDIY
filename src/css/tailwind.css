@@ -13,6 +13,10 @@
 @source "../components/AIChatWidget/**/*.{ts,tsx}";
 @source "../components/ai-elements/**/*.{ts,tsx}";
 
+@theme {
+  --dark-mode: selector('[data-theme="dark"]');
+}
+
 /* ---- shadcn design tokens, mapped to Docusaurus theme vars ---- */
 @layer theme {
   :root {
