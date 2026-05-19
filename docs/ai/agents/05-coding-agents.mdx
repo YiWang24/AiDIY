@@ -350,7 +350,7 @@ xychart-beta
 SWE-bench scores improve rapidly。GPT-5.5（2026年4月23日）在 SWE-Bench Pro 上达到 58.6%，在 Terminal-Bench 2.0 上达到 82.7%，创下 Agentic Coding 新 SOTA。值得注意的是，OpenAI 从 GPT-5.4 起已将独立的 Codex 编程模型合并入主模型，不再维护单独的编程产品线。Moonshot AI 的开源模型 Kimi K2.6 也以 58.6% 的成绩追平 GPT-5.5。以上数据为近似快照，请查看 [官方排行榜](https://www.swebench.com/) 获取最新结果。
 
 **2026年5月动态：**
-- **Cursor Composer 2.5**（May 18）: 基于 Kimi K2.5（Moonshot AI）训练，在 25 倍合成任务量上完成训练。SWE-Bench Multilingual 达到 79.8%，CursorBench v3.1 达到 63.2%，与 Opus 4.7 和 GPT-5.5 持平，但定价仅 $0.50/$2.50 每百万 token，成本优势显著
+- **Cursor Composer 2.5**（May 18）: 基于 Kimi K2.5（Moonshot AI）训练，在 25 倍合成任务量上完成训练。SWE-Bench Multilingual 达到 79.8%，CursorBench v3.1 达到 63.2%，与 Opus 4.7 和 GPT-5.5 持平，但定价仅 $0.50/$2.50 每百万 token，成本优势显著。训练创新包括：**Targeted RL with Textual Feedback**（在长 rollout 中对特定错误提供本地化文本反馈，而非仅依赖全局奖励）、**25 倍合成任务量**（含特征删除等新颖方法）、**Sharded Muon 优化器** + HSDP 并行。此外 Cursor 宣布与 SpaceXAI 合作训练全新大模型，使用 Colossus 2 百万 H100 等效算力
 - **Docker: Coding Agent 安全危机**（May 18）: Docker 发布深度报告揭示 AI Coding Agent 的安全风险——包括代码注入、依赖混淆、密钥泄露等攻击向量，强调沙箱隔离和安全审查的重要性
 - **Zerostack**（May 17）: 受 Unix 哲学启发的纯 Rust 编码 Agent，以可组合、最小化为设计理念，在 HN 上获得 518 点关注，是轻量级 Agent 架构的代表
 - **OpenAI 产品重组**（May 17）: Greg Brockman 接管产品策略，计划将 Codex、ChatGPT 和 Atlas 浏览器整合为"超级应用"，编程 Agent 正从工具走向平台化
