@@ -357,6 +357,9 @@ SWE-bench scores improve rapidly。GPT-5.5（2026年4月23日）在 SWE-Bench Pr
 - **Semble**（May 17）: 专为 AI Agent 设计的代码搜索工具，比 grep 减少 98% 的 token 消耗，优化了 Agent 在大型代码库中的上下文效率
 - **Qwen3.7-Max**（May 19）: 阿里巴巴通义千问团队发布 "Agent Frontier" 模型，在多个 Coding Agent 基准上达到 SOTA：Terminal-Bench 2.0-Terminus 69.7%、SWE-Pro 60.6%、SWE-Multilingual 78.3%、SciCode 53.5%。该模型还展示了跨 Agent 框架的通用能力，在 Claude Code、OpenClaw、Qwen Code 等多种 scaffold 上表现一致。曾完成 35 小时、超过 1000 次工具调用的全自主内核优化任务
 - **Docker Gordon**（May 19）: Docker 发布 GA 的 AI Agent，集成于 Docker Desktop 4.74+ 和 CLI。Gordon 拥有 shell 访问、文件系统操作、Docker CLI、文档知识库和网络访问能力。它能读取运行中容器的日志、镜像、compose 文件和工作目录，提供上下文感知的调试、容器化、优化和管理功能。与 Cursor/Copilot/Claude Code 的关键区别：Gordon 理解你的实际容器环境而非仅依赖粘贴的内容
+- **Anthropic Code with Claude 2026**（May 6 SF / May 19 London / June 10 Tokyo）: Anthropic 第二届开发者大会，未发布新模型，聚焦 Agent 基础设施。五大发布：**Dreaming**（跨会话记忆调度，在会话间自动提取模式并优化 Agent 记忆）、**Outcomes**（独立评分 Agent 对输出质量把关，PPT 质量提升 10.1%）、**Multi-Agent Orchestration**（Lead Agent + 专家子 Agent 并行协作）、**Claude Finance**（10 个预构建金融 Agent）、**Add-ins**（Claude 直接嵌入 Word 等生产力软件内部工作）。Boris Cherny（Claude Code 创始人）透露 Anthropic 内部已无手动编写代码。需求在 2026 年已增长 80 倍，与 SpaceX 签署算力协议。上下文窗口仍约 100 万 token，短期内无突破。缓存命中率需达 80%+，Cursor/Replit/Claude Code 均在 90%+。瓶颈已从编码转移到审查、验证和跨团队协调
+- **Runtime（YC P26）**（May 21）: Y Combinator P26 批次推出的沙箱化 Coding Agent 平台，支持 Claude Code、Cursor、Codex、Copilot、Gemini CLI 等多种 Agent 可互换。核心能力：预构建沙箱环境、可标记团队 Agent、实时协作、治理与可观测性（工具调用追踪、成本追踪、限额与审批）。支持 Slack/Linear/GitHub/Jira 集成，可自托管（MIT/Apache 2.0/AGPL v3 混合许可）
+- **Google I/O 2026 — Gemini 3.5 Flash**（May 20）: Google 发布 Gemini 3.5 Flash，号称迄今最强 Agentic/Coding 模型，比部分竞品快约 4 倍。Gemini 3.5 Pro 预计下月发布。同期推出 **Gemini Spark** 云端 AI Agent（后台持续运行、Chrome 集成）、**Gemini Omni** 视频生成模型、Android XR 智能眼镜（与 Samsung/Warby Parker 合作）。Gemini 月活用户从 4 亿增至 9 亿+，搜索 AI 模式用户超 10 亿月活
 :::
 
 ---
