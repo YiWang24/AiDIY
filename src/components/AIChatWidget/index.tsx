@@ -20,7 +20,6 @@ import {
   MessagePrimitive,
   ThreadPrimitive,
   makeAssistantToolUI,
-  useThreadRuntime,
 } from "@assistant-ui/react";
 import {
   AssistantChatTransport,
@@ -181,7 +180,12 @@ function ChatWidgetInner({
     [],
   );
 
-  const runtime = useChatRuntime({ transport, messages: initialMessages });
+  // Capture initialMessages once at mount time. Passing a stable ref value
+  // prevents any potential reactive reset inside useChatRuntime during
+  // streaming. The key={sessionId} on this component's parent ensures a
+  // fresh mount (and thus correct initial messages) on session change.
+  const initialMessagesRef = useRef(initialMessages);
+  const runtime = useChatRuntime({ transport, messages: initialMessagesRef.current });
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
@@ -217,11 +221,6 @@ function ChatWidgetInner({
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Header({ onClear }: { onClear: () => string }): JSX.Element {
-  const runtime = useThreadRuntime();
-  const handleClear = () => {
-    runtime.import({ messages: [] });
-    onClear();
-  };
   return (
     <div className="flex items-center justify-between border-b border-neutral-100 bg-white/80 px-6 py-4 backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-950/80">
       <div className="flex items-center gap-3">
@@ -240,7 +239,7 @@ function Header({ onClear }: { onClear: () => string }): JSX.Element {
       <div className="flex items-center gap-1">
         <button
           type="button"
-          onClick={handleClear}
+          onClick={onClear}
           aria-label="New conversation"
           className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
         >
@@ -358,20 +357,7 @@ function AssistantMessage(): JSX.Element {
   return (
     <MessagePrimitive.Root className="mb-6 flex justify-start">
       <div className="max-w-[95%] space-y-2 text-sm text-neutral-900 dark:text-neutral-100">
-        <MessagePrimitive.Parts
-          components={{
-            Text: () => (
-              <div className="prose prose-sm max-w-none rounded-[1.25rem] rounded-tl-none border border-neutral-200 bg-white px-4 py-3 shadow-sm dark:prose-invert dark:border-neutral-800 dark:bg-neutral-900">
-                <MarkdownTextPrimitive />
-              </div>
-            ),
-            tools: {
-              by_name: {
-                kb_search: KbSearchToolUI,
-              },
-            },
-          }}
-        />
+        <MessagePrimitive.Parts components={PARTS_COMPONENTS} />
       </div>
     </MessagePrimitive.Root>
   );
@@ -442,3 +428,34 @@ function dedupeChunks(chunks: RetrievedChunk[]): RetrievedChunk[] {
     return true;
   });
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Module-level component definitions — MUST live outside any render function.
+//
+// React identifies component types by reference. If `Text` is defined inline
+// inside `AssistantMessage` (e.g. as `Text: () => <div>...</div>`), every
+// render of `AssistantMessage` creates a brand-new function reference. React
+// sees a "different" component type, unmounts the old one, and mounts a fresh
+// copy. MarkdownTextPrimitive resubscribes to the runtime on mount, which
+// fires a state update, which re-renders AssistantMessage, which creates yet
+// another new function… → infinite render loop at 100% CPU.
+//
+// Defining them at module level gives a single, stable reference forever.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function AssistantTextPart(): JSX.Element {
+  return (
+    <div className="prose prose-sm max-w-none rounded-[1.25rem] rounded-tl-none border border-neutral-200 bg-white px-4 py-3 shadow-sm dark:prose-invert dark:border-neutral-800 dark:bg-neutral-900">
+      <MarkdownTextPrimitive />
+    </div>
+  );
+}
+
+const PARTS_COMPONENTS = {
+  Text: AssistantTextPart,
+  tools: {
+    by_name: {
+      kb_search: KbSearchToolUI,
+    },
+  },
+} as const;
