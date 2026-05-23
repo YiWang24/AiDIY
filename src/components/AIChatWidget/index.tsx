@@ -53,27 +53,39 @@ function toDocLink(rawPath: string): string {
   return "/" + noIndex.replace(/^\/+/, "");
 }
 
-export default function AIChatWidget(): JSX.Element | null {
-  const { sessionId, startNew } = useSessionId();
-  if (!sessionId) return null;
-  return <ChatWidgetInner sessionId={sessionId} onStartNew={startNew} />;
+// ─────────────────────────────────────────────────────────────────────────────
+// Trigger button shared styles — used by both the loading stub and the real
+// AssistantModalPrimitive.Trigger so they look identical.
+// ─────────────────────────────────────────────────────────────────────────────
+const TRIGGER_CLS =
+  "group size-full rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 text-white shadow-lg shadow-indigo-500/20 ring-1 ring-white/10 transition-all duration-300 hover:scale-110 hover:shadow-indigo-500/40 data-[state=open]:rotate-90";
+
+function TriggerIconContent(): JSX.Element {
+  return (
+    <>
+      <div className="relative flex size-full items-center justify-center transition-transform group-data-[state=open]:opacity-0">
+        <MessageCircleIcon className="size-8 fill-white/20" />
+        <SparklesIcon className="absolute top-2.5 right-2.5 size-4 fill-white" />
+      </div>
+      <XIcon className="absolute inset-0 m-auto size-6 opacity-0 transition-opacity group-data-[state=open]:opacity-100" />
+    </>
+  );
 }
 
-function ChatWidgetInner({
-  sessionId,
-  onStartNew,
-}: {
-  sessionId: string;
-  onStartNew: () => string;
-}): JSX.Element | null {
-  const sessionIdRef = useRef<string>(sessionId);
-  useEffect(() => {
-    sessionIdRef.current = sessionId;
-  }, [sessionId]);
+// ─────────────────────────────────────────────────────────────────────────────
+// Root — shows button immediately; switches to the full runtime-backed widget
+// once history has been fetched (usually <300ms, invisible to the user).
+// ─────────────────────────────────────────────────────────────────────────────
 
+export default function AIChatWidget(): JSX.Element {
+  const { sessionId, startNew } = useSessionId();
+  // Track whether the user clicked the stub button before history loaded.
+  const [pendingOpen, setPendingOpen] = useState(false);
   const [initialMessages, setInitialMessages] = useState<UIMessage[] | null>(
     null,
   );
+
+  // Fetch chat history eagerly — usually ready before the user has time to click.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -81,8 +93,9 @@ function ChatWidgetInner({
         const res = await fetch(
           `/api/messages?sessionId=${encodeURIComponent(sessionId)}`,
         );
+        if (cancelled) return;
         if (!res.ok) {
-          if (!cancelled) setInitialMessages([]);
+          setInitialMessages([]);
           return;
         }
         const data = (await res.json()) as { messages: UIMessage[] };
@@ -95,6 +108,63 @@ function ChatWidgetInner({
     return () => {
       cancelled = true;
     };
+  }, [sessionId]);
+
+  // While history is loading show a visually identical stub button (no runtime).
+  // The stub is replaced by the real AssistantModalPrimitive.Trigger the moment
+  // history arrives — seamless because they look exactly the same.
+  if (initialMessages === null) {
+    return (
+      <div className="ai-chat-widget">
+        <div className="fixed bottom-6 right-6 z-[60] size-14">
+          <button
+            type="button"
+            className={TRIGGER_CLS}
+            aria-label="AiDIY Assistant"
+            onClick={() => setPendingOpen(true)}
+          >
+            <TriggerIconContent />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // History ready — mount the full widget.
+  // key=sessionId forces a clean remount whenever the session changes (clear chat).
+  return (
+    <ChatWidgetInner
+      key={sessionId}
+      sessionId={sessionId}
+      initialMessages={initialMessages}
+      onStartNew={() => {
+        setInitialMessages([]);
+        return startNew();
+      }}
+      defaultOpen={pendingOpen}
+    />
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Full chat widget — identical to the original structure so AssistantModalPrimitive
+// and ComposerPrimitive get all the context they need.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ChatWidgetInner({
+  sessionId,
+  initialMessages,
+  onStartNew,
+  defaultOpen,
+}: {
+  sessionId: string;
+  initialMessages: UIMessage[];
+  onStartNew: () => string;
+  defaultOpen: boolean;
+}): JSX.Element {
+  const sessionIdRef = useRef<string>(sessionId);
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
   }, [sessionId]);
 
   const transport = useMemo(
@@ -111,31 +181,20 @@ function ChatWidgetInner({
     [],
   );
 
-  const runtime = useChatRuntime({
-    transport,
-    messages: initialMessages ?? undefined,
-  });
-
-  // Wait for history fetch before mounting — useChatRuntime locks in
-  // `messages` on first render, so we can't seed it asynchronously.
-  if (initialMessages === null) return null;
+  const runtime = useChatRuntime({ transport, messages: initialMessages });
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <div className="ai-chat-widget">
-        <AssistantModalPrimitive.Root>
+        <AssistantModalPrimitive.Root defaultOpen={defaultOpen}>
           <AssistantModalPrimitive.Anchor className="fixed bottom-6 right-6 z-[60] size-14">
             <AssistantModalPrimitive.Trigger
               asChild
-              className="group size-full rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 text-white shadow-lg shadow-indigo-500/20 ring-1 ring-white/10 transition-all duration-300 hover:scale-110 hover:shadow-indigo-500/40 data-[state=open]:rotate-90"
+              className={TRIGGER_CLS}
               aria-label="AiDIY Assistant"
             >
               <button type="button">
-                <div className="relative flex size-full items-center justify-center transition-transform group-data-[state=open]:opacity-0">
-                  <MessageCircleIcon className="size-8 fill-white/20" />
-                  <SparklesIcon className="absolute top-2.5 right-2.5 size-4 fill-white" />
-                </div>
-                <XIcon className="absolute inset-0 m-auto size-6 opacity-0 transition-opacity group-data-[state=open]:opacity-100" />
+                <TriggerIconContent />
               </button>
             </AssistantModalPrimitive.Trigger>
           </AssistantModalPrimitive.Anchor>
@@ -152,6 +211,10 @@ function ChatWidgetInner({
     </AssistantRuntimeProvider>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI components
+// ─────────────────────────────────────────────────────────────────────────────
 
 function Header({ onClear }: { onClear: () => string }): JSX.Element {
   const runtime = useThreadRuntime();
