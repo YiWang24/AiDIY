@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 
 const STORAGE_KEY = "aidiy.chat.sessionId";
 
@@ -7,28 +7,23 @@ function generateId(): string {
   return `s-${Date.now()}-${rand}`;
 }
 
-// Persists the current session id in localStorage so refresh keeps the same
-// conversation. SSR-safe: returns null until mounted.
+// Reads localStorage synchronously via lazy useState initializer.
+// Safe because this component is always wrapped in <BrowserOnly> — no SSR.
 export default function useSessionId(): {
-  sessionId: string | null;
+  sessionId: string;
   startNew: () => string;
   setSessionId: (id: string) => void;
 } {
-  const [sessionId, setSessionIdState] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+  const [sessionId, setSessionIdState] = useState<string>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
     const id = stored ?? generateId();
-    if (!stored) window.localStorage.setItem(STORAGE_KEY, id);
-    setSessionIdState(id);
-  }, []);
+    if (!stored) localStorage.setItem(STORAGE_KEY, id);
+    return id;
+  });
 
   const setSessionId = useCallback((id: string) => {
     setSessionIdState(id);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, id);
-    }
+    localStorage.setItem(STORAGE_KEY, id);
   }, []);
 
   const startNew = useCallback(() => {
