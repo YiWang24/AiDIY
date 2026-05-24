@@ -37,6 +37,14 @@ Modern LLMs universally use **Subword Tokenization** (specifically BPE or varian
 - **Multilingual optimization**: SentencePiece with Unigram outperforms BPE for morphologically rich languages
 - **Efficiency improvements**: BlockBPE and parallel tokenization for faster inference
 
+### 2026: Tokenisation via Convex Relaxations
+
+论文 [Tokenisation via Convex Relaxations](https://arxiv.org/abs/2605.22821) 提出用凸松弛方法替代 BPE 和 Unigram 的贪心算法。当前 tokenizer 的贪心决策在局部最优，无法保证全局最优的 token 分割。新方法将 tokenisation 建模为可优化的凸问题，理论上可以找到更好的词汇表和分割策略。
+
+**意义**：如果 tokenisation 的质量上限被提升，所有下游任务（语言理解、生成、推理）都可能受益。
+
+> 来源：[arXiv:2605.22821](https://arxiv.org/abs/2605.22821)（2026-05）
+
 ---
 
 ## Byte Pair Encoding (BPE)
