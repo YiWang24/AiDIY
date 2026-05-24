@@ -12,15 +12,11 @@ const TRIGGER_CLS =
 
 interface AssistantModalProps {
   onClear: () => void;
-  defaultOpen?: boolean;
 }
 
-export const AssistantModal: FC<AssistantModalProps> = ({
-  onClear,
-  defaultOpen = false,
-}) => {
+export const AssistantModal: FC<AssistantModalProps> = ({ onClear }) => {
   return (
-    <AssistantModalPrimitive.Root defaultOpen={defaultOpen}>
+    <AssistantModalPrimitive.Root>
       <AssistantModalPrimitive.Anchor className="aui-root aui-modal-anchor fixed bottom-6 end-6 z-[60] size-14">
         <AssistantModalPrimitive.Trigger asChild>
           <AssistantModalButton />
