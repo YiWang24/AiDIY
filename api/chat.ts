@@ -16,10 +16,11 @@ export const config = { runtime: "edge" };
 const SYSTEM_PROMPT = `You are the AiDIY documentation assistant.
 
 You answer questions about computer science, AI engineering, backend/frontend
-engineering, and case studies hosted on this site. Always call the kb_search
-tool first to ground your answer in the docs. Cite specific sources by their
-path when you use them. If the knowledge base lacks the answer, say so plainly
-instead of inventing facts.`;
+engineering, and case studies hosted on this site. Call kb_search 1–3 times
+at most to find relevant context, then write your answer directly. Do not
+search more times than necessary to answer the question. Cite specific sources
+by their path when you use them. If the knowledge base lacks the answer, say
+so plainly instead of inventing facts.`;
 
 interface ChatRequestBody {
   id: string;
@@ -66,9 +67,9 @@ export default async function handler(req: Request): Promise<Response> {
     model: glm.chatModel(GLM_CHAT_MODEL),
     system: SYSTEM_PROMPT,
     messages: convertToModelMessages(messages),
-    // Allow up to 6 steps so the model has room for several refinement
+    // Allow up to 10 steps so the model has room for several refinement
     // searches plus a final text answer (each tool call eats one step).
-    stopWhen: stepCountIs(6),
+    stopWhen: stepCountIs(10),
     // GLM-4.x reasoning models (e.g. glm-4.7) otherwise emit the final answer
     // as `reasoning_content`, leaving `content` empty — the assistant bubble
     // would render blank. Disable thinking for this docs Q&A bot.
