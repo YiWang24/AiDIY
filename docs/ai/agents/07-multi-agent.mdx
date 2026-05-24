@@ -479,7 +479,37 @@ app = workflow.compile()
 
 ---
 
-## 7.8 Key Takeaways
+## 7.8 Multi-Agent 安全与基础设施
+
+### LCGuard：多 Agent 潜在通信安全（2026）
+
+论文 [LCGuard](https://arxiv.org/abs/2605.22786) 关注 LLM 多 Agent 系统中一个新兴的安全问题：当 Agent 之间通过 KV Cache（而非自然语言）共享中间状态时，可能产生**潜在信道泄露**。
+
+**核心问题**：
+- 多 Agent 系统中，为提高效率开始使用共享 KV Cache 进行通信
+- KV Cache 中可能编码了敏感信息（用户隐私、内部推理过程）
+- 恶意 Agent 可以通过分析 KV Cache 的统计特征推断其他 Agent 的输入
+
+**LCGuard 方案**：通过在 KV 共享层添加潜在的通信守卫，过滤敏感信息的同时保持协作效率。
+
+> 来源：[arXiv:2605.22786](https://arxiv.org/abs/2605.22786)（2026-05）
+
+### DeltaBox：毫秒级沙盒检查点/回滚（2026）
+
+论文 [DeltaBox](https://arxiv.org/abs/2605.22781) 解决了 LLM Agent 高频状态探索的基础设施问题——为 AI Agent 提供毫秒级的完整沙盒状态检查点和回滚能力。
+
+**应用场景**：
+- 测试时树搜索（test-time tree search）
+- 强化学习训练中的 episode 回滚
+- Agent 错误恢复和状态探索
+
+**技术亮点**：基于增量的 C/R 机制，避免了传统虚拟机快照的巨大开销，使 Agent 可以在毫秒级保存和恢复完整的文件系统 + 进程状态。
+
+> 来源：[arXiv:2605.22781](https://arxiv.org/abs/2605.22781)（2026-05）
+
+---
+
+## 7.9 Key Takeaways
 
 1. **A2A Protocol** is becoming the standard for inter-agent communication
 2. **AG-UI Protocol** bridges the gap between agents and rich user interfaces
