@@ -863,7 +863,17 @@ class AgentControllerTest {
 
 **HuggingFace: Specialization Beats Scale**（May 2026）: HuggingFace 博文指出，在 AI 采购决策中，专业化小模型在特定任务上往往优于通用大模型。这一发现对 Agent 框架选型具有重要参考价值——不是所有 Agent 任务都需要最大参数量的模型。
 
-> 来源：[arXiv:2605.22794](https://arxiv.org/abs/2605.22794)、[arXiv:2605.22781](https://arxiv.org/abs/2605.22781)、[HuggingFace Blog](https://huggingface.co/blog/Dharma-AI/specialization-beats-scale)（2026-05-22）
+**HuggingFace Agent 术语表**（May 2026）: HuggingFace 发布 [Agent 术语规范](https://huggingface.co/blog/agent-glossary)，旨在解决 AI Agent 领域术语混乱的问题。核心术语定义：
+- **Model**：LLM 本身，无状态、无循环
+- **Scaffolding**：行为定义层（系统提示、工具描述、上下文管理）
+- **Harness**：执行层（调用模型、处理工具调用、决定何时停止）
+- **Agent**：Model + 周围一切，使其能够自主行动
+- **Context Engineering**：设计每一步进入上下文窗口的内容（系统提示、工具描述、对话历史、检索知识）
+- **Skills**：可复用的结构化知识包，用于多步骤任务（区别于单一工具调用）
+
+这篇术语表对 Agent 框架的理解和对比提供了统一的语言基础。
+
+> 来源：[arXiv:2605.22794](https://arxiv.org/abs/2605.22794)、[arXiv:2605.22781](https://arxiv.org/abs/2605.22781)、[HuggingFace Blog](https://huggingface.co/blog/Dharma-AI/specialization-beats-scale)（2026-05-22）、[HuggingFace Agent Glossary](https://huggingface.co/blog/agent-glossary)（2026-05-25）
 
 ### Spring AI Advantages
 

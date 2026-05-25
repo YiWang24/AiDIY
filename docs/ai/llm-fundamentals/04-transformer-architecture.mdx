@@ -283,6 +283,9 @@ Each expert is a specialized FFN:
 - **Mamba/State Space Models**: Linear complexity by design
 - **Hybrid models**: Mix Transformer and linear attention layers
 - **Gated DeltaNet-2**（2026）: 通过解耦线性注意力中的擦除（erase）和写入（write）操作，解决了线性注意力在长上下文中的信息保留问题。Qwen3-Next 已采用 Gated DeltaNets 架构
+- **Nemotron-Labs-Diffusion**（2026, NVIDIA）: 三模态语言模型，统一 AR、扩散（Diffusion）和自推测（Self-Speculation）解码。8B 版本每次前向传播解码 **5.9× 更多 token**（对比 Qwen3-8B），在 B200 上自推测模式达到约 **865 tok/s**（约 4× AR 基线），同时保持无损输出。这标志着扩散语言模型从研究走向实用化。
+
+> 来源：[NVIDIA Research](https://research.nvidia.com/publication/2026-05_nemotron-labs-diffusion-tri-mode-language-model-unifying-autoregressive)（2026-05）
 
 ### 2025: Higher-Order Attention (Nexus)
 
