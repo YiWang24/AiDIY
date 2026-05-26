@@ -600,6 +600,7 @@ public class ModelSelectionService {
 8. **SwiGLU** activation outperforms ReLU/GELU for LLMs; adds gating mechanism to FFN.
 9. **Linear attention** variants enable O(N) complexity for 1M+ token contexts; used in hybrid models.
 10. **2025 architecture trends**: MoE for scaling, GQA for efficiency, RoPE for positioning, hybrid (Transformer + SSM) for long context.
+11. **2026 "Language Models Need Sleep"**: CMU/Maryland 团队提出类睡眠的上下文整合机制——Transformer 在长上下文任务中，定期将 KV Cache 压缩为"快速权重（Fast Weight）"写入模型状态空间，类比人类睡眠中的记忆巩固。这项来自 [arXiv:2605.26099](https://arxiv.org/abs/2605.26099) 的研究为解决注意力机制的二次扩展问题提供了新思路。
 
 :::tip Implementation Resources
 For hands-on practice:
