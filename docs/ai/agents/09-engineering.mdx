@@ -774,6 +774,22 @@ public class AgentAuditLogger {
 
 ### Agent-Specific Security Measures (2025)
 
+#### Docker Sandboxes：AI Coding Agent 的隔离方案（2026）
+
+随着 AI Coding Agent 的普及，**不可信自主工作负载（Untrusted Autonomous Workload）** 成为一个核心安全问题。Docker Captain Vladimir Mikhalev 在迁移博客到 Astro 时发现：Claude Code 能完成复杂的代码重构，但开发者在过程中逐渐失去对代码库的理解——"审查结果而非变更"不构成安全模型。
+
+**核心问题**：传统容器共享宿主机内核，无法安全隔离需要独立 Docker 守护进程的自主 Agent。`npm install` 等操作在开发者机器上以用户权限运行，Agent 可以修改 Git hooks 或 CI 工作流而不被察觉。
+
+**2026 年 3 月 Trivy 供应链攻击事件**：攻击者强制推送了 aquasecurity/trivy-action 的 76 个版本标签，发布恶意二进制文件，在约 12 小时的暴露窗口内从 CI runner 窃取密钥、云凭证和 SSH 密钥。安全扫描工具本身成为攻击载体——这与 AI Agent 在宽松模式下运行的威胁模型完全相同。
+
+**Docker Sandboxes 方案**：
+- 不修补容器，而是使用**微型虚拟机（microVM）**——足够轻量以秒级启动，同时拥有独立内核
+- 每个 microVM 内运行完整的 Docker Engine，Agent 执行 `docker build`、`npm install` 等操作完全在沙箱内
+- 凭证不跨越 VM 边界，Agent 无法访问宿主机的 Docker socket 或文件系统
+- 使用自定义 VMM（非 Firecracker），支持 macOS（Hypervisor.framework）、Windows（WHP）、Linux（KVM）
+
+> 来源：[Docker Blog](https://www.docker.com/blog/untrusted-autonomous-workload-ai-sandboxes/)（2026-05-26）
+
 #### MCP Server Vetting
 
 ```java
