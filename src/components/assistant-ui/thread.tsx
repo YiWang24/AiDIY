@@ -1,8 +1,3 @@
-import {
-  ComposerAddAttachment,
-  ComposerAttachments,
-  UserMessageAttachments,
-} from "src/components/assistant-ui/attachment";
 import { MarkdownText } from "src/components/assistant-ui/markdown-text";
 import {
   Reasoning,
@@ -17,11 +12,8 @@ import {
   ToolGroupTrigger,
 } from "src/components/assistant-ui/tool-group";
 import { ToolFallback } from "src/components/assistant-ui/tool-fallback";
-import { TooltipIconButton } from "src/components/assistant-ui/tooltip-icon-button";
-import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
 import {
-  ActionBarMorePrimitive,
   ActionBarPrimitive,
   AuiIf,
   BranchPickerPrimitive,
@@ -34,13 +26,12 @@ import {
 } from "@assistant-ui/react";
 import {
   ArrowDownIcon,
+  ArrowRightIcon,
   ArrowUpIcon,
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CopyIcon,
-  DownloadIcon,
-  MoreHorizontalIcon,
   PencilIcon,
   RefreshCwIcon,
   SparklesIcon,
@@ -50,34 +41,27 @@ import type { FC } from "react";
 
 export const Thread: FC = () => {
   return (
-    <ThreadPrimitive.Root
-      className="aui-root aui-thread-root @container flex h-full flex-col bg-background"
-      style={{
-        ["--thread-max-width" as string]: "44rem",
-        ["--composer-radius" as string]: "24px",
-        ["--composer-padding" as string]: "10px",
-      }}
-    >
+    <ThreadPrimitive.Root className="aidiy-thread">
       <ThreadPrimitive.Viewport
         turnAnchor="bottom"
         data-slot="aui_thread-viewport"
-        className="relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth"
+        className="aidiy-viewport"
       >
-        <div className="mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4">
+        <div className="aidiy-thread-inner">
           <AuiIf condition={(s) => s.thread.isEmpty}>
             <ThreadWelcome />
           </AuiIf>
 
           <div
             data-slot="aui_message-group"
-            className="mb-10 flex flex-col gap-y-8 empty:hidden"
+            className="aidiy-message-group"
           >
             <ThreadPrimitive.Messages>
               {() => <ThreadMessage />}
             </ThreadPrimitive.Messages>
           </div>
 
-          <ThreadPrimitive.ViewportFooter className="aui-thread-viewport-footer sticky bottom-0 mt-auto flex flex-col gap-4 overflow-visible rounded-t-(--composer-radius) bg-background pb-4 md:pb-6">
+          <ThreadPrimitive.ViewportFooter className="aidiy-composer-wrap">
             <ThreadScrollToBottom />
             <Composer />
           </ThreadPrimitive.ViewportFooter>
@@ -99,13 +83,14 @@ const ThreadMessage: FC = () => {
 const ThreadScrollToBottom: FC = () => {
   return (
     <ThreadPrimitive.ScrollToBottom asChild>
-      <TooltipIconButton
-        tooltip="Scroll to bottom"
-        variant="outline"
-        className="aui-thread-scroll-to-bottom absolute -top-12 z-10 self-center rounded-full p-4 disabled:invisible dark:border-border dark:bg-background dark:hover:bg-accent"
+      <button
+        type="button"
+        aria-label="Scroll to bottom"
+        title="Scroll to bottom"
+        className="aidiy-scroll-bottom"
       >
         <ArrowDownIcon />
-      </TooltipIconButton>
+      </button>
     </ThreadPrimitive.ScrollToBottom>
   );
 };
@@ -127,29 +112,30 @@ const AIDIY_SUGGESTIONS = [
 
 const ThreadWelcome: FC = () => {
   return (
-    <div className="aui-thread-welcome-root my-auto flex grow flex-col items-center justify-center gap-6 px-6 py-8 text-center">
-      <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-white shadow-xl shadow-indigo-500/20">
-        <SparklesIcon className="size-8" />
+    <div className="aidiy-welcome">
+      <div className="aidiy-welcome-icon">
+        <SparklesIcon size={30} strokeWidth={2} />
       </div>
-      <div className="space-y-2">
-        <h2 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-xl font-bold tracking-tight duration-200">
-          How can I help you?
-        </h2>
-        <p className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both mx-auto max-w-[280px] text-sm font-medium leading-relaxed text-muted-foreground delay-75 duration-200">
+      <div>
+        <h2 className="aidiy-welcome-title">How can I help you?</h2>
+        <p className="aidiy-welcome-subtitle">
           Ask me about AgentOps, orchestration patterns, or anything else in
           the docs.
         </p>
       </div>
-      <div className="w-full space-y-2.5">
+      <div className="aidiy-suggestions">
         {AIDIY_SUGGESTIONS.map((s) => (
           <ThreadPrimitive.Suggestion
             key={s.query}
             prompt={s.query}
             method="replace"
             autoSend
-            className="aui-thread-welcome-suggestion group flex w-full items-center justify-between rounded-2xl border bg-background px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-muted"
+            className="aidiy-suggestion"
           >
-            <span className="line-clamp-1">{s.label}</span>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {s.label}
+            </span>
+            <ArrowRightIcon size={14} strokeWidth={2} className="aidiy-suggestion-icon" />
           </ThreadPrimitive.Suggestion>
         ))}
       </div>
@@ -159,16 +145,12 @@ const ThreadWelcome: FC = () => {
 
 const Composer: FC = () => {
   return (
-    <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
+    <ComposerPrimitive.Root className="aui-composer-root">
       <ComposerPrimitive.AttachmentDropzone asChild>
-        <div
-          data-slot="aui_composer-shell"
-          className="flex w-full flex-col gap-2 rounded-(--composer-radius) border bg-background p-(--composer-padding) transition-shadow focus-within:border-ring/75 focus-within:ring-2 focus-within:ring-ring/20 data-[dragging=true]:border-ring data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50"
-        >
-          <ComposerAttachments />
+        <div data-slot="aui_composer-shell" className="aidiy-composer-shell">
           <ComposerPrimitive.Input
             placeholder="Ask about the docs..."
-            className="aui-composer-input max-h-32 min-h-10 w-full resize-none bg-transparent px-1.75 py-1 text-sm outline-none placeholder:text-muted-foreground/80"
+            className="aidiy-composer-input"
             rows={1}
             autoFocus
             aria-label="Message input"
@@ -182,34 +164,30 @@ const Composer: FC = () => {
 
 const ComposerAction: FC = () => {
   return (
-    <div className="aui-composer-action-wrapper relative flex items-center justify-between">
-      <ComposerAddAttachment />
+    <div className="aidiy-composer-bar">
+      <span className="aidiy-composer-hint">Press Enter to send</span>
       <AuiIf condition={(s) => !s.thread.isRunning}>
         <ComposerPrimitive.Send asChild>
-          <TooltipIconButton
-            tooltip="Send message"
-            side="bottom"
+          <button
             type="button"
-            variant="default"
-            size="icon"
-            className="aui-composer-send size-8 rounded-full"
             aria-label="Send message"
+            title="Send message"
+            className="aidiy-composer-send"
           >
-            <ArrowUpIcon className="aui-composer-send-icon size-4" />
-          </TooltipIconButton>
+            <ArrowUpIcon strokeWidth={2.4} />
+          </button>
         </ComposerPrimitive.Send>
       </AuiIf>
       <AuiIf condition={(s) => s.thread.isRunning}>
         <ComposerPrimitive.Cancel asChild>
-          <Button
+          <button
             type="button"
-            variant="default"
-            size="icon"
-            className="aui-composer-cancel size-8 rounded-full"
             aria-label="Stop generating"
+            title="Stop generating"
+            className="aidiy-composer-cancel"
           >
-            <SquareIcon className="aui-composer-cancel-icon size-3 fill-current" />
-          </Button>
+            <SquareIcon fill="currentColor" />
+          </button>
         </ComposerPrimitive.Cancel>
       </AuiIf>
     </div>
@@ -219,29 +197,23 @@ const ComposerAction: FC = () => {
 const MessageError: FC = () => {
   return (
     <MessagePrimitive.Error>
-      <ErrorPrimitive.Root className="aui-message-error-root mt-2 rounded-md border border-destructive bg-destructive/10 p-3 text-destructive text-sm dark:bg-destructive/5 dark:text-red-200">
-        <ErrorPrimitive.Message className="aui-message-error-message line-clamp-2" />
+      <ErrorPrimitive.Root className="aui-message-error-root">
+        <ErrorPrimitive.Message className="aui-message-error-message" />
       </ErrorPrimitive.Root>
     </MessagePrimitive.Error>
   );
 };
 
 const AssistantMessage: FC = () => {
-  // reserves space for action bar and compensates with `-mb` for consistent msg spacing
-  // keeps hovered action bar from shifting layout (autohide doesn't support absolute positioning well)
-  // for pt-[n] use -mb-[n + 6] & min-h-[n + 6] to preserve compensation
-  const ACTION_BAR_PT = "pt-1.5";
-  const ACTION_BAR_HEIGHT = `-mb-7.5 min-h-7.5 ${ACTION_BAR_PT}`;
-
   return (
     <MessagePrimitive.Root
       data-slot="aui_assistant-message-root"
       data-role="assistant"
-      className="fade-in slide-in-from-bottom-1 relative animate-in duration-150 [contain-intrinsic-size:auto_300px] [content-visibility:auto]"
+      className="aidiy-msg-assistant"
     >
       <div
         data-slot="aui_assistant-message-content"
-        className="wrap-break-word px-2 text-foreground leading-relaxed"
+        className="aidiy-msg-assistant-body"
       >
         <MessagePrimitive.GroupedParts
           groupBy={(part) => {
@@ -295,7 +267,7 @@ const AssistantMessage: FC = () => {
 
       <div
         data-slot="aui_assistant-message-footer"
-        className={cn("ms-2 flex items-center", ACTION_BAR_HEIGHT)}
+        className="aidiy-msg-actionbar"
       >
         <BranchPicker />
         <AssistantActionBar />
@@ -309,45 +281,23 @@ const AssistantActionBar: FC = () => {
     <ActionBarPrimitive.Root
       hideWhenRunning
       autohide="not-last"
-      className="aui-assistant-action-bar-root col-start-3 row-start-2 -ms-1 flex gap-1 text-muted-foreground"
+      className="aui-assistant-action-bar-root flex items-center gap-1"
     >
       <ActionBarPrimitive.Copy asChild>
-        <TooltipIconButton tooltip="Copy">
+        <button type="button" aria-label="Copy" title="Copy" className="aidiy-icon-btn">
           <AuiIf condition={(s) => s.message.isCopied}>
             <CheckIcon />
           </AuiIf>
           <AuiIf condition={(s) => !s.message.isCopied}>
             <CopyIcon />
           </AuiIf>
-        </TooltipIconButton>
+        </button>
       </ActionBarPrimitive.Copy>
       <ActionBarPrimitive.Reload asChild>
-        <TooltipIconButton tooltip="Refresh">
+        <button type="button" aria-label="Refresh" title="Refresh" className="aidiy-icon-btn">
           <RefreshCwIcon />
-        </TooltipIconButton>
+        </button>
       </ActionBarPrimitive.Reload>
-      <ActionBarMorePrimitive.Root>
-        <ActionBarMorePrimitive.Trigger asChild>
-          <TooltipIconButton
-            tooltip="More"
-            className="data-[state=open]:bg-accent"
-          >
-            <MoreHorizontalIcon />
-          </TooltipIconButton>
-        </ActionBarMorePrimitive.Trigger>
-        <ActionBarMorePrimitive.Content
-          side="bottom"
-          align="start"
-          className="aui-action-bar-more-content z-50 min-w-32 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
-        >
-          <ActionBarPrimitive.ExportMarkdown asChild>
-            <ActionBarMorePrimitive.Item className="aui-action-bar-more-item flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-              <DownloadIcon className="size-4" />
-              Export as Markdown
-            </ActionBarMorePrimitive.Item>
-          </ActionBarPrimitive.ExportMarkdown>
-        </ActionBarMorePrimitive.Content>
-      </ActionBarMorePrimitive.Root>
     </ActionBarPrimitive.Root>
   );
 };
@@ -356,24 +306,13 @@ const UserMessage: FC = () => {
   return (
     <MessagePrimitive.Root
       data-slot="aui_user-message-root"
-      className="fade-in slide-in-from-bottom-1 grid animate-in auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] content-start gap-y-2 px-2 duration-150 [contain-intrinsic-size:auto_60px] [content-visibility:auto] [&:where(>*)]:col-start-2"
+      className="aidiy-msg-user"
       data-role="user"
     >
-      <UserMessageAttachments />
-
-      <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">
-        <div className="aui-user-message-content wrap-break-word peer rounded-2xl bg-muted px-4 py-2.5 text-foreground empty:hidden">
-          <MessagePrimitive.Parts />
-        </div>
-        <div className="aui-user-action-bar-wrapper absolute start-0 top-1/2 -translate-x-full -translate-y-1/2 pe-2 peer-empty:hidden rtl:translate-x-full">
-          <UserActionBar />
-        </div>
+      <div className="aidiy-msg-user-bubble">
+        <MessagePrimitive.Parts />
       </div>
-
-      <BranchPicker
-        data-slot="aui_user-branch-picker"
-        className="col-span-full col-start-1 row-start-3 -me-1 justify-end"
-      />
+      <UserActionBar />
     </MessagePrimitive.Root>
   );
 };
@@ -383,12 +322,13 @@ const UserActionBar: FC = () => {
     <ActionBarPrimitive.Root
       hideWhenRunning
       autohide="not-last"
-      className="aui-user-action-bar-root flex flex-col items-end"
+      className="aui-user-action-bar-root"
+      style={{ display: "none" }}
     >
       <ActionBarPrimitive.Edit asChild>
-        <TooltipIconButton tooltip="Edit" className="aui-user-action-edit p-4">
+        <button type="button" aria-label="Edit" title="Edit" className="aidiy-icon-btn">
           <PencilIcon />
-        </TooltipIconButton>
+        </button>
       </ActionBarPrimitive.Edit>
     </ActionBarPrimitive.Root>
   );
@@ -398,21 +338,23 @@ const EditComposer: FC = () => {
   return (
     <MessagePrimitive.Root
       data-slot="aui_edit-composer-wrapper"
-      className="flex flex-col px-2"
+      className="aidiy-msg-user"
     >
-      <ComposerPrimitive.Root className="aui-edit-composer-root ms-auto flex w-full max-w-[85%] flex-col rounded-2xl bg-muted">
+      <ComposerPrimitive.Root className="aidiy-composer-shell" style={{ maxWidth: "85%" }}>
         <ComposerPrimitive.Input
-          className="aui-edit-composer-input min-h-14 w-full resize-none bg-transparent p-4 text-foreground text-sm outline-none"
+          className="aidiy-composer-input"
           autoFocus
         />
-        <div className="aui-edit-composer-footer mx-3 mb-3 flex items-center gap-2 self-end">
+        <div className="aidiy-composer-bar" style={{ justifyContent: "flex-end" }}>
           <ComposerPrimitive.Cancel asChild>
-            <Button variant="ghost" size="sm">
+            <button type="button" className="aidiy-icon-btn" style={{ width: "auto", padding: "4px 10px", fontSize: 12 }}>
               Cancel
-            </Button>
+            </button>
           </ComposerPrimitive.Cancel>
           <ComposerPrimitive.Send asChild>
-            <Button size="sm">Update</Button>
+            <button type="button" className="aidiy-composer-send" style={{ width: "auto", height: "auto", padding: "4px 10px", fontSize: 12, borderRadius: 999 }}>
+              Update
+            </button>
           </ComposerPrimitive.Send>
         </div>
       </ComposerPrimitive.Root>
@@ -427,24 +369,21 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
   return (
     <BranchPickerPrimitive.Root
       hideWhenSingleBranch
-      className={cn(
-        "aui-branch-picker-root -ms-2 me-2 inline-flex items-center text-muted-foreground text-xs",
-        className,
-      )}
+      className={cn("aui-branch-picker-root inline-flex items-center text-xs", className)}
       {...rest}
     >
       <BranchPickerPrimitive.Previous asChild>
-        <TooltipIconButton tooltip="Previous">
+        <button type="button" aria-label="Previous" title="Previous" className="aidiy-icon-btn">
           <ChevronLeftIcon />
-        </TooltipIconButton>
+        </button>
       </BranchPickerPrimitive.Previous>
-      <span className="aui-branch-picker-state font-medium">
+      <span className="aui-branch-picker-state" style={{ fontWeight: 500 }}>
         <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
       </span>
       <BranchPickerPrimitive.Next asChild>
-        <TooltipIconButton tooltip="Next">
+        <button type="button" aria-label="Next" title="Next" className="aidiy-icon-btn">
           <ChevronRightIcon />
-        </TooltipIconButton>
+        </button>
       </BranchPickerPrimitive.Next>
     </BranchPickerPrimitive.Root>
   );

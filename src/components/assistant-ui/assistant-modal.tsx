@@ -4,10 +4,6 @@ import { AssistantModalPrimitive } from "@assistant-ui/react";
 
 import { Thread } from "src/components/assistant-ui/thread";
 
-// ─── Shared trigger button classes ────────────────────────────────────────────
-const TRIGGER_CLS =
-  "group size-full rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 text-white shadow-lg shadow-indigo-500/20 ring-1 ring-white/10 transition-all duration-300 hover:scale-110 hover:shadow-indigo-500/40 data-[state=open]:rotate-90";
-
 // ─── AssistantModal ────────────────────────────────────────────────────────────
 
 interface AssistantModalProps {
@@ -24,7 +20,7 @@ export const AssistantModal: FC<AssistantModalProps> = ({ onClear }) => {
       </AssistantModalPrimitive.Anchor>
       <AssistantModalPrimitive.Content
         sideOffset={16}
-        className="aui-root aui-modal-content z-[70] flex h-[720px] max-h-[85vh] w-[440px] max-w-[95vw] flex-col overflow-hidden rounded-[2.5rem] border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-950"
+        className="aui-root aui-modal-content aidiy-modal z-[70]"
       >
         <ModalHeader onClear={onClear} />
         <Thread />
@@ -40,19 +36,21 @@ type AssistantModalButtonProps = { "data-state"?: "open" | "closed" };
 const AssistantModalButton = forwardRef<
   HTMLButtonElement,
   AssistantModalButtonProps
->(({ "data-state": _state, ...rest }, ref) => (
+>((props, ref) => (
   <button
     type="button"
     ref={ref}
     aria-label="AiDIY Assistant"
-    className={TRIGGER_CLS}
-    {...rest}
+    className="aidiy-trigger"
+    {...props}
   >
-    <div className="relative flex size-full items-center justify-center transition-transform group-data-[state=open]:opacity-0">
-      <MessageCircleIcon className="size-8 fill-white/20" />
-      <SparklesIcon className="absolute top-2.5 right-2.5 size-4 fill-white" />
-    </div>
-    <XIcon className="absolute inset-0 m-auto size-6 opacity-0 transition-opacity group-data-[state=open]:opacity-100" />
+    <span className="aidiy-trigger-icons">
+      <MessageCircleIcon size={26} strokeWidth={2} />
+      <SparklesIcon className="aidiy-trigger-sparkle" strokeWidth={2.4} />
+    </span>
+    <span className="aidiy-trigger-close">
+      <XIcon size={24} strokeWidth={2.4} />
+    </span>
   </button>
 ));
 
@@ -62,16 +60,14 @@ AssistantModalButton.displayName = "AssistantModalButton";
 
 function ModalHeader({ onClear }: { onClear: () => void }) {
   return (
-    <div className="flex shrink-0 items-center justify-between border-b border-neutral-100 bg-white/80 px-6 py-4 backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-950/80">
-      <div className="flex items-center gap-3">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-sky-500 text-white shadow-sm">
-          <SparklesIcon className="size-4.5" />
+    <div className="aidiy-header">
+      <div className="aidiy-header-left">
+        <div className="aidiy-header-avatar">
+          <SparklesIcon size={18} strokeWidth={2.2} />
         </div>
-        <div className="leading-tight">
-          <div className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-            AiDIY Assistant
-          </div>
-          <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+        <div>
+          <div className="aidiy-header-title">AiDIY Assistant</div>
+          <div className="aidiy-header-subtitle">
             Powered by RAG Knowledge Base
           </div>
         </div>
@@ -80,9 +76,10 @@ function ModalHeader({ onClear }: { onClear: () => void }) {
         type="button"
         onClick={onClear}
         aria-label="New conversation"
-        className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+        title="New conversation"
+        className="aidiy-header-action"
       >
-        <RotateCcwIcon className="size-4" />
+        <RotateCcwIcon size={16} strokeWidth={2} />
       </button>
     </div>
   );
