@@ -35,7 +35,6 @@ interface KbSearchToolRenderProps {
 // Compact single-row pill:
 //   [spinner] Searching · "query"
 //   [check]   Searched  · "query"  ▸ N sources
-// Sources expand inline on click — no nested <details>.
 function KbSearchToolRender({
   args,
   result,
@@ -46,27 +45,33 @@ function KbSearchToolRender({
   const chunks = dedupeChunks(result?.chunks ?? []);
 
   return (
-    <div className="my-0.5 text-xs">
-      <div className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
+    <div style={{ margin: "4px 0" }}>
+      <div className="aidiy-kb-pill">
         {running ? (
-          <LoaderIcon className="size-3.5 animate-spin text-indigo-500" />
+          <LoaderIcon size={13} className="aidiy-kb-pill-icon-running" />
         ) : (
-          <CheckCircle2Icon className="size-3.5 text-emerald-500" />
+          <CheckCircle2Icon size={13} className="aidiy-kb-pill-icon-done" />
         )}
-        <span className="font-medium">{running ? "Searching" : "Searched"}</span>
+        <span className="aidiy-kb-pill-label">
+          {running ? "Searching" : "Searched"}
+        </span>
         {args?.query && (
-          <span className="max-w-[180px] truncate text-neutral-500 dark:text-neutral-400">
-            &middot; &ldquo;{args.query}&rdquo;
+          <span className="aidiy-kb-pill-query">
+            · &ldquo;{args.query}&rdquo;
           </span>
         )}
         {!running && chunks.length > 0 && (
           <button
             type="button"
             onClick={() => setSourcesOpen((prev) => !prev)}
-            className="ml-0.5 flex items-center gap-0.5 text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+            className="aidiy-kb-pill-toggle"
           >
             <ChevronRightIcon
-              className={`size-3 transition-transform duration-150 ${sourcesOpen ? "rotate-90" : ""}`}
+              size={12}
+              style={{
+                transition: "transform 0.15s ease",
+                transform: sourcesOpen ? "rotate(90deg)" : "rotate(0deg)",
+              }}
             />
             {chunks.length} {chunks.length === 1 ? "source" : "sources"}
           </button>
@@ -74,17 +79,17 @@ function KbSearchToolRender({
       </div>
 
       {sourcesOpen && chunks.length > 0 && (
-        <ul className="mt-1 space-y-0.5 pl-2">
+        <ul className="aidiy-kb-sources">
           {chunks.map((c) => (
             <li key={c.chunk_id}>
               <a
                 href={toDocLink(c.path)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded px-1.5 py-1 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+                className="aidiy-kb-source"
               >
-                <ExternalLinkIcon className="size-3 shrink-0 text-neutral-400" />
-                <span className="truncate">{c.title ?? c.path}</span>
+                <ExternalLinkIcon className="aidiy-kb-source-icon" />
+                <span className="aidiy-kb-source-text">{c.title ?? c.path}</span>
               </a>
             </li>
           ))}
