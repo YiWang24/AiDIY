@@ -487,6 +487,25 @@ Forbes 报道 [Uber 在 4 个月内耗尽了 2026 年全年 AI 编码预算](htt
 
 **启示**：Coding Agent 的企业级部署需要严格的预算治理和 ROI 度量，"让所有人用上最强 Agent"的策略在经济上不可持续。
 
+### Claude Code Dynamic Workflows：大规模并行 Agent 编排（2026-05-28）
+
+Anthropic 为 Claude Code 引入 **Dynamic Workflows** 功能，让 Claude 能够处理此前无法完成的超大规模工程任务。核心机制是让 Claude **动态编写编排脚本**，在单次会话中运行数十到数百个并行 subagent，并在提交结果前进行自验证。
+
+**关键能力**：
+
+- **代码库级审计**：并行 bug 搜索、性能优化、安全加固（如检查整个仓库的认证和输入验证）
+- **大规模迁移**：框架替换、API 废弃、语言移植，可跨数千文件并行执行
+- **对抗性验证**：独立子 agent 从不同角度解决问题，其他 agent 尝试反驳结果，直到答案收敛
+- **持久化**：工作流可持续数小时甚至数天，自动保存进度，中断后可恢复
+
+**典型案例**：Bun 作者 Jarred Sumner 利用 Dynamic Workflows 将 **Bun 从 Zig 移植到 Rust**，约 75 万行 Rust 代码，99.8% 测试通过率，从首个 commit 到合并仅用 **11 天**。
+
+**可用性**：Max、Team 和 API 用户默认开启；Enterprise 需管理员启用；同时支持 Amazon Bedrock、Vertex AI 和 Microsoft Foundry。
+
+> ⚠️ Dynamic Workflows 消耗的 token 远超普通会话，建议从限定范围的任务开始。
+
+> 来源：[Anthropic Blog](https://claude.com/blog/introducing-dynamic-workflows-in-claude-code)（2026-05-28）
+
 ### Coding Agent 的产品市场契合与定价模型转变（2026-05）
 
 Simon Willison 在个人博客发表深度分析，认为 **Anthropic 和 OpenAI 已经通过 Coding Agent 找到了产品市场契合（Product-Market Fit）**：
