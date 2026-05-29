@@ -526,6 +526,41 @@ Simon Willison 在个人博客发表深度分析，认为 **Anthropic 和 OpenAI
 
 > 来源：[Forbes](https://www.forbes.com/sites/janakirammsv/2026/05/17/uber-burns-its-2026-ai-budget-in-four-months-on-claude-code/)、[Business Insider](https://www.businessinsider.com/uber-coo-andrew-macdonald-ai-token-spending-harder-justify-2026-5)（2026-05）
 
+### Cloudflare AI Code Review：生产级多 Agent 代码审查（2026-05）
+
+Cloudflare 公开了其 **AI Code Review 系统**的架构设计，这是一个基于 OpenCode（开源编码 Agent）构建的 CI 原生编排系统，展示了 Coding Agent 在企业级代码审查场景的实践：
+
+**核心架构**：
+- **Coordinator Agent + 多个专业 Reviewer Agent**：每次 MR 最多启动 **7 个专业 AI Reviewer**，由 Coordinator 去重、判定严重性并生成单一结构化审查评论
+- **可插拔 Plugin 架构**：每个插件实现 `ReviewPlugin` 接口，包含 Bootstrap（并发）、Configure（串行）、postConfigure（异步）三个生命周期阶段
+- **专业角色分工**：安全审查、代码质量、性能分析、文档检查、合规检查等，每个 Agent 有明确的"该报告什么/不该报告什么"边界定义
+
+**模型分层策略**：
+
+| 等级 | 模型 | 角色 |
+|------|------|------|
+| 顶层 | Claude Opus 4.7, GPT-5.4 | Review Coordinator——最高推理能力做去重/判定 |
+| 标准 | Claude Sonnet 4.6, GPT-5.3 Codex | 代码质量、安全、性能子审查 |
+| 轻量 | Kimi K2.5 | 文档、Release、AGENTS.md 审查 |
+
+**工程亮点**：
+- 使用 JSONL 结构化日志，每 100 行或 50ms 刷新一次
+- 输出截断自动重试（`reason: "length"`）
+- 30 秒心跳日志——几乎消除了"Agent 卡住了"的误报
+- 2.5 GB 堆内存上限防止 OOM
+
+> 来源：[Cloudflare Blog](https://blog.cloudflare.com/ai-code-review/)（2026-04-20）
+
+### 企业 AI 支出失控案例：单月 $5 亿 Claude 账单（2026-05）
+
+Axios 报道一家未具名企业因**未设置 Claude 使用限额**，在单月内产生 **5 亿美元**的 AI 使用费。该案例凸显了企业 AI 部署中的成本治理问题：
+
+- **根本原因**：企业版 AI 模型通常以固定费率吸引企业，但这些方案通常按请求数设限。未设限的情况下，无控制的 Agent 工作流可快速产生天价账单
+- **滥用模式**：有 CTO 反映员工用 AI 系统查天气——功能可行但成本远超常规搜索
+- **专家建议**：企业需要真正懂 AI 的"Agent 编排者"角色；最大成本驱动因素是**误用**（缺乏上下文工程导致无限膨胀的上下文窗口）和**模型选择不当**（用昂贵大模型处理简单任务）
+
+> 来源：[Axios](https://www.axios.com/2026/05/28/ai-spending-roi-enterprise-costs)（2026-05-28）
+
 ---
 
 ## 5.7 Key Takeaways
