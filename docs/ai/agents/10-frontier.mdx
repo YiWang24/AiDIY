@@ -1145,11 +1145,95 @@ Google VP Josh Woodward 宣布修复多个 Gemini 用量限制问题：
 
 > 来源：[Josh Woodward via X](https://x.com/joshwoodward/status/2060171610922058142)（2026-05-29）
 
+##### Anthropic 发布 Claude Opus 4.8（5月28日）
+
+Anthropic 发布 [Claude Opus 4.8](https://www.anthropic.com/news/claude-opus-4-8)，距 Opus 4.7 仅 **41 天**——远快于常规迭代周期（Sonnet 和 Haiku 分别为 3 个月和 7 个月）。此次快速迭代被认为与 Opus 4.7 发布后用户反馈不佳以及 OpenAI Codex、Google Gemini Flash 的竞争压力有关。
+
+**核心改进**：
+- **编码**：比 Opus 4.7 减少约 4 倍的"漏检代码缺陷"（uncaught flaws），更主动标记不确定性
+- **Agentic 任务**：更可靠的工具调用效率，在 Super-Agent benchmark 上成为**唯一完成所有端到端测试的模型**
+- **计算机使用/浏览器 Agent**：Online-Mind2Web 得分 **84%**，显著超越 Opus 4.7 和 GPT-5.5
+- **多模态**：直接处理 PDF、图表等非结构化内容，token 成本比 Opus 4.7 **降低 61%**
+
+**新功能**：
+- **Dynamic Workflows**（研究预览）：Claude Code 中支持数百个并行 subagent 编排
+- **Effort Control**：新的 UI 控件，用户可选择 default/high/xhigh/max 四档思考深度
+- **System Entries in Messages Array**（API）：允许开发者在任务执行中途更新 Claude 的系统指令
+
+**定价**：与 Opus 4.7 相同（$5/$25M tokens），Fast mode 降为原来的 1/3。
+
+**Mythos 模型进展**：Anthropic 最强大的 Mythos 模型仍因网络安全担忧而受限访问，但公司表示"数周内"将向所有客户开放 Mythos 级别的模型。
+
+> 来源：[Anthropic Blog](https://www.anthropic.com/news/claude-opus-4-8)、[TechCrunch](https://techcrunch.com/2026/05/28/anthropic-releases-opus-4-8-with-new-dynamic-workflow-tool/)（2026-05-28）
+
+##### Anthropic 完成 $650 亿融资，估值 $965B（5月28日）
+
+Anthropic 完成 **Series H 融资**，规模 **$650 亿**，投后估值达 **$9650 亿**，超越 OpenAI 成为全球最有价值的 AI 公司。
+
+**投资者阵容**：Altimeter Capital、Dragoneer、Greenoaks、Sequoia Capital 领投；Samsung、SK Hynix、Micron 作为芯片供应链伙伴参与；Amazon 承诺 $50 亿。据报道有机构投资者支付 **$50 亿**仅为了获得与 CFO 会面的机会。
+
+**财务数据**：
+- 年化收入（Run rate）突破 **$470 亿**（2026 年 5 月）
+- 预计收入增长 130% 后达到首次运营盈利
+- 增长主要由企业客户使用 Claude Code 驱动
+
+这很可能是 Anthropic IPO 前的最后一轮私人融资。
+
+> 来源：[TechCrunch](https://techcrunch.com/2026/05/28/anthropic-releases-opus-4-8-with-new-dynamic-workflow-tool/)、[Bloomberg](https://www.bloomberg.com/news/articles/2026-05-28/anthropic-unveils-new-flagship-ai-model-that-s-better-at-coding)（2026-05-28）
+
+##### BadHost 漏洞（CVE-2026-48710）：Starlette 框架危及数百万 AI Agent
+
+安全研究机构 X41 D-Sec 披露了一个影响深远的漏洞 [BadHost](https://arstechnica.com/information-technology/2026/05/millions-of-ai-agents-imperiled-by-critical-vulnerability-in-open-source-package/)（CVE-2026-48710），存在于 Python Web 框架 **Starlette**（每周下载量 3.25 亿）中。
+
+**漏洞原理**：攻击者通过在 HTTP Host header 中注入**单个字符**，即可绕过 Starlette 的路径授权机制。根因是 Starlette 的路由算法依赖实际 HTTP path，但 `request.url.path` 属性基于重建 URL——两者可能不一致。
+
+**影响范围**：FastAPI、vLLM、LiteLLM、MCP 服务器、Agent 编排框架等大量 Python AI 基础设施受影响。互联网扫描已发现暴露的生物医药 AI 临床试验数据库、身份验证系统、IoT/工业控制系统等敏感数据。
+
+**修复**：升级至 Starlette 1.0.1+。
+
+**MCP 服务器风险尤其高**：它们集中存储用户数据库、邮箱账户等凭证，是攻击者的高价值目标。
+
+> 来源：[Ars Technica](https://arstechnica.com/information-technology/2026/05/millions-of-ai-agents-imperiled-by-critical-vulnerability-in-open-source-package/)（2026-05）
+
+##### Meta RADAR：大规模自动化低风险代码审查
+
+Meta 发表论文 [Automating Low-Risk Code Review at Meta](https://arxiv.org/abs/2605.30208)，介绍了其生产环境中的 AI 自动化代码审查系统 RADAR。
+
+**背景数据**：Meta 的 AI 辅助编码工具使人均 diff 量增长 51%，其中 agentic AI 贡献了超过 80% 的增长。但 diff 审查的及时率却在下降——RADAR 正是为此而生。
+
+**核心架构**：RADAR 由 ACR（Automated Code Review）和 DCR（Dynamic Code Review）组成，通过**风险校准**（Risk Calibration）自动判定哪些 diff 可以跳过人工审查：
+- **低风险 diff**：AI 自动审查通过后直接合入
+- **高风险 diff**：仍需人工审查
+
+**效果**：中位关闭时间减少 **330%**，中位 diff 审查耗时减少 **35%**。
+
+**关键洞察**：风险感知的分层自动化可以实质性地提高代码审查效率，而不牺牲质量。这预示着企业级代码审查的范式转变——从"全部人工"到"AI 筛选 + 人工聚焦"。
+
+> 来源：[arXiv:2605.30208](https://arxiv.org/abs/2605.30208)（2026-05-28）
+
+##### 学术前沿：LLM 工作记忆与推理
+
+多篇值得关注的新论文：
+
+- **[Unlocking the Working Memory of LLMs for Latent Reasoning](https://arxiv.org/abs/2605.30343)**（Aichberger & Hochreiter, 2026-05-28）：提出将推理过程与自回归生成分离的方法，通过 LLM 的"工作记忆"实现**潜在推理**（Latent Reasoning），不再需要显式的 CoT token 输出——这可能是推理范式的根本性转变。
+
+- **[Diagnosing Harmful Continuation in Answer-Correct Long-CoT Training Traces](https://arxiv.org/abs/2605.29288)**（2026-05-28）：发现长 CoT 训练数据中，即使最终答案正确，答案出现后的"有害续写"（Harmful Continuation）也会显著影响 SFT 效果。这为推理模型训练数据的质量控制提供了新视角。
+
+- **[TRACE: Toulmin-based Reasoning Assessment for LLM CoT Evaluation](https://arxiv.org/abs/2605.29656)**（2026-05-28）：基于图尔敏论证模型，提出评估 LLM 推理过程（而非仅最终答案）的框架，解决了"正确答案但错误推理"的评估盲区。
+
+- **[Reliable Reasoning via Preference-Based Maximum Satisfiability](https://arxiv.org/abs/2605.29687)**（2026-05-28）：将 LLM 推理与 MaxSAT 求解器结合，通过外部化约束满足来提升多约束优化任务的可靠性——展示了 LLM + 形式化方法的混合推理路径。
+
+> 来源：[arXiv](https://arxiv.org/)（2026-05-28）
+
 **关键趋势更新**：
 27. **Mistral 从模型供应商转型全栈 AI 公司** — 自有算力+开放模型+本地部署的差异化路线，瞄准欧洲受监管行业
 28. **LLM 推理速度成为 Agent 生产力的关键瓶颈** — Kog 展示架构/引擎/内核协同设计可在标准 GPU 上实现 3,000 tokens/s
 29. **企业 AI 成本治理成为紧迫议题** — $5 亿月度账单案例、Microsoft 削减 Claude Code 许可、Uber 公开质疑 ROI
 30. **AI 编码引发技能保持反思** — "比模型更累"原则呼吁在效率与深度理解之间寻求平衡
+31. **Anthropic 发布 Opus 4.8 并完成 $9650 亿估值融资** — 模型迭代加速、超越 OpenAI 成为最有价值 AI 公司
+32. **AI Agent 基础设施安全漏洞敲响警钟** — BadHost CVE 影响 Starlette/FastAPI 生态数百万 AI Agent 部署
+33. **Meta RADAR 验证企业级自动化代码审查可行** — 风险感知分层策略将审查效率提升 3-4 倍
+34. **LLM 推理研究从显式 CoT 转向潜在推理** — 工作记忆机制可能从根本上改变推理范式
 
 ---
 
