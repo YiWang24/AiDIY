@@ -453,6 +453,17 @@ audit_log = {
 4. **Continuous Improvement**: Regular reviews of metrics and incidents
 5. **Documentation**: Keep runbooks and architecture diagrams up to date
 
+### Case Study: BadHost 漏洞（CVE-2026-48710）
+
+2026 年 5 月，安全研究机构 X41 D-Sec 披露了影响 Python Starlette 框架（每周下载 3.25 亿）的关键漏洞 **BadHost**。攻击者通过在 HTTP Host header 中注入单个字符即可绕过路径授权，影响 FastAPI、vLLM、LiteLLM、MCP 服务器等大量 AI Agent 基础设施。
+
+**教训**：
+- **依赖安全**：AI Agent 的依赖链（Starlette → FastAPI → MCP/vLLM）中任何一个环节的漏洞都会传导至整个生态
+- **MCP 服务器是高价值目标**：集中存储凭证、邮箱账户等敏感信息的 MCP 服务器一旦被攻破，影响面巨大
+- **修复响应**：升级至 Starlette 1.0.1+；使用 [mcp-scan.nemesis.services](https://mcp-scan.nemesis.services/) 扫描检测
+
+> 来源：[Ars Technica](https://arstechnica.com/information-technology/2026/05/millions-of-ai-agents-imperiled-by-critical-vulnerability-in-open-source-package/)（2026-05）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
