@@ -1225,6 +1225,48 @@ Meta 发表论文 [Automating Low-Risk Code Review at Meta](https://arxiv.org/ab
 
 > 来源：[arXiv](https://arxiv.org/)（2026-05-28）
 
+##### 企业 AI 成本危机
+
+2026 年 5 月下旬，多条证据表明企业 AI 使用成本已成为结构性问题：
+
+- **Microsoft 取消 Claude Code 许可**：Experiences & Devices 部门（Windows、Microsoft 365、Teams 等）5,000 名工程师中 84-95% 使用 Claude Code，但每人每月成本高达 $500-$2,000，单一部门年化成本达 $150-600 万。Microsoft 将工程师转向 GitHub Copilot CLI。
+- **Uber 四个月耗尽 $34 亿 AI 预算**：广泛部署 Claude Code 并设立内部使用排行榜激励 AI 工具使用，但 COO 承认"AI 投入与可衡量产出之间的关联尚未建立"。
+- **NVIDIA VP Bryan Catanzaro 公开表示**："对我团队来说，算力成本远超人力成本。"这来自全球最大 AI 芯片公司的高管，信号意义不言自明。
+
+**结构性问题**：按量计费 + 高采用率 + 开放式策略 = 成本增速超过生产力回报。Y Combinator 旗下用 AI 替代人力的初创企业显示正向单位经济模型，但"在现有人力上叠加 AI"的企业普遍超支。
+
+> 来源：[Build Fast with AI](https://www.buildfastwithai.com/blogs/ai-news-today-may-29-2026)、[The Verge](https://www.theverge.com/)（2026-05-29）
+
+##### AI 就业冲击预言的集体修正
+
+Sam Altman 和 Dario Amodei 在各自公司 IPO 前后不约而同地修正了此前激进的就业冲击预测：
+
+- **Sam Altman**（2026-05-26，Commonwealth Bank of Australia 会议）："我原以为入门级白领岗位受到的冲击会比实际发生的更大。"（2025 年 6 月他曾预测 12 个月内入门级白领岗位面临严重风险。）OpenAI 于 5 月 22 日提交了保密 IPO 注册。
+- **Dario Amodei** 此前预测 AI 可能消除 50% 白领工作，现称自动化可能"扩展"工作。Anthropic 的企业信息现在将 Claude 定位为"生产力放大器"而非替代者。
+- **现实数据**：2026 年前 5 个月科技行业裁员约 115,000 人（Meta 8K、Snap 1K、Intuit 3K），但 Yale Budget Lab 认为这些并非 AI 独特驱动的。
+
+> 来源：[Build Fast with AI](https://www.buildfastwithai.com/blogs/ai-news-today-may-29-2026)、[Fortune](https://fortune.com/)（2026-05-29）
+
+##### DeepSeek V4-Pro 永久降价与中国编码模型崛起
+
+DeepSeek 于 5 月 22 日将 V4-Pro 的 75% 折扣永久化：输入 $0.435/M tokens，输出 $0.87/M tokens——约为 Claude Opus 4.7 的 1/11，但在编码基准上得分相当。
+
+同期，四个中国实验室在 12 天内密集发布开源编码模型：Z.ai 的 GLM-5.1、MiniMax M2.7、Moonshot 的 Kimi K2.6、DeepSeek V4。没有一个的成本超过 Claude Opus 4.7 的三分之一。"中国在编码任务上落后 6-9 个月"的叙事已经过时。
+
+> 来源：[Air Street Press - State of AI May 2026](https://press.airstreet.com/p/state-of-ai-may-2026)、[Codersera](https://codersera.com/blog/deepseek-v4-pro-permanent-price-cut-may-2026/)（2026-05）
+
+##### SpecBench：软件工程 Agent 的规格级推理评估
+
+[SpecBench](https://arxiv.org/abs/2605.30314)（Hamblin et al., 2026-05-28）提出从"代码生成"到"规格设计"的评估范式转变。SWE Agent 正在从代码生成走向完整软件开发生命周期自动化——而规格设计（将初始提案转化为审慎的需求）是其中最关键的阶段。现有基准如 SWE-bench 只测试代码实现，SpecBench 填补了上游规格推理的评估空白。
+
+> 来源：[arXiv:2605.30314](https://arxiv.org/abs/2605.30314)（2026-05-28）
+
+##### GenClaw：代码驱动的 Agent 图像生成
+
+[GenClaw](https://arxiv.org/abs/2605.30248)（Ye et al., 2026-05-28）提出将图像生成从"提示-生成-评估-重试"循环中解放出来，转而用代码驱动 Agent 式图像生成——通过编写和执行代码来精确控制图像生成过程，而非被动依赖黑盒模型的输出质量。这是 Agent 技术向创意生成领域渗透的典型案例。
+
+> 来源：[arXiv:2605.30248](https://arxiv.org/abs/2605.30248)（2026-05-28）
+
 **关键趋势更新**：
 27. **Mistral 从模型供应商转型全栈 AI 公司** — 自有算力+开放模型+本地部署的差异化路线，瞄准欧洲受监管行业
 28. **LLM 推理速度成为 Agent 生产力的关键瓶颈** — Kog 展示架构/引擎/内核协同设计可在标准 GPU 上实现 3,000 tokens/s
@@ -1234,6 +1276,11 @@ Meta 发表论文 [Automating Low-Risk Code Review at Meta](https://arxiv.org/ab
 32. **AI Agent 基础设施安全漏洞敲响警钟** — BadHost CVE 影响 Starlette/FastAPI 生态数百万 AI Agent 部署
 33. **Meta RADAR 验证企业级自动化代码审查可行** — 风险感知分层策略将审查效率提升 3-4 倍
 34. **LLM 推理研究从显式 CoT 转向潜在推理** — 工作记忆机制可能从根本上改变推理范式
+35. **AI 行业领袖集体收回就业冲击预言** — Sam Altman 和 Dario Amodei 在各自 IPO 进程中承认短期内白领就业冲击不及预期
+36. **企业 AI 使用成本结构不可持续** — Microsoft 取消 Claude Code 许可、Uber 四个月耗尽 $34 亿 AI 预算、NVIDIA VP 承认算力成本超过人力成本
+37. **DeepSeek V4-Pro 永久降价 75%** — 中国开源编码模型在成本效益上超越西方前沿模型 11 倍，价格战进入新阶段
+38. **中国开源编码模型集体崛起** — GLM-5.1、MiniMax M2.7、Kimi K2.6、DeepSeek V4 在 12 天内密集发布，编码能力接近西方前沿水平
+39. **AI Agent 在对抗性环境中表现不佳** — KellyBench 测试显示 24 个模型中 21 个在投注场景中亏损，Agent 在非平稳环境中仍脆弱
 
 ---
 
