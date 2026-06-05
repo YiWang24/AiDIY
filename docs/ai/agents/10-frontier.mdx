@@ -682,6 +682,21 @@ Google DeepMind 发布 [Gemma 4](https://blog.google/innovation-and-ai/technolog
 
 31B 模型在 Arena AI 排行榜位列全球开源模型第 3 名。全部模型支持原生函数调用、结构化 JSON 输出、视觉/音频理解，训练覆盖 140+ 语言。
 
+##### Gemma 4 12B：统一多模态模型登岸（2026 年 6 月）
+
+Google DeepMind 发布 **Gemma 4 12B**，这是系列中最新的多模态模型，定位于 E4B 和 26B MoE 之间：
+
+- **统一架构**：无需多模态编码器，视觉和音频输入直接流入 LLM 主干
+- **原生音频支持**：首个支持原生音频输入中等尺寸 Gemma 模型
+- **推理能力**：基准测试表现接近 26B MoE，解锁多步推理和 Agent 工作流
+- **本地运行**：仅需 16GB VRAM 或统一内存即可在消费级笔记本上运行
+- **Apache 2.0 开源**：完整的开放许可
+- **MTP Drafters**：配备 Multi-Token Prediction 降低延迟
+
+Gemma 4 系列下载量已突破 **1.5 亿次**。社区已构建从可穿戴机器人手臂到企业级 AI 安全等各种应用。
+
+> 来源：[Google Blog](https://blog.google/innovation-and-ai/technology/developers-tools/introducing-gemma-4-12b/)（2026-06-03）
+
 ##### Kubernetes v1.36 "Haru" 发布
 
 [Kubernetes v1.36](https://kubernetes.io/blog/2026/04/22/kubernetes-v1-36-release/) 于 4 月 22 日发布，包含 70 项增强：
@@ -1315,6 +1330,72 @@ Claude Code 从终端扩展到**浏览器和 iPhone**，开发者可在任何设
 41. **NVIDIA Vera Rubin 全面投产 + Nemotron 3 Ultra 开源** — AI 基础设施竞争从芯片扩展到全栈（模型、Agent 运行时、网络）
 42. **Claude Code 登录 Web 端 + 跨平台记忆同步** — AI 编码 Agent 从开发者工具走向全平台生产力基础设施
 43. **Claude Mythos 三度泄露** — 内部安全管控与前沿模型能力管控的矛盾日益尖锐
+44. **机器人流量首次超过人类流量**（2026-06） — Cloudflare 数据显示 bot 流量占比 57.4%，AI Agent 爬取成主因；Web 未来可能"付费爬取"
+45. **Uber AI 使用限制 $1,500/月** — 企业 AI 成本治理进入精细化阶段，提示词工程与上下文缓存成为必选项
+
+##### 佛罗里达州起诉 OpenAI：AI 产品责任先例（2026-06-05）
+
+佛罗里达州成为美国第一个起诉 OpenAI 及 CEO Sam Altman 个人的州。83 页的诉状将 ChatGPT 定性为"缺陷产品"和"公共妨害"（public nuisance），指控 OpenAI 在知道聊天机器人向未成年人提供危险内容的情况下仍将其作为安全产品推广。诉状要点包括：
+
+- **无年龄验证**：免费版无有效年龄验证机制，数万名 13 岁以下用户使用
+- **数据收集先于同意**：在用户同意服务条款之前即开始收集数据
+- **安全投入不足**：Altman 据称缩短了 GPT-4o 安全测试时间，仅将 1-2% 算力用于安全（承诺为 20%）
+- **认知侵蚀**：诉状甚至论证 AI 使用导致认知能力下降
+
+这一法律策略可能为聊天机器人监管开创先例——将 AI 产品置于产品责任法的管辖范围。
+
+> 来源：[The Decoder](https://the-decoder.com/floridas-lawsuit-against-openai-and-ceo-altman-treats-chatgpt-as-a-defective-product-and-public-nuisance/)（2026-06-05）
+
+##### Nadella 公开否决 AI Agent 成瘾计划（2026-06-05）
+
+Microsoft CEO Satya Nadella 公开批评公司副总裁 Omar Shahine 的内部备忘录——该备忘录提议将新 AI Agent "Scout" 设计为"令人上瘾"的应用。Nadella 在约 50 名顶级工程师面前写道："不知道这是什么文件，谁在写和泄露这种废话！他们可能想去别的地方工作。"并明确表示"成瘾绝对不是我们的目标"。
+
+Shahine 的备忘录提出了从"成瘾应用"到"Agent 平台"的三阶段计划。值得注意的是，Scout 基于**开源软件 OpenClaw** 构建。Nadella 的强硬表态发生在社交媒体平台因使用成瘾设计模式而面临日益增长批评的背景下。
+
+> 来源：[The Decoder](https://the-decoder.com/satya-nadella-publicly-torches-a-vps-plan-to-make-microsofts-ai-agent-deliberately-addictive/)（2026-06-05）
+
+##### Microsoft MAI 模型训练数据争议（2026-06-05）
+
+Microsoft 发布的技术论文揭示，其新 MAI 模型部分使用了未授权的网络数据（包括 Common Crawl）。此前 Microsoft 曾声称 MAI 模型仅使用"企业级、清洁且商业授权的数据"。论文将数据描述为"公开可用和授权的人工生成数据的混合"。与其他 AI 公司一样，Microsoft 可能依赖合理使用原则。Simon Willison 最先指出了这一矛盾。
+
+> 来源：[The Decoder](https://the-decoder.com/microsoft-trained-its-mai-models-on-unlicensed-web-data-despite-promising-enterprise-grade-clean-and-commercially-licensed-data/)（2026-06-05）
+
+##### Anthropic Mythos 模型被 NSA 用于进攻性网络行动（2026-06-05）
+
+据《金融时报》报道，美国国家安全局（NSA）正在使用 Anthropic 的 Mythos AI 模型执行**进攻性网络行动**，目标包括中国和伊朗的网络。Anthropic 已将约半打工程师直接派驻 NSA 以适配模型。此举发生在 Anthropic 与五角大楼的法律纠纷期间——国防部将该公司归类为"关键资产"以绕过其禁止与军事客户的合作条款。
+
+> 来源：[The Decoder](https://the-decoder.com/anthropics-mythos-model-is-reportedly-powering-nsa-offensive-cyber-ops-against-china-and-iran/)（2026-06-05）
+
+##### Anthropic 称 Claude 现已编写 90% 以上代码（2026-06-05）
+
+Anthropic 表示 Claude 现在编写了公司**超过 90% 的代码**，同时呼吁世界应该拥有一个"AI 暂停按钮"。这标志着 AI 辅助编码从辅助工具到主要生产力的质变。
+
+> 来源：[The Decoder](https://the-decoder.com/anthropic-says-claude-now-writes-over-90-of-its-code-and-wants-the-world-to-have-an-ai-pause-button/)（2026-06-05）
+
+##### Gemma 4 QAT 模型：量化感知训练优化移动端效率（2026-06-05）
+
+Google 发布 Gemma 4 的量化感知训练（QAT）模型，专门优化压缩以在移动设备和笔记本电脑上高效运行。QAT 技术在训练阶段即考虑量化损失，使模型在低精度推理时保持更高准确率，减少内存和计算需求。这使得 Gemma 4 系列在边缘设备上的部署更加实用。
+
+> 来源：[Google Blog](https://blog.google/innovation-and-ai/technology/developers-tools/quantization-aware-training-gemma-4/)（2026-06-05）
+
+##### Bain 调查：企业 AI 投资回报不及预期（2026-06-05）
+
+Bain & Company 对 951 家公司的调查发现，近 40% 的企业 AI 成本节约低于 10%，而最常见的目标是 11-20%。主要障碍是**过多的人类介入**——仅 7% 的公司实现了端到端 AI 自动化。尽管回报不足，90% 的企业仍计划增加 AI 投资，特别是在 AI Agent 领域。
+
+> 来源：[The Decoder](https://the-decoder.com/bain-study-finds-companies-miss-ai-savings-targets-because-humans-keep-getting-in-the-way/)（2026-06-05）
+
+##### AI 安全与 DNA 安全：行业领袖联名呼吁国会立法（2026-06-05）
+
+包括 Sam Altman（OpenAI）、Dario Amodei（Anthropic）、Demis Hassabis（Google DeepMind）、Mustafa Suleyman（Microsoft AI）在内的顶级科技高管和科学家联名致信美国政府，要求将合成 DNA 订单筛查列为法律要求。AI 系统现在在病毒学问题上已超越博士水平，可以为业余病毒学家提供指导，使生物安全风险显著升级。
+
+> 来源：[The Decoder](https://the-decoder.com/ai-can-now-coach-amateur-virologists-and-top-tech-leaders-want-congress-to-act-on-dna-security/)（2026-06-05）
+
+**关键趋势更新**：
+46. **佛罗里达州起诉 OpenAI — AI 产品责任先例** — 首次将聊天机器人定性为"缺陷产品"和"公共妨害"，产品责任法可能扩展至 AI
+47. **Nadella 否决 AI 成瘾计划 — AI 伦理红线** — Microsoft CEO 公开否决将 AI Agent 设计为成瘾产品的内部提议
+48. **Microsoft MAI 模型训练数据矛盾** — 承诺企业级授权数据实际使用 Common Crawl，训练数据透明度问题加剧
+49. **Anthropic Mythos 为 NSA 执行进攻性网络行动** — AI 军事应用的伦理边界进一步模糊
+50. **Bain 调查揭示企业 AI ROI 困境** — 40% 企业节约不足 10%，90% 仍计划加码投资
 
 ---
 
