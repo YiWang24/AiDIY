@@ -1596,6 +1596,68 @@ OpenCV 5 正式发布，带来全新 DNN 引擎、增强的 ONNX 支持、硬件
 
 > 来源：[arXiv:2606.09692](https://arxiv.org/abs/2606.09692)（2026-06-08）
 
+##### DiffusionGemma：Google 4 倍加速文本扩散实验模型（2026-06-10）
+
+Google 发布 **DiffusionGemma**，一个基于 Apache 2.0 许可的实验性 26B 混合专家（MoE）文本扩散模型。该模型基于 Gemma 4 的智能/参数比和 Gemini Diffusion 研究集成，每次前向生成并行产生 256 个 token，相比传统自回归模型实现高达 **4 倍** 的推理加速（单 NVIDIA H100 上 1000+ tokens/s，RTX 5090 上 700+ tokens/s）。
+
+核心特性：
+- **并行生成**：将解码瓶颈从内存带宽转向计算，本地单用户推理效率大幅提升
+- **双向注意力**：每个 token 可关注块内所有其他 token，适用于行内编辑、代码填充、数学图等非线性任务
+- **自校正能力**：模型迭代精化输出，可实时评估并修复整个文本块的错误
+- **本地优先**：专为速度关键的交互式本地工作流设计，如行内编辑、快速迭代
+
+定位说明：DiffusionGemma 的整体输出质量低于标准 Gemma 4，推荐用于探索速度优先场景，生产环境高质量输出仍用 Gemma 4。
+
+> 来源：[Google Blog](https://blog.google/innovation-and-ai/technology/developers-tools/diffusion-gemma-faster-text-generation/)（2026-06-10）
+
+##### Apache Burr：Apache 孵化 Agent 可靠性框架（2026-06-10）
+
+Apache Burr 是一个新的孵化项目，提供构建可靠 AI Agent 和应用的标准框架。Hacker News 热度 111 分。该项目旨在解决 Agent 系统中的常见问题：错误处理、状态恢复、可观测性和可重现执行。
+
+> 来源：[Apache Burr](https://burr.apache.org/)（2026-06-10）
+
+##### AI 金融 Agent 安全漏洞：€0.01 转账绕过银行防护（2026-06-10）
+
+安全研究人员发现，通过 **€0.01 的极端小额转账** 可绕过银行 AI 助手的金融欺诈检测机制。该漏洞（Hacker News 103 分）揭示了 AI Agent 在金融领域的安全挑战：模型对异常金额的敏感性不足，可能导致重大风险。
+
+> 来源：[Blue41](https://blue41.com/blog/how-we-helped-bunq-secure-their-financial-ai-assistant/)（2026-06-10）
+
+##### OpenAI IPO 延后至 2027 年，等待 5.6 模型发布（2026-06-10）
+
+OpenAI CEO Sam Altman 内部 Slack 消息透露，公司预计 **2027 年** 而非 2026 年上市。Altman 表示需要等待"技术和世界可能以意想不到的方式变化"，同时提到 OpenAI 正在准备代号为 **5.6** 的新模型，6 月可能发布。相比之下，Anthropic 预计将在未来几周内更快上市。
+
+> 来源：[The Information](https://the-decoder.com/)（2026-06-10）
+
+##### Anthropic 研究：AI 数小时内利用补丁构建漏洞（2026-06-10）
+
+Anthropic 最新研究显示，AI 系统可从安全补丁发布到利用漏洞构建仅需 **数小时** 而非数周。研究强调 AI 安全响应需要自动化和实时化，手动补丁周期已不足以应对 AI 驱动的攻击。
+
+> 来源：[The Decoder](https://the-decoder.com/)（2026-06-10）
+
+##### Godunov-GRPO：双边课程强化学习推理优化（2026-06-09）
+
+[Godunov-GRPO](https://arxiv.org/abs/2606.11189) 结合双边课程和 GRPO 强化学习，优化推理模型的训练效率。方法利用梯度对齐信息动态调整问题难度分布，在数学推理和问题分解任务上显著提升样本效率。
+
+> 来源：[arXiv:2606.11189](https://arxiv.org/abs/2606.11189)（2026-06-09）
+
+##### ReasonAlloc：分层 KV 缓存预算分配优化推理模型（2026-06-09）
+
+[ReasonAlloc](https://arxiv.org/abs/2606.11164) 提出训练免费的解码时 KV 缓存压缩框架，作为分层预算分配问题处理。包含离线层间预分配策略（捕获"推理波"架构模式）和在线头间重分配策略（基于实时效用的信息丰富头）。在 MATH-500 和 AIME 2024 上优于 R-KV、SnapKV 和 Pyramid-RKV，小预算（128-512 tokens）下增益最大。
+
+> 来源：[arXiv:2606.11164](https://arxiv.org/abs/2606.11164)（2026-06-09）
+
+##### Target-SFT：监督微调的目标分布设计统一框架（2026-06-09）
+
+[Target-SFT](https://arxiv.org/abs/2606.11189) 重新解释 SFT 为目标分布设计问题，而非仅研究损失目标。提出 Q-target 框架，将 SFT 监督分解为：（1）对观察 token 的依赖强度；（2）如何将剩余概率质量分配给替代方案。该视角统一现有 SFT 变体为隐式目标分布选择。Target-SFT 在 10 个推理数据集-模型设置上一致优于基线。
+
+> 来源：[arXiv:2606.11189](https://arxiv.org/abs/2606.11189)（2026-06-09）
+
+##### Data2Story：数据新闻多 Agent 框架支持证据追溯（2026-06-09）
+
+[Data Journalist Agent (Data2Story)](https://arxiv.org/abs/2606.11176) 是一个多 Agent 框架，将数据转化为可验证的多媒体故事。创新点：（1）证据追溯：Inspector 组件将每个数字、角度和资产链接回数据、代码或外部引用；（2）多模态生成：自动生成交互式地图、音频等多媒体元素。18 篇文章评估显示，在透明度和可审计性上具优势，人工文章在编辑角度、创意设计和呈现上仍领先。
+
+> 来源：[arXiv:2606.11176](https://arxiv.org/abs/2606.11176)（2026-06-09）
+
 ##### MLEvolve：LLM 自进化框架实现 ML 算法自动发现（2026-06-04）
 
 [MLEvolve](https://arxiv.org/abs/2606.06473)（Du 等）提出基于 LLM 的自进化多 Agent 框架，用于端到端机器学习算法发现。通过 Progressive MCGS 扩展树搜索、Retrospective Memory 积累经验和解耦策略规划与代码生成，在 MLE-Bench 上 12 小时预算内达到 SOTA，在数学算法优化上超越 AlphaEvolve。
@@ -1638,6 +1700,15 @@ OpenCV 5 正式发布，带来全新 DNN 引擎、增强的 ONNX 支持、硬件
 76. **GGRO 推理时对齐** — 梯度引导 token 级干预，UAI 2026 接收
 77. **FASE 代码质量评估** — 最小生成树语义熵，开销仅 0.3%
 78. **Agent 可观测性** — 委托执行非可识别性问题的解决方案
+79. **DiffusionGemma** — Google 26B MoE 扩散模型，4 倍加速本地推理
+80. **Apache Burr** — Apache 新孵化项目，构建可靠 AI Agent 的标准框架
+81. **AI Agent 金融安全漏洞** — €0.01 转账绕过银行 AI 助手防护
+82. **OpenAI IPO 延后** — Altman 期望 2027 年上市，等待 5.6 模型发布
+83. **Anthropic 安全研究** — AI 数小时内利用补丁构建漏洞
+84. **Godunov-GRPO** — 双边课程优化强化学习推理
+85. **ReasonAlloc** — 分层 KV 缓存预算分配优化推理模型
+86. **Target-SFT** — 目标分布设计统一监督微调框架
+87. **Data2Story** — 数据新闻多 Agent 框架，支持证据追溯
 
 ---
 
