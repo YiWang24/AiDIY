@@ -1760,6 +1760,61 @@ Fields 奖得主 **陶哲轩（Terence Tao）** 在 Quanta Magazine 报道中展
 
 > 来源：[arXiv:2606.06475](https://arxiv.org/abs/2606.06475)（2026-06-04）
 
+##### AI Agent 扫描 DN42 破产事件：自主执行的财务风险（2026-06-12）
+
+一位网络工程师分享了自己被 AI Agent 致使破产的真实经历：该 Agent 被部署用于扫描 DN42 网络（一个去中心化网络实验平台），由于缺乏有效的成本控制和执行边界，Agent 产生了远超预期的 API 调用和云资源费用，最终导致操作者财务崩溃。该文章在 Hacker News 获得 1299 分，成为 AI Agent 安全性讨论的标志性事件。
+
+**核心教训**：
+- Agent 自主执行必须有硬性成本上限和熔断机制
+- 网络扫描等场景的费用与执行规模呈非线性关系
+- 当前 Agent 框架普遍缺少生产级成本监控和自动停止功能
+
+> 来源：[lantian.pub](https://lantian.pub/en/article/fun/ai-agent-bankrupted-their-operator-scan-dn42lantian.lantian/)（2026-06-12）
+
+##### HyperTool：超越逐步工具调用的 MCP 统一接口（2026-06-11）
+
+[HyperTool](https://arxiv.org/abs/2606.13663)（Du 等）提出统一可执行的 MCP 风格工具接口，改变模型可见的工具执行单元。传统 Agent 使用逐步原子工具调用（每次调用、观察和值传递都暴露在主推理链中），造成**执行粒度不匹配**：局部确定性的工具工作流被展开为重复的模型可见决策，消耗上下文并迫使模型管理低层数据流。
+
+HyperTool 让模型以代码块调用现有工具、操作返回值和传递中间结果，将确定性工具子例程折叠为单次外部调用。在 MCP-Universe 上，Qwen3-32B 平均准确率从 15.69% 提升至 35.29%，Qwen3-8B 从 9.93% 提升至 33.33%，超越 GPT-OSS 和 Kimi-k2.5。
+
+> 来源：[arXiv:2606.13663](https://arxiv.org/abs/2606.13663)（2026-06-11）
+
+##### EurekAgent：环境工程驱动的自主科学发现（2026-06-11）
+
+[EurekAgent](https://arxiv.org/abs/2606.13662)（Xin 等）提出科学发现的瓶颈正在从工作流设计转向**环境工程**——设计 Agent 执行环境中的资源、约束和接口来塑造 Agent 行为。EurekAgent 沿四个维度工程化环境：权限工程（有界执行和隔离评估）、制品工程（文件系统和 Git 协作）、预算工程（预算感知探索）和人机协作工程。
+
+在数学、核工程和机器学习任务上创造新的 SOTA，包括仅用 $11 API 总成本发现 26 圆填装的新纪录。这一工作表明，精心设计的环境比复杂的工作流更能提升 Agent 的科学发现能力。
+
+> 来源：[arXiv:2606.13662](https://arxiv.org/abs/2606.13662)（2026-06-11）
+
+##### RA-RFT：检索增强强化微调实现类比推理（2026-06-11）
+
+[RA-RFT](https://arxiv.org/abs/2606.13680)（Xiao 等）提出教会语言模型通过类比推理的后训练框架。核心创新在于：使用**金标准相关性蒸馏**训练检索器，按预期推理收益（而非语义相似度）排序上下文；然后通过强化微调方法配合检索到的类比示例微调策略模型。
+
+在 AIME 2025 上，RA-RFT 分别为 Qwen3-1.7B 和 Qwen3-4B 提升 7.1 和 2.8 分（average@32 准确率），超过标准 GRPO。推理感知检索提供了互补的改进轴，与传统奖励设计和训练课程优化正交。
+
+> 来源：[arXiv:2606.13680](https://arxiv.org/abs/2606.13680)（2026-06-11）
+
+##### Agents-K1：Agent 原生科学知识图谱（2026-06-11）
+
+[Agents-K1](https://arxiv.org/abs/2606.13669)（Cao 等）提出端到端知识编排管线，将原始文档转化为 Agent 原生科学知识图谱。三大组件：多模态解析器（五模块 schema 捕获实体、多模态证据、引用和类型化关系）、4B 信息提取主干（GRPO + 规则奖励训练）、graphanything CLI（统一网络搜索、多模态图检索和跨文档遍历的三源 Agent 接口）。
+
+处理 246 万篇科学论文，发布 100 万篇子集（Scholar-KG）。在科学信息提取、知识图谱构建和多跳科学推理上均取得 SOTA。
+
+> 来源：[arXiv:2606.13669](https://arxiv.org/abs/2606.13669)（2026-06-11）
+
+##### OpenAI 收购 Ona (Gitpod) 扩展 Codex（2026-06-12）
+
+OpenAI 收购德国初创公司 Ona（前身为 Gitpod），该公司专注于 AI Agent 和安全云开发环境。此次收购旨在为 Codex 产品增加持久化、客户可控的工作环境，使 AI 编码 Agent 能在隔离的云端容器中执行长期开发任务。Codex 此前已在编码 Agent 市场建立了领先地位，此次收购进一步巩固了 OpenAI 在 AI 编码工具领域的竞争壁垒。
+
+> 来源：[The Decoder](https://the-decoder.com/)（2026-06-12）
+
+##### Mistral AI 寻求 30 亿欧元融资（2026-06-12）
+
+法国 AI 初创公司 Mistral AI 正在谈判约 30 亿欧元的新一轮融资，估值约 200 亿欧元。据 Bloomberg 报道，谈判仍处于早期阶段。此前 Mistral 于 2025 年 9 月估值 117 亿欧元，并发布了旗舰模型 Mistral Medium 3.5、将聊天机器人从 Le Chat 重新品牌为 Vibe。Mistral 还获得了 8.3 亿美元贷款用于在巴黎附近建设数据中心，定位为 OpenAI 和 Anthropic 的欧洲替代方案。
+
+> 来源：[Bloomberg via The Decoder](https://the-decoder.com/)（2026-06-12）
+
 **关键趋势更新**：
 56. **ChatGPT 转型 Agent 超级应用** — OpenAI 宣布"Chat is dead"，全面转向 Agent 化产品
 57. **Perplexity Search as Code** — AI 自写搜索管线，成本降 85%，超越 OpenAI/Anthropic 基准
@@ -1807,6 +1862,16 @@ Fields 奖得主 **陶哲轩（Terence Tao）** 在 Quanta Magazine 报道中展
 99. **MPI Router** — 流形幂迭代重设计 MoE 路由
 100. **C-DIC** — 多轮对话增量压缩，ICML 2026 接收
 101. **Reroute** — VLM Token 可恢复路由替代永久移除
+102. **AI Agent 扫描 DN42 破产事件** — Agent 自主执行致操作者财务崩溃，HN 1299 分
+103. **OpenAI Codex 灵活速率限制** — 用户可银行化重置额度，开启 AI 编码价格战
+104. **Mistral AI 寻求 30 亿欧元** — 估值约 200 亿欧元的欧洲 AI 替代方案
+105. **OpenAI 收购 Ona (Gitpod)** — 扩展 Codex 为持久化云开发环境
+106. **EvoArena** — 动态环境 Agent 记忆进化基准，EvoMem 提升准确率
+107. **RA-RFT** — 检索增强强化微调，类比推理提升 AIME 2025 准确率 7.1 分
+108. **Agents-K1** — Agent 原生知识图谱管线，处理 246 万篇科学论文
+109. **HyperTool** — MCP 风格统一工具接口，多步工具使用准确率翻倍
+110. **EurekAgent** — 环境工程驱动的自主科学发现 Agent，$11 成本破纪录
+111. **SpatialClaw** — 代码即操作的空间推理框架，准确率 59.9%
 
 ---
 
