@@ -9,7 +9,7 @@ tags: [ai, daily-digest, agents, coding, acquisition]
 
 今天的头条新闻无疑是 SpaceX 以 600 亿美元收购 Cursor（Anysphere）的惊天交易——这是 AI 编码领域迄今为止最大规模的收购，标志着 xAI 正式大举进入 AI 编程竞赛。与此同时，柏林法院对 Google AI Overviews 的裁决可能重塑搜索引擎对 AI 生成内容的责任边界，arXiv 最新论文则展示了 ContextRL 等上下文感知强化学习技术在提升 Agent 长上下文推理能力方面的突破。
 
-## SpaceX 600 亿美元收购 Cursor：xAI  buying its way into the coding race
+## SpaceX 600 亿美元收购 Cursor：xAI 买入编码竞赛
 
 SpaceX 已正式完成以 600 亿美元收购 Anysphere（Cursor 母公司）的交易。据路透社和彭博社报道，Anysphere 的投资人将获得 SpaceX 股票作为对价，交易预计于 2026 年第三季度完成。
 
