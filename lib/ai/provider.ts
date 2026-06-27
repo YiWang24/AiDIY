@@ -16,4 +16,10 @@ export const glm = createOpenAICompatible({
   name: "glm",
   apiKey: required("GLM_API_KEY"),
   baseURL: process.env.GLM_BASE_URL ?? "https://open.bigmodel.cn/api/paas/v4",
+  // 智谱 API 不支持 encoding_format 和 user 参数，需要移除
+  // 否则会导致 "API 调用参数有误" 错误
+  transformRequestBody: (body: Record<string, unknown>) => {
+    const { encoding_format, user, ...rest } = body;
+    return rest;
+  },
 });
