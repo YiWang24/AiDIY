@@ -8,30 +8,46 @@ const GLM_BASE_URL =
 const GLM_API_KEY = process.env.GLM_API_KEY!;
 
 async function callGLMEmbed(values: string[]): Promise<number[][]> {
-  const resp = await fetch(`${GLM_BASE_URL}/embeddings`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${GLM_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: GLM_EMBED_MODEL,
-      input: values,
-    }),
-  });
+  // 智谱 GLM embedding API 对 batch input（数组）支持不稳定，
+  // 逐条调用更可靠。并发控制为 5。
+  const CONCURRENCY = 5;
+  const results: number[][] = new Array(values.length);
 
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(
-      `GLM embedding API error (${resp.status}): ${text}`,
+  for (let i = 0; i < values.length; i += CONCURRENCY) {
+    const batch = values.slice(i, i + CONCURRENCY);
+    const responses = await Promise.all(
+      batch.map(async (text, j) => {
+        const resp = await fetch(`${GLM_BASE_URL}/embeddings`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${GLM_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: GLM_EMBED_MODEL,
+            input: text,
+          }),
+        });
+
+        if (!resp.ok) {
+          const errorText = await resp.text();
+          throw new Error(
+            `GLM embedding API error (${resp.status}) for input ${i + j}: ${errorText}`,
+          );
+        }
+
+        const data = (await resp.json()) as {
+          data: { embedding: number[] }[];
+        };
+        return data.data[0].embedding;
+      }),
     );
+    responses.forEach((emb, j) => {
+      results[i + j] = emb;
+    });
   }
 
-  const data = (await resp.json()) as {
-    data: { embedding: number[] }[];
-  };
-
-  return data.data.map((d) => d.embedding);
+  return results;
 }
 
 export async function embedText(text: string): Promise<number[]> {
