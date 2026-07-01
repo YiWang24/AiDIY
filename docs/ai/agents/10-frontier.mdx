@@ -2016,6 +2016,14 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 191. **Meta 内部测试竞品 AI 安全性** — 数百名承包商伪装成未成年人向 ChatGPT、Gemini、Character.AI 发送 45,000+ 自杀、性、毒品相关提示，单轮测试揭示安全漏洞
 192. **AgentJet：灵活群体训练框架** — arXiv 2606.04484 提出灵活群体训练框架用于 Agentic 强化学习，支持多 Agent 协作优化
 193. **Agentic RL 综述：从静态生成到动态决策** — arXiv 2604.27859v2 全面总结 LLM 中的 Agentic 强化学习，涵盖目标设定、长期规划、动态策略适应、交互式推理
+194. **Claude Code 隐秘标记中国用户被曝光** — Reddit 用户发现 Claude Code v2.1.91（2026-04-02 发布）通过隐写术（修改系统提示中日期格式与撇号字符）秘密检测用户是否位于中国、使用中国代理或连接中国 AI 实验室，代码用 XOR（密钥 91）加密，发布说明未提及；Anthropic 称其为防止未授权转售和蒸馏的实验，已合并 PR 回滚
+195. **Z.ai 发布 ZCode 桌面编码 Agent** — Z.ai（GLM 制造商）推出 ZCode，由 GLM-5.2 驱动的桌面端 Agent，提供 GUI、长任务结构、SSH 远程开发、移动端控制，作为命令行工具（Claude Code）的图形化替代方案
+196. **Meta 效仿 SpaceX 进入 AI 云业务** — 据 Bloomberg，Meta 将剩余 AI 算力转售给外部客户，股价应声上涨约 10%，可能同时提供基础设施上的 AI 模型访问；SpaceX 此前已与 Anthropic（每月 12.5 亿美元）和 Google（每月 9.2 亿美元）签订 GPU 租赁协议
+197. **Meta Brain2Qwerty v2：无创脑机接口文本解码** — Meta FAIR 发布 Brain2Qwerty v2，通过 MEG（脑磁图）在颅外读取磁信号重建完整句子，平均词错率降至 39%（最佳受试者 22%），无需手术植入；模型在字符/词/句子三层处理，用 Qwen3 微调做语言级平滑；三个 Claude Opus 4.6 Agent 自动编写优化代码（标签平滑、模态 dropout）有效降低错误率
+198. **Claude Sonnet 5 隐性涨价被揭示** — Artificial Analysis 测试显示 Claude Sonnet 5 以 53 分并列第五，部分 Agent 任务超越 Opus 4.8，但每任务输出 token 消耗比 Sonnet 4.6 多约 40%、Agent 循环次数约 3 倍，单任务成本从 $1.20 升至 $2.29（接近 Opus 4.8）；"标价不变、实际翻倍"成 Anthropic 新一代模型的共同模式
+199. **Anthropic Fable 5 解禁重新全球发布** — 因 Amazon 研究者发现越狱方法被美国政府禁运两周后，Fable 5 恢复全球出货；Anthropic 称更小的 Claude Haiku 4.5 也能实现相同攻击，新安全分类器在 99%+ 案例中阻断该技术
+200. **TRIAGE：Agentic RL 角色类型信用分配** — arXiv 2606.32017 提出 TRIAGE，针对 Agentic RL 中标准 GRPO 将最终验证结果作为所有动作的统一优势的问题，按动作角色类型（搜索/点击/编辑/导航/对象交互）进行差异化信用分配，提升多步环境交互的 RL 训练效率
+201. **元认知反馈强化学习促成 LLM 忠实不确定性表达** — arXiv 2606.32032 提出元认知反馈的强化学习方法，训练 LLM 忠实表达不确定性，应对其高置信度幻觉、关键元认知能力缺失的系统性缺陷
 ---
 
 ## 10.11 Key Takeaways
