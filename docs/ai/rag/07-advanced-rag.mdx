@@ -2080,6 +2080,26 @@ record BinaryVector(byte[] data) {}
 | **Budget-constrained** | Quantization + Caching | High | 90% latency reduction |
 | **Enterprise-grade** | Modular + Graph + Agentic | Medium | Combined benefits |
 
+### RAG 上下文剪枝：LLM 驱动的检索块过滤（2026）
+
+传统 RAG 管线中，检索器以最大召回为目标，生成器（最昂贵的大模型）被迫阅读并忽略大部分不相关上下文。由于检索块在查询成本中占比约 **2/3**，每减少一个块可降低约 4% 查询成本。
+
+**kapa.ai 的实践**（2026 年 7 月）表明，在 reranker 和生成器之间引入一个小型 LLM 进行 **listwise 五级评分**，可在不损失召回的前提下大幅压缩上下文：
+
+| 评分 | 级别 | 含义 |
+|------|------|------|
+| 5 | ESSENTIAL | 答案必须依赖此块 |
+| 4 | CONTRIBUTING | 不能单独作答，但与其他块组合必需 |
+| 3 | SUPPORTING | 相关但答案可能完整无需 |
+| 2 | TANGENTIAL | 同领域但无实质贡献 |
+| 1 | UNRELATED | 无意义关联 |
+
+**效果**：丢弃 **68%** 的上下文，保留 **96%** 的召回，查询净成本降低 **1/3**。
+
+**关键洞察**：单个 chunk 的相关性不是一个独立属性，而取决于它与其他 chunk 的**组合关系**。pointwise cross-encoder reranker 对每个 query-chunk 对独立打分，无法识别"单独看无关、组合后必需"的块。锚点文档（anchor documents）方法虽能校准分数刻度，但同样无法解决此根本问题。因此，有效的剪枝器必须同时看到问题和所有 chunk，对整个集合进行判断。
+
+> 来源：[kapa.ai](https://www.kapa.ai/blog/how-we-prune-rag-context)（2026-07）
+
 ### Further Reading
 
 **Papers**:
