@@ -632,6 +632,21 @@ OpenAI 与 Broadcom 合作推出了名为 **"Jalapeño"** 的定制 AI 芯片，
 
 > 来源：[Hacker News](https://news.ycombinator.com/)（2026-06-24）
 
+### Cognition SWE-1.7：接近前沿智能的编码 Agent（2026-07）
+
+Cognition 发布 **SWE-1.7**，这是他们迄今为止训练的最强编码模型，基于 Kimi K2.7 基座进一步强化学习训练。在 FrontierCode 1.1 Main 上达到 **42.3%**（接近 GPT-5.5 的 43.0%），Terminal-Bench 2.1 达到 **81.5%**，SWE-Bench Multilingual 达到 **77.8%**。
+
+关键技术突破包括：
+
+- **熵保持训练**：使用 top-p 采样 + 采样分布重放（sampling distribution replay）防止熵塌缩，使训练在以往停滞之后仍能持续改进
+- **多集群训练**：RL 训练横跨三大洲四个数据中心，通过云对象存储传递压缩权重增量（减少 99%+ 传输量），跨大陆万亿参数模型更新仅需 1-2 分钟
+- **容错训练**：推理引擎和训练器的故障分别处理，硬件故障不会中断长时间训练运行
+- **长视野自压缩**：模型学会总结工作状态并从摘要恢复，扩展任务视野超过原始上下文窗口
+
+SWE-1.7 已在 Devin 中通过 Cerebras 以 1000 TPS 提供，特别优化于长时间异步任务。
+
+> 来源：[Cognition Blog](https://cognition.com/blog/swe-1-7)（2026-07-08）
+
 ---
 
 ## 5.7 Key Takeaways
