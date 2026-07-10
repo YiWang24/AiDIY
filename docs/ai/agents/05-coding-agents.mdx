@@ -647,6 +647,20 @@ SWE-1.7 已在 Devin 中通过 Cerebras 以 1000 TPS 提供，特别优化于长
 
 > 来源：[Cognition Blog](https://cognition.com/blog/swe-1-7)（2026-07-08）
 
+### Bun 运行时用 Claude Fable 5 完成全面重写（2026-07）
+
+JavaScript 运行时 Bun 的创建者 Jarred Sumner 使用 Anthropic **Claude Fable 5** 的预发布版本，在约 **11 天**内将整个 Bun 代码库从 **Zig 重写为 Rust**。这被视为 AI 自主编程的里程碑事件。
+
+**关键数据**：
+- 约 **64 个 Claude 实例并行工作**，24/7 不间断
+- 完成的工作量相当于 **3 名工程师约一年的产出**
+- 重写动机是 Zig 代码中的内存泄漏、随机崩溃和生命周期 bug 难以根除
+- Rust 在编译期捕获大量此类错误
+
+这一案例充分展示了当前 AI 编码 Agent 在大规模、多文件代码迁移中的实战能力——不再是单文件补丁或 toy demo，而是完整的运行时基础设施重写。Simon Willison 和 Techmeme 均给予高度关注。
+
+> 来源：[Simon Willison's Blog](https://simonwillison.net/2026/Jul/8/rewriting-bun-in-rust/)、[The Register](https://www.theregister.com/software/2026/05/05/anthrophics-bun-team-trials-port-from-zig-to-rust/5222094)（2026-07-09）
+
 ---
 
 ## 5.7 Key Takeaways
