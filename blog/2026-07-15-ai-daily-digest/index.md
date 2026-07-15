@@ -7,11 +7,11 @@ tags: [ai, daily-digest, reasoning, open-weights, hardware, agents, benchmark]
 
 <!--truncate-->
 
-今日 AI 领域呈现三条清晰主线：AI 推理能力突破新边界——GPT-5.6 Sol 在 90 分钟内 disproved 了一个困扰统计学家近 30 年的 BH 猜想；开放权重模型再添重磅玩家——Mira Murati 的 Thinking Machines 发布 975B 参数模型 Inkling；OpenAI 硬件战略全面铺开——从无屏 AI 音箱到 Codex Micro 宏键盘，Jony Ive 操刀的消费产品预计 2027 年上市。与此同时，arXiv 上多篇论文聚焦 Agent 可靠性、记忆管理和安全隔离等工程化关键问题。
+今日 AI 领域呈现三条清晰主线：AI 推理能力突破新边界——GPT-5.6 Sol 在 90 分钟内证伪了一个困扰统计学家近 30 年的 BH 猜想；开放权重模型再添重磅玩家——Mira Murati 的 Thinking Machines 发布 975B 参数模型 Inkling；OpenAI 硬件战略全面铺开——从无屏 AI 音箱到 Codex Micro 宏键盘，Jony Ive 操刀的消费产品预计 2027 年上市。与此同时，arXiv 上多篇论文聚焦 Agent 可靠性、记忆管理和安全隔离等工程化关键问题。
 
 ## GPT-5.6 Sol 90 分钟攻破 30 年统计学猜想
 
-宾夕法尼亚大学沃顿商学院教授 Edgar Dobriban 使用 OpenAI 的 GPT-5.6 Sol Pro，在约 90 分钟内 disproved 了统计学界悬而未决近 30 年的 Benjamini-Hochberg 方法猜想。
+宾夕法尼亚大学沃顿商学院教授 Edgar Dobriban 使用 OpenAI 的 GPT-5.6 Sol Pro，在约 90 分钟内证伪了统计学界悬而未决近 30 年的 Benjamini-Hochberg 方法猜想。
 
 1995 年提出的 BH 方法是控制假发现率（FDR）的经典工具，被引超过 13 万次，广泛应用于基因组学等大规模多重检验场景。学界长期猜想 BH 方法在相关正态数据下仍能可靠控制 FDR，但一直无人能证明或反驳。Dobriban 利用 GPT-5.6 构造了一个统计模型，证明实际 FDR 可超过目标值（0.104 vs 0.1），模拟实验确认了这一结论。
 
