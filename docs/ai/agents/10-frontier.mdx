@@ -2193,6 +2193,16 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 367. **arXiv 2607.22465：TRACE-ROUTER——面向 Agentic AI 的任务一致性自适应在线路由** — 提出任务一致性和自适应的在线路由机制，解决多模型 Agent 系统中任务分配的核心挑战，为 Agent 架构中的动态模型选择提供方案
 368. **arXiv 2607.22368：Agent 基准测试是否衡量了能力？——Agentic AI 时代的协议有效性** — 质疑当前 Agent 基准测试的协议有效性，揭示测试协议中的系统性偏差，呼吁建立更严谨的 Agent 能力评估方法论
 369. **arXiv 2607.21604：AgentKVShift——Agent 记忆系统的高效 KV 缓存复用** — 提出面向 Agent 记忆系统的 KV 缓存复用方法，显著降低多轮交互中的推理开销，为长时 Agent 任务的上下文管理提供基础设施支持
+370. **MCP 2026-07-28 规范正式发布——协议核心全面无状态化** — 模型上下文协议（MCP）发布自诞生以来最大规模修订。移除协议层会话、`Mcp-Session-Id` 头和 `initialize` 握手，引入 `server/discover` RPC 和基于请求的协议版本协商。6 个 SEP 协同实现无状态架构，使任何标准 HTTP 负载均衡器可直接分发请求，彻底消除粘性路由需求。同时引入 Extensions 框架（MCP Apps + Tasks）、强化 OAuth 授权、正式弃用 HTTP+SSE 传输和 Roots/Sampling/Logging
+371. **Amazon 大幅缩减 Nova 模型线，全力押注 Frontier Model Research** — Amazon 决定停止主动开发 Nova Premier、Nova Omni、Reel 视频模型和 Canvas 图像生成器，仅维持"维持运转"模式。资源集中到由 Pieter Abbeel（通过收购 Covariant 加入）领导的 Frontier Model Research（FMR）团队，新旗舰模型预计在 re:Invent 大会发布。AGI Lab 已关闭，但 Amazon 继续作为 Anthropic 和 OpenAI 的最大投资者之一
+372. **Nvidia 投资 SSI，Ilya Sutskever 实验室从 Google TPU 转向 Vera Rubin** — Nvidia 向 Ilya Sutskever 创立的 Safe Superintelligence（SSI）投入"巨额"资金。SSI 将获得下一代 Vera Rubin GPU 平台的使用权，算力提升十倍。此前 SSI 主要依赖 Google TPU。SSI 估值约 300 亿美元，投资方包括 a16z、Sequoia 等。Nvidia 此举也意在对抗 Google 作为 AI 芯片替代供应商的崛起
+373. **Kimi Delta Attention 技术解析走红（HN 229 分）** — Doubleword.ai 发表的 Kimi Delta Attention（KDA）技术解析引发社区热议。KDA 是 Kimi K3 的核心注意力架构，与 Attention Residuals（AttnRes）共同实现了 2.5 倍的扩展效率提升。Sebastian Raschka 也同步发布了 Kimi K3 架构深度分析（HN 109 分），重点解读了 Stable LatentMoE 框架下 896 个专家中激活 16 个的稀疏设计
+374. **arXiv 2607.24280：从专有到开源——多 Agent 协议蒸馏在搜索场景的实践** — 提出通过多 Agent 协议蒸馏（Multi-Agent Protocol Distillation）将专有模型的能力迁移到开源模型，在 Agentic Search 场景中验证了该方法的有效性，为缩小专有与开源 Agent 能力差距提供新路径
+375. **arXiv 2607.24162：Agent-UCT——成本感知的 Agent 工作流树搜索优化** — 将 UCT（上限置信树）算法应用于 Agent 工作流优化，引入成本感知机制，在保证工作流质量的同时控制执行成本
+376. **arXiv 2607.24167：可证伪承诺规划——自我纠错的 Web Agent** — 提出将可证伪承诺（Falsifiable Commitment）融入 Web Agent 的规划过程，使 Agent 能在执行过程中检测和纠正自身错误，提升长程 Web 任务的可靠性
+377. **arXiv 2607.24097：MemChain——为记忆增强 Agent 学习可解释的记忆轨迹** — 提出 MemChain，为记忆增强 LLM Agent 学习可解释的记忆轨迹，使 Agent 的记忆调用过程变得透明可追踪
+378. **arXiv 2607.24054：成功本身不自证——审计 Agent 评估中的成功溯源** — 指出当前 Agent 评估中对"成功"的定义过于简单，提出审计 Agent 评估中成功溯源（Success Provenance）的方法论，揭示评估结果可能存在的系统性偏差
+379. **arXiv 2607.23942：从认知架构到语言 Agent——机制级谱系与迁移差距** — 从机制层面回顾认知架构与语言 Agent 之间的演化谱系，分析两者的趋同点和迁移差距，为理解 Agent 架构演进提供理论框架
 
 
 ---

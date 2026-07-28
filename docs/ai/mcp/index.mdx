@@ -406,6 +406,20 @@ Qwen3.7-Max 在 MCP 相关基准测试中取得领先成绩：MCP-Mark 60.8%（�
 > 来源：[Qwen3.7: The Agent Frontier](https://qwen.ai/blog?id=qwen3.7)（2026年5月19日）
 :::
 
+:::info 2026-07-28: MCP 最大修订——无状态协议核心正式发布
+MCP 维护团队正式发布了 `2026-07-28` 版本规范，这是自协议诞生以来的最大规模修订。核心变更包括：
+
+- **无状态协议核心**：移除了协议层会话和 `Mcp-Session-Id` 头，取消了 `initialize`/`initialized` 握手流程，改为基于每请求的协议版本号和新的 `server/discover` RPC。这意味着任何请求可由负载均衡器后的任意服务器实例响应，彻底消除了粘性路由（sticky routing）需求
+- **扩展框架（Extensions）**：引入正式的扩展机制，包括 MCP Apps（服务器端渲染 UI）和 Tasks（长时间运行任务的扩展）
+- **授权强化**：更紧密地对齐 OAuth 和 OpenID Connect 部署
+- **正式弃用策略**：旧的 HTTP+SSE 传输被重新分类为"已弃用"，Roots/Sampling/Logging 也被标记弃用
+- **6 个 SEP 协同**：六份规范增强提案（SEP）共同实现了这一无状态架构
+
+这一修订直接影响生产部署：此前水平扩展 MCP 服务器需要共享会话存储和粘性路由的复杂方案，现在任何标准 HTTP 基础设施都能直接处理请求分发。
+
+> 来源：[MCP 2026-07-28 Release Candidate](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate)；[Microsoft 技术分析](https://techcommunity.microsoft.com/blog/appsonazureblog/mcp-just-went-stateless-—-what-the-2026-spec-changes-about-scaling-on-app-servic/4530222)（July 28, 2026）
+:::
+
 :::info Key Takeaway
 MCP positions itself as the foundational TCP/IP equivalent for the Agentic Web—enabling organizations to keep their data where it is (Siloed) while making it accessible (Connected) to the reasoning engines of the future.
 :::
