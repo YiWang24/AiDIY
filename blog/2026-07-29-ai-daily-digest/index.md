@@ -36,7 +36,7 @@ AlphaFold 原始论文的多位核心作者已经离开或被重新分配：
 - **Jonas Adler** 同步加入 Anthropic，此前曾被调往 Google 内部的 Code Strike 团队
 - **Alexander Pritzel** 也已加入 Anthropic
 
-DeepMind 为这批研究人员设立了湿实验室，并与 Allen Institute 和 Howard Hughes Medical Institute 建立了科研合作关系，为他们提供继续科学研究的環境。
+DeepMind 为这批研究人员设立了湿实验室，并与 Allen Institute 和 Howard Hughes Medical Institute 建立了科研合作关系，为他们提供继续科学研究的环境。
 
 ### 战略转向
 
