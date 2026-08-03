@@ -140,7 +140,7 @@ const config = {
         logo: {
           alt: "Yi Wang Logo",
           src: "img/favicon.svg",
-          href: "https://www.yiw.me",
+          href: "https://www.yilab.tech",
           target: "_self",
         },
         items: [
@@ -355,4 +355,3 @@ const config = {
 };
 
 export default config;
-
