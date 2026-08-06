@@ -68,7 +68,7 @@ AI 工具公司 Composio 发布了首个多框架 Agent 成本基准报告。使
 
 关键发现：没有一个框架在所有维度上占优，成本差异达近 3 倍，速度差异达 2.2 倍。Claude Code 使用最少的工具调用和最少的输出 token，但单价最高。这对企业 Agent 选型有直接参考价值——成本敏感场景应选 OpenCode，延迟敏感场景应选 Claude Code。
 
-> 来源：[Compsio via X](https://x.com)（2026-08-06）
+> 来源：[Composio via X](https://x.com)（2026-08-06）
 
 ## ScaleX 安全研究：人类漏掉三分之一 AI Agent 恶意指令
 
