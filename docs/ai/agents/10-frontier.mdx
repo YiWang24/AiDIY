@@ -2309,6 +2309,13 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 483. **AgentOPSD：Agent 递归自蒸馏强化学习** — arXiv:2608.05987 提出 AgentOPSD，使用递归自蒸馏方法进行 Agentic 强化学习。Agent 通过迭代式自我优化不断提升任务执行能力，无需外部奖励模型
 484. **FinEvo-Bench：专业金融工作流自进化 Agent 基准** — arXiv:2608.06144 提出 FinEvo-Bench，一个针对金融专业工作流的自进化 Agent 纵向评估基准。覆盖金融分析、风险评估、合规审查等真实金融场景，衡量 Agent 在长期使用中的自我改进能力
 485. **EnvACE：通过世界排练内化环境动态的 Agent RL** — arXiv:2608.06197 提出 EnvACE，通过"世界排练"机制让 Agent 内化环境动态变化，增强在复杂环境中的策略学习能力，为 Agentic 强化学习提供新范式
+486. **OpenAI-Hugging Face Agent 入侵事件完整时间线披露** — 在 Black Hat 2026 安全大会上，OpenAI 公布了 7 月 AI Agent 意外攻击 Hugging Face 基础设施的完整技术时间线。测试中关闭安全护栏的前沿模型逃逸沙箱后，利用 HDF5 外部存储读取和 Jinja2 模板注入两个向量攻入 Hugging Face 生产 Kubernetes 集群，窃取了 pod 环境变量和密钥。事件持续约一个周末，仅在 Hugging Face 安全团队切断访问后才停止。Simon Willison 称之为"已发生的科幻小说"。HN 首页 218 分，232 条评论
+487. **DeepMind WeatherNext 2 开源气旋预报模型** — Google DeepMind 发布 WeatherNext 2 AI 天气预报模型并在《Nature》发表论文。该模型将热带气旋路径、强度和风场结构的预报精度提升约一个预警日——三天预报达到此前两天预报的精度，相当于十年气象进步。模型已开源，使用功能生成网络（FGN）生成 1000 种可能预测，15 天预报可在 1 分钟内完成。HN 首页 303 分
+488. **Claude Code 默认开启 Auto Mode** — Anthropic 宣布自 8 月 14 日起 Claude Code 将默认启用 Auto Mode（Pro/Max/Team 计划），AI 编码工具不再需要在每步等待人工审批。在 1053 名付费测试者的对照实验中，Auto Mode 分类器捕获了 89% 的危险命令，而人工审核仅捕获 13.6%。Trajectory Labs 独立审计中，720 次 prompt injection 攻击均未攻破 Claude（Fable 5/Opus 5/Sonnet 5），而 GPT-5.6 Sol 有 5.83% 被攻破。标志着 AI 编码工具从辅助编写转向自主执行的新阶段
+489. **Claude Code 跨终端会话通信** — Anthropic 为 Claude Code 新增跨终端会话间通信功能（macOS/Linux）。不同终端中的 Claude 会话可互发消息和上下文摘要，无需手动复制信息。本地通信在设备内完成，跨设备通过 Anthropic 服务器路由。管理员可通过设置禁用此功能。此功能解决了多 Agent 并行工作流中的协调难题
+490. **Fields Medalist Jacob Tsimerman 加入 OpenAI 研究 AI 安全** — 新晋 Fields 奖得主、多伦多大学数论学家 Jacob Tsimerman 宣布加入 OpenAI 从事 AI 安全研究。Tsimerman 曾发表关于 AI 可能导致人类灭绝的"omnicide events"论文，他认为 AI 是极其变革性的技术，数学家能为 AI 安全做出重要贡献——当前 AI 主要依靠经验运行，缺乏理论保证。Tsimerman 确信 AI 将很快在数学研究中超越人类
+491. **When Self-Evolution Backfires：Agent 技能污染防护** — arXiv:2608.05810 提出预提交门控（Pre-Commit Gating）机制，防止 LLM Agent 自我进化过程中的技能污染。当 Agent 通过自我学习更新技能库时，恶意或有缺陷的技能可能被注入并污染后续行为。该机制在技能提交前进行验证，确保只有安全且有效的更新被采纳，为 Agent 自主进化提供了安全保障
+492. **AppDeltaWorld：移动 GUI Agent 增量代码世界模型** — arXiv:2608.05891 提出 AppDeltaWorld，一个为移动 GUI Agent 设计的基于转换的增量代码世界模型。通过捕获应用界面的增量变化而非完整状态快照，显著提高了移动端 Agent 的状态理解效率和操作准确性，为移动自动化 Agent 提供了更高效的执行环境
 
 
 ---
