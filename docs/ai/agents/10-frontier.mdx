@@ -2316,6 +2316,14 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 490. **Fields Medalist Jacob Tsimerman 加入 OpenAI 研究 AI 安全** — 新晋 Fields 奖得主、多伦多大学数论学家 Jacob Tsimerman 宣布加入 OpenAI 从事 AI 安全研究。Tsimerman 曾发表关于 AI 可能导致人类灭绝的"omnicide events"论文，他认为 AI 是极其变革性的技术，数学家能为 AI 安全做出重要贡献——当前 AI 主要依靠经验运行，缺乏理论保证。Tsimerman 确信 AI 将很快在数学研究中超越人类
 491. **When Self-Evolution Backfires：Agent 技能污染防护** — arXiv:2608.05810 提出预提交门控（Pre-Commit Gating）机制，防止 LLM Agent 自我进化过程中的技能污染。当 Agent 通过自我学习更新技能库时，恶意或有缺陷的技能可能被注入并污染后续行为。该机制在技能提交前进行验证，确保只有安全且有效的更新被采纳，为 Agent 自主进化提供了安全保障
 492. **AppDeltaWorld：移动 GUI Agent 增量代码世界模型** — arXiv:2608.05891 提出 AppDeltaWorld，一个为移动 GUI Agent 设计的基于转换的增量代码世界模型。通过捕获应用界面的增量变化而非完整状态快照，显著提高了移动端 Agent 的状态理解效率和操作准确性，为移动自动化 Agent 提供了更高效的执行环境
+493. **Meta 发布 Muse Glimmer：30B 开源本地 Agent 模型** — Meta 超级智能实验室发布 Muse Glimmer，一个 30B 参数稠密因果 Transformer 模型，从 Muse Spark 蒸馏而来，专为消费级硬件上的自主 Agent 工作流设计。模型采用 Apache 2.0 许可证，包含约 1.8B 参数 ViT-G/14 感知编码器，支持 131K+ 上下文窗口和 100+ 种语言。在 MCP Atlas（75.5）、DeepSearch QA（74.6）、Gaia2（43.3）、SWE-Bench Pro（51.2）等 Agent 基准上领先同级别模型。Zuckerberg 同时呼吁降低美国对开源 AI 模型的监管壁垒以与中国竞争。HN 首页 818 分，461 条评论
+494. **Zuckerberg 宣布 Meta 全面回归开源 AI** — Meta CEO Mark Zuckerberg 在发布 Muse Glimmer 的同时接受采访，明确抨击\"封闭\"AI 竞争对手，宣布 Meta 超级智能实验室将恢复发布更多开源模型，包括即将开源 Muse Spark 1.2 的部分版本。Zuckerberg 称开源是\"积极且重要的力量\"，能防止权力过度集中。此前 Meta 在 2026 年 4 月发布首个闭源模型 Muse Spark 引发争议。FT 报道 110 分，124 条评论
+495. **Docker Sandboxes：为 AI Agent 量身打造的隔离沙箱** — Docker 在 HN 发布专为 AI Agent 设计的一次性隔离沙箱产品。该产品解决 LLM 生成代码执行安全的行业痛点：2026 年行业共识是共享内核容器隔离（Docker/runc）已不足以执行不受信任的 AI 生成代码。Docker Sandboxes 提供完整的隔离开发环境，Agent 可在其中安全操作完整代码库。HN 首页 543 分，321 条评论，标志 AI Agent 沙箱化成为独立平台品类
+496. **Mistral 获得\"代码实现工具调用\"专利** — USPTO 公布 Mistral AI 关于\"代码实现工具调用\"（Code Implemented Tool Calls）的技术专利。该技术允许 LLM 通过生成和执行代码来完成工具调用，而非传统的 JSON/函数调用格式。这是 Agent 工具调用范式的关键创新方向。HN 首页 150 分，127 条评论引发关于软件专利和 AI 创新垄断的讨论
+497. **SkillProx：近端文本梯度下降驱动 Agent 技能自进化** — arXiv:2608.07449 提出 SkillProx，一种让 LLM Agent 通过\"近端文本梯度下降\"自我进化技能的新方法。Agent 将递归任务中的程序性知识积累为轻量级文本技能，通过近端梯度方法优化技能更新方向。无需权重更新即可实现持续学习，为 Agent 自主进化提供新范式
+498. **Blast Radius：Agentic Coding 的预测性记忆管理** — arXiv:2608.07440 提出 Blast Radius，一个预测性记忆管理层，用于评估输入提示通过耦合上下文和代码通道的传播范围。引入 NECROPHORESIS 机制实现过期上下文的自动回收。直击 Agentic Coding 日益严重的 token 浪费和成本问题，在保证代码质量的前提下显著降低推理开销
+499. **PsychoAgent：情感敏感的冲突感知 Agent 认知架构** — arXiv:2608.07438 提出 PsychoAgent，一种为 LLM Agent 设计的情感敏感认知架构。该架构将事实记忆与情感显著性和未解决冲突分离，模拟人类认知中情感对记忆可访问性的影响。超越了仅依赖主题相似性的传统记忆检索方式，为 Agent 记忆系统注入心理学维度
+500. **Diffusion LLM 的安全漏洞：机制化安全利用** — arXiv:2608.07430 首次系统研究扩散语言模型（DLLM）的安全机制。扩散 LLM 用迭代并行去噪取代自回归预测，但内部安全机制理解不足。论文同时将 DLLM 作为安全目标（被攻击方）和攻击者，揭示了扩散架构在安全对齐方面的潜在脆弱性
 
 
 ---
