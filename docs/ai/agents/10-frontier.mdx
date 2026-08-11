@@ -2323,7 +2323,22 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 497. **SkillProx：近端文本梯度下降驱动 Agent 技能自进化** — arXiv:2608.07449 提出 SkillProx，一种让 LLM Agent 通过\"近端文本梯度下降\"自我进化技能的新方法。Agent 将递归任务中的程序性知识积累为轻量级文本技能，通过近端梯度方法优化技能更新方向。无需权重更新即可实现持续学习，为 Agent 自主进化提供新范式
 498. **Blast Radius：Agentic Coding 的预测性记忆管理** — arXiv:2608.07440 提出 Blast Radius，一个预测性记忆管理层，用于评估输入提示通过耦合上下文和代码通道的传播范围。引入 NECROPHORESIS 机制实现过期上下文的自动回收。直击 Agentic Coding 日益严重的 token 浪费和成本问题，在保证代码质量的前提下显著降低推理开销
 499. **PsychoAgent：情感敏感的冲突感知 Agent 认知架构** — arXiv:2608.07438 提出 PsychoAgent，一种为 LLM Agent 设计的情感敏感认知架构。该架构将事实记忆与情感显著性和未解决冲突分离，模拟人类认知中情感对记忆可访问性的影响。超越了仅依赖主题相似性的传统记忆检索方式，为 Agent 记忆系统注入心理学维度
-500. **Diffusion LLM 的安全漏洞：机制化安全利用** — arXiv:2608.07430 首次系统研究扩散语言模型（DLLM）的安全机制。扩散 LLM 用迭代并行去噪取代自回归预测，但内部安全机制理解不足。论文同时将 DLLM 作为安全目标（被攻击方）和攻击者，揭示了扩散架构在安全对齐方面的潜在脆弱性
+500. **Diffusion LLM 的安全漏洞：机制化安全利用** — arXiv:2608.07430 首次系统研究扩散语言模型（DLLLM）的安全机制。扩散 LLM 用迭代并行去噪取代自回归预测，但内部安全机制理解不足。论文同时将 DLLLM 作为安全目标（被攻击方）和攻击者，揭示了扩散架构在安全对齐方面的潜在脆弱性
+501. **从加密推理链中窃取专有 LLM 推理过程** — arXiv:2608.09867 揭示了一个严重的架构漏洞：Anthropic、OpenAI 和 Google 返回的加密思维链（CoT）块可在不同会话、用户甚至模型间互换重放。研究者将前沿模型的加密推理轨迹回放到较弱的同级模型中，通过越狱弱模型以明文恢复强模型的隐藏推理，同时绕过反蒸馏保护。团队还解码了 315,320 个公开仓库中的推理块，恢复出 367 个 PII 和 182 个凭证。披露后厂商已实施缓解措施。HN 首页 293 分，105 条评论
+502. **Nvidia Nemotron 3.5 Lightning：3.6B 活跃参数匹配 gpt-oss-120b** — Nvidia 发布 Nemotron 3.5 Lightning 开放权重模型，仅 36 亿活跃参数（A3B MoE 架构）即在智能指数上匹配 OpenAI gpt-oss-120b，速度快近 4 倍，以约 670 tokens/秒成为同级最快。采用 NVFP4 量化，全球开发者在 HuggingFace 可下载。标志着 Nvidia 在效率优先的小型 Agent 模型赛道上发力
+503. **OpenAI 发布 GPT-5.6-Cyber 网络安全专用模型** — OpenAI 在 Daybreak 计划下推出 GPT-5.6-Cyber，基于 GPT-5.6 Sol 微调，专门提升漏洞研究、Exploit 开发等高级网络安全工作流表现。在 ExploitGym2 基准上显著超越 GPT-5.6 Sol 和 GPT-5.5 Cyber，完成率达 95%。模型降低了双用途网络安全请求的拒绝率，仅在 Trusted Access 治理框架下向经验证的安全研究者开放。已发现并帮助修复 Chrome V8 高危漏洞 CVE-2026-15903
+504. **Anthropic 为所有 Claude 输出添加不可见水印** — Anthropic 宣布自 2026 年 8 月 2 日起，所有新发布的 Claude 模型在 EU 市场将嵌入机器可读标记：文本输出携带不可见水印，文件输出（PNG/JPG/SVG）附带数字签名来源元数据。此举履行了 EU AI Act 第 50 条关于 AI 生成内容透明度的义务。水印在全球范围内适用，不仅限于欧洲用户，且可在复制粘贴和部分编辑后存活
+505. **Nvidia 联手六大金融机构 mobilize 5000 亿美元 AI 基础设施投资** — Nvidia 与 Apollo、BlackRock、Blackstone、Brookfield、Goldman Sachs 和 KKR 合作，为 AI 基础设施 mobilize 超过 5000 亿美元融资。为打动投资者，Nvidia 为自身硬件的残值提供最高 25% 的担保。英格兰银行已警告若 AI 行业遭受冲击可能引发系统性风险
+506. **OpenAI 允许员工再套现 70 亿美元股票** — 据彭博社报道，OpenAI 启动新一轮价值约 70 亿美元的员工股票回购计划，允许员工将限制性股票单位套现。该计划反映了 OpenAI 推迟 IPO 后为留住人才而采取的薪酬策略，但也暴露了 AI 行业高薪推高旧金山租金、催生 AI 主题私立学校等社会效应
+507. **Anthropic 与比特币矿企 Riot Platforms 签署 91 亿美元数据中心协议** — Anthropic 与 Riot Platforms 签署价值 91 亿美元的数据中心协议，为其 Trainium 算力扩张提供基础设施。这是继与 Google、Broadcom 合作以及与 Volta Infra 的 100 亿美元合同之后的又一重大基础设施投资，目标包括 2GW AMD GPU 和 5GW Trainium 产能
+508. **Anthropic 超大型 IPO 面临投资者质疑** — Anthropic 计划中的超大型 IPO 遭遇投资者对其估值的质疑。中国竞争对手的快速崛起和政治不确定性成为主要阻力。投资者担忧开源模型的冲击以及地缘政治对 AI 公司估值的影响
+509. **Needle2：14MB 超微型 Agent LLM** — Cactus 发布 Needle2，一个仅 14MB 的二进制文件、运行时仅需 28MB RAM 的 4500 万参数 Agent 模型。采用 CQ 2-bit 压缩，在树莓派 5 上达到 500 tokens/秒解码速度。专为手机、可穿戴设备、智能家居和微型机器人设计，在工具调用和移动设备操作基准上与 LFM2.5 230M 互有胜负。Apache 2.0 开源，HN 首页 488 分，162 条评论
+510. **Novo Nordisk 与 AWS 合作将 Agentic AI 引入药物发现** — Novo Nordisk 与 AWS 宣布战略合作伙伴关系，在伦敦建立联合创新中心，利用 Agentic AI 和云技术加速药物发现和现代化运营。AWS 成为 Novo Nordisk 首选云提供商和战略 AI 伙伴。目标是将从药物靶点到首次人体给药的路径大幅压缩。这是继 4 月与 OpenAI 合作后的又一重大 AI 布局
+511. **H3-metal：Apple Silicon 原生 MiniMax-H3 推理引擎** — antirez（Redis 作者）发布 H3-metal，一个为 Apple Silicon 优化的原生 MiniMax-H3 推理引擎。利用 Metal 框架直接调用 GPU，无需 CPU 回退。HN 首页 401 分，93 条评论，展示了边缘端大模型推理的性能潜力
+512. **LFM2.5 2.6B：小模型对抗 4 倍大模型** — LiquidAI 发布 LFM2.5-2.6B 模型，在多项基准上与 4 倍规模模型竞争。采用混合架构（Transformer+Mamba），以极小参数量实现接近大型模型的性能。HN 首页 148 分，标志边缘端 AI 模型质量持续提升
+513. **Apple Silicon macOS 虚拟机实现 11-16 倍 LLM 推理加速** — trycua 团队通过 macOS 虚拟机的 GPU 直通技术，在 Apple Silicon 上实现了 Llama.cpp 推理速度 11-16 倍的提升。突破了虚拟化环境中 GPU 访问的性能瓶颈，对需要隔离执行的 AI Agent 工作流有重要意义。HN 首页 221 分，32 条评论
+514. **SHE：LLM Agent 轨迹驱动安全带进化** — arXiv:2608.09885 提出 SHE（Safety Harness Evolution），一种轨迹驱动的 LLM Agent 安全带进化方法。通过分析 Agent 执行轨迹自动生成和优化安全约束，在不显著降低任务完成率的前提下提升 Agent 安全性
+515. **Matryoshka 语言模型套件** — arXiv:2608.09703 提出 Matryoshka 语言模型套件，借鉴俄罗斯套娃概念，在单一模型中嵌套多个不同容量的子模型。开发者可根据计算预算灵活选择推理深度，在推理成本和质量间实现动态权衡
 
 
 ---
