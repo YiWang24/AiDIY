@@ -7,7 +7,7 @@ tags: [ai, daily-digest, security, open-source, infrastructure, edge-ai]
 
 <!--truncate-->
 
-2026 年 8 月 11 日，三条主线主导了 AI 行业讨论：研究者揭示了主流 LLM API 加密推理链的可窃取性，暴露出影响所有主要厂商的架构漏洞；Nvidia 联手六大金融巨头 mobilize 5000 亿美元 AI 基础设施投资，同时为自身硬件残值提供担保；微型 Agent 模型赛道升温——14MB 的 Needle2 和 2.6B 的 LFM2.5 证明模型效率竞赛正在从云端延伸到边缘设备。与此同时，OpenAI 发布 GPT-5.6-Cyber 安全专用模型、Anthropic 为 Claude 全量输出添加水印等新闻也在社区引发广泛讨论。
+2026 年 8 月 11 日，三条主线主导了 AI 行业讨论：研究者揭示了主流 LLM API 加密推理链的可窃取性，暴露出影响所有主要厂商的架构漏洞；Nvidia 联手六大金融巨头撬动 5000 亿美元 AI 基础设施投资，同时为自身硬件残值提供担保；微型 Agent 模型赛道升温——14MB 的 Needle2 和 2.6B 的 LFM2.5 证明模型效率竞赛正在从云端延伸到边缘设备。与此同时，OpenAI 发布 GPT-5.6-Cyber 安全专用模型、Anthropic 为 Claude 全量输出添加水印等新闻也在社区引发广泛讨论。
 
 ## 从加密推理链中窃取专有 LLM 推理过程
 
@@ -21,9 +21,9 @@ tags: [ai, daily-digest, security, open-source, infrastructure, edge-ai]
 
 > 来源：[stolen-thoughts.com](https://stolen-thoughts.com/)；[arXiv:2608.09867](https://arxiv.org/abs/2608.09867)（2026-08）
 
-## Nvidia 联手六大金融机构 mobilize 5000 亿美元 AI 基础设施投资
+## Nvidia 联手六大金融机构撬动 5000 亿美元 AI 基础设施投资
 
-Nvidia 今日宣布与 Apollo、BlackRock、Blackstone、Brookfield、Goldman Sachs 和 KKR 六大金融机构合作，为 AI 基础设施 mobilize 超过 5000 亿美元融资。为打动对 AI 硬件投资回报持观望态度的金融机构，Nvidia 做出了一个前所未有的承诺：为自身硬件的残值提供最高 25% 的担保。
+Nvidia 今日宣布与 Apollo、BlackRock、Blackstone、Brookfield、Goldman Sachs 和 KKR 六大金融机构合作，为 AI 基础设施撬动超过 5000 亿美元融资。为打动对 AI 硬件投资回报持观望态度的金融机构，Nvidia 做出了一个前所未有的承诺：为自身硬件的残值提供最高 25% 的担保。
 
 这意味着即使 AI 行业需求下滑，投资者也能从 Nvidia 回购部分硬件，降低投资下行风险。Stratechery 分析称此举为"Nvidia 的危险赌注"——它实际上是在用自身资产负债表为整个 AI 基础设施泡沫背书。
 
