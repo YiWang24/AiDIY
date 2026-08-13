@@ -2339,6 +2339,16 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 513. **Apple Silicon macOS 虚拟机实现 11-16 倍 LLM 推理加速** — trycua 团队通过 macOS 虚拟机的 GPU 直通技术，在 Apple Silicon 上实现了 Llama.cpp 推理速度 11-16 倍的提升。突破了虚拟化环境中 GPU 访问的性能瓶颈，对需要隔离执行的 AI Agent 工作流有重要意义。HN 首页 221 分，32 条评论
 514. **SHE：LLM Agent 轨迹驱动安全带进化** — arXiv:2608.09885 提出 SHE（Safety Harness Evolution），一种轨迹驱动的 LLM Agent 安全带进化方法。通过分析 Agent 执行轨迹自动生成和优化安全约束，在不显著降低任务完成率的前提下提升 Agent 安全性
 515. **Matryoshka 语言模型套件** — arXiv:2608.09703 提出 Matryoshka 语言模型套件，借鉴俄罗斯套娃概念，在单一模型中嵌套多个不同容量的子模型。开发者可根据计算预算灵活选择推理深度，在推理成本和质量间实现动态权衡
+516. **Gemini 3.7 Flash 发布：编码能力大幅提升、价格减半** — Google 发布 Gemini 3.7 Flash，距上一代 3.6 Flash 仅三周。Google 称其为"编码和 AI Agent 最强工作模型"。在 FrontierCode 基准上从 34.4% 提升至 43.6%，DeepSWE 从 49.0% 提升至 65.3%，Google 自测数据显示编码能力超越 Claude Sonnet 5 和 GPT-5.6 Terra。定价 $0.75/百万输入 token、$3.75/百万输出 token，比 3.6 Flash 发布时便宜 50%。HN 首页 268 分
+517. **DeepSeek 发布 V4-Pro 正式版并开源 Harness Agent 框架** — DeepSeek 将旗舰模型 V4-Pro 推出测试阶段，同时以 MIT 许可证开源 Agent 运行时框架 Harness v0.1。Harness 基于 Cordis 元框架构建，几乎所有组件均可作为插件替换，支持沙箱、文件系统和工具编排。V4-Pro 新增可配置推理力度（low/high/max）和原生 OpenAI Responses API 支持。API 定价同时上涨，缓存命中成本涨至六倍。HN 首页 452 分，204 条评论
+518. **Cerebras 为 GPT-5.6 Sol 提供 Ultrafast 推理模式** — Cerebras 与 OpenAI 合作推出 Ultrafast 推理服务层，GPT-5.6 Sol 最高可达 750 tokens/秒输出速度，比标准处理快 14 倍。基于 Cerebras 晶圆级引擎（WSE）架构，44GB SRAM 将模型权重完全保留在片上，消除 GPU 推理的内存带宽瓶颈。比 Claude Opus 4.8 Fast 模式快 5 倍、比 Claude Fable 5 快 11 倍。HN 首页 83 分
+519. **Grok 4.6 追平前沿模型，成本远低于竞争对手** — SpaceXAI 发布 Grok 4.6，Artificial Analysis 智能指数评分 61，追平 GPT-5.6 Sol，仅低于 Claude Opus 5（63）和 Claude Fable 5（62）。相比上代 Grok 4.5 提升 5 分。在 GDPval-AA v2 Agent 基准上 Elo 评分 1753，仅次于 Claude Opus 5。定价与 Grok 4.5 持平，单任务成本与 Kimi K3 相当，远低于 Claude Opus 5 和 GPT-5.6 Sol
+520. **Ling 3.0 Flash：同级最强开源模型** — 蚂蚁集团 inclusionAI 发布 Ling 3.0 Flash，Artificial Analysis 智能指数 38 分，追平 Qwen3.6 27B，但活跃参数远少。AA Omniscience 测试中幻觉率从 97% 降至 44%。MIT 许可证开源，在 per-token 定价上击败所有同级模型
+521. **Mistral OCR 4.1 发布** — Mistral 发布 OCR 4.1 模型，文档识别和提取能力显著提升。HN 首页 105 分
+522. **Fable 5 企业采用率低迷暗示前沿 AI 支付意愿触顶** — 据 Ramp 数据，Anthropic 最强模型 Fable 5 仅占 Anthropic API token 销售的 6%。企业为前沿 AI 模型支付溢价的意愿可能已触及天花板，高昂定价与实际 ROI 之间的差距成为阻力
+523. **Agent Skills 安全风险实证研究** — arXiv:2608.11888 首次系统研究 LLM Agent 中技能诱导失败的问题。Agent 通过技能库扩展能力时，恶意或有缺陷的技能可能引发意外行为。论文提出技能安全评估框架，为 Agent 插件/技能生态安全提供实证基础
+524. **VAKRA：跨 API 多跳推理与检索评估基准** — arXiv:2608.12282 提出 VAKRA，一个评估 Agent 在 API 调用和检索策略约束下多跳推理能力的基准。覆盖工具使用策略、信息检索准确性和推理链鲁棒性，填补了 Agent 多步推理评估的空白
+525. **Claim-Level 可靠性评估实现高效测试时推理** — arXiv:2608.11994 提出声明级可靠性评估方法，在推理过程中动态评估每个声明的可信度，在保证推理质量的前提下减少不必要的计算开销，为测试时推理效率优化提供新方向
 
 
 ---
