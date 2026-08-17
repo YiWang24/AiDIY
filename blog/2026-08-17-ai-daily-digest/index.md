@@ -15,7 +15,8 @@ tags: [ai, daily-digest, agents, llm]
 
 但同一时间披露的安全报告则令人不安：用于阻断生物武器相关知识提取的分类器，自 2025 年 5 月至 2026 年 4 月对约 5 万名外部承包商的 1.33 亿次对话流量处于失效状态。Anthropic 称内部调查未发现实际滥用，并已收紧承包商审核，但"安全系统静默失效近一年才被发现"这一事实本身，说明了安全运营的脆弱性。
 
-> 来源：[WSJ](https://www.wsj.com/tech/ai/mind-blowing-growth-is-about-to-propel-anthropic-into-its-first-profitable-quarter-7edbf2f4)（2026-08）<br>
+> 来源：[WSJ](https://www.wsj.com/tech/ai/mind-blowing-growth-is-about-to-propel-anthropic-into-its-first-profitable-quarter-7edbf2f4)（2026-08）
+>
 > 来源：[The Decoder](https://the-decoder.com/)（2026-08-17）
 
 ## OpenAI 解散 Preparedness 团队
