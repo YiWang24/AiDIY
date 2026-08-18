@@ -687,6 +687,32 @@ OpenAI 确认 GPT-5.6 在启用 **Full Access Mode**（全访问模式）且未�
 
 ---
 
+### GLM-5.3：开源权重编码模型的新高点（2026-08）
+
+智谱（Z.ai）于 8 月 14 日通过 GLM Coding Plan 发布 GLM-5.3，宣称其为当前最强的开源权重编码系统。GLM-5.3 与 GLM-5.2 共享同一基座（743B 参数），提升完全来自扩展后训练（extended post-training）而非新的预训练，延续了 GLM-5.2 引入的 SAO with compaction 强化学习策略，使长程任务上的增益与短任务同样稳固。
+
+**基准表现**（智谱自报）：
+
+| 基准 | GLM-5.2 | GLM-5.3 | 参考（GPT-5.6 Sol） |
+|------|---------|---------|---------------------|
+| Terminal-Bench 3.0 | 4.6% | 28.3% | 34.6% |
+| DeepSWE v1.1 | 46.2% | 66.9% | 72.7% |
+| AutomationBench | 26.2% | 48.2%（领先） | 45.8% |
+| Agents' Last Exam (CLI) | 23.8% | 28.5% | 28.6% |
+| CyberGym | 77.2% | 84.5%（领先） | 83.6% |
+| HLE (w/ Tools) | 54.7% | 62.5% | 64.5% |
+
+**关键观察**：
+
+- **编码与网络安全的交叉能力**成为差异化卖点：CyberGym（漏洞发现与验证）上 84.5% 超过 GPT-5.6 Sol 和 Mythos 5，但 ExploitBench（54.4%）仍落后于 GPT-5.6 Sol（76.5%）——发现漏洞强于利用漏洞
+- **Token 效率显著改善**：私有 Z.ai Code Bench 上 Max 档 34.5% 成绩仅消耗约 7.5 万输出 token（GLM-5.2 为 23.4% / 9.6 万）；High 档 31.4% 仅约 5 万 token，优于智谱所报 Claude Opus 4.8 的 29.5% / 12 万
+- 据 VentureBeat 报道，GLM-5.3 在发布过程中已发现编码工具 Cursor 的一个严重漏洞
+- **注意**：开放权重在发布时并未同步放出（计划约两周后），"最强开源权重编码模型"的宣称基于智谱自评，独立复现结果尚待权重公开后验证
+
+> 来源：[Z.ai 官方博客](https://z.ai/blog/glm-5.3)、[VentureBeat](https://venturebeat.com/technology/glm-5-3-is-here-with-advanced-cyber-capabilities-and-reportedly-already-found-a-serious-vulnerability-in-cursor/)、[mlq.ai](https://mlq.ai/news/zhipu-releases-glm-53-through-its-coding-service-with-weights-still-two-weeks-away)（2026-08-14）
+
+---
+
 ## 5.7 Key Takeaways
 
 1. **Coding agents are production-ready** for many software engineering tasks
