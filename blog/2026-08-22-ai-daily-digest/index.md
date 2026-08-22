@@ -45,7 +45,7 @@ Cloudflare 发布 Kitesurf，一个为运行在 Workers 平台上的 AI Agent �
 
 ## Qwen3.8-27B：前沿编码能力装进消费级 GPU
 
-阿里 8 月 14 日发布的 Qwen3.8-27B 是一个 27.8B 稠密模型，Apache 2.0 许可，Terminal-Bench 达 73.0、DeepSWE 1.1 达 42.2。一年前这个成绩需要数百亿级参数；稠密架构内存行为可预测、量化干净，专为本地部署而生。对"数据不能出楼"的团队，本地推理的计算正在改变——比任何前沿 API 降价都更根本。
+阿里 8 月 14 日发布的 Qwen3.8-27B 是一个 27.8B 稠密模型，Apache 2.0 许可，Terminal-Bench 达 73.0、DeepSWE 1.1 达 42.2。一年前这个成绩需要数百亿级参数；稠密架构内存行为可预测、量化干净，专为本地部署而生。对"数据不能出楼"的团队，这比任何前沿 API 降价都更根本地改变了本地推理的可行性。
 
 > 来源：[Build Fast with AI](https://www.buildfastwithai.com/blogs/ai-news-today-august-22-23-2026)（2026-08-22）
 
