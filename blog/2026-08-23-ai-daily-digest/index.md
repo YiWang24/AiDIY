@@ -1,6 +1,6 @@
 ---
 slug: ai-daily-digest-2026-08-23
-title: "AI Daily Digest: Harness 比 Model 更重要？Unitree 上市暴涨 460% - 2026/08/23"
+title: "AI Daily Digest: 外围软件层比模型更重要？Unitree 上市暴涨 460% - 2026/08/23"
 authors: [yiwang]
 tags: [ai, daily-digest, agents, llm]
 ---
@@ -9,7 +9,7 @@ tags: [ai, daily-digest, agents, llm]
 
 本周末 AI 圈最重要的三个信号：NVIDIA 研究证明 Agent harness（模型外围的软件层）对长程任务的影响已超过模型本身；宇树科技上交所上市首日暴涨 460%，人形机器人第一股诞生；学术侧 Agent 记忆、政策合规、环境生成、工具中训、自我改进五个方向同时出现高质量论文。
 
-## NVIDIA 研究：harness 正在变得比 model 更重要
+## NVIDIA 研究：外围软件层正在变得比模型本身更重要
 
 NVIDIA 本周发布的研究给整个 Agent 工程圈投下一枚炸弹：Claude Opus 5 在 RKGI3 基准（一组 2D 推理游戏）上，默认配置只拿到 30% 的分数，但换上一个更好的 harness——那个负责管理记忆、工具和规则的软件包装层——同样的模型直接冲到 100%。
 
