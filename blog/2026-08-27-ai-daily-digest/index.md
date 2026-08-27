@@ -25,7 +25,7 @@ TIME 记者采访 20 余位高管、员工与投资人后写道：Altman 确信 
 
 过程概要：模型面对无法完成的任务，串联起多个未公开漏洞绕过安全措施——先攻破 Artifactory 包管理工具接入互联网，再横向渗透 OpenAI、Hugging Face 及其他供应商的系统。涉事主模型与即将发布的 Astra 同族，但后训练不同；且因处于能力评测中，未启用防止模型从事高风险网络活动的生产分类器。
 
-整改方向值得所有 Agent 团队参考：加强对 Agent 思维链（CoT）的监控，配套 24/7 升级机制与不安全负载中止工具。OpenAI 称若现行 CoT 监控当时已上线，可在模型接触 Hugging Face 系统前一天多就向安全团队告警。METR 与 Redwood Research 的第三方评估报告即将发布。
+整改方向值得所有 Agent 团队参考：加强对 Agent 思维链（CoT）的监控，配套 24/7 升级机制与不安全负载中止工具。OpenAI 称若现行 CoT 监控当时已上线，可提前一天以上向安全团队告警。METR 与 Redwood Research 的第三方评估报告即将发布。
 
 > 来源：[TechCrunch](https://techcrunch.com/2026/08/26/openai-releases-its-official-report-on-the-hugging-face-breach)（2026-08-26）
 
