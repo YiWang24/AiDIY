@@ -77,7 +77,7 @@ HTMX 作者 Carson Gross 的宣言"No AI Fridays"在 Hacker News 走红（240+ �
 
 本次更新涉及以下文档：
 
-- **AI Agents / 前沿趋势** (`docs/ai/agents/10-frontier.mdx`): 新增 10 条前沿趋势（#653-662）——Apple 换帅与 AI 外包战略、DeepSeek 740 亿美元估值融资、五角大楼弃用 Claude、Nvidia 洽投 Perplexity、Kimi K3 独挑大梁与涨价豪赌、GPT-5.6 Sol 上 Cerebras CS-4、GLM 与 Qwen 架构趋同、Microduck 桌面机器人、No AI Fridays 宣言
+- **AI Agents / 前沿趋势** (`docs/ai/agents/10-frontier.mdx`): 新增 10 条前沿趋势（#653-662）——Apple 换帅与 AI 外包战略、DeepSeek 740 亿美元估值融资、五角大楼弃用 Claude、Nvidia 洽投 Perplexity、Kimi K3 独挑大梁与涨价豪赌、MCP 月下载破 4 亿、GPT-5.6 Sol 上 Cerebras CS-4、GLM 与 Qwen 架构趋同、Microduck 桌面机器人、No AI Fridays 宣言
 - **MCP 协议** (`docs/ai/mcp/index.mdx`): 新增"MCP 生态里程碑与规范演进（2026-09）"小节——4 亿月下载、请求-响应模型、Serverless/边缘部署、企业身份集成
 
 ---
