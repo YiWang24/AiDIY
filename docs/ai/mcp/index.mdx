@@ -279,6 +279,17 @@ Anthropic provides the **MCP Inspector**, a specialized developer tool:
 - **MCP Registry**：社区驱动的 MCP 服务发现和注册机制，帮助开发者发现和分享 MCP Server
 - **企业级 MCP Gateway**：统一的 MCP 代理网关，提供认证、审计、限流等企业治理能力
 
+### MCP 生态里程碑与规范演进（2026-09）
+
+2026 年 9 月，MCP 月下载量突破 **4 亿次**（一年内增长四倍），同期发布了该协议历史上最重要的规范更新之一：
+
+- **传输模型简化**：从常驻双向连接转向**请求-响应模型**，MCP Server 从此可以部署在 Serverless 与边缘基础设施上，无需维持 7×24 常驻进程——大幅降低长尾工具的托管成本
+- **交互式工具框架**：为需要多轮交互的工具（如确认、表单填写）提供形式化框架
+- **企业身份集成**：收紧与 Microsoft Entra、Okta 等企业身份提供商（IdP）的对接规范，强化企业级认证治理
+- **竞争者跟进**：OpenAI 与 Google 均已在自家产品中支持 MCP，协议事实上成为 Agent 连接外部工具的行业标准
+
+> 来源：[unrot.co AI News](https://unrot.co/blogs/today-top-ai-news-september-1-2026)（2026-09-01）
+
 ### Table 1: Comparative Analysis of Transport Mechanisms
 
 | Feature | Stdio (Standard Input/Output) | SSE (Server-Sent Events) / HTTP | Streamable HTTP (2025) |
