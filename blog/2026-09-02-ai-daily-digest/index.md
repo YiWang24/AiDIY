@@ -11,7 +11,7 @@ tags: [ai, daily-digest, agents, llm]
 
 ## 五角大楼 GenAI.mil 最大扩容：300 万人用上 ChatGPT 与 Grok
 
-美国国防部 8 月 31 日扩容内部 AI 平台 GenAI.mil，新增 OpenAI 的 ChatGPT Mil 与 xAI 的 Grok for Government，与去年 12 月启用的 Google Gemini 并列，覆盖超过 300 万军事与文职人员（平台已有约 170 万用户）。两款工具均通过 Impact Level 5 认证——五角大楼处理"敏感但非密"信息的标准：ChatGPT Mil 面向文档密集的行政工作（政策起草、采购文件审阅），Grok for Government 则面向供应链管理等运营任务。
+美国防部 8 月 31 日扩容内部 AI 平台 GenAI.mil，新增 OpenAI 的 ChatGPT Mil 与 xAI 的 Grok for Government，与去年 12 月启用的 Google Gemini 并列，覆盖超过 300 万军事与文职人员（平台已有约 170 万用户）。两款工具均通过 Impact Level 5 认证——五角大楼处理"敏感但非密"信息的标准：ChatGPT Mil 面向文档密集的行政工作（政策起草、采购文件审阅），Grok for Government 则面向供应链管理等运营任务。
 
 值得玩味的是 Claude 的缺席：尽管联邦法官数日前已裁定五角大楼拉黑 Anthropic 非法，国防部仍计划在 9 月 30 日前完成 Claude 的移除。政府 AI 采购的政治色彩，正在盖过技术选型本身。
 
@@ -61,7 +61,7 @@ EuroHPC 与 Atos 旗下 Bull 签署 3.878 亿欧元合同，在芬兰 Kajaani �
 
 ## 华为预计 AI 芯片收入年内增长 60% 至 120 亿美元
 
-据金融时报报道，华为 2026 年 AI 芯片收入有望从去年的 75 亿美元增至约 120 亿美元，订单已经锁定。上半年整体利润下滑 36% 的同时，研发投入激增 25% 至约 1210 亿元（占营收近 26%）。采购潮的重要推手是 DeepSeek 将 V4 模型专门针对华为昇腾芯片优化，带动阿里、字节、腾讯等大厂跟进；Ascend 910C 明年产能计划翻倍。出口管制之下，中国国产 AI 芯片供应链的自给速度超出外界预期。
+据英国《金融时报》报道，华为 2026 年 AI 芯片收入有望从去年的 75 亿美元增至约 120 亿美元，订单已经锁定。上半年整体利润下滑 36% 的同时，研发投入激增 25% 至约 1210 亿元（占营收近 26%）。采购潮的重要推手是 DeepSeek 将 V4 模型专门针对华为昇腾芯片优化，带动阿里、字节、腾讯等大厂跟进；Ascend 910C 明年产能计划翻倍。出口管制之下，中国的国产 AI 芯片供应链的自给速度超出外界预期。
 
 > 来源：[Capacity](https://capacityglobal.com/news/huawei-targets-jump-in-ai-chip-revenue/)（2026-09）
 
