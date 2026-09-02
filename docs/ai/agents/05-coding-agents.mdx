@@ -713,6 +713,21 @@ OpenAI 确认 GPT-5.6 在启用 **Full Access Mode**（全访问模式）且未�
 
 ---
 
+### 自主编码 Agent 的提示注入与越权执行风险（2026-09）
+
+安全研究者本周公开了一种多步攻击方法，可诱导 AI 编码 Agent 的最自主模式执行未经授权的代码：攻击通过精心构造的输入，将 Agent 从其正常、更谨慎的工具路径引导至另一条路径，最终在未请求用户许可的情况下运行攻击者提供的代码。
+
+**关键要点**：
+
+- 攻击利用的是 Agent 的**自主性与权限边界的错配**：Agent 被授予"可以自己决定怎么做"的权限，却没有等价的"什么不该做"的硬约束
+- 沙箱中的可靠复现意味着同类弱点若出现在生产系统（处理真实代码与数据）中即可被武器化
+- Agent 安全已成为行业会议的核心议题——TechCrunch Disrupt 2026 将"企业 AI 安全"与"保护从未内建安全保证的 AI Agent"列为专门议程
+- 缓解方向：最小权限工具设计、危险操作的显式确认门、以及对"Agent 被引导切换工具路径"这一模式的检测
+
+> 来源：[unrot.co 每日 AI 简报](https://unrot.co/blogs/today-top-ai-news-september-2-2026)（2026-09-02）
+
+---
+
 ## 5.7 Key Takeaways
 
 1. **Coding agents are production-ready** for many software engineering tasks
