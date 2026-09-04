@@ -7,7 +7,7 @@ tags: [ai, daily-digest, agents, llm]
 
 <!--truncate-->
 
-今天是 AI 行业密集发布的一周收尾：OpenAI 的 GPT-6 Astra 成为首个让公司官方愿意使用"AGI 时代"一词的模型，也是首个在其安全框架下触发网络安全"关键"阈值的模型；Anthropic、Google、Meta 在九月前两天接连交付三款前沿模型。基准评测机构对 Astra 的结论罕见地分裂，而 ARC-AGI-3 上的一項效率指标让 François Chollet 提前了自己的 AGI 时间表。学术侧，arXiv 今日新帖中长程状态跟踪、Agent 系统级安全与 GUI 基础模型三条线索值得关注。
+今天是 AI 行业密集发布的一周收尾：OpenAI 的 GPT-6 Astra 成为首个让公司官方愿意使用"AGI 时代"一词的模型，也是首个在其安全框架下触发网络安全"关键"阈值的模型；Anthropic、Google、Meta 在九月前两天接连交付三款前沿模型。基准评测机构对 Astra 的结论罕见地分裂，而 ARC-AGI-3 上的一项效率指标让 François Chollet 提前了自己的 AGI 时间表。学术侧，arXiv 今日新帖中长程状态跟踪、Agent 系统级安全与 GUI 基础模型三条线索值得关注。
 
 ## OpenAI 发布 GPT-6 Astra：首个触发网络安全关键阈值的模型
 
