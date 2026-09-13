@@ -23,7 +23,7 @@ Bengio 的核心假设：当前最先进模型建立在人类模仿与强化学�
 
 Anthropic CEO Dario Amodei 发表博客，称自今年夏天以来 AI 能力增长显著加速，主因正是"AI 构建下一代 AI"的递归自我改进——这可能超出开发者理解与控制能力的增长速度，六到十二个月内或威胁整个互联网。
 
-他提出三层治理方案：（1）独立审计员常驻 AI 公司，拥有内部系统访问权与公开发布权，Anthropic 率先承诺并呼吁政府强制推行；（2）民主国家 AI 公司共享安全标准、限制不受约束的进展（与 Demis Hassabis 的提案呼应）；（3)包含中国的全球协议，从禁止生物武器类应用到共享安全测试，再到给递归自我改进设定"速度限制"——类比 SALT 军控条约。OpenAI 据报也在与美国国会探讨行业共同的"刹车"机制。
+他提出三层治理方案：（1）独立审计员常驻 AI 公司，拥有内部系统访问权与公开发布权，Anthropic 率先承诺并呼吁政府强制推行；（2）民主国家 AI 公司共享安全标准、限制不受约束的进展（与 Demis Hassabis 的提案呼应）；（3）包含中国的全球协议，从禁止生物武器类应用到共享安全测试，再到给递归自我改进设定"速度限制"——类比 SALT 军控条约。OpenAI 据报也在与美国国会探讨行业共同的"刹车"机制。
 
 > 来源：[The Decoder](https://the-decoder.com/anthropic-ceo-amodei-wants-ai-speed-limits-before-self-improvement-outpaces-human-control/)（2026-09-12）
 
