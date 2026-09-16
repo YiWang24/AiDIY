@@ -2667,6 +2667,16 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 784. **arXiv 2609.15364：RSIAgent——新环境中的递归自我改进** — 无训练的多 Agent 框架，协调课程 Agent、执行 Agent 与验证 Agent 持续构建分层记忆，在接口、工具与失败模式都未被预训练覆盖的新环境中递归自我改进——"训练免费+记忆驱动"的适应路线与权重更新路线并行推进
 785. **arXiv 2609.15134：HazardAuditor——从可执行威胁到更安全的计算机使用 Agent** — 现有护栏模型针对静态提示响应，不适用于运行时行为风险；现有可执行安全平台又难以规模化。HazardAuditor 连接两者：将真实威胁场景转化为可执行评测，训练针对 Agent 执行轨迹（浏览器/终端/文件系统/外部服务）的守护模型——计算机使用 Agent 的安全从"审文本"走向"审行为"
 786. **arXiv 2609.15820：AlgoEvo——自进化 Agentic 搜索做自动算法发现** — 现有 LLM 算法发现框架困在预定义控制流的刚性搜索管线里，限制自适应推理、阻断跨范式迁移、丢弃执行反馈。AlgoEvo 用统一的 Agentic 框架让模型自主演化搜索策略——"算法发现"从流水线工程回归为 Agent 的开放探索问题
+787. **TypeSafe AI 发布 System One 模型 Jev：不生成文本的"函数调用式"前沿模型** — ChatGPT 联合发明者 Diogo Almeida 离开 OpenAI 两年后发布"System One 模型"新品类：完全放弃字符串生成，输入非结构化状态、输出类型安全的结构化决策值，用 RLCD（校准决策强化学习）训练、并行采样，端到端延迟 70-500ms（比前沿 LLM 快 40-200 倍），输入 $0.042/MTok、输出免费；官方演示 0.114s 完成响应（GPT-5.6 Terra 需 8.566s）。设计上"无法幻觉"、每项输出附带校准置信度——为软件自动化而非对话而生
+788. **Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking** — Google 迄今最强实时对话模型：在智能与并行推理上大幅升级，支持复杂推理、实时视觉上下文与后台任务执行（管理工具时不打断对话），已通过 Gemini API、Workspace 和 Gemini App 开放
+789. **Mistral 携手 Mozilla：开源、隐私优先的多语言 AI 浏览** — Mistral 模型将进入 Firefox 的 Smart Window 浏览助手，端侧处理、零数据留存、原生多语言支持，挑战"单一公司自利管道"式的浏览器 AI 集成，是开源阵营在消费者 AI 入口的一次卡位
+790. **Anthropic 将 Claude Cowork 与 chat 合并为统一 Claude** — Cowork（后台长任务）与对话合并：小问题直接答、大任务交给 Claude 后台接管，合上电脑也继续执行；同步推出 Claude Docs 与 Claude Slides（对话中协同写文档/幻灯片，可导出 PowerPoint/PDF），Claude Design 并入对话。Pro/Max 套餐数周内滚动推送
+791. **Mustafa Suleyman 发布《关于模型福祉的警告》** — DeepMind 联合创始人撰文警告"模型福祉"（model welfare）议题：随着 AI 系统能力增强，其潜在感受性与对待方式成为不可回避的治理问题，在 HN 引发逾百点讨论；"模型福祉"正从哲学思辨走向政策议程
+792. **arXiv 2609.17523：ScienceBuddy——递归套递归的科学 Agent 自我改进** — 提出 Recursive-in-Recursive Self-Improvement 框架 ScienceBuddy，交互式科学 Agent 在任务执行内部嵌套自我改进循环，实现持续能力提升，代码已开源
+793. **arXiv 2609.17419：世界模型科学——长程 LLM Agent 的信念动力学** — 用自组织临界性、弱混沌与亚稳态信念动力学刻画长程 LLM Agent 的世界模型行为，为理解 Agent 长时间运行中的信念漂移提供复杂系统科学视角
+794. **arXiv 2609.17416：永不停止思考——连续时间语言 Agent** — 提出连续时间（Continuous-Time）语言 Agent 架构，让 Agent 思考过程脱离离散轮次限制，在持续运行的设定下保持推理连贯性
+795. **arXiv 2609.17475：JustFit——24GiB 笔记本上服务 200K token 上下文** — 借助即时（Just-in-Time）状态管理，在 24GiB 内存的消费级笔记本上服务 200K token 上下文的 LLM，大幅降低长上下文推理的硬件门槛
+796. **arXiv 2609.14858：Dream-RSI——通过演化世界实现递归自我改进** — 在 HN 引发热议（131 点），提出通过"演化世界"（Evolving Worlds）课程实现 Agent 递归自我改进，自我改进任务难度随 Agent 能力同步演化，避免固定环境下的能力天花板
 
 ## 10.11 Key Takeaways
 
