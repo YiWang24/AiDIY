@@ -726,6 +726,22 @@ OpenAI 确认 GPT-5.6 在启用 **Full Access Mode**（全访问模式）且未�
 
 > 来源：[unrot.co 每日 AI 简报](https://unrot.co/blogs/today-top-ai-news-september-2-2026)（2026-09-02）
 
+### Claude Code Projects 重构：并行线程与协调器编排（2026-09-17）
+
+Anthropic 重建了 Claude Code 的 Projects 功能：用户只需描述目标，协调器（coordinator）即把工作拆分到多个并行 "threads"，每个 thread 作为独立云端会话运行。进度可在主聊天或单个 thread 中追踪（包括移动端）；每个 thread 可以自行开启 PR 并运行测试。随着时间推移，Claude 会在跨 thread 之间构建共享记忆，资料库（library）自动收集所有上传文件与结果。
+
+**关键要点**：
+
+- **并行编排成为产品形态**：从 Dynamic Workflows（5 月）到 autopilot 默认开启（9 月），再到 Projects 并行 threads，Claude Code 正快速走向"描述目标、自动执行"的自主编码
+- **状态与记忆跨会话持久化**：thread 间共享记忆与集中式资料库是多 Agent 并行不互相冲突的基础设施
+- **灰度策略**：Beta 首先面向部分 Pro/Max 订阅用户（云端会话），Team/Enterprise 稍后，本地执行模式即将推出
+
+值得对照的是，同日 OpenAI 的 Codex 开发者 Eric Provencher 公开警告：超过两个并行子 Agent 几乎总是在烧 token 而不提升质量——"更多 Agent"是否等于"更好结果"，正成为自主编码竞赛中的争议焦点。
+
+> 来源：[The Decoder](https://the-decoder.com/anthropic-keeps-pushing-claude-code-toward-autonomous-coding-with-new-parallel-agent-workflows/)（2026-09-17）
+
+---
+
 ---
 
 ## 5.7 Key Takeaways
