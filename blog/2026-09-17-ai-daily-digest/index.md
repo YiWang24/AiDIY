@@ -13,7 +13,7 @@ tags: [ai, daily-digest, agents, llm]
 
 HN 以 292 点热议的 Z.ai 工程博文《Toward Recursive Self-Improvement》披露了细节。GLM-5.3-Flash 的生产推理服务完全部署在 10 万+ 国产 AI 加速器上——此前没有人在这个规模上部署过国产加速器集群。挑战包括有限的芯片内存与带宽、新模型架构、100 万 token 上下文窗口、多模态请求，以及不成熟的生态和不完整的内核支持。
 
-最终的优化栈组合了线性注意力与 LM Head 的节点内张量并行、ReplaySSM、W8A8 量化、INT8/FP8/BF16 混合精度缓存量化、Layer Split，以及 Encode-Prefill-Decode（EPD）分离式架构，整体服务性能提升约 3 倍，硬件利用率与单 token 成本达到主流 NVIDIA GPU 的可比水平。该模型此前以匿名名 Ox-Alpha 在 OpenCode 和 OpenRouter 上测试，上线一周内成为两个平台上使用量最大的模型，六天处理超 62 万亿 token。
+最终的优化栈组合了线性注意力与 LM Head 的节点内张量并行、ReplaySSM、W8A8 量化、INT8/FP8/BF16 混合精度缓存量化、Layer Split，以及 Encode-Prefill-Decode（EPD）分离式架构，整体服务性能提升约 3 倍，硬件利用率与单 token 成本达到主流 NVIDIA GPU 的可比水平。该模型此前以匿名模型名 Ox-Alpha 在 OpenCode 和 OpenRouter 上测试，上线一周内成为两个平台上使用量最大的模型，六天处理超 62 万亿 token。
 
 **最有工程价值的洞察**是 Infra Agent 的有效性不只取决于代码生成与推理能力，更取决于系统能否持续提供**可归因的细粒度反馈**。端到端指标只能告诉 Agent"结果变差了"，却无法解释是哪个内核太慢、是 KV Transfer 本身慢还是调度没跟上、优化在哪些输入形状下回归。Z.ai 把正确性测试、运行时日志、执行 trace、微基准和端到端指标组织进 Agent 的迭代循环，把稀疏的端到端结果转化为可直接指导下一步行动的反馈。
 
