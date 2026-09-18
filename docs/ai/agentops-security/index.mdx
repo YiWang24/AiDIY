@@ -430,6 +430,31 @@ audit_log = {
 | **HIPAA** | PHI protection, audit logs | Special handling for health data, encryption at rest |
 | **PCI DSS** | Card data protection | Never log card numbers, isolate payment processing |
 
+### Claude 辅助 72 小时攻破 OpenAI 内网：AI 加速攻防的现实样本（2026-09-18）
+
+白帽安全公司 Hacktron（三人团队）在 Bugcrowd 授权下完成了一次完整攻击链：社区论坛（Discourse）图片解码器 libheif 堆溢出 → 远程代码执行 → 借助 OpenAI SSO 配置缺陷接管员工 ChatGPT/Codex 账号 → 进入内部 GitHub 私有 monorepo 并提交一个 PR 作为证据。团队先用 Claude Opus 4.8 构建利用失败（无法绕过 ASLR），换用前一天刚发布的 Claude Opus 5 后数小时内即产出可用的 ARM64 漏洞利用。全链路从发现到取证不足 72 小时，OpenAI 在报告后 14 小时内修复并支付 6500 美元赏金。
+
+**关键要点**：
+
+- 攻击面不在模型本身，而在**身份链路与第三方依赖**：一个没人特意选择的依赖（libheif）+ SSO 配置缺陷即完成全链路
+- **LLM 显著压缩了攻击的时间成本**：同样的堆溢出利用，人类研究者按周计，前沿模型按小时计——红队与蓝队的能力天平都在移动
+- 对 Agent 安全的启示：AI 辅助攻击已是现实威胁模型，安全评审需要按"对手有前沿模型加持"来设定基线
+
+> 来源：[Hacktron AI 技术报告](https://www.hacktron.ai/blog/hacking-openai)、[VentureBeat](https://venturebeat.com/security/openai-hacked-by-small-team-of-white-hat-security-researchers-using-anthropics-claude-opus-5)、[Tom's Hardware](https://www.tomshardware.com/tech-industry/cyber-security/hackers-breach-openai-using-claude-tools-gaining-access-to-employee-accounts-and-the-companys-internal-codebase-initiating-a-harmless-pull-request-as-proof-of-the-hack)（2026-09-18）
+
+### 加州签署 AI"紧急中止开关"行政令（2026-09-18）
+
+加州州长 Newsom 签署行政令，加速本月刚立法的独立 AI 监督体系（SB 813 / AB 1405）落地，并召集专家工作组在两个月内提交进一步强化 AI 安全的方案，包括：要求前沿 AI 实验室嵌入独立第三方评估者、安全框架与报告需独立验证、以及为前沿模型开发紧急关停机制（"AI Kill Switch"），并由独立组织定期测试关停机制的有效性。行政令同时扩大"可报告重大安全事件"的定义，将 AI 系统失控纳入其中。OpenAI 与 Anthropic 均曾表态支持相关立法。
+
+**关键要点**：
+
+- 这是美国首个州级的"AI 可关停"制度化尝试，直接针对近期多起 AI 安全事件（如 Hugging Face 供应链攻击）
+- "Kill Switch"的真正难点在验证：行政令要求独立组织**定期测试**关停机制，而非仅要求存在
+- 对 Agent 团队的启示：可关停性（shutdownability）正在从学术议题变为合规要求——Agent 系统应内建可中断、可审计的停止路径
+
+> 来源：[加州州长办公室](https://www.gov.ca.gov/2026/09/18/governor-newsom-issues-executive-order-to-accelerate-independent-oversight-and-advance-the-creation-of-an-ai-kill-switch)、[WSJ](https://www.wsj.com/tech/ai/californias-newsom-issues-executive-order-to-weigh-ai-oversight-including-kill-switch-3a98040f)、[Statescoop](https://statescoop.com/newsom-moves-to-speed-up-independent-ai-oversight-in-california-with-new-executive-order)（2026-09-18）
+
+
 ## Best Practices
 
 ### Deployment Checklist

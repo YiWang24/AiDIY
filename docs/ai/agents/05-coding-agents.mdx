@@ -740,6 +740,30 @@ Anthropic 重建了 Claude Code 的 Projects 功能：用户只需描述目标�
 
 > 来源：[The Decoder](https://the-decoder.com/anthropic-keeps-pushing-claude-code-toward-autonomous-coding-with-new-parallel-agent-workflows/)（2026-09-17）
 
+### 编码 Agent Harness 设计的实证研究（2026-09-17）
+
+arXiv 2609.20804 对编码 Agent 的 Harness（脚手架）设计做了系统性受控实验：Harness 决定编码 Agent 能否把模型能力转化为长程软件工程绩效，但既有工作多把 Harness 当作整体评估，无法归因哪部分设计真正创造价值。该研究将 Harness 解耦为可独立操纵的维度，量化了"规划信息"与"状态释放控制"（release control）对长程任务的影响，为 Harness 工程提供模块化的设计指南。该论文当日登上 Hacker News 首页（186 分），反映社区对"Agent 脚手架工程学"的关注正在升温。
+
+**关键要点**：
+
+- Harness 不是黑盒：规划信息的注入方式与状态的释放控制是可分离、可测量的价值来源
+- 编码 Agent 的性能上限由模型决定，但工程下限由 Harness 决定——坏脚手架会浪费模型能力
+- 对团队的启示：与其频繁更换模型，不如先审计 Harness 各维度的设计
+
+> 来源：[arXiv:2609.20804](https://arxiv.org/abs/2609.20804)、[Hacker News 讨论](https://news.ycombinator.com/item?id=49745847)（2026-09-17）
+
+### Cactus Needle 3：8-29MB 端侧自动化基座模型（2026-09-18）
+
+Cactus Compute 发布 Needle 3，一个"可切片"（sliceable）的端侧自动化基座模型：权重仅 8-29MB，支持 2 到 20 层任意深度切片。在 Mobile Actions 基准（961 条手机操控指令）上，20 层（121M）版本经 2-bit 量化后得分 86.0，逼近 DeepSeek V4 Flash 云端 API 的 88.4，超过 LFM2.5 1.2B（82.4）与 Qwen3.5 0.8B（76.0）。在固定工具集的窄任务上微调后，性能可再提升 21-58 分并反超云端大模型。
+
+**关键要点**：
+
+- **窄域专家小模型可击败大模型**：产品工具集固定时，针对固定工具微调的小专家模型在成本、延迟、隐私上全面占优
+- **工程亮点**：工具检索头每轮只渲染 top-5 工具、256-token 滑动窗口 + 工具 KV sink（长对话内存恒定约 28MB）、字节级语法约束输出、校准置信度门控
+- **对端侧 Agent 的启示**：自动化 Agent 不一定要"云 + 大模型"，8MB 级基座 + 本地微调是可行的另一条路
+
+> 来源：[Cactus Compute](https://cactuscompute.com/needle)、[GitHub](https://github.com/cactus-compute/needle)、[Hacker News](https://news.ycombinator.com/item?id=49748553)（2026-09-18）
+
 ---
 
 ---
