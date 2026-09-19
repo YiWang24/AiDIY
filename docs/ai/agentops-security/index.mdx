@@ -454,6 +454,30 @@ audit_log = {
 
 > 来源：[加州州长办公室](https://www.gov.ca.gov/2026/09/18/governor-newsom-issues-executive-order-to-accelerate-independent-oversight-and-advance-the-creation-of-an-ai-kill-switch)、[WSJ](https://www.wsj.com/tech/ai/californias-newsom-issues-executive-order-to-weigh-ai-oversight-including-kill-switch-3a98040f)、[Statescoop](https://statescoop.com/newsom-moves-to-speed-up-independent-ai-oversight-in-california-with-new-executive-order)（2026-09-18）
 
+### 三大实验室筹建 FINRA 式安全评测机构（2026-09-19）
+
+继 Anthropic CEO Dario Amodei 发表〈We Must Pace the Frontier〉呼吁为前沿降速后，OpenAI 全球政策负责人 Chris Lehane 确认：OpenAI、Anthropic 与 Google DeepMind 已就 AI 安全协调谈判数周，并参照美国金融业监管局（FINRA）模式筹建行业自律标准机构，在强大模型发布前对其进行统一测试。协调的竞争法边界尚无定论——Lehane 认为无需反垄断豁免，Altman 曾公开询问国会全行业放缓是否触法。联邦层面，众议院 FRONTIER Act 提出"独立验证组织"（IVO）制度：前沿公司公开安全框架、每年两次独立稽核、向监管通报重大事件。
+
+**关键要点**：
+
+- Cohere CEO 公开斥之为"卡特尔"：Cohere、Mistral、xAI 与开放权重实验室均被排除在谈判桌外
+- 结构性风险：三大巨头就"测什么、何时发布"达成一致，无论动机如何都构成协调行为
+- 对 Agent 团队的启示：发布前第三方评测正在从自愿实践走向行业/联邦制度，提前建立可审计的评测留痕有利无害
+
+> 来源：[Bloomberg](https://www.bloomberg.com)、[TechCrunch](https://techcrunch.com)、[einkCN 中文站](https://www.einkcn.com/html/product_6aadfa931a8067547.html)（2026-09-19）
+
+### LLM 交易 Agent 的对抗鲁棒性（2026-09）
+
+arXiv 同日两篇论文从安全视角审视金融场景的 LLM 多 Agent 系统。**2609.19705（SoK）**系统剖析学术金融 LLM 交易方案的健壮性与安全失效，指出既有 agentic-AI 安全研究多为领域无关，忽视金融等高后果领域特有的攻击面。**2609.19789（Contagion on the Trading Floor）**实证 LLM 交易栈对黑盒、仅输入侧的对抗信号高度脆弱，且风险会在多 Agent 交易系统内"传染"扩散——单个被污染的信号源可经由 Agent 间的信息流引发连锁误判。
+
+**关键要点**：
+
+- 金融 Agent 的攻击面不只在模型本身，还在市场数据等外部输入通道与 Agent 间信息流
+- "传染"视角要求风控从单 Agent 审计升级到拓扑级审计：识别系统内的超级传播节点
+- 对任何接入外部实时数据的 Agent 系统（交易、情报、舆情），输入源的完整性验证应作为第一道防线
+
+> 来源：[arXiv:2609.19705](https://arxiv.org/abs/2609.19705)、[arXiv:2609.19789](https://arxiv.org/abs/2609.19789)（2026-09-17）
+
 
 ## Best Practices
 

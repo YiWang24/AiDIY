@@ -2696,6 +2696,14 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 812. **Cactus Needle 3 超小自动化模型** — 8-29MB 可切片端侧自动化基座模型（121M/20 层）：Mobile Actions 86.0 分逼近 DeepSeek V4 Flash 的 88.4，超过 LFM2.5 1.2B 与 Qwen3.5 0.8B；微调后在窄任务上可反超云端大模型（HN 85 分）
 813. **dQwen3.5 混合注意力扩散语言模型** — arXiv 2609.20751 将预训练自回归模型改造为扩散语言模型（DLM），揭示注意力模式与建模范式的相互作用，为 AR→DLM 低成本迁移提供路径
 814. **GPT 模型"危害洗白"证据** — arXiv 2609.20779 指出依赖表层分类器的安全评估存在系统性盲区：跨代安全训练后性别歧视并未消失，而是转化为更难检测的形态，危害被"洗白"而非削减
+815. **三大实验室筹建 FINRA 式安全评测机构** — OpenAI 政策负责人 Chris Lehane 确认 OpenAI、Anthropic、Google DeepMind 参照美国金融业监管局（FINRA）模式筹建行业自律标准机构，在强大模型发布前统一测试；Cohere CEO 斥为"卡特尔"——Cohere、Mistral、xAI 与开放权重实验室均被排除在谈判桌外；协调的竞争法边界（是否需要反垄断豁免）仍无定论；众议院 FRONTIER Act 提出"独立验证组织"（IVO）制度的联邦版本
+816. **Anthropic 拟推新模型应对 GPT-6 Astra，IPO 或推迟至 11 月后** — 据路透/金十：GPT-6 Astra 发布后市场势头促使 Anthropic 考虑 IPO 前推出新一代模型，投资者重新评估其企业级 AI 领先地位；同时权衡新模型安全评估与盈利能力，IPO 路演或推迟至 11 月美国中期选举之后
+817. **arXiv 2609.19759：多 Agent 协作何时"越多越糟"** — 系统论证单 Agent 能力持续增强的背景下，多 Agent 协作并非总是带来增益：给出何时多 Agent 有真实价值的判据，对"更多 Agent = 更好结果"的直觉提出挑战（与 OpenAI Codex 工程师"并行子 Agent 烧 token"的实践警告相互印证）
+818. **arXiv 2609.19705：金融 LLM 交易方案安全 SoK** — 系统化知识（SoK）剖析学术金融 LLM 交易方案的健壮性与安全失效：现有 agentic-AI 安全研究多为领域无关，忽视金融等高后果场景特有的攻击面；同期 2609.19789（交易大厅的传染）实证 LLM 交易栈对黑盒对抗输入的脆弱性与多 Agent 风险传染
+819. **arXiv 2609.20807：Score Centering 稳定 off-policy RL** — 指出 LLM RL 对训练-推理失配（TIM）极其敏感且无法彻底消除，提出分数中心化（score centering）方法在 off-policy RL 中稳定训练，实用价值直指 vLLM/SGLang 等异构引擎混训场景
+820. **arXiv 2609.18708：PPO Critic 的"价值平坦化"失效** — 揭示 LLM RL 中 PPO critic 的系统性失效模式 value flattening：critic 估计值分布坍缩导致优势估计失真，并提出缓解方法——直接关系 GRPO 等免 critic 方法流行的动因
+821. **arXiv 2609.16816：ImpossibleRubrics——生成式评分表的压力测试** — 构造对抗样本证明 LLM 生成的评分表（rubric）作为奖励信号不可靠：对抗性答案可系统性骗过"诚实的 LLM 评分员"，直接冲击 rubric-based RL、LLM-as-judge 与自动评分的信任基础
+822. **arXiv 2609.19519：长程 Agent 架构——Levels、Ticks 与级联智能** — 面向跨越数天/数周的 Agent 任务（超出生任何上下文窗口与人工关注周期），提出分层（levels）、心跳（ticks）与级联智能（cascaded intelligence）架构，让注意力/算力按层级级联分配——对运维修复、长周期研究等长程 Agent 场景有直接参考价值
 
 ## 10.11 Key Takeaways
 

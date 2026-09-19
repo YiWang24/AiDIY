@@ -398,6 +398,14 @@ flowchart TB
 
 ---
 
+### When More Is Less：多 Agent 协作何时失效（2026-09）
+
+arXiv 2609.19759（*Rethinking Multi-Agent Collaboration: When More Is Less*）系统论证：随着单 Agent 能力（含 harness 质量）持续增强，多 Agent 协作并非总是带来真实增益。论文给出判别"何时多 Agent 有价值"的框架，并指出许多流行多 Agent 模式在强单体基线下收益为负。这与工程社区的实践观察相互印证——OpenAI Codex 工程师 Eric Provencher 曾警告"超过两个并行子 Agent 几乎总是在烧 token 而不提升质量"。
+
+**选型启示**：在引入多 Agent 拓扑前，先跑强单 Agent + 良好 harness 的基线；多 Agent 的合理场景是任务天然可并行分解、子任务间信息依赖弱、以及需要独立视角交叉验证（如对抗性评审）时。并行度本身不是目标。
+
+> 来源：[arXiv:2609.19759](https://arxiv.org/abs/2609.19759)（2026-09-17）
+
 ## 7.6 W3C ANP (Agent Network Protocol)
 
 The W3C is working on standardizing agent networking through the **Agent Network Protocol (ANP)**.
