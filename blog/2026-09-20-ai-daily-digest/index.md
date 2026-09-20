@@ -35,7 +35,7 @@ Hacker News 今日 207 分的热帖来自一位独立研究者，他完整复现
 
 ## arXiv 前沿：Agent Harness 研究集中爆发
 
-本周 cs.AI/cs.CL 的最新批次里，Agent Harness 工程化研究密度罕见地高，六篇值得一并阅读。
+本周 cs.AI/cs.CL 的最新批次里，Agent Harness 工程化研究密度罕见地高，十余篇中挑出最值得读的一批，按主题归并如下。
 
 ### Harness 如何创造价值：可解耦的实证
 
