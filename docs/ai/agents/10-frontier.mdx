@@ -2717,6 +2717,14 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 833. **arXiv 2609.20519：SoL-Pi——递归扩展自动研究循环** — 在 harness 层面以 RSI 思路扩展自动研究循环：编码 Agent 从受监督补全走向无人值守的 7×24 探索后，token 效率成为递归自我改进扩展的瓶颈，SoL-Pi 通过跨日益增多循环的递归调度提升效率——"Harness 工程决定 RSI 上限"的又一实证
 834. **arXiv 2609.20822：障碍感知 Harness 让编码 Agent 安全操控机器人** — 编码 Agent 写控制器程序操控机器人已可免机器人专项训练，但安全性首次被系统评估：任务附带"必须避开的障碍"约束下测试编码 Agent，并提出障碍感知 harness——把安全约束注入 harness 层而非依赖模型自觉
 835. **arXiv 2609.20820：Workspace Models——显著性监督的轻量机器人记忆** — 机器人长程操作需要历史记忆，但全历史条件化引入伪相关；提出以显著性驱动的监督训练轻量"工作区模型"压缩任务相关信息，替代昂贵的在环 VLM 查询——端侧 Agent 记忆压缩的新范式
+836. **Google 开源 AX（Agent Executor）分布式 Agent 运行时（HN 618 分）** — Google 开源 [AX](https://github.com/google/ax)，Go 编写、Apache-2.0 许可的分布式 harness 运行时：从可挂起/恢复的镜像动态 provisioning 隔离环境执行 harness 与 Agent，原生支持故障恢复与执行续跑（`--resume` 续接既有会话）；Kubernetes 上经 Agent Substrate 部署，用 Redis 存状态、Redis Streams 连接 API server 与 controller（刻意避免把海量短任务塞进 K8s CR 以免压垮 etcd）；内置 Antigravity harness 支持 Gemini API/Vertex AI，原生兼容 A2A 协议（多传输 gRPC/JSON-RPC/HTTP、AgentCard 发现、SSE 流）。设计思路契合"Agent 是有状态、突发性工作负载"：短暂密集计算后因等待模型或人类响应而闲置——AX 把 Agent 当轻量 actor，单集群可承载十亿级并发会话；还支持用自然语言描述环境、首启时由 Agent 自动安装工具链。项目自我标注 pre-stable，协议与规格预计会有重大变更
+837. **Amazon 封禁 Meta Muse 的代购访问（HN 94 分）** — Amazon 宣布切断 Meta 新发布的个人购物 Agent Muse 在 amazon.com 的代购访问，理由：Meta 未事先告知、Muse 浏览时不表明 Agent 身份、且似乎捕获并存储用户凭据；用户经 Muse 购物会看到"未授权 AI Agent 持续访问违反亚马逊使用条款"弹窗。Amazon 强调自家 Buy for Me 会表明身份且允许品牌退出——大型平台首次公开划出第三方 Agent 访问基线：身份可识别、明确授权、可退出（详见 [Computer Use 章](/docs/ai/agents/06-computer-use)）
+838. **arXiv 2609.22068：CodeMidas——从代码本身规模化构建编码 Agent RL 环境** — 训练编码 Agent 的 RL 需要多样任务与可靠验证器；CodeMidas 不依赖 issue/commit 等开发痕迹，直接从开源代码库本身批量构造可验证 RL 环境——为编码 Agent RL 数据管线提供可持续的规模化来源
+839. **arXiv 2609.22056：多跳检索失败可预测——分数分布置信度与弃答** — 证明多跳检索失败并非均匀分布，而是聚集在结构上可预测的子群（CWAR 可归约性定理）：基于分数分布的置信度评分可识别"自信但会失败"的查询并主动弃答——RAG 系统可靠性的形式化进展
+840. **arXiv 2609.21378：ArenaFlow——开放式 Agent RL 的轨迹排名→分层信用传播** — 开放式 Agent 任务缺乏可靠标量奖励；ArenaFlow 从轨迹两两排名（偏好信号）出发做分层信用传播，把 RL 从可验证域扩展到开放式 agentic 场景
+841. **arXiv 2609.21996：语言模型的"测谎仪"——读出模型不愿透露的知识** — LLM 可能"知道但不说"（sandbagging、答非所知）；借用测谎思路从模型内部状态读出其不愿在输出中透露的知识，区分"藏着答案"与"没有答案"——Agent 诚实性评估与能力评估的新工具
+842. **arXiv 2609.21940：AutoViewMem——自配置正交视图的对话式长期记忆** — 现有 LLM Agent 记忆系统依赖固定粒度或静态 schema，难以应对异构信息；AutoViewMem 让记忆系统按需自配置多个"正交视图"——Agent 长期记忆从静态 schema 走向自适应结构
+843. **arXiv 2609.21662：潜空间推理中的转向失效——latent-to-language 过渡鸿沟** — 激活转向（activation steering）在显式 CoT 上有效，但在潜空间 CoT（连续思维）上效果显著减弱：存在"潜空间→语言"过渡鸿沟，转向信号在跨越表征形态时失真——对 latent reasoning 可控性的重要警示
 
 ## 10.11 Key Takeaways
 
