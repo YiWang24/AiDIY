@@ -764,6 +764,18 @@ Cactus Compute 发布 Needle 3，一个"可切片"（sliceable）的端侧自动
 
 > 来源：[Cactus Compute](https://cactuscompute.com/needle)、[GitHub](https://github.com/cactus-compute/needle)、[Hacker News](https://news.ycombinator.com/item?id=49748553)（2026-09-18）
 
+### CodeMidas：从代码本身规模化生成编码 Agent RL 环境（2026-09-18）
+
+用 RL 训练编码 Agent 的瓶颈不在算法，而在**任务与验证器**：需要大量多样、且能可靠判定对错的任务。现有方法通常依赖 issue、commit、测试等开发痕迹，受限于仓库的维护习惯。arXiv 2609.22068 提出 CodeMidas，把开源代码库本身当作取之不尽的任务源——直接从代码结构反向构造"可验证"的 RL 环境，不再依附于开发过程留下的痕迹。
+
+**关键要点**：
+
+- **任务来源的范式转移**：从"挖掘开发痕迹"到"从代码本身合成任务"，任务供给不再受仓库维护质量约束
+- **与 SWE-bench 类基准互补**：基准衡量能力上限，合成 RL 环境扩展训练分布的覆盖面
+- **对编码 Agent 团队的启示**：自建 RL 管线时，验证器可靠性比任务数量更关键——错误的验证器会系统性地奖励错误行为
+
+> 来源：[arXiv:2609.22068](https://arxiv.org/abs/2609.22068)（2026-09-18）
+
 ---
 
 ---

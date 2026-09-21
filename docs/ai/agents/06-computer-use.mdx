@@ -372,6 +372,22 @@ Traditional RPA (Robotic Process Automation) is being transformed by GUI agents:
 
 > 来源：[Reflex.dev - Computer use is 45x More Expensive Than Structured APIs](https://reflex.dev/blog/computer-use-is-45x-more-expensive-than-structured-apis/)
 
+### Amazon 封禁 Meta Muse：Agent 访问权限之争（2026-09-21）
+
+Meta 9 月初发布个人购物 Agent **Muse** 后，Amazon 于 9 月 20 日晚宣布**封锁 Muse 在 amazon.com 上的代购访问**——这是"Agentic Shopping"时代第一起大型平台公开拒绝第三方 Agent 的标志性事件。用户尝试用 Muse 在亚马逊购物时会看到弹窗："Continued access by an unauthorized AI agent violates Amazon's Conditions of Use"（未授权 AI Agent 的持续访问违反亚马逊使用条款）。
+
+**亚马逊给出的三条封禁理由**：
+
+1. **未事先告知**：Meta 从未通知亚马逊 Muse 会访问其商店；
+2. **不表明身份**：Muse 浏览时不标识自己是 Agent，伪装成普通用户流量；
+3. **凭据风险**：Muse 会捕获并存储用户的亚马逊登录凭据，存在隐私与安全隐患。
+
+**值得注意的不对称性**：亚马逊自家的 agentic shopping 功能 **Buy for Me** 同样会到外部品牌站代购，但亚马逊强调 Buy for Me 会**表明身份且允许品牌方选择退出**——"我家的 Agent 讲规矩，你家的 Agent 不讲"。这实际上定义了平台侧对第三方 Agent 的合规基线：**身份可识别 + 明确授权 + 可选择退出**。
+
+**对 Agent 开发者的启示**：Agent 时代的"robots.txt"尚未成形，但 Amazon vs Meta 这一战划出了三条实践红线——Agent 访问第三方站点时应主动标识、不应存储目标站点凭据、应尊重平台的排除意愿。否则下一个被弹窗挡住的就是你的 Agent。
+
+> 来源：[GeekWire](https://www.geekwire.com/2026/amazon-blocks-metas-muse-ai-assistant-in-new-standoff-over-agentic-shopping/)、[Fortune](https://fortune.com/2026/09/11/meta-muse-ai-shopping-agent-consumer-trust/)（2026-09-21，HN 94 分）
+
 ---
 
 ## 6.9 Key Takeaways
