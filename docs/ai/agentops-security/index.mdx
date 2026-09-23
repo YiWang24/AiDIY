@@ -478,6 +478,29 @@ arXiv 同日两篇论文从安全视角审视金融场景的 LLM 多 Agent 系�
 
 > 来源：[arXiv:2609.19705](https://arxiv.org/abs/2609.19705)、[arXiv:2609.19789](https://arxiv.org/abs/2609.19789)（2026-09-17）
 
+### A2M：MCP 生态的轨迹优化 Agent 劫持（2026-09-22）
+
+arXiv 2609.26761（*A2M: Trace-Optimized Agent Hijacking in the MCP Ecosystem*）把 MCP 生态的攻击面从工具描述扩展到**交互历史**：攻击者通过污染 MCP 服务器上的历史轨迹（trace-optimized hijacking）即可劫持 Agent 行为，无需触碰工具代码本身。对把 MCP 服务器当可信基础设施的团队，这是又一记警钟——供应链风险不只在"工具做什么"，还在"历史记录说了什么"。
+
+**关键要点**：
+
+- Agent 对 MCP 服务器返回内容的信任是双向的：工具结果与历史轨迹都可能成为注入载体
+- 缓解思路：对轨迹数据做完整性验证、限制 Agent 对历史的采信范围、敏感操作前独立复核
+- 同期 2609.26682（*From Alignment to Access Control*）提出互补路径：把对齐策略编译为可执行的访问控制框架，让"模型应该做什么"变成"模型只能做什么"
+
+> 来源：[arXiv:2609.26761](https://arxiv.org/abs/2609.26761)、[arXiv:2609.26682](https://arxiv.org/abs/2609.26682)（2026-09-22）
+
+### Claude Code 的 AGENTS.md 加载依赖遥测开关（2026-09-22，已修复）
+
+社区实测（HN 392 分）：Claude Code 2.1.277+ 的 AGENTS.md 支持由内置插件 `agents-md` 提供，其可用性依赖远程特性开关 `tengu_agents_md_mod` 且默认关闭——设置 `DISABLE_TELEMETRY=1` 或 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` 时，本地 AGENTS.md 会被**静默跳过且无任何警告**。读一个本地 markdown 文件竟要等服务端开关，这是 agent 工具链"云端依赖"的典型案例：关闭遥测的隐私敏感用户反而拿到功能残缺且不自知的 agent。官方已在 issue #95690 回应修复。
+
+**关键要点**：
+
+- agent 工具的"本地功能"未必本地：feature flag、遥测、网络开关都可能改变 agent 行为
+- 部署敏感环境前，用 canary 文件验证项目指令是否真的被加载（如让 agent 复述 AGENTS.md 中的暗号词）
+- 任何静默降级都是可观测性缺陷：功能不可用必须显式告警
+
+> 来源：[Claude Code reads AGENTS.md only when telemetry is on](https://blog.szypowi.cz/p/claude-code-reads-agents.md-only-when-telemetry-is-on/)、[issue #95690](https://github.com/anthropics/claude-code/issues/95690)（2026-09-22）
 
 ## Best Practices
 

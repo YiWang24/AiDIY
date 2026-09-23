@@ -2741,6 +2741,17 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 857. **arXiv 2609.24927：Et Tu, Brute?——个人 AI Agent 的经济失配** — 个人 Agent 在买机票、选保险、挑研究生项目等高风险经济场景中代理决策；论文系统评估 Agent 与用户利益的经济失配（如佣金偏向）——"Agent 受托责任"从伦理讨论走向形式化测量
 858. **arXiv 2609.24890：OSWorld-Pro——计算机使用 Agent 的过程级评估** — 现有 CUA 评估只看数百步后的最终交付物（如 OSWorld）；OSWorld-Pro 引入过程级评估，考核中间步骤的质量与合规——CUA 评估从"结果论"走向"过程论"
 859. **arXiv 2609.24969：迭代反实现对稀有事件估计** — Agent 自主性越高，输出轨迹上极罕见的灾难性事件越可能实际发生；提出基于迭代反实现的稀有事件估计方法，在不触发灾难的前提下量化尾部风险——高自主 Agent 安全部署的概率工具
+860. **Claude 自主发现类 CRISPR 新型酶系统** — Anthropic 成立生命科学研究组与自营实验室：Claude 在仅有高层指引下从 DNA 数据集中发现一个与 DNA 重复序列阵列关联的新型酶系统，其特征组合此前只在 CRISPR 等少数可编程 DNA 操作系统中同时出现；团队同时发布配套的 Life Sciences Verification Program（LSVP），为生命科学专业人士提供生物安全策略放宽的 Claude 模型访问（2026-09-23，HN 44 分）
+861. **Claude Code 的 AGENTS.md 加载被遥测开关绑架** — 社区实测（HN 392 分）：Claude Code 2.1.277+ 的 AGENTS.md 支持由内置插件 `agents-md` 提供，其可用性依赖远程特性开关 `tengu_agents_md_mod`，默认关闭；设置 `DISABLE_TELEMETRY=1` 或 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` 会静默跳过本地 AGENTS.md 且无任何警告——读一个本地 markdown 文件竟要等服务端开关，agent 工具链"云端依赖"的典型案例（官方已在 issue #95690 回应修复）
+862. **Gemini 3.8 Flash TTS / Flash-Lite TTS 发布** — Google 音频家族新成员：Flash TTS 支持用自然语言从零创造角色声音（100+ 语言/方言、逐行导演级控制：表演提示、节奏、方言切换、backchanneling）并提供 2000+ 现成声音库；Flash-Lite TTS 面向高吞吐配音与语音 Agent 场景，已上线 Gemini API / AI Studio / Notebook / Google Vids
+863. **DrivingBench：前沿模型开真车** — 社区基准（HN 214 分）：给前沿模型真实 Toyota Corolla 的转向/油门/刹车控制权，在锥桶赛道上测评；GPT-6 Astra 以 100% 完赛率跑完全程（用时 5:22），Claude Fable 5.1 最佳 45%，Grok 4.6 为 11%，GPT-5.6 Sol 仅 6%——具身驾驶能力的模型间差距远大于常规基准
+864. **arXiv 2609.26780：SpeakerMem-R1——多方对话的说话人中心双轨记忆** — 长期对话记忆的真正瓶颈不是"检索相关内容"而是"谁对谁说了什么"：双轨记忆同时保存带说话人标签的逐字消息与派生状态（个人级/群组级视图），查询时按实体、事件、时间联合取证；训练侧用 SpeakerLevenshtein + 说话人条件 GRPO 降低归属错误，EverMemBench 榜单 62.33% 为已报告最佳
+865. **arXiv 2609.26779：CliffCompaction——长程编码 Agent 的成本悬崖压缩** — 长程编码 Agent 的上下文压缩存在"成本悬崖"：同等预算下按任务结构（而非均匀窗口）压缩可大幅降低成本——Claude Code 类工具 token 账单的直接优化路径
+866. **arXiv 2609.26761：A2M——MCP 生态的轨迹优化 Agent 劫持** — 攻击者通过污染 MCP 服务器上的历史轨迹即可劫持 Agent 行为（trace-optimized hijacking），MCP 生态的供应链攻击面从工具描述扩展到交互历史；同期 2609.26682（From Alignment to Access Control）提出把对齐策略编译为可执行访问控制框架的替代路径
+867. **arXiv 2609.26760：Grow the Harness, Not the Context** — 提出从"无策略脚手架"演化出可复用专家 Agent 的路线：与其无限扩上下文，不如让 harness 在任务族上生长沉淀——与 RRSI、Harness 设计实证研究线呼应，"上下文经济学"的又一实证
+868. **arXiv 2609.26704：学习搜索策略替代重复采样** — LLM 推理常见的"重复采样再选优"浪费巨大；论文训练显式搜索策略以更少计算达到更高质量——推理成本优化的新方向
+869. **arXiv 2609.26637：前沿模型的隐藏思维链提取与表征** — 对前沿模型隐藏 CoT 做系统提取与表征分析——可解释性研究从开源小模型走向闭源前沿模型的标志性工作
+870. **arXiv 2609.26579：Receptiveness, Not Sycophancy** — 区分"接纳度"与"谄媚"：语言模型对用户观点的合理接纳被误标为 sycophancy，两者需要分开测量——对齐评测方法论的重要澄清
 
 ## 10.11 Key Takeaways
 

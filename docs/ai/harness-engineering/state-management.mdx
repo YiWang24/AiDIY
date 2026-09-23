@@ -975,3 +975,11 @@ Don't assume state recovery works. Test it regularly by killing processes mid-ex
 :::info Use TTL
 Set TTL on ephemeral state to prevent memory leaks. Not all state needs to live forever.
 :::
+
+### 前沿研究补充（2026-09-22）
+
+**CliffCompaction（arXiv 2609.26779）**：长程编码 Agent 的上下文压缩存在"成本悬崖"——同等 token 预算下，按任务结构（而非均匀滑动窗口）压缩上下文可大幅降低成本。直接对应本节的 checkpointing 策略：**不是所有历史都值得等价保存**，任务关键状态应优先保留，冗余探索轨迹应优先淘汰。
+
+**SpeakerMem-R1（arXiv 2609.26780）**：多方对话记忆的瓶颈在"消息归属"（谁说了什么）而非"内容检索"。其双轨设计——带说话人标签的逐字消息 + 个人级/群组级派生状态，查询时按实体、事件、时间联合取证——可直接迁移到多 Agent 系统的共享记忆结构（见 [Multi-Agent](/docs/ai/agents/07-multi-agent)）。
+
+> 来源：[arXiv:2609.26779](https://arxiv.org/abs/2609.26779)、[arXiv:2609.26780](https://arxiv.org/abs/2609.26780)（2026-09-22）
