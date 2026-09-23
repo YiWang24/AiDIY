@@ -46,7 +46,7 @@ Anthropic 今天宣布成立[生命科学研究组与自营实验室](https://ww
 Google 发布了 [Gemini 3.8 Flash TTS 与 Flash-Lite TTS](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-8-text-to-speech/)（HN 151 分）：
 
 - **Flash TTS**：面向深度创作——用自然语言从零定制角色声音（100+ 语言/方言），支持逐行导演级控制：表演提示、节奏、方言切换、backchanneling；附 2000+ 现成音色库（含墨西哥西语、魁北克法语、苏格兰英语等地域变体）；
-- **Flash-Lite TTS**：面向高吞吐——批量配音、语音内容生产、 expressive voice agent。
+- **Flash-Lite TTS**：面向高吞吐——批量配音、语音内容生产、expressive voice agent。
 
 两兄弟已上线 Gemini API / AI Studio / Notebook / Google Vids。语音 Agent 的护城河正在从"像人"转向"可控"——能导演的表达比逼真的音色更稀缺。
 
