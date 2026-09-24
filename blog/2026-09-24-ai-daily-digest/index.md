@@ -31,7 +31,7 @@ Anthropic 今天发布 [Claude Opus 5.5](https://completeaitraining.com/news/ant
 
 ## Meta Connect 2026：Muse 是"愿景的核心"
 
-Zuckerberg 在 Meta Connect 2026 主题演讲中把 [Muse](https://www.moneycontrol.com/artificial-intelligence/muse-ai-agent-centrepiece-of-meta-s-vision-personal-superintelligence-now-within-reach-mark-zuckerberg-article-14036895.html) 定位为"我们正在构建的一切的核心"，并宣称**个人超级智能"已触手可及"**。本月早早上线的 Muse 目前仅覆盖美国和加拿大，但已登顶美区 App Store、超越 ChatGPT。硬件侧的配套动作：新 VR 眼镜、首款**无摄像头**的 Ray-Ban Meta Audio 音频眼镜（直接回应 AI 眼镜的隐私争议），以及专门的 "Charm" 佩戴设备。
+Zuckerberg 在 Meta Connect 2026 主题演讲中把 [Muse](https://www.moneycontrol.com/artificial-intelligence/muse-ai-agent-centrepiece-of-meta-s-vision-personal-superintelligence-now-within-reach-mark-zuckerberg-article-14036895.html) 定位为"我们正在构建的一切的核心"，并宣称**个人超级智能"已触手可及"**。本月早些时候上线的 Muse 目前仅覆盖美国和加拿大，但已登顶美区 App Store、超越 ChatGPT。硬件侧的配套动作：新 VR 眼镜、首款**无摄像头**的 Ray-Ban Meta Audio 音频眼镜（直接回应 AI 眼镜的隐私争议），以及专门的 "Charm" 佩戴设备。
 
 把 Muse 的爆发与上周 Amazon 屏蔽 Muse 爬虫联系起来看：个人 Agent 作为"下一代入口"的卡位战已经开打，而入口之争同时就是数据之争。
 
