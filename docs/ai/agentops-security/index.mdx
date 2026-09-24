@@ -259,6 +259,10 @@ class SandboxConfig:
 
 ## Monitoring and Observability
 
+### Proactive Safety Monitoring（2026 研究前沿）
+
+事后审计（trajectory-level, post-hoc）与孤立的单步检查（step-level）都无法阻止 Agent 事故：前者太晚，后者看不到风险的累积。PASTABench（arXiv:2609.28197, EMNLP 2026）将其形式化为"解耦的主动安全监控"三个问题——**是否干预、何时干预、风险是什么**——并提出 **Optimal Intervention Window（OIW）** 指标：由标注的"最早信号轮次"与"触发轮次"锚定干预时效。对 16 个 LLM 的评测显示，最好的模型也仅有 40.74% 的干预落在最优窗口内。工程含义：监控器不仅要检测风险，还要在风险累积曲线上选对出手时机，这应成为 Agent 可观测性栈的一等公民指标。
+
 ### Agent Event Tracking
 
 ```python
