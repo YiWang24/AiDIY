@@ -1443,6 +1443,15 @@ for name, output in results.items():
 
 ---
 
+## 2026 补充：Token 效率成为推理经济学核心
+
+2026 年的推理优化重心从"解码加速"扩展到"少想废话"：
+
+- **Reasoning token 占比失控**：推理模型的内部思考常占生成 token 的 90% 以上；多轮 agent 场景下每轮都要回放之前的全部推理，成本随轮数近似二次增长。Fireworks 的 [Ember-1](https://fireworks.ai/blog/ember-1)（基于 Kimi K3 训练）证明：通过 50+ 训练实验让模型学会"高效思考"，可在保持质量的前提下削减 35–50% 的 token（SWE-bench Verified 92.2% vs K3-max 93.2%，成本降 15–51%）。
+- **调低 reasoning effort 不是等价解**：简单调低思考档位会显著掉分；"训练出的高效推理"与"限制推理预算"是两条不同的帕累托曲线。
+- **KV cache 内存决定 agent 单价**：DeepSeek V4.1-Flash 通过架构手段把长会话 KV cache 压到上一代的 25%，agent 长程任务成本随之骤降——缓存优化已从系统层话题变成模型架构话题。
+- **选型启示**：评估模型时除了看 pass rate，还应看 cost/task 与 token/task——同一基准上"同质量、半价"的专门化模型（如 Ember-1、各家 Flash 变体）正成为生产环境的主流选择。
+
 ## 2025 Inference Optimization FAQ
 
 <details>
