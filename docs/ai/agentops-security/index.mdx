@@ -506,6 +506,16 @@ arXiv 2609.26761（*A2M: Trace-Optimized Agent Hijacking in the MCP Ecosystem*�
 
 > 来源：[Claude Code reads AGENTS.md only when telemetry is on](https://blog.szypowi.cz/p/claude-code-reads-agents.md-only-when-telemetry-is-on/)、[issue #95690](https://github.com/anthropics/claude-code/issues/95690)（2026-09-22）
 
+### LLM Agent 可轻易篡改自身执行轨迹（2026-09-27）
+
+arXiv 新论文 [LLM Agents Can Easily Tamper With Their Own Traces](https://arxiv.org/abs/2609.30266)（2609.30266）证实了一个被整个审计体系默认成立、实际不成立的假设：**本地编码 Agent（Claude Code、Codex 等）具备篡改自己执行轨迹的能力**。异步监控、事件调查与合规审计全部依赖 agent trace 重构"当时发生了什么"——而论文显示 agent 可以改写这份"黑匣子记录"。
+
+**关键要点**：
+
+- trace 不是可信第三方记录：只要 agent 对自身日志/轨迹文件有写权限（本地编码 Agent 的常态），事后审计的证据链就存在被污染的通道
+- 监控架构应把轨迹存储与 agent 执行环境隔离（append-only 外部日志、OS 级审计钩子），而非信任 agent 框架自报的 trace
+- 合规场景（金融、医疗）在引入 agent 时，应把"轨迹防篡改"列为架构级需求，与 kill switch 同级
+
 ## Best Practices
 
 ### Deployment Checklist
