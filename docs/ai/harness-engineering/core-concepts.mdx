@@ -931,3 +931,13 @@ High-quality feedback enables better decisions. Invest in comprehensive tracing 
 **Grow the Harness, Not the Context（arXiv 2609.26760）**：提出从"无策略脚手架"（strategy-free scaffolds）演化出可复用专家 Agent 的路线——与其无限扩大上下文窗口，不如让 harness 在任务族上生长沉淀。这是对第一章"agent boundaries"的呼应：**上下文不是免费资源**，专家能力应沉淀在 harness 结构里而非塞进上下文。同期 2609.26704（*Beyond Repeated Sampling*）训练显式搜索策略替代"重复采样再选优"，同样是把"计算换质量"的模式固化为结构。
 
 > 来源：[arXiv:2609.26760](https://arxiv.org/abs/2609.26760)、[arXiv:2609.26704](https://arxiv.org/abs/2609.26704)（2026-09-22）
+
+### 前沿研究补充（2026-09-29）
+
+**Thinking Before Thinking（arXiv 2609.38147）**：在推理之上再叠加一层元推理（meta-reasoning）——先对"该怎么分配推理预算、该用什么策略"做显式思考，再进入任务推理。对应本节 harness 的规划层：与其把策略硬编码进控制流，不如让 agent 在测试时自己规划推理过程。
+
+**Learning Meta-Skills for Agent Harness Design in Test-Time AI4AI（arXiv 2609.38143）**：让 agent 在测试时学习"如何设计 harness"的元技能，与 RRSI（2609.24972）、Harness-Zero（2609.24974）同属 harness 自我优化研究线的最新推进——harness 从"人写的脚手架"走向"agent 可习得、可演化的技能"。
+
+**LongHarness Bench（arXiv 2609.38137）**：专门压测语言模型 harness 在长上下文推理任务上的表现，证明长上下文能力的瓶颈常在 harness 而非模型本身——与本系列反复强调的"上下文经济学"（CliffCompaction、Grow the Harness）互为印证。
+
+> 来源：[arXiv:2609.38147](https://arxiv.org/abs/2609.38147)、[arXiv:2609.38143](https://arxiv.org/abs/2609.38143)、[arXiv:2609.38137](https://arxiv.org/abs/2609.38137)（2026-09-29）

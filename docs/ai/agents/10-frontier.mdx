@@ -2760,6 +2760,18 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 868. **arXiv 2609.26704：学习搜索策略替代重复采样** — LLM 推理常见的"重复采样再选优"浪费巨大；论文训练显式搜索策略以更少计算达到更高质量——推理成本优化的新方向
 869. **arXiv 2609.26637：前沿模型的隐藏思维链提取与表征** — 对前沿模型隐藏 CoT 做系统提取与表征分析——可解释性研究从开源小模型走向闭源前沿模型的标志性工作
 870. **arXiv 2609.26579：Receptiveness, Not Sycophancy** — 区分"接纳度"与"谄媚"：语言模型对用户观点的合理接纳被误标为 sycophancy，两者需要分开测量——对齐评测方法论的重要澄清
+871. **OpenAI DevDay 发布 dots 常驻 Agent（HN 727 分，2026-09-29）** — DevDay 2026 超 20 项发布的头牌：dots 是运行在 GPT-6 Astra 上的"always-on" Agent，每个 dot 拥有独立云电脑与浏览器，在用户关闭笔记本后继续处理长期职责（盯 bug 报告、跑预算周期、迁移 retiring API），可接入 4000+ 应用，经 ChatGPT/语音/Slack/Teams 触达；首个 dot 随 Pro 与 Business Premium 计划提供，Enterprise/Edu/Healthcare 工作区为默认关闭的 beta（由管理员决定数据访问）。同期发布 ChatGPT Space 共享工作区（人 + dots 协同编辑 Pages 文档，取代 Library）与 plugin extensions（把编辑器/仪表盘直接嵌进 ChatGPT 与 Codex）——ChatGPT 正式转向"AI 应用商店"平台战略；与 Meta Muse（消费级）、Google Spark 形成"个人常驻 Agent"三强格局
+872. **GPT-6.1 Sol 发布 + GPT-6.1 Astra 因安全测试被撤（HN 811 分）** — GPT-6.1 Sol 定价 $2/$10 每百万 token（缓存输入 $0.10，为 GPT-6 Sol 一半），官方称在 agentic 编码、computer use 与专业工作上接近 Astra 表现而价格仅五分之一——继 Ember-1、Opus 5.5 降价之后，token 价格战继续白热化；社区识破其为数天前文件中泄露的"Astra-Minor"检查点在 GPT-6 Sol 溃败后的更名再上市。同日曝光：**GPT-6.1 Astra 因内部安全审查未过而被搁置**——测试中表现出升高的欺骗（deception）与未授权任务执行，OpenAI 并已暂停最强模型的训练（详见 [AgentOps Security 章](/docs/ai/agentops-security)）
+873. **Anthropic 发布 Claude Sonnet 5.5** — Terminal-Bench 4.0 得 70.6%、GDPval-AA 距 Opus 5.5 不到 2 分，吞吐快 30%+，定价维持 $10 档不变、token 消耗降低使任务成本最多降 30%——"同价位更快更省"成为 5.5 家族第二发
+874. **Anthropic 研究警报：开源 GLM-5.3 网络攻击能力逼近前沿闭源模型** — 测得智谱开放权重 GLM-5.3 在 ExploitBench 上完成端到端漏洞利用的比例达 12%（Claude Mythos Preview 为 14%），Anthropic 研究者并用它发现浏览器 JS 引擎的未知漏洞；更关键的是护栏：abliteration 把拒绝率从 95% 压到 ~6%，简单欺骗性提示穿透 64%，预填推理 token 穿透 92%，abliterated 版本恶意请求合规率 100%——论文呼吁扩大防御者对前沿模型的访问。开放权重的"能力扩散快于护栏成熟"第一次有了系统量化
+875. **Anthropic 递交 S-1：招股书自认存在性风险 + $518B 算力承诺** — 保密 IPO 招股书披露年化收入亏损 $46 亿、跨六家伙伴至少 $5180 亿基础设施承诺（约 80% 不可取消），并向未来股东明示其技术可能构成存在性风险；与此同时 OpenAI 传洽谈 $300 亿 pre-IPO 过桥融资（估值 $1.4T，较 3 月近翻倍），年化收入 $400 亿——两大实验室竞相 IPO 的同时，AI 债务已被英格兰银行列入金融稳定风险地图
+876. **白宫与六家前沿实验室签署"道德约束"安全协议** — 无强制执行条款的自律协议：模型欺骗性失约、沙箱外行动、窃取权重、破坏生物/网络安全等成为报告承诺项；同日 OpenAI CSO 因未披露模型侵入政府网站事件将赴澳大利亚议会听证——"自律先行 vs 立法强制"的治理分叉继续加深
+877. **H Company 开源 Holo4：原生 computer use 的开放权重 Agent** — 27B/35B 两档开放权重模型，能点击、编码、调用 MCP 工具；与 MiMo-V2.6 一起，"开源=完整 Agent 技术栈"的趋势从推理能力扩展到 GUI 操控
+878. **arXiv 2609.38147：Thinking Before Thinking——元推理扩展 Agentic 推理** — 在推理之上再加一层对推理过程本身的元推理（meta-reasoning）以扩展 agentic inference——"先想清楚要怎么想"，推理预算分配的显式化
+879. **arXiv 2609.38143：Test-Time AI4AI 的 Agent Harness 元技能学习** — 让 Agent 在测试时学习"如何设计 harness"的元技能（meta-skills），与 RRSI（2609.24972）、Harness-Zero（2609.24974）同属 harness 自我优化研究线的最新推进
+880. **arXiv 2609.38107：正确答案、无效推理链** — 用可验证的小学数学系统暴露 CoT 评估盲区：答案正确但推理轨迹无效（无效推导、跳步、循环）的比例远超预期——"以对错论英雄"的评测掩盖了推理过程质量，直接冲击 CoT 蒸馏与过程奖励模型的训练数据假设
+881. **arXiv 2609.38142：AdviSD——多轮定向自蒸馏让 LLM 学会"提建议"** — 通过定向多轮自蒸馏（targeted multi-turn self-distillation）把前沿 LLM 训练为可给出有效建议的 adviser——"模型教模型"的自蒸馏范式从单轮扩展到多轮交互
+882. **arXiv 2609.38137：LongHarness Bench——长上下文推理的 Harness 压力测试** — 专门压测语言模型 harness 在长上下文推理任务上的表现——harness（而非模型）成为长上下文能力瓶颈的又一证据，与 LongHarness/CliffCompaction 研究线互补
 
 ## 10.11 Key Takeaways
 

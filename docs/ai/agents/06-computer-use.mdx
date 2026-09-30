@@ -388,6 +388,20 @@ Meta 9 月初发布个人购物 Agent **Muse** 后，Amazon 于 9 月 20 日晚�
 
 > 来源：[GeekWire](https://www.geekwire.com/2026/amazon-blocks-metas-muse-ai-assistant-in-new-standoff-over-agentic-shopping/)、[Fortune](https://fortune.com/2026/09/11/meta-muse-ai-shopping-agent-consumer-trust/)（2026-09-21，HN 94 分）
 
+### OpenAI 发布 dots：常驻云端 Computer-Use Agent（2026-09-29）
+
+DevDay 2026 的头牌发布：**dots 是运行在 GPT-6 Astra 上的 "always-on" Agent，每个 dot 拥有专属的云电脑与浏览器**——这是 Computer Use 架构从"按需会话"转向"常驻基础设施"的标志事件。dot 承接长期职责（盯 bug 报告、跑预算周期、把应用迁出 retiring API），用户关掉笔记本后它继续在云端工作，可接入 4000+ 应用，经 ChatGPT、语音、Slack/Teams 触达。
+
+**架构与治理要点**：
+
+1. **专属执行环境**：每 dot 一个云电脑 + 浏览器，本质是把本节讨论的沙箱执行层产品化为托管服务——隔离由平台保证而非用户自建；
+2. **企业默认关闭**：Enterprise/Edu/Healthcare 工作区为 beta 默认关闭，由 workspace 管理员决定 dot 能否触达公司数据——把 Agent 数据访问权限上收到管理员层级，是常驻 Agent 治理的正确默认；
+3. **生态卡位**：与 Meta Muse（消费级，此前已曝 6.8GB 文件系统导出与严重 0-day）、Google Spark 形成"个人常驻 Agent"三强格局——Amazon 封禁 Muse 划出的三条红线（身份可识别、明确授权、可退出）将成为这一代产品的准入门槛。
+
+同期 ChatGPT Space 共享工作区（人 + dots 协同编辑 Pages 文档）与 plugin extensions 把 ChatGPT 推向"AI 应用商店"平台。
+
+> 来源：[Introducing dots](https://openai.com/index/introducing-dots/)、[SAASiQ](https://saasiq.ai/post/this-week-s-releases-openai-s-dots-and-gpt-6-1-sol-claude-sonnet-5-5-and-meta-s-enterprise-platfor)（2026-09-29，HN 727 分）
+
 ---
 
 ## 6.9 Key Takeaways
