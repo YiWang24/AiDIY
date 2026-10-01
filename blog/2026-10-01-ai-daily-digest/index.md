@@ -17,7 +17,7 @@ tags: [ai, daily-digest, gemini, agents, security, open-source, arxiv, regulatio
 
 - **先给防御者，再给公众**。Argon 目前只通过 Fairwind Program 向"受信网络防御者" rollout，且对他们**关闭网络护栏**——CWE-bench v1 漏洞修复 68% 并列第一，Wiz 已经用它发现了全球医院软件中此前所有前沿模型都漏掉的高危漏洞。这与 GPT-6 Astra"最强网络能力仅向受审伙伴开放"、Anthropic Glasswing 一脉相承：**高网络能力模型门控发放已经从临时做法固化为行业标准**。
 - **安全工程写进了产品说明**：内部激活监控（引用了自家 2601.11516 的可解释性工作）识别滥用、Gray Swan IPI 间接提示注入基准领先、CoT 与动作的失准监控随时可停——Google 还专门呼吁全行业保留推理透明度。
-- **定价玩了个心理游戏**：介绍价 $2/$10（缓存输入 95% off）， introductory 期结束后恢复 $4/$20——用低价换早期采用，与 GPT-6.1 Sol、Sonnet 5.5 的价格战正面相撞。
+- **定价玩了个心理游戏**：介绍价 $2/$10（缓存输入 95% off），介绍期结束后恢复 $4/$20——用低价换早期采用，与 GPT-6.1 Sol、Sonnet 5.5 的价格战正面相撞。
 
 内部案例也颇有信息量：Argon 的 Agent 集群分析全 Google 机群 profiling 数据自主打内存优化，释放 300TiB 内存（预计总节省 500TiB–1PiB）；C/C++→Rust 迁移已覆盖 Fuchsia Zircon 内核 80 万+ 行，libgav1 的 32K 行 SIMD 手术让内存安全版解码器比原 Rust 移植快 2.7 倍。"模型改造自家代码库"从 demo 进入了生产审计流程。
 
