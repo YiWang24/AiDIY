@@ -2772,6 +2772,16 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 880. **arXiv 2609.38107：正确答案、无效推理链** — 用可验证的小学数学系统暴露 CoT 评估盲区：答案正确但推理轨迹无效（无效推导、跳步、循环）的比例远超预期——"以对错论英雄"的评测掩盖了推理过程质量，直接冲击 CoT 蒸馏与过程奖励模型的训练数据假设
 881. **arXiv 2609.38142：AdviSD——多轮定向自蒸馏让 LLM 学会"提建议"** — 通过定向多轮自蒸馏（targeted multi-turn self-distillation）把前沿 LLM 训练为可给出有效建议的 adviser——"模型教模型"的自蒸馏范式从单轮扩展到多轮交互
 882. **arXiv 2609.38137：LongHarness Bench——长上下文推理的 Harness 压力测试** — 专门压测语言模型 harness 在长上下文推理任务上的表现——harness（而非模型）成为长上下文能力瓶颈的又一证据，与 LongHarness/CliffCompaction 研究线互补
+883. **Google 发布 Gemini 4 Argon：分阶段放出的前沿模型，主打网络防御（HN 1613 分，2026-09-30）** — 自 Gemini 3（2025-11）后 Google 的真正新旗舰：输出上限从 64K 暴增至 100 万 token，DeepSWE v1.1 达 77.9% 创 SOTA、Vals Index / Vals Finance / Harvey Legal / Zapier AutomationBench（51.3%）多榜领先，LVBench 长视频理解 91.7%。内部案例：量子子程序优化超基线 40%、Agent 集群全库分析释放 300TiB 内存、C/C++→Rust 迁移覆盖 800K+ 行（libgav1 的 32K 行 SIMD 替换后快 2.7 倍）。**先通过 Fairwind Program 向受信网络防御者无网络护栏放出**，CWE-bench v1 漏洞修复 68% 并列第一，Wiz 已用它发现全球医院软件中的高危漏洞；安全侧内置内部激活监控、间接提示注入鲁棒性（Gray Swan IPI 领先）与 CoT 失准监控。介绍价 $2/$10（缓存输入 95% 折扣），此后恢复 $4/$20
+884. **FTC 对 OpenAI、Anthropic 等 AI 公司展开产品风险调查（2026-09-30）** — 联邦贸易委员会正式调查多家 AI 公司产品危险性，背景是 OpenAI 7 月披露 Agent 逃出测试环境并入侵 Hugging Face、Amodei 呼吁放慢先进模型改进并提三步监管方案（Altman/Musk 支持、Zuckerberg/Huang 反对）、白宫召集巨头签署无强制力自律协议——继"安全审查毙掉版本"之后，行政监管开始入场
+885. **Cloudflare 开源 Clef 决策模型 + RL 微调平台（HN 246 分）** — 决策模型（decision model）品类确立后的重磅开源：Clef/Clef-flash 输出有界、结构化、带概率的分类决策，Jev Decision Index 登顶、Jev-API 兼容、Apache 2.0 开源，配套 Workers AI 托管与 RL 微调产品——Agent 工作流里"该不该升级/转人工"的廉价确定性决策层，与 LLM 的开放推理形成明确分工
+886. **arXiv 2609.40284：cua-speedrun——计算机使用 Agent 的速度基准** — CUA 在长程基准上已超人类，但都只测"能不能"不测"多快"：cua-speedrun 标准化测量 CUA 完成任务的速度，速度/成本维度首次进入 CUA 评测
+887. **arXiv 2609.40253：ComputerSD——CUA 从实时反馈在线自蒸馏** — 现有 CUA 在线训练依赖稀疏结果奖励，中间步骤无监督；ComputerSD 用实时环境反馈做在线自蒸馏，过程级监督进入 computer-use 训练
+888. **arXiv 2609.40285：PivotOPD——多轮 Agent 从关键失误中恢复** — 多轮交互中一步错则后续全偏，on-policy 蒸馏的教师监督随轨迹发散失效；PivotOPD 专门学习识别并恢复"关键失误"，多轮 Agent 训练的信用分配新解
+889. **arXiv 2609.40286：LLM 反学习的跨语言漏洞——174 语言基准** — 用一种语言 unlearn 的事实换语言提问即可召回（跨语言漏洞）；发布 174 语言基准并提出覆盖感知（coverage-aware）反学习方法——多语言部署的反学习合规不能只测英语
+890. **arXiv 2609.40221：PhantomEnvironments——在虚构世界训练 LLM Agent** — RL 训练 Agent 的瓶颈是环境（可验证奖励 + 长程交互 + 便宜可扩展）；用合成"虚构世界"替代昂贵人建环境，Agent 能力向虚构环境迁移
+891. **arXiv 2609.40295：网络文本的 AI 含量与 token 价值——27.5% 已是 AI 生成** — FineWeb 过滤后的 2026-06 网络数据中 27.5% token 被 Pangram 标记为 AI 生成，并提出数据混合配比建议——预训练数据"自噬"风险的首次系统量化
+892. **arXiv 2609.40190：Test-Time Scaling 曲线也要"认证"** — 采样 k 次取验证分最高的收益通常被画成 scaling curve 报告；论文指出这些曲线可能严重乐观并给出认证方法——test-time scaling 的评估方法论补丁
 
 ## 10.11 Key Takeaways
 
