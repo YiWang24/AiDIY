@@ -278,6 +278,20 @@ Reasonix 是一个开源的、专为 DeepSeek API 设计的终端 Coding Agent�
 
 > 来源：[Reasonix GitHub](https://github.com/esengine/DeepSeek-Reasonix)（2026-05）
 
+### DwarfStar（ds4）：antirez 的本地推理引擎 + 原生 Coding Agent（2026-10）
+
+Redis 作者 Salvatore Sanfilippo（antirez）发布的 [DwarfStar/ds4](https://github.com/antirez/ds4)（HN 321 分）是目前"前沿模型本地化"最值得研究的工程样本：一个刻意**做窄**的原生 C 推理引擎，面向 DeepSeek V4 Flash（也支持 GLM 5.2、高内存机器上的 V4 PRO），不是通用 GGUF runner——模型加载、prompt 渲染、工具调用、KV 状态、HTTP server 与 coding agent 一体化构建测试。
+
+**关键工程决策**：
+- **激进 2-bit 量化只作用于 MoE 专家权重**，把 284B 参数模型压进 128GB 统一内存机器（M5 Max ~500 t/s prefill、35-40 t/s 解码；AMD Strix Halo 也已跑通）
+- **KV cache 持久化到磁盘 + 权重从 SSD 流式加载**——把"长上下文"从内存限制问题变成存储问题
+- **DSpark 投机解码**：DeepSeek 官方 draft 模型读取主模型隐状态、一次提出最多 5 个未来 token，主模型验证后只提交接受的前缀，低置信后缀回退普通解码
+- **Agent 与推理同进程**：coding agent 没有 socket/API 边界，会话状态就是磁盘上的 KV cache 本身；工具与系统提示全部为 V4 Flash/PRO 垂直设计
+
+**启示**：当开源前沿 MoE 模型 + 2-bit 专家量化 + SSD 流式加载 + draft 模型加速组合起来，"$6-7K 笔记本跑前沿模型干正经活"已经成立；antirez 还在探索[分布式推理](https://antirez.com/news/167)（按层切分多机）。对 Agent 工程师的启示是**垂直整合的价值**——通用 harness 抽象换来的性能损失，在本地推理场景下可能远大于便利收益。
+
+> 来源：[ds4 GitHub](https://github.com/antirez/ds4)、[antirez: A few words on DS4](https://antirez.com/news/165)（2026-10）
+
 ### Constraint Decay：后端代码生成中的脆弱性（2026）
 
 论文 [Constraint Decay](https://arxiv.org/abs/2605.06445) 揭示了 LLM Coding Agent 在后端代码生成中的一个系统性问题——**约束衰减**：Agent 在多轮工具调用中逐渐丢失或忽略最初的需求约束，导致生成的代码偏离规范。
