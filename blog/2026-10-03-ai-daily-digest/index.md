@@ -7,7 +7,7 @@ tags: [ai, daily-digest, open-source, local-inference, image-generation, arxiv, 
 
 <!--truncate-->
 
-昨天的 Hacker News 首页被三条"去中心化"的 AI 新闻占满：欧洲的 Aleph Alpha 在德国统一日开源了主权模型 **Kolibri**（312 分），Black Forest Labs 发布了** FLUX 3 Image**（413 分），Redis 作者 antirez 则交出了让前沿模型跑进笔记本的本地推理引擎 **ds4/DwarfStar**（321 分）。三条线各不相同，却指向同一个判断：当 API 巨头们在价格和监管上纠缠时，**开源权重 + 本地部署 + 精细控制**正在成为另一条快速成熟的主航道。
+昨天的 Hacker News 首页被三条"去中心化"的 AI 新闻占满：欧洲的 Aleph Alpha 在德国统一日开源了主权模型 **Kolibri**（312 分），Black Forest Labs 发布了 **FLUX 3 Image**（413 分），Redis 作者 antirez 则交出了让前沿模型跑进笔记本的本地推理引擎 **ds4/DwarfStar**（321 分）。三条线各不相同，却指向同一个判断：当 API 巨头们在价格和监管上纠缠时，**开源权重 + 本地部署 + 精细控制**正在成为另一条快速成熟的主航道。
 
 ## Kolibri：欧洲用"流水线"回答主权问题
 
