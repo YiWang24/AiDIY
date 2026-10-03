@@ -2782,6 +2782,17 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 890. **arXiv 2609.40221：PhantomEnvironments——在虚构世界训练 LLM Agent** — RL 训练 Agent 的瓶颈是环境（可验证奖励 + 长程交互 + 便宜可扩展）；用合成"虚构世界"替代昂贵人建环境，Agent 能力向虚构环境迁移
 891. **arXiv 2609.40295：网络文本的 AI 含量与 token 价值——27.5% 已是 AI 生成** — FineWeb 过滤后的 2026-06 网络数据中 27.5% token 被 Pangram 标记为 AI 生成，并提出数据混合配比建议——预训练数据"自噬"风险的首次系统量化
 892. **arXiv 2609.40190：Test-Time Scaling 曲线也要"认证"** — 采样 k 次取验证分最高的收益通常被画成 scaling curve 报告；论文指出这些曲线可能严重乐观并给出认证方法——test-time scaling 的评估方法论补丁
+893. **Aleph Alpha 开源 Kolibri-1：欧洲主权 MoE 模型（HN 312 分，2026-10-03 德国统一日发布）** — 英德双语 MoE Transformer，78B 总参 / 3B 激活，1M token 上下文，Apache 2.0 全权重开放在 Hugging Face。定位"主权任务关键型"工作（公共行政、工业、航空航天），宣称位于质量/服务成本 Pareto 前沿，数学/编码/长上下文任务对标 4 倍激活参数量的模型（如 Nemotron 3 Super）。亮点是**模型训练流水线作为代码**（model-training-as-code）：先用 30B-A3B 的 Kolibri Origin 验证流水线，再快速迭代出 Kolibri，硬件故障无人值守自恢复——"工程流水线比单点模型更值钱"的欧洲路线样本；配套 vLLM 插件（`aleph-alpha-inference`）开箱即用
+894. **Black Forest Labs 发布 FLUX 3 Image：包围盒级的像素控制（HN 413 分）** — 图像生成从"prompt 祈祷"走向"布局工程"：全局 caption + JSON 元素表（每元素带 id/包围盒/描述），caption 按 id 引用元素；手画包围盒原样直达模型（prompt upsampler 只在盒外补文），未触碰的元素跨多轮编辑保持不动。LLM 可代画布局（给一句话 + 宽高比即生成元素表），适合排版、拼贴、多面板网格等严格空间关系场景——"生成模型的结构化控制接口"又一块拼图
+895. **antirez 发布 ds4/DwarfStar：前沿模型本地推理引擎（HN 321 分）** — Redis 作者的开窄刃 C 引擎：2-bit MoE 专家量化把 DeepSeek V4 Flash（284B）压进 128GB 统一内存（M5 Max ~500 t/s prefill / 35-40 t/s 解码），KV cache 磁盘持久化把长上下文变成存储问题，DSpark draft 模型读主模型隐状态一次提议 5 个 token；coding agent 与推理同进程、会话即磁盘 KV cache——"垂直整合 + 刻意做窄"对通用推理框架的正面反驳（详见 coding-agents 章节）
+896. **Pop!_OS 禁止 AI 生成代码进入其大部分代码库** — System76 宣布 Cosmic 桌面相关代码库禁用 AI 生成代码（许可与审查考虑），开源项目对 AI 代码从"默认接受"转向"默认拒绝"的首个标志性案例；与 GKH 在 LLM 时代的内核安全演讲（HN 306 分）同周出现——"AI 代码的供应链信任"正式进入工程治理议题
+897. **AI 在 Stratego 上击败人类顶尖选手，且预算有限** — 不完全信息博弈的最后堡垒之一被攻克：研究团队以"有限预算"训练出击败历史最佳 Stratego 玩家的 AI（HN 268 分）——继围棋/星际/外交之后，隐藏信息 + 长程博弈的又一里程碑
+898. **arXiv 2610.02193：Hierarchical Continuous Diffusion Language Models** — 分层连续扩散语言模型：把连续扩散推向语言建模的主流替代路径，层级结构缓解扩散 LM 的长序列生成难题——非自回归生成的最新推进
+899. **arXiv 2610.02163：AutoCompact——学习何时压缩 Agent 上下文** — 长程 coding agent 的上下文压缩时机从启发式规则变为**可学习策略**：训练模型自主判断"何时 compact"，与 2609.40284 一道补齐 agent 上下文管理的自动化拼图
+900. **arXiv 2610.02142：Keyword Harnesses Fail Open——小模型工具使用声明的廉价诊断阶梯** — 小模型的工具使用声明经关键词 harness 评测"全部通过"、实际能力不存在（fail open）；给出廉价诊断阶梯甄别"声称会用工具"与"真会用工具"——工具使用评测的方法论警告
+901. **arXiv 2610.02140：Finetuning with Sampling——SFT 学得比你想的好** — 证明采样式微调下 SFT 的能力保留被系统性低估——"SFT 已死"叙事的一个反例修正
+902. **arXiv 2610.02015：On Language Drift during RLVR Post-Training** — RLVR（可验证奖励强化学习）后训练中的语言漂移：英文奖励信号训练导致其他语言能力退化，多语言模型的 RLVR 需要显式语言平衡——与 2609.40286 跨语言反学习漏洞同属多语言训练盲区研究线
+903. **arXiv 2610.02039：CARM——LLM RL 中的取消感知响应掩蔽** — RL 训练流中用户取消（cancellation）的响应需要专门掩蔽处理，否则污染训练信号——生产级 RLVR 数据工程的新细节
 
 ## 10.11 Key Takeaways
 

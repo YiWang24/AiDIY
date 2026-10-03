@@ -1065,6 +1065,22 @@ def dequantize_vector(x_q: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
 
 > 来源：[Google Blog - Multi-token-prediction in Gemma 4](https://blog.google/innovation-and-ai/technology/developers-tools/multi-token-prediction-gemma-4/)
 
+### 2026: DSpark（ds4）- 隐状态感知的 Draft 模型投机解码
+
+antirez 的 [DwarfStar/ds4](https://github.com/antirez/ds4) 本地推理引擎集成了 DeepSeek 为 V4 Flash 发布的辅助 draft 模型 **DSpark**，展示了投机解码的一个新变体：
+
+**与传统 draft 模型的区别**：
+| 对比维度 | 传统 Speculative Decoding | DSpark |
+|---------|--------------------------|--------|
+| Draft 输入 | 仅已生成的 token 序列 | **直接读取主模型隐状态** |
+| 每步提议 | 通常 1 个 token | 最多 **5 个未来 token** |
+| 验证方式 | 主模型逐 token 验证 | 主模型校验，只提交接受的前缀 |
+| 回退策略 | 全部丢弃重来 | 低置信后缀回退普通解码，主模型始终权威 |
+
+**工程要点**：draft 模型"看得见"主模型的内部表示而非仅仅输出序列，使提议质量显著高于 ngram / 独立小模型方案；同时拒绝路径的设计保证生成分布与主模型单独解码完全一致（无损）。配合 2-bit 专家量化 + KV cache 磁盘持久化，M5 Max 128GB 上实现 ~500 t/s prefill、35-40 t/s 解码。
+
+> 来源：[ds4 GitHub](https://github.com/antirez/ds4)（2026-10）
+
 ### 2026: 异步 Continuous Batching
 
 Hugging Face 于 2026 年 5 月发布 **异步 Continuous Batching** 技术，将 LLM 推理的 GPU 利用率从 ~75% 提升至接近 100%。
