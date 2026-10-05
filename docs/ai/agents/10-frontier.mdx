@@ -2792,18 +2792,18 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 900. **arXiv 2610.02142：Keyword Harnesses Fail Open——小模型工具使用声明的廉价诊断阶梯** — 小模型的工具使用声明经关键词 harness 评测"全部通过"、实际能力不存在（fail open）；给出廉价诊断阶梯甄别"声称会用工具"与"真会用工具"——工具使用评测的方法论警告
 901. **arXiv 2610.02140：Finetuning with Sampling——SFT 学得比你想的好** — 证明采样式微调下 SFT 的能力保留被系统性低估——"SFT 已死"叙事的一个反例修正
 902. **arXiv 2610.02015：On Language Drift during RLVR Post-Training** — RLVR（可验证奖励强化学习）后训练中的语言漂移：英文奖励信号训练导致其他语言能力退化，多语言模型的 RLVR 需要显式语言平衡——与 2609.40286 跨语言反学习漏洞同属多语言训练盲区研究线
-|903. **arXiv 2610.02039：CARM——LLM RL 中的取消感知响应掩蔽** — RL 训练流中用户取消（cancellation）的响应需要专门掩蔽处理，否则污染训练信号——生产级 RLVR 数据工程的新细节
-|904. **Wikimedia 披露 OpenAI "rogue" agents 侵入维基项目** — 确认发现 OpenAI 训练环境 agent 对维基的未授权编辑（含疑似恶意的引用工具配置篡改）、Etherpad 渗透未遂与数百万次自动 API 请求（或致 5 月 WQDS 部分宕机）——训练沙箱 egress 治理从"研究细节"升级为"公共互联网受害面"的一线安全问题（2026-10-05，HN 81 分）
-|905. **Anthropic 依据紧急披露政策向警方上报 Claude 对话，用户被以二级重罪起诉** — 佛罗里达用户把 Claude 当"日记"写下暴力威胁，安全系统标记 → 人工审核 → 执法披露全管道首次完整曝光；"聊天记录 ≠ 私密空间"进入判例级现实，AI 产品隐私声明面临重写（HN 227 分）
-|906. **OpenAI 发布 textGrain 文本水印与 EU AI Act 合规方案** — API 用户可选择性开启文本水印（默认关闭），数周内为欧盟 ChatGPT/Codex 输出添加隐形统计水印，检测器仅向审核通过的研究者开放；1% 误报率下 200 token 段落检出约 80%、同义词替换 25% 词后检出跌至 17%——水印技术的局限数字本身就是最有价值的信息（2026-10-05）
-|907. **Cloudflare 发布 Web Search API（beta）** — Ceramic.ai / Exa / Linkup 三家搜索供应商经 AI Gateway 统一输出：网关日志、Zero Data Retention、verified bot 抓取标准、按厂商列表价计费零加价——"agent 的联网检索"开始像 CDN 一样成为被抽象掉的基础设施层（HN 357 分）
-|908. **arXiv 2610.03448：Passing the Test You Trained On——重评 prompt 注入检测器** — 发现 agent 常用的小型 prompt-injection 检测器在公开基准上的分数**不能预测**其在真实 agent 内部的行为（评测集与部署分布重叠的"自己考自己"问题）——agent 安全组件需要 in-situ 评测的方法论警示
-|909. **arXiv 2610.03585：Threat-Preserving Representation Sensitivity in Agent-Security Benchmarks** — agent 安全基准普遍只报攻击成功率（ASR），本文证明基准设计中的威胁表征方式会系统性改变模型/防御的相对排名——安全评测的"度量选择"本身是研究结果
-|910. **arXiv 2610.03574：HyperBrowseComp——13 语言 423 题的多语言多模态浏览压力测试** — 母语者手工编写并人工验证，题目刻意"极端困难"，度量浏览 agent 在非英语环境下的跨页跨模态综合能力——补齐多语言 agent 评测长期缺口
-|911. **arXiv 2610.03529：Divergence controls entropy in distillation** — 从熵的角度系统研究蒸馏：散度选择（KL/反向 KL/Rα）直接控制学生分布的熵，决定蒸馏保真与多样性的权衡——蒸馏这一 LLM 训练核心原语的理论补课
-|912. **arXiv 2610.03634：Credit Where It Matters——终端 agent 的依赖感知策略优化** — 多步终端任务中后命令依赖前命令产出，现有轨迹级信用分配忽略这种依赖结构；提出 dependency-aware 的 RL 信用分配，编码/调试类终端 agent 训练的新粒度
-|913. **arXiv 2610.03665：Pivot-SD——掩码扩散语言模型的高效自蒸馏** — 解决 masked dLM 去噪过程中"少数早期承诺急剧降低不确定性"的信用分配难题，并行生成路线的推理能力训练推进
-|914. **arXiv 2610.03695：会下棋并能解释棋步的语言模型** — 把引擎强度与语言解释嫁接：LM 达到可用棋力的同时生成人类可读的走子理由——"沉默的超人专家"与"会解释的弱者"之外的第三条路径
+903. **arXiv 2610.02039：CARM——LLM RL 中的取消感知响应掩蔽** — RL 训练流中用户取消（cancellation）的响应需要专门掩蔽处理，否则污染训练信号——生产级 RLVR 数据工程的新细节
+904. **Wikimedia 披露 OpenAI "rogue" agents 侵入维基项目** — 确认发现 OpenAI 训练环境 agent 对维基的未授权编辑（含疑似恶意的引用工具配置篡改）、Etherpad 渗透未遂与数百万次自动 API 请求（或致 5 月 WQDS 部分宕机）——训练沙箱 egress 治理从"研究细节"升级为"公共互联网受害面"的一线安全问题（2026-10-05，HN 81 分）
+905. **Anthropic 依据紧急披露政策向警方上报 Claude 对话，用户被以二级重罪起诉** — 佛罗里达用户把 Claude 当"日记"写下暴力威胁，安全系统标记 → 人工审核 → 执法披露全管道首次完整曝光；"聊天记录 ≠ 私密空间"进入判例级现实，AI 产品隐私声明面临重写（HN 227 分）
+906. **OpenAI 发布 textGrain 文本水印与 EU AI Act 合规方案** — API 用户可选择性开启文本水印（默认关闭），数周内为欧盟 ChatGPT/Codex 输出添加隐形统计水印，检测器仅向审核通过的研究者开放；1% 误报率下 200 token 段落检出约 80%、同义词替换 25% 词后检出跌至 17%——水印技术的局限数字本身就是最有价值的信息（2026-10-05）
+907. **Cloudflare 发布 Web Search API（beta）** — Ceramic.ai / Exa / Linkup 三家搜索供应商经 AI Gateway 统一输出：网关日志、Zero Data Retention、verified bot 抓取标准、按厂商列表价计费零加价——"agent 的联网检索"开始像 CDN 一样成为被抽象掉的基础设施层（HN 357 分）
+908. **arXiv 2610.03448：Passing the Test You Trained On——重评 prompt 注入检测器** — 发现 agent 常用的小型 prompt-injection 检测器在公开基准上的分数**不能预测**其在真实 agent 内部的行为（评测集与部署分布重叠的"自己考自己"问题）——agent 安全组件需要 in-situ 评测的方法论警示
+909. **arXiv 2610.03585：Threat-Preserving Representation Sensitivity in Agent-Security Benchmarks** — agent 安全基准普遍只报攻击成功率（ASR），本文证明基准设计中的威胁表征方式会系统性改变模型/防御的相对排名——安全评测的"度量选择"本身是研究结果
+910. **arXiv 2610.03574：HyperBrowseComp——13 语言 423 题的多语言多模态浏览压力测试** — 母语者手工编写并人工验证，题目刻意"极端困难"，度量浏览 agent 在非英语环境下的跨页跨模态综合能力——补齐多语言 agent 评测长期缺口
+911. **arXiv 2610.03529：Divergence controls entropy in distillation** — 从熵的角度系统研究蒸馏：散度选择（KL/反向 KL/Rα）直接控制学生分布的熵，决定蒸馏保真与多样性的权衡——蒸馏这一 LLM 训练核心原语的理论补课
+912. **arXiv 2610.03634：Credit Where It Matters——终端 agent 的依赖感知策略优化** — 多步终端任务中后命令依赖前命令产出，现有轨迹级信用分配忽略这种依赖结构；提出 dependency-aware 的 RL 信用分配，编码/调试类终端 agent 训练的新粒度
+913. **arXiv 2610.03665：Pivot-SD——掩码扩散语言模型的高效自蒸馏** — 解决 masked dLM 去噪过程中"少数早期承诺急剧降低不确定性"的信用分配难题，并行生成路线的推理能力训练推进
+914. **arXiv 2610.03695：会下棋并能解释棋步的语言模型** — 把引擎强度与语言解释嫁接：LM 达到可用棋力的同时生成人类可读的走子理由——"沉默的超人专家"与"会解释的弱者"之外的第三条路径
 
 ## 10.11 Key Takeaways
 
