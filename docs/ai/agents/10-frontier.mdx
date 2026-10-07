@@ -2804,6 +2804,16 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 912. **arXiv 2610.03634：Credit Where It Matters——终端 agent 的依赖感知策略优化** — 多步终端任务中后命令依赖前命令产出，现有轨迹级信用分配忽略这种依赖结构；提出 dependency-aware 的 RL 信用分配，编码/调试类终端 agent 训练的新粒度
 913. **arXiv 2610.03665：Pivot-SD——掩码扩散语言模型的高效自蒸馏** — 解决 masked dLM 去噪过程中"少数早期承诺急剧降低不确定性"的信用分配难题，并行生成路线的推理能力训练推进
 914. **arXiv 2610.03695：会下棋并能解释棋步的语言模型** — 把引擎强度与语言解释嫁接：LM 达到可用棋力的同时生成人类可读的走子理由——"沉默的超人专家"与"会解释的弱者"之外的第三条路径
+915. **Anthropic 发布 Claude Haiku 5.5** — Haiku 系列小模型迭代，延续"旗舰能力下放小型化"路线；发布约一小时即登上 HN 头条（239 分/102 评论）——轻量模型在 agent 与终端侧的部署密度是本轮竞争焦点（2026-10-07，[发布页](https://www.anthropic.com/claude-haiku-5-5)）
+916. **OpenAI 发布 GPT-6 与 Intelligent UI for everyone** — 把 GPT-6 能力与"智能 UI"向所有用户开放，模型即产品界面的趋势继续深化——从 chat 输入框走向模型驱动的动态 UI（2026-10-07，[发布页](https://openai.com/index/gpt-6-for-everyone/)，HN 132 分）
+917. **Docker 开源 Docker Agent：AI Agent 构建器与运行时** — Docker 官方进入 agent 基础设施：以容器为一等公民构建、运行 agent，agent 生命周期（构建/分发/隔离/运行）第一次被容器原生工具链接管——容器生态与 agent 生态合流的标志性事件（2026-10-07，[GitHub](https://github.com/docker/docker-agent)，HN 28 分）
+918. **arXiv 2610.08773：AdvSim2Real——在 Web 世界模型中对自适应该 Prompt 注入的 Web Agent 训练** — 第三方可往页面注入指令劫持 agent，静态防御对自适应攻击无效；AdvSim2Real 在 Web 世界模型中让攻击与 agent 共同演化训练——agent 安全从固定防御走向对抗性共同演化
+919. **arXiv 2610.08691：ScienceClaw——AI-for-Science Agent 持续自演化基准** — 现有评测不考察"已验证执行如何沉淀为程序级改进"；ScienceClaw 横跨自然科学与社会科学度量 agent 持续自演化——自演化 agent 评测从编码扩展到科学自动化
+920. **arXiv 2610.08378：Lachesis——跨 HBM 与高带宽 Flash 的生命周期感知 KV Cache 放置** — agentic 负载下 agent 及子 agent 跨请求累积 KV cache，显存成为 serving 瓶颈；Lachesis 按 KV 生命周期在 HBM/Flash 间分层放置——agent 工作负载正在重塑推理服务栈的存储层
+921. **arXiv 2610.08077：Self-Retrospection Distillation——把事后经验蒸馏为事前先见** — RLVR 只用标量结果奖励学习；SRD 把 agent 的事后回溯经验转化为推理时的先见信号，分组相对目标下的新学习信号源
+922. **arXiv 2610.07767：TRACE——MoE 语言模型 FP4 强化学习的量化感知训练** — RL 后训练的 rollout 生成开销巨大，低精度 rollout 是降本关键；TRACE 用 rollout 引导的量化感知训练在 FP4 下保住 RL 质量——RL 基础设施进入量化时代
+923. **arXiv 2610.06851：Base Models Can Reason By Taking a Cue From Training Data** — 基座模型的推理行为由响应开头 token 与训练数据形成的关联触发：固定开头提示即可诱导基座（未后训练）模型推理——"推理能力藏于预训练分布"的重要证据
+924. **arXiv 2610.06647：LoGRA——低秩梯度素描扩展 LLM 强化学习** — RL 后训练显存是普及瓶颈；LoGRA 用低秩梯度素描大幅降显存，单卡即可做中等规模 RL——RL 训练民主化的基础设施工作
 
 ## 10.11 Key Takeaways
 
