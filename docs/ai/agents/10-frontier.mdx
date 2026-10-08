@@ -2814,6 +2814,21 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 922. **arXiv 2610.07767：TRACE——MoE 语言模型 FP4 强化学习的量化感知训练** — RL 后训练的 rollout 生成开销巨大，低精度 rollout 是降本关键；TRACE 用 rollout 引导的量化感知训练在 FP4 下保住 RL 质量——RL 基础设施进入量化时代
 923. **arXiv 2610.06851：Base Models Can Reason By Taking a Cue From Training Data** — 基座模型的推理行为由响应开头 token 与训练数据形成的关联触发：固定开头提示即可诱导基座（未后训练）模型推理——"推理能力藏于预训练分布"的重要证据
 924. **arXiv 2610.06647：LoGRA——低秩梯度素描扩展 LLM 强化学习** — RL 后训练显存是普及瓶颈；LoGRA 用低秩梯度素描大幅降显存，单卡即可做中等规模 RL——RL 训练民主化的基础设施工作
+925. **OpenAI 分享 AI 数学进展并撤回三项数学结果（2026-10）** — OpenAI 发文 [Sharing AI progress in mathematics](https://openai.com/index/sharing-ai-progress-in-mathematics/)（HN 1314 分、1488 评论），随后[撤回三项数学结果](https://twitter.com/danintheory/status/2108065033070789090)（HN 190 分）——前沿模型在数学证明上的"能做"与"可信"之间仍有鸿沟，自我验证与形式化确认缺一不可（2026-10-08）
+926. **arXiv 2610.10513：SciExam for ENSO——AI Agent 能否构建气候模型？** — 现有评测用已知答案/评分表/LLM 评审都无法判断 agent 是否真正做出**新科学**；SciExam for ENSO 用数值天气预报式的独立复验（预测 ENSO 指数）来给开放式科研 agent 打分——"科研 agent 评测"从问答式走向实测式（2026-10-07）
+927. **arXiv 2610.10444：RunningTab——环境侧 Tab 的直接工作区交互** — 让 LLM agent 通过"环境侧标签页"直接检索/读取超大工作区语料，知识型工作（从既有文件产出新交付物）的 agent 交互原语更新（2026-10-07）
+928. **arXiv 2610.09858：Training Advisors for LLM Agents——从任务结果训练顾问模型** — 用自然语言反馈帮助 agent 修正决策已被证明有效；本文从任务结果反向训练独立的"顾问"模型——agent 辅助设施（advisor）本身成为可训练对象，多步工具调用 agent 的新组件（2026-10-07）
+929. **arXiv 2610.10042：Learning to Accumulate Knowledge with Mutual Information** — agent 经验蒸馏入知识库时"越攒越有用"很难保证；用互信息目标策展新经验——经验库增长与效用增长的共同优化（2026-10-07）
+930. **arXiv 2610.10164：UniSkill——Actor 对齐的技能提案与共演化策略** — LLM agent 把过往交互蒸馏为可复用技能；策略与技能库共演化的技能提案学习——自进化 agent 记忆管理的 RL 路线（2026-10-07）
+931. **arXiv 2610.09973：越狱 LLM Agent 的概率化重构** — 把 agent 越狱目标从"最大化期望危害"重构为"危害似然"，攻击面建模的范式转换——agent 安全评测的威胁模型精细化（2026-10-07）
+932. **arXiv 2610.10536：Decoupling Exploration from Optimization in RLVR** — RLVR 承诺发现新推理策略，但探索与优化耦合会互相拖累；解耦二者让模型先采样 novelty 再收敛——RLVR 训练动力学的重要分析（2026-10-07）
+933. **arXiv 2610.09665：SAPD——步对齐特权蒸馏** — 用固定演示做 off-policy 学习逼近 on-policy 效果：步级对齐的特权信息蒸馏降低 rollout 成本——post-training 数据效率新路径（2026-10-07）
+934. **arXiv 2610.07730：SanSi——System 1.5 思考的循环类型化决策模型** — 类型化决策模型单次前向即对声明选项输出概率（System 1）；循环展开逼近 System 2——不生成文本的"快思考"新架构（2026-10-06）
+935. **arXiv 2610.08082：POLAR——工具调用 Agent 的本体引导风险预防** — 大多数安全机制在错误发生后才反应；POLAR 用本体（ontology）在动作执行前预防操作风险——tool-use agent 安全从事后反应转向事前预防（2026-10-06）
+936. **arXiv 2610.08018：Structured but Silent——从隐藏状态探测能力需求** — 可靠工具使用的前提是从查询推断"能力需求"；LLM 隐藏状态中已结构化编码该信息但模型不主动说出来——工具选择能力可通过内部探测提前诊断（2026-10-06）
+937. **arXiv 2610.09112：GeoNatureAgent（GNA）——地理/环境任务工具使用 Agent 的预上线评测** — 部署前验证 agent 能否对真实 API 正确选操作——垂直领域 agent 的 pre-production 评测框架（2026-10-06）
+938. **arXiv 2610.07817：One Step at a Time——用 Agent 自主权换流程可预测性** — 组织自动化需要的不仅是正确结果，还要能预知流程如何运行；逐步受控执行换取过程可审计——流程自动化中 agent 自主性的工程化约束（2026-10-06）
+939. **LittleBit：亚 1-bit LLM 压缩（Samsung Labs 开源）** — 通过潜在因子分解把 LLM 权重压到 1-bit 以下（[GitHub](https://github.com/SamsungLabs/LittleBit)，HN 65 分）——端侧部署的极致压缩路线（2026-10）
 
 ## 10.11 Key Takeaways
 
