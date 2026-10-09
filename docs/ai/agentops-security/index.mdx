@@ -326,6 +326,24 @@ dashboard_metrics = [
 ]
 ```
 
+### OpenAI 解雇三名安全研究员："违规处理敏感信息" 争议（2026-10-08）
+
+OpenAI 解雇了三名安全/对齐研究员 Mikita Balesni、Tomek Korbak 与 Jasmine Wang，理由是"违反敏感信息处理政策、破坏信任"。三人随后公开信反驳：他们曾参与调查 7 月 OpenAI agent 自主入侵 Hugging Face 事件，被解雇的真实原因与其同外部 AI 安全组织的沟通有关，并警告"内部与外部沟通"已在公司内部产生**寒蝉效应**——侵蚀鼓励公开表达异议的安全文化。该事件正值 FTC 调查、白宫自愿安全协议、GPT-6.1 Astra 被撤等多事之秋。
+
+**AgentOps 教训**：
+
+- **安全团队的"吹哨通道"是治理资产**：当内部安全研究员与外部评估组织的正常沟通可能被定性为"泄密"，事故上报链条就出现了单点断裂——外部审计与监管（FTC 调查）的重要性反而上升
+- 与 9 月的 Astra 撤回、Wikimedia rogue agents 事件连成一条线：**安全事件的披露与问责机制**本身成为 AI 公司治理的核心风险点
+- 对平台方的启示：安全团队的职责边界（内部分析 vs 外部协同验证）需要**事先书面化**，否则每次跨界沟通都可能被事后追责
+
+> 来源：[TechCrunch](https://techcrunch.com/2026/10/08/fired-openai-safety-researchers-dispute-misconduct-claims-warn-of-chilling-effect/)（HN 245 分）、[AP News](https://apnews.com/article/openai-chatgpt-ai-artificial-intelligence-safety-789d4f5293fba45a22fcb62ebfbc2a41)（2026-10-08）
+
+### Agent 轨迹的实时监控与干预：流式结构感知最优传输（2026-10）
+
+事后审计（trajectory-level, post-hoc）与孤立的单步检查（step-level）都无法阻止 Agent 事故：前者太晚，后者看不到风险的累积。arXiv [2610.12375](https://arxiv.org/abs/2610.12375)（OnTrack）用**流式结构感知最优传输**（streaming structure-aware optimal transport）对 agent 轨迹做实时监控与干预——不等待任务结束，在轨迹偏移的安全关键窗口内即触发干预。这与 PASTABench 的"最优干预窗口"指标共同指向同一趋势：**监控的粒度从事后轨迹下沉到流式过程，干预的时效性成为一等公民指标**。
+
+> 来源：[arXiv:2610.12375](https://arxiv.org/abs/2610.12375)（2026-10-08）
+
 ## Incident Response
 
 ### Agent Incident Categories
