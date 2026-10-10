@@ -125,8 +125,16 @@ flowchart TB
  **Reflection** | Critique and improve own outputs | Production-ready |
  **Experience Replay** | Learn from past episodes | Research |
  **Meta-Learning** | Learn how to learn | Research |
- **Self-Play** | Improve through practice | Emerging |
- **Evolutionary** | Optimize through selection | Research |
+| **Self-Play** | Improve through practice | Emerging |
+| **Evolutionary** | Optimize through selection | Research |
+
+### Self-Improvement 新进展（2026-10）
+
+- **多智能体自我监督的递归自我改进（RSI）**：arXiv [2610.12176](https://arxiv.org/abs/2610.12176) 针对开放研究这类**不可验证任务**的监督瓶颈——输出超出人类专家可靠评估能力时，模型自己成为最好的优化器和评估器。核心思路是用多个模型实例相互批评与改进，绕过单实例自我批评失效的问题。
+- **AI 研究世界模型**：arXiv [2610.12235](https://arxiv.org/abs/2610.12235) 指出 AI 研究智能体"提出实验的速度远超执行能力"，于是训练模型**预测实验结果**作为持续自我改进的关键能力——用预测代替真实执行来筛选想法。
+- **自我反思做自我教师**：arXiv [2610.11529](https://arxiv.org/abs/2610.11529)（ReTeach）通过多轮反思与重试构造"比学生更强的自教师"，在没有更强外部教师时也能自蒸馏提升推理。
+
+这三条共同指向同一趋势：RSI 的瓶颈正在从"生成改进"转移到"**可靠评估**"——与 AI 研究世界模型路线合流，评估能力本身成为自我改进系统的核心组件。
 
 ---
 
