@@ -1042,6 +1042,18 @@ public class GuardedRAGController {
 | **Microsoft Presidio** | Microsoft | Input (PII) | PII detection and redaction |
 | **Guardrails AI** | Open-source | Input + Output | Customizable rules |
 
+### 证据可靠性：误导性检索内容的风险（2026-10）
+
+RAG 系统通常假设"检索到的证据可信"，但 arXiv [2610.11183](https://arxiv.org/abs/2610.11183)（RAG-Stress）提出了一个反直觉的诊断结论：**误导性证据能诱导模型替换掉它本来答对的答案**——跟随检索证据并不保证事实正确性。传统准确率指标把"答案被证据带偏"与"原有错误"混在一起，掩盖了这一行为。这对生产 RAG 的输出护栏设计有直接含义：
+
+- **证据可信度不能只看语义相关度**：与查询相似的 chunk 不等于权威 chunk，反爬/投毒页面可以轻易构造"高相似度、低可信度"的证据
+- **答案稳定性应纳入评估**：RAG-Stress 用受控协议分离"证据前答案"与"证据后答案"的变化，类似思路可用于线上监控——同一问题在不同证据集合下的答案翻转率是一个低成本的高价值指标
+- **知识冲突下的认知谦逊**：arXiv [2610.12360](https://arxiv.org/abs/2610.12360) 提出"epistemic humility"评估维度——当检索证据与模型先验矛盾时，模型是修正答案、承认不确定，还是固执错误？现有以任务成功率为中心的评估对此无感
+
+### 检索结构化：从平坦 chunk 到检索诱导树（2026-10）
+
+Agentic RAG 让模型迭代检索，但孤立 chunk 丢失了文档结构，模型难以区分"真正相关的证据"和"恰好像查询的 chunk"。arXiv [2610.11370](https://arxiv.org/abs/2610.11370)（RIT-RAG）延续 PageIndex 思路，将文档语料组织为**检索诱导树**（Retrieval-Induced Trees），让 agent 在保留层级结构的语料中导航而非在碎片中跳跃。工程上可与"chunk + 父文档扩展"的既有做法对照：树结构提供了更完整的全局上下文路径，代价是索引维护复杂度。
+
 ---
 
 ## 8.5 Observability & Tracing
