@@ -1894,6 +1894,18 @@ public class WebSocketChatController {
 
 ---
 
+## 推理效率新进展（2026-10）
+
+解码阶段的延迟与显存本质上是**访存带宽问题**，arXiv 上三条新工作从不同侧面压缩解码成本：
+
+- **VFold：对称性感知的跨层 value cache 压缩**（arXiv [2610.12338](https://arxiv.org/abs/2610.12338)）——KV cache 在长上下文下主导显存，VFold 利用层间 cache 相似性做 value 合并，**无需改动模型架构**、开销远低于既有跨层压缩方法，长上下文 agent 会话的显存账单直接受益
+- **SparseDecoding：解码感知的剪枝**（arXiv [2610.12327](https://arxiv.org/abs/2610.12327)）——传统 Hessian 引导的免训练剪枝用预收集校准集估计重要性，与真实解码分布脱节；SparseDecoding 用解码期统计指导逐层剪枝，剪枝收益与延迟降低对齐得更好
+- **Latent Core Tokenizer：压缩但要公平**（arXiv [2610.12376](https://arxiv.org/abs/2610.12376)）——tokenizer 只追求压缩率会把词表容量倾斜向高资源语言；LCT 用 MDL + 熵边界信号 + 形态句法约束把"结构发现"与"词表构建"分离，多语言场景下同等词表更均匀的能力分布
+
+**共同主题**：推理经济学从"换更快的硬件"转向"在算法与数据结构层面重新设计解码路径"——与决策模型（单次前向、有界输出）的兴起同属一个趋势：**每 token 的成本正在成为架构决策，而非采购决策**。
+
+---
+
 ## References
 
 **Radford, A., Wu, J., Child, R., et al. (2019).** "Language Models are Unsupervised Multitask Learners." *OpenAI technical report*.
