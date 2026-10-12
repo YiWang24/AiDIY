@@ -156,6 +156,14 @@ arXiv [2610.10513](https://arxiv.org/abs/2610.10513) 针对开放式科研 agent
 
 > 来源：[arXiv:2610.10513](https://arxiv.org/abs/2610.10513)（2026-10-07）
 
+### 评测的统计稳定性：同查询不同答案（2026-10-12）
+
+arXiv [2610.13823](https://arxiv.org/abs/2610.13823)（Same Query, Different Answer）测了一个被整个评测范式默认忽略的量：**语义查询引擎（用 LLM 逐行判断的查询系统）在重复执行时的 run-to-run 方差**。即使温度为 0，重新执行一次评测也可能显著改变结论——基准分数不再是"一个数"，而是一个分布。对 leaderboard 文化的直接冲击是：**在没有报告方差的情况下，几个百分点的排名差异可能只是噪声**。
+
+配套的还有 arXiv [2610.13821](https://arxiv.org/abs/2610.13821)（Can Language Models Learn When to Abstain?）：让模型学会"什么时候说不知道"——比较训练模型本身 vs 训练独立的答案校验组件两种路线，把**弃权决策（abstention）当作可学习、可校准的能力**来评测，而不是模型的自然属性。这与决策模型的温度缩放校准同一脉络：置信度必须成为一等公民的评测对象。
+
+> 来源：[arXiv:2610.13823](https://arxiv.org/abs/2610.13823)、[arXiv:2610.13821](https://arxiv.org/abs/2610.13821)（2026-10-09）
+
 ---
 
 ## 8.4 General Agent Benchmarks
