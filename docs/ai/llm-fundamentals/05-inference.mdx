@@ -1103,6 +1103,17 @@ Hugging Face 于 2026 年 5 月发布 **异步 Continuous Batching** 技术，�
 
 > 来源：[Hugging Face Blog - Unlocking Asynchronicity in Continuous Batching](https://huggingface.co/blog/continuous_async)（May 14, 2026）
 
+### 2026-10：SSM 状态管理与全 4-bit 推理
+
+两条新进展分别解决混合架构的两个 I/O 瓶颈：
+
+- **ReplaySSM——缓存 SSM 输入而非状态**（arXiv [2610.13778](https://arxiv.org/abs/2610.13778)）：状态空间模型（SSM）每步解码都要读写固定尺寸的循环状态，在混合架构中成为状态 I/O 瓶颈（算术强度低）。ReplaySSM 反转思路：不缓存状态本身，而是**缓存喂给状态的输入 token**，需要时重放重建——把"每步读写大状态"变成"顺序重放廉价的输入"，显著提高解码阶段的算术强度。
+- **DualQuant——免校准的权重+激活双量化**（arXiv [2610.13767](https://arxiv.org/abs/2610.13767)）：原生 4-bit 加速器要兑现吞吐收益，必须把权重**和激活**一起压到 4-bit。现有后训练权重量化成熟，但激活量化通常依赖校准数据。DualQuant 用双尺度（dual-scale）方案做到**校准无关**的权重+激活同时低比特量化，免去逐模型校准流程。
+
+与 DwarfStar 的 2-bit 专家量化对照：那条路线压**权重**换内存，DualQuant 压**激活**换计算吞吐，两者正交可叠加——低比特推理的"最后几个瓶颈"正在被逐个拆掉。
+
+> 来源：[arXiv:2610.13778](https://arxiv.org/abs/2610.13778)、[arXiv:2610.13767](https://arxiv.org/abs/2610.13767)（2026-10-09）
+
 ### Quantization
 
 Reduce precision to speed up computation and reduce memory.
