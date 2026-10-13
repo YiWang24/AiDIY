@@ -164,6 +164,15 @@ arXiv [2610.13823](https://arxiv.org/abs/2610.13823)（Same Query, Different Ans
 
 > 来源：[arXiv:2610.13823](https://arxiv.org/abs/2610.13823)、[arXiv:2610.13821](https://arxiv.org/abs/2610.13821)（2026-10-09）
 
+### 长时程评测的执行失败维度与多 Session 工作流（2026-10-13）
+
+- **MAGMA-Bench**（arXiv [2610.13534](https://arxiv.org/abs/2610.13534)）：现有具身 agent 基准大多假设动作可靠执行，MAGMA-Bench 专门评测**动态任务 + 执行失败**下的长时程具身 agent——维护任务相关信息、协调异构机器人、随执行展开自适应决策。执行失败（抓空、超时、机械误差）从"噪声"变成一等评测维度。
+- **Humanize Olympiad Agents**（arXiv [2610.13632](https://arxiv.org/abs/2610.13632)）：把奥赛级问题求解拆成**多 Session 工作流**——Solve、Review、Wiki（沉淀为可复用知识库）、Verify（Lean 形式化验证）四个角色协作。这是继 AlphaProof Nexus 之后"LLM 推理 + 形式化验证"路线向通用工作流下沉的又一例：**验证环节从一次性登 Science 的系统工程，变成可复制的工作流模板**。
+
+两条线的公共指向：评测对象正从"单轮任务成功率"扩展到**跨 Session 的知识沉淀质量**与**失败条件下的鲁棒性**——都是真实部署里决定可用性的维度。
+
+> 来源：[arXiv:2610.13534](https://arxiv.org/abs/2610.13534)、[arXiv:2610.13632](https://arxiv.org/abs/2610.13632)（2026-10-09）
+
 ---
 
 ## 8.4 General Agent Benchmarks

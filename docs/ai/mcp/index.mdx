@@ -290,6 +290,16 @@ Anthropic provides the **MCP Inspector**, a specialized developer tool:
 
 > 来源：[unrot.co AI News](https://unrot.co/blogs/today-top-ai-news-september-1-2026)（2026-09-01）
 
+### Agentic Web 技术栈基线评估：工具检索与训练生命周期（2026-10-13）
+
+arXiv 两篇新工作为 Agent 连接层的工程化补上了度量基线：
+
+- **Agentic Web 技术栈基线评估**（arXiv [2610.13703](https://arxiv.org/abs/2610.13703)）：Agent 协议、框架与技术栈提案的爆炸式增长让"什么是当前最优实践"变得难答。该工作对 LLM agent 的协议-框架-技术栈组合做了**系统性基线评估**——Agentic Web 标准化进程第一次有了可比的横向数据。
+- **RATED：可靠性感知的工具检索**（arXiv [2610.13889](https://arxiv.org/abs/2610.13889)）：现有工具检索只优化语义相关性，忽略**工具的可用性动态**（限流、故障、延迟变化）。RATED 把执行动态纳入检索排序——对 MCP 生态的直接启示：**工具注册表的元数据不能只有描述，还要有实时健康度**，否则 agent 会在"语义最相关但此刻不可用"的工具上反复撞墙。
+- **AgentTune**（arXiv [2610.13335](https://arxiv.org/abs/2610.13335)）：为工具使用 agent 提供**统一训练生命周期**——构建、训练、评测、蒸馏、维护共用一套底座，直指当前工具链碎片化（各家框架各管一段）的痛点。
+
+> 来源：[arXiv:2610.13703](https://arxiv.org/abs/2610.13703)、[arXiv:2610.13889](https://arxiv.org/abs/2610.13889)、[arXiv:2610.13335](https://arxiv.org/abs/2610.13335)（2026-10-09）
+
 ### Table 1: Comparative Analysis of Transport Mechanisms
 
 | Feature | Stdio (Standard Input/Output) | SSE (Server-Sent Events) / HTTP | Streamable HTTP (2025) |
