@@ -143,6 +143,13 @@ flowchart TB
 
 与上周的多智能体自我监督路线对照：当时结论是"评估能力是 RSI 核心组件"，本周的 RSI-Anything 给出工程实现路径（世界模型既当评估器又当数据筛选器），而 MC-EvoBench 则提醒：**自我改进最容易出现的假阳性，就是把"记忆"误当成"能力"**。
 
+### Agent RL 的两个训练瓶颈：信用分配与奖励崩塌（2026-10-13）
+
+- **Matched-Context Group Policy Optimization**（arXiv [2610.13755](https://arxiv.org/abs/2610.13755)）：长时程 agent 从稀疏终端反馈中训练时，要在有限的同组 sibling rollout 之间做信用分配——有用动作与坏动作混在同一轨迹里，组内对比会把两者一起奖励/惩罚。该方法用**匹配上下文的分组**改进策略优化，让组内对比只发生在真正可比的决策点上。
+- **MENTOR：RLVR 的零奖励崩塌**（arXiv [2610.13594](https://arxiv.org/abs/2610.13594)）：可验证奖励强化学习（RLVR）是大推理模型的核心驱动力，但存在"**零奖励崩塌**"（zero-reward collapse）——训练中突然全部 rollout 拿零分，梯度信号消失，模型陷入平庸解。MENTOR 用 **on-policy 教学干预**（pedagogical intervention）从失败中学习，在崩塌窗口注入可学习的成功示范。
+
+同日 Google 发布 [Gemini 4 Argon for Robotics](https://developers.googleblog.com/gemini-4-argon-for-robotics/)，给出的 agent 自我改进样本恰好落在这两条线上：Argon 从单张真实桌面照片**自主构建 MuJoCo 校准仿真孪生**、合成 4,500+ 域随机化 episode 再回流训练，把真机成功率从 56% 提到 75%（35s→24s）——仿真孪生既是信用分配的载体（可控对比），也是零奖励崩塌的解药（保证有非零奖励的样本源）。
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers

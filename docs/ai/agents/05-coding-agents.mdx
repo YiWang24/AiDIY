@@ -318,6 +318,26 @@ Ars Technica 的[综述文章](https://arstechnica.com/ai/2026/10/ai-coding-agen
 
 > 来源：[Ars Technica](https://arstechnica.com/ai/2026/10/ai-coding-agents-generate-more-code-but-not-more-software/)、[Karpathy on X](https://twitter.com/karpathy/status/2109361546505966046)（2026-10-12）
 
+### Anthropic Scion：为 Agent 规模重造源码控制（2026-10-13）
+
+Anthropic 工程博客发布 [Redesigning source control at Anthropic](https://www.anthropic.com/engineering/redesigning-source-control)（HN 165 分）：当 Claude 让代码合并量从 5 月的**每天 2,500 次**涨到 9 月的**每天 30,000+ 次**，为人类规模构建的开发者基础设施——源码控制、构建、CI——成了新瓶颈。他们的应对是自研版本控制系统 **Scion**，并配套代码评审系统 Antique、代码搜索与源控 IAM，**5 个月内完成整个 monorepo 从 git 的迁移**。
+
+规模数字本身就说明问题：主分支历史近 **100 GB**、压缩工作副本超 **25 GB**、每天约 **2,500 万次** CI 检出（天真拉取相当于每天 600 PB 流量），峰值时靠几百个内部 git 镜像勉强支撑。Scion 的设计原则几乎是"反 git 宣言"：
+
+- **客户端永远在线**：git 为离线分布式工作设计，而 Agent 与 CI 任务天然在线——客户端只保留有界本地缓存，diff/blame/merge 全部由服务端回答
+- **变更集（changeset）写入前向日志**：只记录相对第一父节点的变更文件与内容寻址指针，无 packfile、无锁、无跨服务协调，提交吞吐不再受仓库总量制约
+- **派生数据（derived data）统一机制**：blame、路径历史、提交图跳表等全部从变更集递归推导，可按需懒计算——新增一种索引不用动客户端
+- **working copy 可选且默认稀疏**：CI 只要 diff 可以直接问服务端，许多读写工作流完全绕过检出；协议围绕稀疏/虚拟化检出设计
+- 刻意**抑制 refs（分支/标签）**：全局状态是水平扩展的天敌，主干开发 + 服务端原子 CAS 更新单一 ref
+
+**启示**：
+
+- "更多代码 ≠ 更多软件"的争论有了供给侧数据：合并量 12 倍增长时，先崩的不是人，是 **git/CI 这层为人类吞吐设计的基础设施**——每消灭一个瓶颈，代码产量立刻再涨（"合并的潜在需求近乎无限"）
+- Anthropic 明确说这类问题**将在 6-12 个月内困扰更多重度使用 AI 编码的组织**，并选择公开设计思路而非产品化；对普通团队的可迁移做法是：**服务端 RPC 化的 git 托管、稀疏/浅检出组合、以及抑制长存分支**
+- 与 Piper（Google）、Sapling（Meta）一脉相承：超大规模 monorepo 的答案从来不是"优化 git 客户端"，而是"把源码控制变成服务"
+
+> 来源：[Anthropic Engineering](https://www.anthropic.com/engineering/redesigning-source-control)（HN 165 分，2026-10-13）
+
 ---
 
 ## 5.3 How Coding Agents Work
