@@ -150,6 +150,14 @@ flowchart TB
 
 同日 Google 发布 [Gemini 4 Argon for Robotics](https://developers.googleblog.com/gemini-4-argon-for-robotics/)，给出的 agent 自我改进样本恰好落在这两条线上：Argon 从单张真实桌面照片**自主构建 MuJoCo 校准仿真孪生**、合成 4,500+ 域随机化 episode 再回流训练，把真机成功率从 56% 提到 75%（35s→24s）——仿真孪生既是信用分配的载体（可控对比），也是零奖励崩塌的解药（保证有非零奖励的样本源）。
 
+### Muse Spark Open、Argon 定价战与"递归自我改进"实证审计（2026-10-15）
+
+- **Muse Spark Open：Meta 回归开放权重**（[官方博客](https://research.meta.ai/blog/muse-spark-open)，HN 436 分）——"迄今最强的美国开放权重模型"：原生多模态 MoE，**816B 总参数 / 42B 激活**，1M token 上下文，主打长时程编码与 agent 任务。亮点是**消费级硬件可跑**：借助 Apple MLX，两台 M5 Ultra Mac Studio（各 512GB 统一内存、1.2TB/s 带宽）拼出 1TB 统一内存即可本地运行；官方演示的 on-device agent 工作流包括向开源 Mastodon 客户端 Ice Cubes 提交真实 iOS 修改、驱动 DaVinci Resolve 逐帧审片。开放权重还附带自动调优的 Helion GPU kernel（SGLang 上 kernel 级 1.03–3.95× 提速）。今年 4 月 Muse Spark 曾宣告 Llama 开源路线之死，半年后 Meta 以 open-weight 重新入局——开放与闭源的钟摆又荡了回来
+- **Gemini 4 Argon 全面商用**（[DeepMind](https://deepmind.google/blog/introducing-gemini-4-argon/)，10-13/14）——全球开放给开发者与企业，介绍价 **$2 / $10 每百万输入/输出 token**（约为 GPT-6 Astra 与 Claude Fable 5.1 的 1/5），缓存输入 95% 折扣；Vals Index（跨经济部门的模型表现指数）第一。配套动作：向 **10,000 名科学家**免费开放 Antigravity 最高用量档六个月；**Fairwind 计划**扩至数百个合作伙伴——向受审查的网络安全防御者提供**移除网络护栏**的 Argon 版本，"无护栏版本如何安全分发"从此有了正式通道
+- **DeepMind 首份 ML R&D 自动化实证审计**：Argon 安全报告首次综合评估"AI 是否在加速 AI 研究本身"——尽管 **AI 已写下 DeepMind 工程师交付代码的约 75%**，"目前没有任何显著的端到端 ML R&D 加速（无论 AI 驱动与否）"，结论是**递归自我改进风险当前为低**。这是对"AI 指数自我改进"叙事的一次有数据的一盆冷水
+
+同日 arXiv 上，**Scaling Discovery Requires Forgetting**（[2610.20563](https://arxiv.org/abs/2610.20563)）从另一个角度审计自动化科研：扩展 LLM agent 的"发现"规模时，持续积累的想法/结果记忆反而拖慢发现——**遗忘机制是扩展的必要组件**；与 DeepMind 的"75% 代码但零加速"互为印证：自动化研究的瓶颈不在产出量，在筛选、遗忘与方向感。
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers
@@ -2866,6 +2874,8 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 951. **nishtahir《Build your own decision model》：决策模型 DIY 教程爆火（HN 435 分，2026-10-11）** — 决策模型品类从"新闻"进入"人人可复现"阶段：用 Qwen/Qwen3-1.7B 三步复现 system-one 决策模型——(1) 取首 token logits、用词表掩码把输出约束到固定选项集合（单次前向即出答案，对比结构化 JSON 输出需逐 token 多次解码）；(2) 在 CommonsenseQA holdout 上评测（1.7B 裸模型 59.4% accuracy）；(3) **温度缩放校准**：裸 token 概率只反映"下一个 token 是什么"的自信而非"答案正确"的概率，按验证集准确率拟合单一温度参数（本例 T≈3.8）即可让输出概率逼近真实正确率。配套 GitHub 仓库覆盖数据构建、评测、微调、校准全流程。同期 Jev 生态持续升温：TypeSafe AI 估值传 $100 亿、微调与集成浪潮涌向决策模型赛道
 
 952. **arXiv 2610.12466：METR 时间窗口图的统计学审视** — 对 METR"50% 时间窗口"能力外推（任务长度每 7 个月翻倍）这一最常被引用的能力预测图做统计复核：228 任务 × 26 模型上用样条拟合 + 项目反应论（IRT）放松"AI 难度与 log 人类时长线性相关"假设，检验外推曲线的有效性与置信区间——能力预测叙事的方法论审计
+
+953. **Goodfire《Neural Networks Are Already Clean》：多语义性被误读，机制可解释性前景大好（HN 360 分，2026-10-15）** — 对早期模式生物（InceptionV1 等）"多语义神经元"这一可解释性领域的奠基性证据重新审视：其成因**不是 superposition（概念任意混叠成死结）**，而是名为 **recursive generalization** 的普通且大多可修复的 motif。结论的反转意味深长：如果网络不是死结，就**可以直接研究网络本身的神经元与电路**（agentic 规模的快速常规科学），而不必先训练 SAE 等"解缠模型"再研究替代品——"先解缠再解释"的技术路线受到正面挑战，与 4 月 Anthropic J-space"全局工作空间"发现（条目 210）同向：网络内部结构比想象中可读
 
 ## 10.11 Key Takeaways
 

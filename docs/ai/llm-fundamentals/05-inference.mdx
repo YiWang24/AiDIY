@@ -1915,6 +1915,17 @@ public class WebSocketChatController {
 
 **共同主题**：推理经济学从"换更快的硬件"转向"在算法与数据结构层面重新设计解码路径"——与决策模型（单次前向、有界输出）的兴起同属一个趋势：**每 token 的成本正在成为架构决策，而非采购决策**。
 
+### 2026-10-15：KV 潜在压缩、混合线性注意力投机解码与"弹性"Transformer
+
+新一轮 arXiv 工作把解码成本压缩推进到注意力算子内部：
+
+- **Latent Compaction with Test-Time Training**（arXiv [2610.20582](https://arxiv.org/abs/2610.20582)）——长上下文 KV cache 压缩必须在"没见到问题"时就决定保留什么。该方法**为每篇文档学习一个紧凑的潜在 cache**，测试时训练（TTT）让压缩保留"未来可能被问到"的信息，而非通用摘要——agent 长会话的显存账单与检索精度同时受益
+- **ReaDy：混合线性注意力的投机解码**（arXiv [2610.20503](https://arxiv.org/abs/2610.20503)）——特征式 drafter 依赖目标模型隐藏状态，但线性注意力模型的 recurrent state 强调的上下文未必贴合后续 draft 位置的需要；ReaDy 用**循环状态作为动态上下文**为每个 draft 位置重组条件，混合架构（hybrid linear attention）上投机解码的有效性显著改善
+- **Your Transformer Is Secretly Elastic**（arXiv [2610.20588](https://arxiv.org/abs/2610.20588)）——模型家族只给 S/B/L 几个固定档位，逼用户在硬件与负载之间提前"押注"。该工作指出**单个训练好的 transformer 内部天然存在可弹性伸缩的子结构**，无需为每个尺寸各训一遍——推理侧"按需取用模型大小"从量化/剪枝走向架构原生
+- **Continuum Attention**（arXiv [2610.20586](https://arxiv.org/abs/2610.20586)）——把注意力的离散 key/value 查找替换为**对连续分段线性记忆曲线的积分**，每个 query 沿曲线诱导指数相关性密度——注意力算子本身的连续化重写，为超长上下文提供新的数学形态
+
+**共同方向**：KV cache、draft 模型、模型尺寸、注意力算子——推理栈的每一层都在从"离散固定"走向"连续可调"；当 Muse Spark Open 这类模型能在桌面统一内存上运行（见 Frontier 趋势 10-15 条目），推理效率的竞争主战场正从数据中心向端侧蔓延。
+
 ---
 
 ## References
