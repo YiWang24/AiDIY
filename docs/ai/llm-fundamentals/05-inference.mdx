@@ -1926,6 +1926,14 @@ public class WebSocketChatController {
 
 **共同方向**：KV cache、draft 模型、模型尺寸、注意力算子——推理栈的每一层都在从"离散固定"走向"连续可调"；当 Muse Spark Open 这类模型能在桌面统一内存上运行（见 Frontier 趋势 10-15 条目），推理效率的竞争主战场正从数据中心向端侧蔓延。
 
+### 2026-10-16：2-bit 专家权重进 24GB 与"按步路由"的成本分层
+
+- **Nemotron 3.5 Bolt 74B-A9B**：Nvidia 用 **2-bit 专家权重**把 74B 总参 / 9B 激活的 MoE 塞进 24GB 显存，RTX Spark 上约 **84 tok/s**（低于 Qwen3.6 与 Gemma 4 同表数字）——激进量化 + MoE 稀疏激活的组合让"70B 级模型上工作站"成立，代价是解码速度让位；同期 Nemotron 3.5 Super VL（120B/12B 激活）开放权重主打多模态 agent
+- **NVIDIA EdgeWise：按步路由**：训练本地 Qwen3.5-9B 判断哪些步骤"关键"、只把这些步骤委托给 GPT-5.5 / Opus 4.8——SWE-ReBench 云成本 **-62%**、Terminal-Bench 2.1 **-34%**，Pass@3 基本不变。与 Bolt 的"压缩单模型"不同，这条路线是**在模型间路由**：推理成本优化从"让一个大模型更便宜"扩展为"每步用恰当大小的模型"
+- **Anthropic RL 训练对齐审计员**：用成对奖励 RL 训练 Haiku 4.5 审计 agent，审计质量 72.7 对 Opus 4.6 的 68.0（简单奖励先被 reward-hack）——小模型 + RL 专化在"评估类"工作负载上替代大模型的又一证据，与腾讯 Hy-Memory-30B-A3B（专职写 agent 记忆，见 Frontier 10-16 条目）同属**专职小模型替代通用大模型**的趋势
+
+**共同主题**：推理经济学从"单模型压缩"（量化/KV cache）走向**两个新自由度**——垂直方向压权重（2-bit 专家）、水平方向路由步骤（本地小模型 + 按需上云）。"每一步该花多少钱"正在成为 agent 架构里的显式设计参数。
+
 ---
 
 ## References
