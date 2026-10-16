@@ -158,6 +158,14 @@ flowchart TB
 
 同日 arXiv 上，**Scaling Discovery Requires Forgetting**（[2610.20563](https://arxiv.org/abs/2610.20563)）从另一个角度审计自动化科研：扩展 LLM agent 的"发现"规模时，持续积累的想法/结果记忆反而拖慢发现——**遗忘机制是扩展的必要组件**；与 DeepMind 的"75% 代码但零加速"互为印证：自动化研究的瓶颈不在产出量，在筛选、遗忘与方向感。
 
+### Minecraft 通关、记忆写入专职化与本地-云端分层（2026-10-16）
+
+- **四个 Gemini 4 Argon agent 通关 Minecraft**（[arXiv 2610.22319](https://arxiv.org/abs/2610.22319)）：DeepMind 把四个 coding agent 放进沙箱化生存世界，从随机种子出生点**27 小时 14 分钟击败末影龙**——写下 2,783 个程序、死亡 605 次，agent 间只通过**游戏内聊天与共享记忆**协调，无特权通信通道。意义在度量方式：长时程、开放世界、多智能体的端到端目标达成，而非单步任务得分。同期 HN "Show HN: Gemini 4 Argon plays StarCraft"（132 分）测同一件事——agent 评测正从静态基准走向"活的世界"
+- **Hy-Memory-30B-A3B：记忆写入的专职化**（[arXiv 2610.22196](https://arxiv.org/abs/2610.22196)）：腾讯开源 30B 总参 / 3B 激活模型，专职替换 Mem0 / MemOS 里的通用大模型**写 agent 记忆**，自测平均 55.49 对 Claude Opus 5 的 54.62。记忆栈分工变细：记忆写入从"给大模型写个 prompt"变成可本地部署的专用组件。同期 [Beyond Downstream QA](https://arxiv.org/abs/2610.22209) 提醒：只测下游 QA 会系统性误判 agent 记忆系统的质量
+- **NVIDIA EdgeWise：本地-云端分层路由**：本地 Qwen3.5-9B 只把关键步骤委托给 GPT-5.5 / Opus 4.8，SWE-ReBench 云成本降 62%、Terminal-Bench 2.1 降 34%，Pass@3 基本不变——"每步该用多大的模型"正在成为 agent 架构的一等决策
+
+三条合起来看：**长时程协作的证据（Minecraft）、状态管理的组件化（专职记忆模型）、执行成本的路由化（EdgeWise）**——agent 技术栈的每一层都在从"一个大模型全包"走向分工。
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers
@@ -2876,6 +2884,12 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 952. **arXiv 2610.12466：METR 时间窗口图的统计学审视** — 对 METR"50% 时间窗口"能力外推（任务长度每 7 个月翻倍）这一最常被引用的能力预测图做统计复核：228 任务 × 26 模型上用样条拟合 + 项目反应论（IRT）放松"AI 难度与 log 人类时长线性相关"假设，检验外推曲线的有效性与置信区间——能力预测叙事的方法论审计
 
 953. **Goodfire《Neural Networks Are Already Clean》：多语义性被误读，机制可解释性前景大好（HN 360 分，2026-10-15）** — 对早期模式生物（InceptionV1 等）"多语义神经元"这一可解释性领域的奠基性证据重新审视：其成因**不是 superposition（概念任意混叠成死结）**，而是名为 **recursive generalization** 的普通且大多可修复的 motif。结论的反转意味深长：如果网络不是死结，就**可以直接研究网络本身的神经元与电路**（agentic 规模的快速常规科学），而不必先训练 SAE 等"解缠模型"再研究替代品——"先解缠再解释"的技术路线受到正面挑战，与 4 月 Anthropic J-space"全局工作空间"发现（条目 210）同向：网络内部结构比想象中可读
+
+954. **DeepMind：四个 Gemini 4 Argon agent 通关 Minecraft（arXiv 2610.22319，2026-10-16）** — 沙箱化生存世界、随机出生点，27h14m 击败末影龙：2,783 个程序、605 次死亡，agent 间仅靠**游戏内聊天 + 共享记忆**协调（无特权通道）。长时程开放世界多智能体协作的第一个标志性公开样本——与同日 HN "Argon plays StarCraft"（132 分）共同标志 agent 评测从静态基准走向"活的世界"
+
+955. **腾讯 Hy-Memory-30B-A3B：专职写 agent 记忆的 3B 激活开源模型（arXiv 2610.22196，2026-10-16）** — 30B 总参 / 3B 激活，直接替换 Mem0 / MemOS 内的通用大模型做记忆写入，自测平均 55.49 略胜 Claude Opus 5 的 54.62——记忆栈组件化：写入、检索、遗忘各自由专职小模型承担的趋势开始兑现（NVIDIA EdgeWise 的本地-云端分层路由是同一分工逻辑在成本侧的镜像：本地 9B 只在关键步上云，agent 云成本 -62%）
+
+956. **Postgres 19 因 AI 审查员推迟发布（The Register，HN 126 分，2026-10-16）** — AI 代码审查找出的 bug 比人类能修复的多，发布周期被"审查产能"卡住——继"合并量压垮 git/CI"（Scion，条目 948 一线）之后，AI 产能冲击软件工程的第二站：**审查与修复的速度差**成为新瓶颈；同期 Mercor 劳动指数（HN 192 分）量化了另一半问题：美国 90% 工时花在现有 AI 基准覆盖不到的任务上
 
 ## 10.11 Key Takeaways
 
