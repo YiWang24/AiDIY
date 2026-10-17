@@ -1934,6 +1934,14 @@ public class WebSocketChatController {
 
 **共同主题**：推理经济学从"单模型压缩"（量化/KV cache）走向**两个新自由度**——垂直方向压权重（2-bit 专家）、水平方向路由步骤（本地小模型 + 按需上云）。"每一步该花多少钱"正在成为 agent 架构里的显式设计参数。
 
+### 2026-10-17：DeepSeek-V4.1-Flash-1017 开源权重刷榜 agent 基准，端侧推理下探到手机 Neural Engine
+
+- **DeepSeek-V4.1-Flash-1017（MIT 权重，HN 500 分）**：V4.1-Flash 的"minor update"新快照——552B backbone + 196B Engram 共约 763B 总参，prefill 仅激活 8B、decode 激活 16B，1M 上下文 / 384K 输出。自报 11 项基准全线上扬 2.0-11.1 分：**DeepSWE v1.1 77.0**（上一版 74.2，对比表里 Opus 5 为 74.0、GPT-5.6 Sol 73.0），Automation-Bench 60.5、Agents' Last Exam 35.4、Apex Bench 72.1 均居对比表首位；但 HLE（无工具）42.6 仍明显落后 Opus 5 的 56.3，Terminal-Bench 4.0 42.3 也低于 51.8——**"agentic 任务平价、深度推理仍有差距"**的分层格局。成本侧据 The Decoder 引用的官方图表：达到 77.0 DeepSWE 分数的每任务成本约 **$0.20**，上一版约 $0.50；Vercel AI Gateway 定价 $0.15/M 输入、$0.60/M 输出
+- **集成成本被低估**：1017 **不带 Jinja chat template**——prompt 格式化由 Python 参考实现（encoding.py）+ Rust 库 deepseek-recipe（Python 绑定）承担，serving 栈必须先适配这套协议；约 510GB 的 FP8/FP4 混合分片也让"开源"与"可自托管"之间隔着不小的工程距离。所有分数均为厂商自报（Terminal-Bench 用 Claude Code harness、DeepSWE 用 Mini-SWE-V2），尚无独立复现
+- **Qwen3.8-27B 跑进 iPhone 18 Neural Engine（HN）**：1.5 bpw 极限量化下 15–70 tok/s——端侧推理的主战场从"Mac 统一内存"进一步下探到手机 NPU，与桌面级 510GB 的 DeepSeek 形成"云端巨兽 vs 口袋小模型"的两极
+
+**共同主题**：开源权重阵营在 agent 基准上已能对闭源旗舰打"局部平价 + 十分之一成本"的性价比战争，但协议/工程集成成本（无 Jinja 模板、Engram 分片重建）正在成为开源模型落地的新摩擦面。
+
 ---
 
 ## References

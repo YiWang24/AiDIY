@@ -844,6 +844,20 @@ Cactus Compute 发布 Needle 3，一个"可切片"（sliceable）的端侧自动
 
 ---
 
+### DeepSeek-V4.1-Flash-1017：开源权重在编码 agent 基准上打到"局部平价 + 十分之一成本"（2026-10-17）
+
+DeepSeek 发布 V4.1-Flash 的 1017 快照（MIT 权重，[HuggingFace](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017)，HN 500 分 / 479 评论）：自报 **DeepSWE v1.1 77.0**，在其对比表中高于 Claude Opus 5（74.0）与 GPT-5.6 Sol（73.0）；Terminal-Bench 4.0 从 31.2 跃至 42.3（仍低于 Opus 5 的 51.8）。据 The Decoder 引用的官方成本图表，达到该 DeepSWE 分数的**每任务成本约 $0.20**，上一版约 $0.50。
+
+**关键要点**：
+
+- **性价比叙事确立**：开源权重模型在 agentic 编码任务上对闭源旗舰形成"局部超越 + 显著便宜"的竞争姿态，编码 agent 选型从"能力单维度"变成"能力 × 成本 × 可自托管"的多维决策
+- **深度推理仍有分层**：HLE（无工具）42.6 对 Opus 5 的 56.3——"干活型"与"思考型"任务的模型选型应当分开
+- **自托管摩擦真实存在**：无 Jinja chat template（Python encoder + Rust deepseek-recipe）、约 510GB FP8/FP4 分片与 Engram 表重建，"MIT 权重"到"自家集群跑起来"之间有可观工程量；所有分数为厂商自报、尚待独立复现
+
+> 来源：[HuggingFace model card](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017)、[marktechpost](https://www.marktechpost.com/2026/10/17/deepseek-just-released-v4-1-flash-1017-scores-77-0-on-deepswe-opens-search-api/)（2026-10-17）
+
+---
+
 ---
 
 ## 5.7 Key Takeaways
