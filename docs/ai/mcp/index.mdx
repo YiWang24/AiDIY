@@ -300,6 +300,17 @@ arXiv 两篇新工作为 Agent 连接层的工程化补上了度量基线：
 
 > 来源：[arXiv:2610.13703](https://arxiv.org/abs/2610.13703)、[arXiv:2610.13889](https://arxiv.org/abs/2610.13889)、[arXiv:2610.13335](https://arxiv.org/abs/2610.13335)（2026-10-09）
 
+### MCP 服务器"权限洗白"检测与 MCP 原生 agent 训练（2026-10-15）
+
+arXiv 两篇新工作分别命中 MCP 生态的安全与训练痛点：
+
+- **文件系统权限洗白（capability laundering）检测**（arXiv [2610.22301](https://arxiv.org/abs/2610.22301)）：恶意 MCP 服务器可以在安装时申请最小权限、通过审核后再通过间接渠道（符号链接、tmp 目录共享、其他服务器）"洗白"出越权文件系统访问。该工作对野生 MCP 服务器做了**规模化检测**——MCP 的权限模型是"安装时快照"，而攻击发生在"运行时组合"，静态审计天然覆盖不到
+- **MCPDisCo**（arXiv [2610.14956](https://arxiv.org/abs/2610.14956)）：MCP 原生 agent 的工具集在部署后会持续漂移（工具增删、schema 变更），微调数据与实际工具分布脱节。MCPDisCo 提出**跷跷板缓解（seesaw-mitigated）调优**，让 agent 对工具生态的动态性保持鲁棒——训练时见过"会变的工具目录"，推理时才不会在新增工具上崩溃
+
+**工程启示**：MCP 安全评估正在从"服务器单个审计"走向"生态级组合分析"——能力不是静态属性，而是多个服务器 + 文件系统状态在运行时组合出的涌现结果。
+
+> 来源：[arXiv:2610.22301](https://arxiv.org/abs/2610.22301)、[arXiv:2610.14956](https://arxiv.org/abs/2610.14956)（2026-10-15）
+
 ### Table 1: Comparative Analysis of Transport Mechanisms
 
 | Feature | Stdio (Standard Input/Output) | SSE (Server-Sent Events) / HTTP | Streamable HTTP (2025) |
