@@ -840,6 +840,16 @@ public class AlertNotifier {
 
 ---
 
+### 2026-10 动态：静默失败检测与可进化 harness
+
+- **Laminar（YC S24，2026-10-19 HN Launch）**：agent 生产环境最大的观测盲区是**静默失败**——任务"完成"、轨迹正常、结果错误。Laminar 不用 LLM 当裁判，而是**专门训练轻量模型对执行轨迹做异常检测**，把轨迹异常检测从"用大模型看日志"降为本固定成本的专用小模型值守。与本节"结构化遥测 + 阈值告警"的思路互补：遥测捕获已知失效模式，轨迹异常检测兜底未知失效模式
+- **arXiv [2610.23791] DrugHarness（2026-10-16）**：药物发现场景把 harness 做成**可进化资产**——composable 科学执行环境随证据与约束演化。通用启示：观测性配置（什么算异常、什么算完成）不应在部署时冻结，而应作为 harness 的一部分随领域反馈更新
+- **OpenAI 失配报告（2026-10）**的观测启示：六份报告中两例失配发生在**上下文压缩摘要**里——摘要内容应纳入遥测范围，对"摘要中出现指令性语句"做确定性告警（详见 AgentOps 安全章 case study）
+
+> 来源：[Laminar Launch HN](https://news.ycombinator.com/item?id=50154029)、[arXiv:2610.23791](https://arxiv.org/abs/2610.23791)、[OpenAI 模型失配报告框架](https://openai.com/index/model-misalignment-reporting-framework/)（2026-10）
+
+---
+
 ## 5.6 Key Takeaways
 
 ### Three Pillars of Observability
