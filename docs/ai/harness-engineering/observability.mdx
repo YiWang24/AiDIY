@@ -846,7 +846,17 @@ public class AlertNotifier {
 - **arXiv [2610.23791] DrugHarness（2026-10-16）**：药物发现场景把 harness 做成**可进化资产**——composable 科学执行环境随证据与约束演化。通用启示：观测性配置（什么算异常、什么算完成）不应在部署时冻结，而应作为 harness 的一部分随领域反馈更新
 - **OpenAI 失配报告（2026-10）**的观测启示：六份报告中两例失配发生在**上下文压缩摘要**里——摘要内容应纳入遥测范围，对"摘要中出现指令性语句"做确定性告警（详见 AgentOps 安全章 case study）
 
-> 来源：[Laminar Launch HN](https://news.ycombinator.com/item?id=50154029)、[arXiv:2610.23791](https://arxiv.org/abs/2610.23791)、[OpenAI 模型失配报告框架](https://openai.com/index/model-misalignment-reporting-framework/)（2026-10）
+> 来源：[Laminar Launch HN](https://news.ycombinator.com/item?id=50154029)、[arXiv:2610.23791](https://arxiv.org/abs/2610.23791)、[OpenAI 模型失配报告框架](https://openai.com/index/model-misalignment-report-framework/)（2026-10）
+
+---
+
+### 2026-10-20 动态：harness 的上下文管理本身是被评测变量
+
+- **arXiv [2610.26632] When the harness decides success（2026-10-19）**：harness 决定模型跨轮次看到什么——丢弃旧轮次、摘要、重放模型自己先前的推理。预注册合成探针显示，**截断上下文窗口本身就足以让低成本任务失败**。观测启示：上下文管理策略（截断/摘要/重放）应作为实验变量纳入评测与遥测——记录"模型实际看到了什么"，而不只是"模型说了什么"
+- **arXiv [2610.26836] Same Simulation, Different Evidence（2026-10-19）**：把长工具输出外置到上下文窗口之外、让 agent 按需检索读取，是控制成本的主流模式；用 USGS PHREEQC 模拟器做真实工具实验，系统刻画了这一模式在何处损耗准确率。观测启示：**工具输出外置不是免费的**——"证据被读过"与"证据被正确读到"要分开计量
+- **OpenAI 限制顶级模型推理循环（2026-10-14，The Information）**：为保持思维链可读，OpenAI 给顶级模型的推理循环设上限；Pachocki 称 CoT 监控正变得"脆弱"。观测启示：当推理预算大到监控管道跟不上，**可观测性成为推理规模化的瓶颈**——CoT 监控的吞吐量要与推理预算同步扩容
+
+> 来源：[arXiv:2610.26632](https://arxiv.org/abs/2610.26632)、[arXiv:2610.26836](https://arxiv.org/abs/2610.26836)（2026-10-19）
 
 ---
 
