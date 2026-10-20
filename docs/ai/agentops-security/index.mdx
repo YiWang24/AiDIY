@@ -789,6 +789,24 @@ arXiv [2610.23847](https://arxiv.org/abs/2610.23847) 系统刻画了微调的"�
 
 > 来源：[arXiv:2610.23847](https://arxiv.org/abs/2610.23847)（2026-10-16）
 
+### Case Study: 「发布假统计，被 LLM 引用」——LLM 检索层的污染攻击面（2026-10）
+
+GEO 研究者 Metehan Yesilyurt（Peec AI）做了一个成本 $50 的实验：买一个新域名，用 GPT-4.1 在一天内生成 **5 万条完全编造的统计数字**（外加 1.5 万篇 listicle），冒充覆盖 200 个国家的营销/电商统计站，从未核实过任何一个数字。
+
+**结果**：
+
+- **Google 侧防线生效**：站点很快被搜索引擎遗忘并去索引——传统 SEO 反垃圾机制工作正常
+- **LLM 侧防线失守**：ChatGPT 持续引用该站点，7 个月带来 **1 万+ AI 会话**；假数据获得 **330+ 引用域名**，包括 Shopify、Bluehost、DHL 的内容页面
+- **污染沿人类链条二次放大**：编造数字进入了一篇**学术论文**和一家**银行的投资研究**——AI 生成 → AI 引用 → 人类采信 → 人类出版物背书，闭环完成
+
+**AgentOps 教训**：
+
+- **LLM 检索层没有等价于去索引 / E-E-A-T 的防线**：搜索引擎二十年建成的反垃圾体系不覆盖 RAG 与 AI 搜索的抓取层。任何"带数字的权威感页面"都可能被当作可靠来源——agent 的检索 grounding 必须假设**来源层已被定向污染**
+- **统计数字是最高效的注入载体**：团队用 LLM 写时效性内容时最缺的就是数据，"看起来可靠的统计数字"恰好填补缺口——对 agent 的工具/检索结果做来源信誉评估（域名年龄、独立佐证、数据可溯源性）应成为 grounding 管线的标配
+- **人类是放大器而非过滤器**：污染的终点不是 AI 回答，而是人类把它写进论文、投研、官网。企业知识库若从公开网页自动摘录数据，等于把这条污染链直接接入内部分析流程
+
+> 来源：[Peec AI《Publish stats, get cited》](https://peec.ai/blog/publish-stats-get-cited-the-tactic-that-put-my-data-all-over-the-web)（2026-10-07，HN 258 分）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
