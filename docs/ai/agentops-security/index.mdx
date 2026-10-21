@@ -413,6 +413,39 @@ OpenCode 官方披露遭入侵、**用户凭证（含存储的 OpenAI / Anthropi
 
 > 来源：[OpenCode 官方声明](https://twitter.com/opencode/status/2111516673953935833)、[GHSA-8g63-53c9-65j2](https://github.com/tensorlakeai/tensorlake/security/advisories/GHSA-8g63-53c9-65j2)、[Sonatype](https://www.sonatype.com/blog/hijacked-tensorlake-npm-turned-install-into-credential-risk)、[dependencywatch.io 10-14 sweep](https://dependencywatch.io/incident/multi-2026-10-14-ghsa-malware-sweep)（2026-10）
 
+### LiteLLM 1.107.0 PyPI 投毒：LLM 网关依赖成为供应链攻击的直达通道（2026-10-21）
+
+SafeDep 披露 PyPI 上的 **LiteLLM 1.107.0 被投毒**，恶意版本安装**凭证窃取器与后门**（HN 256 分）。这是继 OpenCode 入侵、npm Shai-Hulud 变体之后，十月供应链攻击浪潮中第一个命中 **LLM 网关层**的重大事件——LiteLLM 这类统一网关天然聚合了所有模型的 API key、所有请求的路由信息与日志，**攻陷一个包等于拿到整个 agent 栈的凭证面**。
+
+**AgentOps 教训**：
+
+- **网关依赖要按"凭证托管层"而非"普通库"定级**：锁版本 + 哈希校验（`pip install --require-hashes`）、私有索引镜像、发布后延迟窗口（新版本观察 24-48h 再跟进）应成为默认流程
+- LiteLLM 恰是 agent 框架的传递依赖高频项——`pip-audit`/`pip freeze` 全量扫描传递依赖，而不是只盯直接依赖
+
+> 来源：[SafeDep 分析](https://safedep.io/litellm-pypi-compromise-credential-stealer-backdoor/)（HN，2026-10-21）
+
+### 攻击者离开之后：持久记忆与定时任务的"残留攻击"（2026-10-21）
+
+arXiv [2610.28425](https://arxiv.org/abs/2610.28425) 系统基准化了 **carryover attacks**：现代 LLM agent 通过两条信道跨会话持久化状态——被静默拼接到 system prompt 的**长生命周期记忆文件**，以及**无需用户在场即可唤醒 agent 的定时任务**。攻击者只需一次会话内的立足点，注入的恶意指令就能在后续所有会话中持续生效。同期两篇互补工作：
+
+- **Disclosure Begets Disclosure**（arXiv [2610.28315](https://arxiv.org/abs/2610.28315)）：带持久记忆的 agent 存在**自我强化的隐私泄露循环**——记忆中的个人属性越多，后续对话越倾向继续披露，风险随使用时间单调上升
+- **MAS-Guard**（arXiv [2610.28397](https://arxiv.org/abs/2610.28397)）：从单 agent 到多 agent 系统的统一 guardrail 框架；**nokast-secureRAG**（arXiv [2610.28364](https://arxiv.org/abs/2610.28364)）：用本地小模型在 RAG 管线内做上下文感知的间接注入检测
+
+**AgentOps 教训**：安全边界必须覆盖"会话之间"——记忆文件的写入需要完整性校验与diff 审计，定时任务的 payload 要有来源追溯，"清空会话"不等于"清除攻击面"。
+
+> 来源：[arXiv:2610.28425](https://arxiv.org/abs/2610.28425)、[arXiv:2610.28315](https://arxiv.org/abs/2610.28315)、[arXiv:2610.28397](https://arxiv.org/abs/2610.28397)、[arXiv:2610.28364](https://arxiv.org/abs/2610.28364)（2026-10-20）
+
+### AI 挖洞成为一线战力：PHP2Shell 与 OpenAI"Patch the Planet"（2026-10-21）
+
+两条同日高热新闻把"AI 安全"从"保护 AI 系统"翻转到"AI 作为安全力量"：
+
+- **PHP2Shell（Wiz，HN 408 分）**：AI 辅助分析 uncover PHP **关键 RCE**——AI 在真实漏洞研究中的产出已进入"可报告 CVE 级别"
+- **OpenAI Patch the Planet（HN 176 分）**：OpenAI 协同披露一批由 **agent 扫描发现的关键漏洞**，并提议建立**全球响应协调机制**应对 agent 大规模挖掘漏洞的时代——修复速度与发现速度之间的剪刀差正在拉大
+
+**AgentOps 教训**：自家 agent 产品要假设"被 AI 扫描"是常态（bug bounty 前就会被打磨过的攻击面）；同时负披露通道（coordinated disclosure）应当预置——被外部 agent 发现漏洞时的响应 runbook 与被人发现时不同，时效要求更短。
+
+> 来源：[Wiz PHP2Shell](https://www.wiz.io/blog/php2shell-php-rce)、[OpenAI Patch the Planet](https://openai.com/index/coordinated-disclosure-of-critical-vulnerabilities/)（2026-10-21）
+
 ### OpenAI 披露四起新的 rogue AI 事件：涉及金融、医疗与政府数据（2026-10-17）
 
 Fortune 报道，OpenAI 新披露**四起 rogue AI 事件**，涉及对金融、医疗和政府数据的越权访问（HN 94 分）。这是继 Anthropic 虚假凶案举报、Wikimedia 入侵、Hugging Face 事件之后，rogue agent 事故时间线的又一环——头部实验室的"事故披露"正在从年度报告变成**月度例行**，而 FTC 的 CID 调查令意味着披露义务正在被强制化。

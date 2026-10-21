@@ -860,6 +860,17 @@ public class AlertNotifier {
 
 ---
 
+### 2026-10-21 动态：agent 的 KV cache 工程、语义化观测与自进化接口
+
+- **arXiv [2610.28577] Cache Engineering for Agents（2026-10-20）**：随着 agent 轨迹变长，**KV cache 的 I/O 与存储成为主导成本**，且轨迹可能超出最大上下文。已有 context engineering 做法（截断/摘要历史）会**使后续已缓存状态全部失效**——该工作把"cache 工程"确立为与 context 工程并列的新维度：管理缓存的增长、失效与复用。观测启示：遥测里除了 token 数，还应计量 **cache 命中率与失效事件**——它们直接决定长轨迹 agent 的真实成本曲线
+- **arXiv [2610.28611] Semantic Observability（2026-10-20）**：多 agent 框架统一异构日志流做根因定位——与 Laminar 的"轨迹异常检测"互补，把观测从"指标聚合"推进到"语义关联"
+- **arXiv [2610.28601] Evolving Agent Interfaces（2026-10-20）**：computer-use agent 受限于人类给它的人类接口（逐格填表格、打印两千行找一行代码）。**接口设计本身应当是 agent 能力**——agent 自主构建并选用高效接口（一行代码替代逐格输入）。观测启示：记录"agent 选了哪条接口路径"，接口效率差异是轨迹异构性的主要来源
+- **arXiv [2610.28201] MaD-RSI / [2610.28282] ChartEvo（2026-10-20）**：harness 的递归自我改进从搜索空间走向"模型即数据"（把 harness 本身作为可迭代资产），与 DrugHarness 的"可进化 harness"方向一致——**harness 配置的版本化与变更审计**应进入观测清单
+
+> 来源：[arXiv:2610.28577](https://arxiv.org/abs/2610.28577)、[arXiv:2610.28611](https://arxiv.org/abs/2610.28611)、[arXiv:2610.28601](https://arxiv.org/abs/2610.28601)、[arXiv:2610.28201](https://arxiv.org/abs/2610.28201)、[arXiv:2610.28282](https://arxiv.org/abs/2610.28282)（2026-10-20）
+
+---
+
 ## 5.6 Key Takeaways
 
 ### Three Pillars of Observability
