@@ -166,6 +166,13 @@ flowchart TB
 
 三条合起来看：**长时程协作的证据（Minecraft）、状态管理的组件化（专职记忆模型）、执行成本的路由化（EdgeWise）**——agent 技术栈的每一层都在从"一个大模型全包"走向分工。
 
+### 常驻 proactive agent 成型：Claude Duet 研究预览（2026-10-22）
+
+- **Anthropic Claude Duet**（research preview）：基于未发布的 **Opus 5.5** 的"常驻式"主动 agent——每天给用户发简报、每隔几小时检查已连接的应用、在 Anthropic 自有云端自主执行任务，面向专业人士与小微企业主（美国 Pro/Max 用户 waitlist）。直接对标 Meta Muse 与 OpenAI Dots，三家头部厂商的 proactive agent 产品线就此齐备
+- 产品形态意义：agent 从"随叫随到的对话"变成**常驻后台的数字员工**——权限模型（它在你不在场时动你的数据）、通知经济学（何时可以打扰人）、后台运行的成本核算，成为 agent 产品的新设计面；与 OpenAI 失配报告同周出现，"自主性"与"监督"的产品张力被摆到同一张时间表上
+- **SWE-DIVE**（arXiv [2610.30047](https://arxiv.org/abs/2610.30047)）：多轮编码 agent 评测引入**动态用户模拟**——真实用户会追问、改主意、给不全信息，比 SWE-bench 式一次性 well-formed prompt 更接近生产形态；常驻 agent 越自主，评测越要覆盖"混乱的多轮交互"
+- **WorldTUI**（HN 451 分）：训练 360M 小模型"假装成一个终端"——小尺寸世界模型在交互界面上重建环境动态的又一样本，与 PhysiCalWorld（arXiv [2610.30125](https://arxiv.org/abs/2610.30125)，用上下文物理校准世界模型）同向：世界模型的入口正在从"更大"走向"更准"
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers

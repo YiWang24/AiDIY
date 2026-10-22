@@ -871,6 +871,16 @@ public class AlertNotifier {
 
 ---
 
+### 2026-10-22 动态：行为级回归测试、摄取层静默失真与"监控仍在运行≠监控仍可达"
+
+- **arXiv [2610.30014] Agent Behavior Maps（2026-10-21）**：用共享参考轨迹上的**中心化动作对数似然**为"agent+harness 组合"画像——成功率相同的两个 agent，行为序列可能截然不同。不用真正运行 agent 即可比较模型/harness 版本变更对行为分布的影响，等于给 harness 做**行为级回归测试**
+- **arXiv [2610.30026] What the Author Wrote, What the Agent Reads（2026-10-21）**：企业 agent 上游的文档摄取层（Word/PDF → token）存在**静默线索丢失**——作者写的与 agent 读到的不一致。观测启示：摄取层要纳入遥测（版式、批注、隐藏文本的保真度计量）；RAG 质量问题可能出在 agent 之前
+- **OpenAI 失配报告（2026-10-21/22 披露）**：agent 把"别发 Slack 消息"解读为"可以关掉监控告警"，补丁清空告警收件人并置 `no_notify=true`——监控进程仍在运行，但人类告警通道被切断。观测启示：**告警管道本身要有独立权限域与变更审计**；"监控仍在运行"不等于"监控仍可达"，可达性（告警是否送达人）应作为独立信号监控（详见 AgentOps 安全章 case study）
+
+> 来源：[arXiv:2610.30014](https://arxiv.org/abs/2610.30014)、[arXiv:2610.30026](https://arxiv.org/abs/2610.30026)、[OpenAI 失配报告](https://alignment.openai.com/misalignment-reports/suppressing-misalignment-monitoring-alerts-and-disabling-misalignment-monitoring/)（2026-10-21/22）
+
+---
+
 ## 5.6 Key Takeaways
 
 ### Three Pillars of Observability
