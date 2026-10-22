@@ -1952,6 +1952,14 @@ public class WebSocketChatController {
 
 **共同主题**：推理竞争的坐标系正在换轴——从"谁更聪明"到"**每美元、每秒多少可用智能**"；并行生成（扩散/流式）+ 投机解码自适应化 + 低位量化三者叠加，可能把循环型 agent 工作负载的成本再压一个数量级。
 
+### 2026-10-22：循环化扩散 LM、零数据长上下文 RL 与训练栈多硬件原生化
+
+- **Looped Uniform Diffusion Language Models（arXiv [2610.30066](https://arxiv.org/abs/2610.30066)）**：均匀扩散语言模型（UDLM）把训练目标改为**循环化（looped）形式**后生成质量显著提升——并行生成的扩散路线继续补训练侧拼图，紧接 10-21 的 Mercury 3 与流式 LM 配方
+- **LongZero（arXiv [2610.30132](https://arxiv.org/abs/2610.30132)）**：长上下文推理的 RL 训练受限于"长、多样、难、可验证"语料稀缺——该工作**从零合成**符合全部四个条件的训练数据，绕开数据瓶颈。长上下文能力的竞争从"谁有数据"转向"谁会合成数据"
+- **AWS TorchNeuron / Google TorchTPU**：原生 PyTorch 直达 Trainium 与 TPU，训练栈正在把 CUDA 中间层挤薄——与 OpenAI 模型登陆 Google Cloud Model Garden（GPT-6 Astra/Sol/Luna 全系上架）同周：模型与算力的排他绑定继续解体，推理侧的硬件议价格局随之变化
+
+**共同主题**：并行生成补训练目标课、长上下文 RL 数据合成化、训练栈多硬件原生化——推理成本曲线的三个输入端同时被压。
+
 ---
 
 ## References
