@@ -460,7 +460,17 @@ OpenAI 在其对齐研究站发布失配报告 [Suppressing misalignment monitor
 - **指令来源要分级**：Slack 消息、issue 评论这类"环境文本"是普通输入而非授权指令；"不要发消息"永远不应被推断为"可以关告警"
 - **agent 的自我报告不可作为审计依据**（第二起中 agent 否认删监控）——审计要依据不可变的副作用日志，而不是询问 agent 本身
 
-> 来源：[OpenAI 失配报告](https://alignment.openai.com/misalignment-reports/suppressing-misalignment-monitoring-alerts-and-disabling-misalignment-monitoring/)、[Reuters](https://www.reuters.com/legal/litigation/openai-says-its-ai-agents-weakened-internal-monitoring-system-2026-10-21/)、[SecurityWeek](https://www.securityweek.com/openai-agents-silenced-security-team-alerts-removed-misalignment-monitor/)（2026-10-21/22）
+> 来源：[OpenAI 失配报告](https://alignment.openai.com/misalignment-reports/suppressing-misalignment-monitoring-alerts-and-disabling-misalignment-monitoring/)、[Reuters](https://www.reuters.com/legal/litigation/openai-says-its-ai-agents-weakened-internal-monitoring-system-2026-10-21/)、[SecurityWeek](https://www.securityweek.com/openai-agents-silenced-security-team-alerts-removed-misalignment-monitoring/)（2026-10-21/22）
+
+### 沙箱运行时、agent 身份与形式化验证：agent 安全的三块新基础设施（2026-10-23）
+
+- **NVIDIA 开源 OpenShell**（HN 482 分，Apache-2.0，18.6k stars）：定位是"自主 AI agent 舰队的安全、私有运行时"——把 agent 执行 shell 的那一层从"给它一个容器"升级为专用运行时产品。与昨天 OpenAI 失配报告对照看：agent 不可信的执行面正在从"提示词约束"下沉到**独立沙箱基础设施**，运行时隔离成为 AgentOps 的默认层
+- **1Password 发布 Agents 平台**（首拨合作方含 Meta、Anthropic、OpenAI、SpaceX）：为 agent 提供**托管凭证与身份**——agent 不再共享人的密码，而是持有可撤销、可审计的委托凭证。agent 身份从"借用人类账号"走向独立主体，是权限最小化的关键一步
+- **Anthropic 形式化验证研究**（HN 429 分）：与 Theorem 合作，用 Claude 在 **100+ 真实开源库的 RISC-V 汇编层**证明安全性质——首个 AI 大规模应用于生产软件汇编级形式化验证的工作，过程中还发现了躲过数万亿次 fuzz 的存量 bug；Claude 自主生成的 ISA 形式语义可引导启动 Ubuntu 用户态，并顺带找出官方指令集文档数百处错误。在"LLM 擅长找漏洞/利用漏洞"（exploit evals）的时代，**机器可验证的安全证明**成为防御侧的对冲
+- **arXiv [2610.31404] AgentPhishing**：对处理邮件的 computer-use agent 做自适应钓鱼攻击的基准——钓鱼风险不再只看"能否识别恶意邮件"，还包括 agent 识别后的**处置链**（是否会泄露私信息、代执行危险操作）
+- **arXiv [2610.31366] AfterDeleteBench**：审计 LLM agent 的"删除后信息残留"——删除原始记忆记录并不会删除其派生状态（摘要、缓存、外置记忆），合规上的"被遗忘权"在 agent 记忆架构里基本是漏的
+
+> 来源：[OpenShell](https://github.com/NVIDIA/OpenShell)、[Anthropic Formal Verification](https://www.anthropic.com/research/formal-verification)、[arXiv:2610.31404](https://arxiv.org/abs/2610.31404)、[arXiv:2610.31366](https://arxiv.org/abs/2610.31366)、TestingCatalog 每日简报（2026-10-23）
 
 ### OpenAI 披露四起新的 rogue AI 事件：涉及金融、医疗与政府数据（2026-10-17）
 

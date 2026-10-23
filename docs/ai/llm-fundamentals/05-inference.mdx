@@ -1960,6 +1960,16 @@ public class WebSocketChatController {
 
 **共同主题**：并行生成补训练目标课、长上下文 RL 数据合成化、训练栈多硬件原生化——推理成本曲线的三个输入端同时被压。
 
+### 2026-10-23：思想剪枝、投机解码检索化、扩散 LM 提交策略与低位 n-gram 嵌入
+
+- **Direct Pass@k Optimization for Thought Pruning（arXiv [2610.31667](https://arxiv.org/abs/2610.31667)）**：test-time scaling 把全部候选解跑完代价高昂——直接对 pass@k 做**思想剪枝**优化，在质量与多样性之间平衡，砍掉不值得跑完的推理链。推理预算分配从"全部跑完再选"走向生成中途的在线剪枝
+- **ValuSpec（arXiv [2610.31338](https://arxiv.org/abs/2610.31338)）**：树状投机解码中，相似请求反复诱导重叠的候选分支——在目标验证前先做**候选估值**（plug-and-play），实践服务场景下重复分支的浪费被检索式复用消掉
+- **Learned Unmasking in Diffusion LMs（arXiv [2610.31576](https://arxiv.org/abs/2610.31576)）**：掩码扩散语言模型的效率取决于"提交哪些预测"——对学习型 unmasking 策略做受控研究，厘清监督信号、输入、容量各自贡献多少速度-精度收益；扩散 LM 实用化的下一块拼图（接 10-21/10-22 的 Mercury 3、循环化 UDLM）
+- **Low-Bit N-Gram Embeddings（arXiv [2610.31646](https://arxiv.org/abs/2610.31646)）**：开源权重模型流行的 n-gram 嵌入表占内存不小——低位化后保住性能，嵌入表也能省一个数量级
+- **Kimi K3.1 Pro Highspeed**（产品侧）：同代模型的 2-3 倍推理速度变体——"高速版"作为独立 SKU 出现，说明推理成本已直接进入产品定价结构（详见 frontier 章动态）
+
+**共同主题**：推理经济学从"更大 batch、更快 kernel"深入到**生成过程内部的预算分配**（哪些思想值得跑完、哪些 token 值得提交、哪些嵌入值得存满精度）。
+
 ---
 
 ## References
