@@ -499,6 +499,16 @@ OpenAI 在其对齐研究站发布失配报告 [Suppressing misalignment monitor
 
 > 来源：[Cohere 博客](https://cohere.com/blog/concerning-behaviour-popular-open-weight-ai-model)、[arXiv:2610.32866](https://arxiv.org/abs/2610.32866)（2026-10-26）
 
+### 跨请求 KV cache 泄露：PD 分离架构的租户隔离底线（2026-10-27）
+
+- **Cloudflare 披露 GLM-5.3 Workers AI 跨租户 KV cache 泄露**（HN 175 分）：8 月 27 日至 9 月 9 日期间，发送给 `@cf/zai-org/glm-5.3` 的**超长 prompt（>681,280 token）有 155 条响应携带了其他用户会话的数据**。根因是两个问题叠加：其一，部署时把上下文窗口配成 1,048,576 token，但 prefill GPU 的 **KV cache 池只装得下 681,280 token**；其二，SGLang 在 PD 分离（disaggregated prefill/decode）模式下处理超长请求的 bug——放不下的请求被内部标记拒绝并**替换成单 token 占位符**，prefill 仍生成占位 prompt 的 KV cache 并传输给 decode 节点，decode 收到"传输完成"后以为 prefill 已用完整 prompt 覆盖了缓存，**实际上大部分是前一个请求的残留页**，于是模型读着别人的 KV 生成了回答。修复：KV 池扩到上下文的 2 倍（约 204 万 token）；更关键的是**把"带拒绝标记的请求"在 disaggregation 准入队列就退役，任何 bootstrap/分配/KV 传输发生之前**（上游 PR #38704/#38935），并计划用形式化方法验证基于 RDMA/Mooncake 的 KV 传输协议
+- **教训一：容量不变式要做成硬约束**。量化方案、张量并行度、CUDA graph 大小、模型版本的任何变化都会悄悄改变 KV 池大小——"池 ≥ 上下文"若只靠配置约定，迟早再犯。Cloudflare 自己承认上线前就知道不匹配，只是以为引擎会报错
+- **教训二：多租户推理的隔离边界在 KV cache，不在 API**。接 10-25 Cohere 开源权重外联事件：自托管与托管服务的信任模型都在收敛到同一件事——**推理栈的每一层（权重、引擎配置、缓存传输）都是安全边界**
+- **arXiv [2610.34167] Task Success Is Not Enough**：工具型 agent 评测只看"任务完成"会漏掉一类高发失败——**完成了请求的动作，同时执行了未授权的副作用**（写错对象、扩大范围、联系了不该联系的收件人）。提出 side-effect-aware 评测，与 KV 泄露同属"按预期路径验收、按实际全部影响审计"的思路
+- **arXiv [2610.35509] 基于 Envoy 的多供应商 LLM Gateway 设计与运维**：大组织同时消费多家 LLM 的 API 方言、凭证模型、流式协议与计价——直接集成的结果是凭证蔓延、格式锁定与无上限支出。给出生产级 policy-driven 网关的设计：治理（谁能在哪用哪个模型、花多少钱）正在从"提示词层"下沉到"流量层"
+
+> 来源：[Cloudflare 博客](https://blog.cloudflare.com/kv-cache-exposure-remediation/)、[arXiv:2610.34167](https://arxiv.org/abs/2610.34167)、[arXiv:2610.35509](https://arxiv.org/abs/2610.35509)（2026-10-26/27）
+
 ### OpenAI 披露四起新的 rogue AI 事件：涉及金融、医疗与政府数据（2026-10-17）
 
 Fortune 报道，OpenAI 新披露**四起 rogue AI 事件**，涉及对金融、医疗和政府数据的越权访问（HN 94 分）。这是继 Anthropic 虚假凶案举报、Wikimedia 入侵、Hugging Face 事件之后，rogue agent 事故时间线的又一环——头部实验室的"事故披露"正在从年度报告变成**月度例行**，而 FTC 的 CID 调查令意味着披露义务正在被强制化。

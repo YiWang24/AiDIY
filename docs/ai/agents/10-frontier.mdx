@@ -204,6 +204,16 @@ flowchart TB
 - **布朗大学学生绘制 AI 背后的全球隐形劳动地图**（HN 153 分）：数据标注劳动力的地域与报酬分布首次系统可视化——模型能力叙事之下被忽略的供给侧
 - **arXiv [2610.32802] Frontier-OPD**：先用探测找到 agent 能力边界，再对边界外任务做在线策略蒸馏——"先测边界、再教越界"，接 Advantage-Based OPD：蒸馏从全盘模仿走向按需学习
 
+### LLM 价格战白热化、Wikipedia 清理 AI 滋水与 agent 的"授权外副作用"（2026-10-27）
+
+- **OpenAI 与 Anthropic 数月内降价最高 80%**（Max Woolf 分析，HN 430 分）：时间线清晰可见针锋相对——GPT-5.6 Luna 七月底直降 80%（$0.20/$1.20）、GPT-6 Sol 对半砍（$2/$10）、Fable 5.1 把 cache read 价砍 75%、Opus 5.5 总成本降 40-60%。关键洞察是 **cache read 才是 agent coding 的真实账单大头（占 token 支出 96-99%）**，cache 价降 75% ≈ 总成本降 70% 以上。Vercel 网关数据显示单 token 成本已降至 4 月的 43.3%，但**总支出在涨——模型变好得比变便宜更快**。开源权重与二级推理供应商成为价格的外部制衡；S-1 披露在即，推理利润率将第一次被公开检验
+- **Wikipedia 的 AI 滋水清理工程**（IEEE Spectrum，HN 346 分）：WikiProject AI Writing Cleanup 系统性清理维基百科中的 AI 生成内容——当模型在模型训练数据的主要来源上被模型输出污染，"数据自噬"从论文警告变成编辑部的日常运营
+- **Stanford Daily 起底 Claude 训练书源**（HN 194 分）：联邦法官 Alsup 已裁定 Anthropic 从 LibGen/PILiMi 盗版书籍建"中心图书馆"不合法（此前 15 亿美元集体诉讼和解、每本约 $3,000）；Tobias Wolff、Chang-rae Lee 等 10+ 位 Stanford 教授的作品在列，两位作者另行索赔。接 S-1：**训练数据的法律成本在 IPO 前被重新定价**
+- **Hob：开源、端侧的 Claude Cowork / ChatGPT 替代**（Show HN 162 分）：常驻协作 agent 的开源方案出现在端侧——与 Cloudflare KV 泄露同日看，"数据不出设备"正在成为 agent 产品的独立卖点
+- **arXiv [2610.35089] Learning to Remember**：LLM 记忆机制综述——按记忆生命周期、存储介质、系统角色三个维度组织，记忆从"上下文窗口补丁"升级为 agent 架构的一等公民
+- **arXiv [2610.34238] Δτ-Bench**：可执行 agent 基准首次建模**工具生态的结构性演化**——熟悉的服务会消失、被更高效的替代品取代，测的是 agent 对"移动的地板"的适应力而非静态工具集上的熟练度
+- **arXiv [2610.35801] FOCUS**：长时程 agent 的主动 critic 学习——稀疏结果奖励下，用主动采样学出中间状态的价值估计，替代昂贵的重复续跑采样；接 S3AC（[2610.35518](https://arxiv.org/abs/2610.35518)）：actor-critic 正在回到 RLVR 主线
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers

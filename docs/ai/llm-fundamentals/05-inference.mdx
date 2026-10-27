@@ -1997,6 +1997,15 @@ public class WebSocketChatController {
 
 **共同主题**：今天四条都在讲**基础设施的诚实时刻**——rollout 到底花了多少时间（NgramRL）、更新到底是不是 on-policy（舍入位置）、工具调用到底成没成功（vLLM）、优化到底省没省电（能耗审计）。收益的粒度越细，越需要把每一层的账算清。
 
+### 2026-10-27：KV 池容量的租户隔离代价、MXFP8 端到端 RL 与扩散 LM 的"何时提交"
+
+- **Cloudflare GLM-5.3 跨请求 KV cache 泄露**（HN 175 分）：PD 分离架构下，**KV 池（681,280 token）小于上下文窗口（1,048,576 token）**的配置错配触发了 SGLang 的错误路径 bug：放不下的超长请求被替换成单 token 占位符，prefill 只传了占位符的 KV，decode 误以为完整覆盖，**读着前一请求的残留缓存页生成了含其他用户数据的回答**（155 条响应受影响）。修复双管齐下：池扩到上下文 2 倍（204 万 token）+ **拒绝路径在 disaggregation 准入队列提前退役**（任何 KV 传输发生之前），并计划对 RDMA/Mooncake KV 传输协议做形式化验证。工程启示：PD 分离把 KV cache 从"引擎内部状态"变成"跨节点传输的分布式数据"，**一致性 bug 的爆炸半径从崩溃升级为跨租户数据泄露**；"池 ≥ 窗口"必须是不变式而非配置约定
+- **端到端 MXFP8 强化学习（arXiv [2610.34915](https://arxiv.org/abs/2610.34915)）**：在 verl（Megatron/TE 训练 + vLLM/SGLang rollout）上实现 Blackwell B200 的全栈 MXFP8 RL——低精度不只是便宜，**RL 还要求 sampler 与 learner 数值一致**，matching 何时有效、何时失效给出实测。接昨天"舍入位置"与 DeepInfer 的 batch-invariant：训练-推理一致性的精度粒度从 BF16 下探到 FP8 块格式
+- **Learning When to Commit（arXiv [2610.35804](https://arxiv.org/abs/2610.35804)）**：扩散 LM 可并行生成多 token 但需要多轮解码——高效生成取决于**提交哪些 token 才最能帮助预测剩余位置**（高置信 ≠ 高信息量），提出 schedule distillation 学习"何时提交"。扩散 LM 的效率优化从"并行多少"进化为"提交什么"
+- **Constrained Decoding: Harmful or Beneficial?（arXiv [2610.35328](https://arxiv.org/abs/2610.35328)）**：把约束解码对 LLM 性能的影响按三类约束（格式/有效性/域约束）重新分类测量——"约束解码天然损害推理"这个默认假设并不总成立，影响取决于约束类型与任务的结构关系。对把 structured output 当默认配置的 agent 栈是一份必要的校正
+
+**共同主题**：四条都在给推理栈的"默认假设"做体检——池装得下（Cloudflare）、低精度不改变策略（MXFP8）、置信度高就该提交（dLLM）、约束解码伤推理（taxonomy）。**默认假设每被显式检验一次，生产就安全一分**。
+
 ---
 
 ## References
