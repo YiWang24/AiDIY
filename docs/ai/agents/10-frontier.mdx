@@ -214,6 +214,17 @@ flowchart TB
 - **arXiv [2610.34238] Δτ-Bench**：可执行 agent 基准首次建模**工具生态的结构性演化**——熟悉的服务会消失、被更高效的替代品取代，测的是 agent 对"移动的地板"的适应力而非静态工具集上的熟练度
 - **arXiv [2610.35801] FOCUS**：长时程 agent 的主动 critic 学习——稀疏结果奖励下，用主动采样学出中间状态的价值估计，替代昂贵的重复续跑采样；接 S3AC（[2610.35518](https://arxiv.org/abs/2610.35518)）：actor-critic 正在回到 RLVR 主线
 
+### Gemini 4 Carbon、端侧 agent 开源权重与 agent 通信的类型化（2026-10-28）
+
+- **Google 发布 Gemini 4 Carbon**（HN 436 分）：距 Argon GA 仅 15 天的第二款 Gemini 4 前沿模型，Artificial Analysis Intelligence Index v5 得 59 分排名 52 个模型第一（Opus 5.5 max 58、GPT-6 Astra max 57、Argon 50），主打**网络安全与长时程任务**：SEC-bench Pro 88.2%、ExploitGym 54.8%、Collinear CWE-bench 71.0%，内部团队报告其可连续工作数天、在死胡同后自主回溯换路线。发布策略比跑分更值得注意：先开放给部分网络防御者、再经 Fairwind Program 扩展、参与美国政府自愿性发布前测试——**前沿模型的"分级放量"正在成为新常态**。介绍期 API 价 $2/$10（后 $4/$20，cached input 95% 折扣），与 Argon 持平
+- **Liquid AI 发布 LFM3 开源权重家族**：六个 ~2B 端侧模型（文本/视觉/音频/omni + 两个 decision 模型）共享 LFM3-1.7B-Base 骨干；自报 LFM3-1.7B 文本模型 **WebArena-Verified 38.42，超过 Qwen3.5-9B 的 28.94**，4-bit 下约 1GB、256K 上下文，单 GPU 可微调，day-zero 支持 RTX Spark。端侧 agent 的"小模型打大模型"从文本对话延伸到了 web agent 执行
+- **NVIDIA 发布 Nemotron 3.5 Transcribe 并扩展 RTX Spark 阵营**：30B 总参/约 4B 激活的开源权重语音模型（语音编码器 + Mamba-Transformer MoE），支持 40 语言转写、31 语言翻译、13 语言说话人标注，HuggingFace Open ASR 榜 5.33% WER 居开源权重第一；单块 RTX PRO 6000（NVFP4）3 分钟处理 100 小时音频。配套发布 46 万小时 48 语言的 Granary v2 语音数据集
+- **Cursor 发布 Agent SDK**（HN 63 分）：编码 agent 能力从产品沉淀为可编程 SDK，agent 工具链的平台化又进一步
+- **Anthropic 公开 Claude 加速药物研发的早期进展**（HN 307 分）：前沿实验室开始系统性披露"长周期科学任务"的实证数据
+- **arXiv [2610.37461] Concordat**：为 LLM agent 间通信引入**类型化会话**（typed sessions）——把分布式系统里成熟的会话类型论搬到多 agent 编排上，通信协议从"提示词约定"升级为可静态检查的契约
+- **arXiv [2610.37571] TeamGym**：首个面向"分布式信息下团队决策"的 agent 评测环境——每个 agent 只持有部分信息，考察的是信息共享与协作策略而非单点能力，补上了 multi-agent 评测中"信息不对称"这一维
+- **arXiv [2610.37041] Guided-RLVR**：RLVR 中的引导式探索——可验证奖励信号稀疏时，用引导信号 shaping 探索方向，缓解"奖励对了但探索不到"的训练瓶颈
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers
