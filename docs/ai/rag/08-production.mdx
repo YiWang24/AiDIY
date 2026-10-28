@@ -1059,7 +1059,7 @@ Agentic RAG 让模型迭代检索，但孤立 chunk 丢失了文档结构，模�
 - **CalibraRL**（arXiv [2610.35142](https://arxiv.org/abs/2610.35142)）：用**置信度校准的强化学习**缓解 RAG 幻觉——不是简单惩罚错误答案，而是让模型的置信度与证据支持度对齐，训练信号里显式区分"证据充分却答错"与"证据不足被迫猜"。RL 从"优化答案"走向"优化答案与证据的关系"，是 RAG 与 RLVR 两条线合流的代表工作
 - **SpectRAG**（arXiv [2610.36991](https://arxiv.org/abs/2610.36991)）：为多跳 RAG 构建**带权重的 chunk 图**，在给定 token 预算内做上下文选择——把"检索多少"从固定 top-k 变成显式的预算约束优化问题。生产含义直接：长上下文不等于免费上下文，上下文选择应该像查询规划一样被预算驱动
 - **QESChunker**（arXiv [2610.36557](https://arxiv.org/abs/2610.36557)）：用单一目标函数统一重叠与非重叠分块——分块策略从"经验参数"向"可优化目标"收敛的又一步
-- **Adaptive Retrieval, Selective Answers**（arXiv [2610.34872](https://arxiv.org/abs/2610.34872)）：把** conformal factuality 引入 agentic RAG**——检索不足时主动追加检索或选择拒答，而非硬答。与 RAG-Stress（见上）互补：一个管"被坏证据带偏"，一个管"没证据硬答"，合起来才是输出护栏的完整版图
+- **Adaptive Retrieval, Selective Answers**（arXiv [2610.34872](https://arxiv.org/abs/2610.34872)）：把**conformal factuality 引入 agentic RAG**——检索不足时主动追加检索或选择拒答，而非硬答。与 RAG-Stress（见上）互补：一个管"被坏证据带偏"，一个管"没证据硬答"，合起来才是输出护栏的完整版图
 
 ---
 
