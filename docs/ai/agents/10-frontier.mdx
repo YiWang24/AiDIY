@@ -225,6 +225,14 @@ flowchart TB
 - **arXiv [2610.37571] TeamGym**：首个面向"分布式信息下团队决策"的 agent 评测环境——每个 agent 只持有部分信息，考察的是信息共享与协作策略而非单点能力，补上了 multi-agent 评测中"信息不对称"这一维
 - **arXiv [2610.37041] Guided-RLVR**：RLVR 中的引导式探索——可验证奖励信号稀疏时，用引导信号 shaping 探索方向，缓解"奖励对了但探索不到"的训练瓶颈
 
+### Mistral Large 4 开源权重、非中国开源第一易主与 agent 训练的"环境经济学"（2026-10-29）
+
+- **Mistral Large 4（Le Chonk）开源权重落地**（HN 781 分）：权重发布在 Hugging Face `mistralai/Mistral-Large-4-1T-A52B`，比官方倒计时提前两天兑现"月底开源"承诺。**1.05T 总参 / 52B 激活** MoE，混合 instruct-and-reasoning，多模态输入（1.6B 视觉编码器），1M 上下文；预览后继续加码 RL，主打编码与防御性网络安全。Artificial Analysis 侧写：Intelligence Index v5 得 26 分（high），**险胜 Muse Spark Open（25）成为非中国开源权重第一**，但仍落后 DeepSeek V4.1 Flash 1017 与 GLM-5.3 六分——开源头部仍在中国阵营；Cyber Index 51 分居开源第三；对 GLM-5.3 的编码优势仅 1 分，但**每任务 token 消耗少 47%**。许可证是关键细节：**MEOW License**——自部署微调自由，做 Model-as-a-Service 需另签商业授权，"开放"的定义权正在从许可证条文转移到"开放给谁、开放做什么"
+- **arXiv [2610.37648] Scaling Laws for Tool-Use Agents**（FAIR）：合成工具使用环境中的**数据配比 scaling law**——环境合成的可控性首次被用来系统回答"什么样的任务组合喂出最强的 tool-use agent"
+- **arXiv [2610.37609] EnvSched**：环境感知的 rollout 调度——可执行环境规模化后，**在哪个环境上花 rollout 预算**成为训练系统的决策问题；与上条合看，"环境经济学"正在成为 agent RL 的新子领域
+- **arXiv [2610.37642] Metacognitive Decoding**：扩散语言模型的高效推理——并行生成 token 的同时学会**决定算力花在哪、生成多长**，扩散 LM 做 agent 的推理效率路线继续铺进
+- **arXiv [2610.37567] Gym-Anything-RT**（Welleck）：为视觉语言 agent 提供**实时**环境——agent 评测从"有充足时间思考"的数学/编码扩展到必须即时反应的世界
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers
