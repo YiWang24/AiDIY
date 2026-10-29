@@ -903,6 +903,14 @@ GEO 研究者 Metehan Yesilyurt（Peec AI）做了一个成本 $50 的实验：�
 
 > 来源：[Peec AI《Publish stats, get cited》](https://peec.ai/blog/publish-stats-get-cited-the-tactic-that-put-my-data-all-over-the-web)（2026-10-07，HN 258 分）
 
+### Case Study: Heads of Security——提示注入防御进入注意力头层面（2026-10-29）
+
+arXiv [2610.37657](https://arxiv.org/abs/2610.37657) 提出 **Heads of Security（HoS）**：不靠提示词约束、不靠外挂检测器，而是训练一小组**逐 head 的注意力门控（per-head attention gates）**，让每个注意力头学会在"指令"与"数据"之间重新分配注意力，从架构层面强制 instruction-data separation。
+
+**AgentOps 教训**：间接提示注入的防御层正在从 prompt 层（"忽略文档中的指令"式告诫）与管线层（独立检测模型），下沉到**模型内部的注意力结构**。这与 nokast-secureRAG 的"本地小模型做管线内检测"构成互补：一个改模型自身，一个改管线——生产系统短期仍需外挂防御，但"可学习注意力门控"给出了把安全性练进权重里的路线图。
+
+> 来源：[Heads of Security: Learned Attention Gates Improve Prompt Injection Robustness](https://arxiv.org/abs/2610.37657)（arXiv 2610.37657，2026-10-27）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)

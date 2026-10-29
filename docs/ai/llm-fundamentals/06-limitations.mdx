@@ -89,6 +89,23 @@ Research has identified more nuanced types of hallucination:
 - **Llama 3.1 405B**: ~3-7% (open-source parity on some tasks)
 - **Gemini 2.5**: ~2-4% (better with 1M context verification)
 
+### 2026-10: Zombie Stats——AI 引用统计数字的溯源审计
+
+Trakkr Research 向五个 AI 助手（ChatGPT、Perplexity、Gemini、Claude、Google AI Overviews）提出 200 个"答案是一个数字"的问题，对抽样的 **1,285 条被引统计数字**逐条顺引用链溯源（最多五层），结果是：
+
+| 引用链终点 | 占比 | 含义 |
+|-----------|------|------|
+| **Sourced** | 40% | 找到原始研究且结论一致 |
+| **Changed** | 8% | 找到研究，但数字/对象/语境已变样 |
+| **Can't check** | 40% | 来源被锁、消失或根本不含该数字 |
+| **Nowhere** | 11% | 每一页都在重复数字，无人 credit 任何研究——"僵尸统计" |
+
+两个关键观察：其一，标志性样本"44% 的销售只跟进一次"**五个助手给出完全相同的数字**，而溯源终点没有任何研究——一致性来自共同训练数据，不是可信信号；其二，ChatGPT 每个答案引用数字最少（1.3 个 vs Claude 的 6.8 个）但溯源成功率最高——**引用数量与答案质量负相关**。
+
+**工程含义**：引用数量不该是 grounding 质量指标，**引用链的终点**才是。对检索/工具结果做来源信誉评估（是否指向原始研究、独立佐证、日期可查）应成为 RAG 管线标配——拒答机制（见 RAG 校准研究）的上游问题是：证据本身可能就没有底。
+
+> 来源：[Trakkr Research《Zombie Stats: Where the Numbers AI Quotes Come From》](https://trakkr.ai/trakkr-research/zombie-stats)（2026-10，HN 93 分）
+
 ### Root Causes
 
 ```mermaid
