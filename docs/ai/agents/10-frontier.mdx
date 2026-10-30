@@ -233,6 +233,14 @@ flowchart TB
 - **arXiv [2610.37642] Metacognitive Decoding**：扩散语言模型的高效推理——并行生成 token 的同时学会**决定算力花在哪、生成多长**，扩散 LM 做 agent 的推理效率路线继续铺进
 - **arXiv [2610.37567] Gym-Anything-RT**（Welleck）：为视觉语言 agent 提供**实时**环境——agent 评测从"有充足时间思考"的数学/编码扩展到必须即时反应的世界
 
+### 长程 agent 的认知资源调度、CUA 验证与 agent RL 的沙箱基建（2026-10-30）
+
+- **arXiv [2610.40350] Don't Lose the Thread**：长程任务上 LLM agent 的失败模式是**认知过载**——工作记忆被膨胀的无关信息淹没。提出认知资源**自分配**：agent 学会把有限的"注意力/思考预算"在任务阶段间自我调度，而不是被动等 harness 截断上下文。与 10-19 的"不可再观察状态"研究合看：上下文管理正从 harness 的工程决策变成 agent 的习得能力
+- **arXiv [2610.40578] VeriCUA**：计算机操作 agent（CUA）的规模化瓶颈在**任务完成的可靠验证**——数据清洗、评测、RL 奖励都卡在这里。现有做法是让 VLM 旁观轨迹做判断；VeriCUA 把验证本身变成**agentic 探索**：验证器主动操作系统去区分"任务真完成"与"看起来完成了"
+- **arXiv [2610.40256] When Requirements Interact**：真实长程编码任务的规格是**相互依赖的多维约束**（接口兼容、错误处理、不破坏既有依赖），现有基准在规格的数量与多样性上双双不足。该工作用相互依赖的规格合成扩展长程编码训练——"需求交互"首次成为编码 agent 的显式训练维度
+- **arXiv [2610.40574] Every Token Needs Its Own Teacher**：on-policy 自蒸馏（OPSD）中教师全程固定暴露完整参考答案；该工作让**每个 token 拥有自适应的教师**——随训练进程动态调整教师看到的特权信息，post-training 的蒸馏粒度从"轮次"细化到"token"
+- **arXiv [2610.39711] Sandman**（Amazon）：共享 Kubernetes 集群上运行 agent RL 的**沙箱即服务**——一个训练作业会突发创建数千个任务环境，与集群其他租户互相干扰。接 10-29 的"环境经济学"：环境不只是训练资源，还是需要隔离、调度与复用的**基础设施层**
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers

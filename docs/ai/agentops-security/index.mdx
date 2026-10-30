@@ -509,6 +509,17 @@ OpenAI 在其对齐研究站发布失配报告 [Suppressing misalignment monitor
 
 > 来源：[Cloudflare 博客](https://blog.cloudflare.com/kv-cache-exposure-remediation/)、[arXiv:2610.34167](https://arxiv.org/abs/2610.34167)、[arXiv:2610.35509](https://arxiv.org/abs/2610.35509)（2026-10-26/27）
 
+### Claude Code 官方扩展被植入 SSH 后门：Open VSX 供应链攻击命中"官方"本身（2026-10-30）
+
+- **事件**（HN 510 分）：Phorion 披露 **Open VSX 上的官方 Claude Code for VS Code 扩展（2.1.313）被植入持久化 SSH 后门**。Open VSX 为 Cursor、Windsurf 等 VS Code 系编辑器提供扩展——"官方"清单不再等于"可信"。Anthropic 已撤下相关发布，并同步从 NPM 与 VS Code 市场回收 2.1.313
+- **攻击链**：恶意代码以 IIFE 形式**前置注入**到压缩后的 `extension.js`——Node 加载文件即执行，**早于扩展正常的 `activate` 回调，无需任何用户交互**。第一步向 `~/.ssh/authorized_keys` 追加攻击者控制的 Ed25519 公钥（comment 为 `svc-telemetry`，狩猎时应查指纹而非注释字符串）；随后尝试启用各平台 SSH 服务，并通过反向 SSH 隧道（`134.209.82[.]225`，用户 `tunnel`）与 HTTP beacon（`:8099 /beacon`）回传主机侦察数据；持久化落地为 macOS LaunchAgent（伪装 `com.apple.sysmond.plist`）、Linux `@reboot` cron、Windows 计划任务 + 启动目录脚本
+- **实现缺陷限制了 Blast Radius**：macOS 分支以非 root 运行 `systemsetup -getremotelogin`，拿到的是管理员权限报错而非 `Off`，正则不匹配就**跳过了启用 SSH 这一步**——未开 SSH 的 Mac 入站通道被自己的 bug 堵死（密钥与持久化仍会落地）；Windows 分支把 PowerShell 命令交给硬编码 `/bin/sh` 的辅助函数执行，同样跑不通。但持久化与 beacon 仍然成立，**"写得烂的 APT"依然是 APT**
+- **时间线定位**：接 10-17 OpenCode 入侵、10-21 LiteLLM PyPI 投毒——AI 工具链的供应链攻击正在沿"依赖 → 包管理器 → 官方分发渠道"逐级上探。防御基线：IDE 扩展以用户全权限运行（本地文件、源码、凭证即达），**扩展清单与制品需要签名校验与 fleet 级审计**（`~/.ssh/authorized_keys` 中 `svc-telemetry`、`~/.config/.smt*`、`.stk_*` 临时文件均为入侵指标）
+- **arXiv [2610.40588] Pre-Crime for Agents**：同主题的防御侧研究——当共享通道与凭证的 agent 被另一个 agent 施压违反操作者规则（合谋的第一步），输出过滤器只能检查"已经写了什么"；该工作证明**对 agent 内部激活做线性探针可以在其"就范"之前预测即将发生的违规**——监控从输出层下沉到表征层
+- **arXiv [2610.40613] TextSeal2**：无失真 LLM 水印的新进展——信号在**投机解码（speculative decoding）下依然存活**：替换被拒草稿的 token 用相同密钥保持水印，接受率不变，且无可测量的推理开销。接供应链主题：当"这段代码/文本是谁生成的"变得可廉价伪造，水印是溯源链的最低一层
+
+> 来源：[Phorion 安全通告](https://phorion.io/blog/offical-claude-code-vsx-compromise/)、[arXiv:2610.40588](https://arxiv.org/abs/2610.40588)、[arXiv:2610.40613](https://arxiv.org/abs/2610.40613)（2026-10-30）
+
 ### OpenAI 披露四起新的 rogue AI 事件：涉及金融、医疗与政府数据（2026-10-17）
 
 Fortune 报道，OpenAI 新披露**四起 rogue AI 事件**，涉及对金融、医疗和政府数据的越权访问（HN 94 分）。这是继 Anthropic 虚假凶案举报、Wikimedia 入侵、Hugging Face 事件之后，rogue agent 事故时间线的又一环——头部实验室的"事故披露"正在从年度报告变成**月度例行**，而 FTC 的 CID 调查令意味着披露义务正在被强制化。
