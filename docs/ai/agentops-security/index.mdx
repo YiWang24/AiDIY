@@ -922,6 +922,19 @@ arXiv [2610.37657](https://arxiv.org/abs/2610.37657) 提出 **Heads of Security�
 
 > 来源：[Heads of Security: Learned Attention Gates Improve Prompt Injection Robustness](https://arxiv.org/abs/2610.37657)（arXiv 2610.37657，2026-10-27）
 
+### Case Study: 攻击者开始用 LLM 给受害者"估价"（2026-10-31）
+
+Cisco Talos 披露 **Volta 信息窃取木马**在攻击链中调用 LLM 对窃取到的数据自动分析评分，**按受害者的"价值"（资产规模、凭证质量、可变现性）排序**，让攻击者优先攻击高价值目标。这标志着 LLM 从防御侧工具正式进入攻击侧的**目标筛选（victim prioritization）**环节——过去人工完成的"翻赃物、挑肥羊"被批量化、自动化了。
+
+同日，安全公司 Parameter 披露通过 OpenAI 的一处缺口**接管真实 ChatGPT 账户**（HN 258 分，OpenAI 已修复），账户层的接管意味着对话历史、记忆与关联的 agent 凭证一并失守。
+
+**AgentOps 教训**：
+
+- **威胁模型必须假设攻击者也有 LLM**：自动化社会工程、凭证填充结果筛选、泄露数据的价值评估都会被 LLM 降本增效。安全审计不能只防"AI 被攻击"，还要防"AI 被用于攻击我们"
+- **账户是 agent 时代的root**：ChatGPT/agent 平台账户绑定了记忆、自定义指令与第三方工具授权，一次账户接管等于交出整个 agent 身份。强制 MFA、会话设备审计、异常登录告警应与传统的凭证轮换同级对待
+
+> 来源：[Talos: Appraisal by AI](https://blog.talosintelligence.com/appraisal-by-ai-model-driven-victim-prioritization-in-the-volta-infostealer/)、[Parameter: We found a gap at OpenAI](https://www.parameter.ai/labs/we-found-a-gap-at-openai)（2026-10-31，HN 189 / 258 分）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
