@@ -246,6 +246,18 @@ total_loss.backward()
 
 ---
 
+## 2026: 柏拉图表征假说从猜想变成定理（JEPA 视角）
+
+"不同模态训练出的模型会收敛到同一个世界表征吗？"——**柏拉图表征假说（PRH）**猜想会，但一直没有证明。Balestriero 与 LeCun 的 [arXiv 2610.39302](https://arxiv.org/abs/2610.39302)（2026-10-29，HN 84 分）把它变成了定理：
+
+- **柏拉图表征定理**：在"同一场景的两次观测"（good views）作为正样本对训练的 JEPA，无论在多少种模态上分别训练，学到的表征**至多相差一个旋转**；观测错位有界时表征错位也有界
+- **next-token 预测被证明是"坏视图"的 JEPA**：正样本对是同一文档的不同片段（parts of a document），不是同一场景的两次观测——这从数学上解释了为什么语言模型只能靠规模才与视觉模型对齐
+- **实证给出对齐缩放律**：从 14.5 万条标注到 9.4 亿网页图片验证，good views 达到同样对齐度所需训练样本是 next-token 预测的 **1/42**；一个 1.09 亿参数的文本 JEPA 即可与 DINOv2、CLIP 图像编码器对齐
+
+**对 embedding 工程的含义**：模态间的"表征趋同"不再只是经验观察，而是有可证明的条件——**正样本对的构造（视图质量）比模型规模更本质**。做跨模态检索或多模态 RAG 时，别只堆参数量，先审视你的配对数据是不是"同一场景的两次观测"。
+
+> 来源：[Proving and Improving the Platonic Representation Hypothesis with JEPAs](https://arxiv.org/abs/2610.39302)（arXiv 2610.39302，Balestriero & LeCun，2026-10-29）
+
 ## Making It Concrete: PyTorch Example
 
 This section provides a hands-on PyTorch implementation demonstrating how embeddings are actually created and used in neural networks.

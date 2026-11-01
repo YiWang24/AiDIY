@@ -477,6 +477,20 @@ public class ConflictResolutionService {
 
 ---
 
+### Case Study: GVS5H——五个 27B 模型靠"文件通信 + 外部裁判"打赢前沿单体（2026-11-01）
+
+HN 393 分的 **GVS5H**（Lee, 2026）是一个值得逐条抄的多 agent 编程团队：**五个 Qwen3.8-27B**（planner、两个 ideator、solver、manager，外加一个 repair worker）在 LiveCodeBench Hard 上匹配甚至超过了前沿单体模型 Fable 5。Memdoor 项目用原作者的提示词复刻了该工作流，五轮平均 **9.8/10**，高于作者原 harness 的 9.6 与 Fable 5 单独作答的 8.0。它的三个设计决策与直觉相反：
+
+- **每个角色从全新上下文出发，彼此只通过磁盘文件通信**——没有共享会话、没有角色间对话轰炸，planner 的计划就是文件，solver 读文件干活。上下文污染被物理隔离
+- **两个 ideator 被要求给出"不同技术族"的解法**（一个最直接可证明的算法、一个来自不同技术家族），强制探索多样性，避免收敛到同一个错误思路
+- **成败由 shell 脚本决定，不由模型自评**——跑样例、对拍、按公共与隐藏测试逐题评分，裁判权完全外置
+
+**Harness 教训**：多 agent 的价值不在"更多模型商量"，而在**角色分工 + 信息带宽受控（文件而非对话）+ 外部可验证信号**。当评估可以脚本化（代码、数学、数据管线）时，"小模型团队 + 确定性裁判"是一条比"买更大模型"便宜得多的扩容路径；工程上要做的就是状态落盘、每步幂等、支持断点续跑（`--partition` 式恢复），这与上文 checkpoint/resume 模式完全同构。
+
+> 来源：[GVS5H（Lee, 2026）](https://github.com/slee-persis/GVS5H)、[Memdoor team-solve 复刻](https://github.com/guregodevo/memdoor/tree/main/examples/workflows/team-solve)（2026-10-31，HN 393 分）
+
+---
+
 ## 7.3 Scaling Patterns
 
 ### Horizontal Scaling
