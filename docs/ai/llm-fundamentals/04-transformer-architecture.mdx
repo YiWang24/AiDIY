@@ -287,6 +287,18 @@ Each expert is a specialized FFN:
 
 > 来源：[NVIDIA Research](https://research.nvidia.com/publication/2026-05_nemotron-labs-diffusion-tri-mode-language-model-unifying-autoregressive)（2026-05）
 
+### 2026-10: 亚二次注意力扎堆出现——为 1M+ 上下文与 agentic 长程任务铺路
+
+10 月底 arXiv 上集中出现多篇攻注意力 O(N²) 瓶颈的工作，背景是 agentic 工作流向**超长上下文（1M+ token）**迁移后全量注意力成本过高：
+
+- **Latent Sparse Attention**（arXiv [2610.42147](https://arxiv.org/abs/2610.42147)）：面向超长上下文的**潜空间稀疏注意力**，在保持全量注意力表达力的同时把 1M+ token 场景的开销压到可用范围
+- **树结构索引的亚二次注意力**（arXiv [2610.42112](https://arxiv.org/abs/2610.42112)）：用层次化树结构索引器替代显式 QKᵀ——既有线性注意力类方法为了效率牺牲了表达力（如滑窗、下采样），该工作声称在亚二次复杂度下**匹配全量注意力的表达力**
+- **DAMI：门控线性注意力的双轴记忆初始化**（arXiv [2610.41994](https://arxiv.org/abs/2610.41994)）：线性注意力 O(N) 但有限状态记忆限制长上下文检索——DAMI 从 gate 参数（A_log、dt_bias）与输入双轴初始化记忆状态，提升门控线性递归网络的长上下文检索能力。提醒我们：**线性注意力的瓶颈不在复杂度而在状态容量**，初始化是被低估的杠杆
+
+这三篇与上文 Gated DeltaNet-2 合看：长上下文的路线正在"注意力变稀疏"与"状态变聪明"两个方向同时推进。
+
+> 来源：arXiv 2610.42147 / 2610.42112 / 2610.41994（2026-10-30）
+
 ### 2025: Higher-Order Attention (Nexus)
 
 **Innovation**: Query and Key vectors are outputs of nested self-attention loops.

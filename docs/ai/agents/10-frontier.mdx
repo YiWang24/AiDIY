@@ -241,6 +241,28 @@ flowchart TB
 - **arXiv [2610.40574] Every Token Needs Its Own Teacher**：on-policy 自蒸馏（OPSD）中教师全程固定暴露完整参考答案；该工作让**每个 token 拥有自适应的教师**——随训练进程动态调整教师看到的特权信息，post-training 的蒸馏粒度从"轮次"细化到"token"
 - **arXiv [2610.39711] Sandman**（Amazon）：共享 Kubernetes 集群上运行 agent RL 的**沙箱即服务**——一个训练作业会突发创建数千个任务环境，与集群其他租户互相干扰。接 10-29 的"环境经济学"：环境不只是训练资源，还是需要隔离、调度与复用的**基础设施层**
 
+### Weight-Space Programming：前沿 LLM 开始原生读写神经网络权重（2026-11-02）
+
+MIT CSAIL（Takehi、Teoh、Zhang、Khattab）的博客 **Sparks of Weight-Space Programming**（HN 618 分）给出三组早期但惊人的结果：**GPT-6 Astra 不经过优化器、不用梯度，直接以自然语言读取和改写神经网络权重**——
+
+- **读权重**：只看 17,253 个原始权重（不给选项），Astra 正确说出四个 PPO 训练的策略网络各在玩什么游戏（Breakout 置信 99%）；只给中间四层 transformer 块（去掉输入输出层，无法运行网络），Astra 说出 7.2M 字符级 LM 训练的语言，且**逐个找全了全部 copying head（induction head）、无误报**——这是可解释性研究者用探针才能做的事
+- **改权重**：一次性编辑 3.5% 权重，把一个 PPO 训练失败的控制任务从 0% 修到 100%；让 Qwen3.5-0.8B 数学变好，Astra **定位到权重中导致推理循环的问题**（Qwen 模型卡自己警告过的缺陷），只编辑 **0.016% 的权重**、零训练零梯度，MATH-500 从 **7.9% 提到 48.1%**，IFEval 提升三倍且能泛化
+- **写权重**：从零写出玩 MinAtar 与 Go 的小网络，**无需环境反馈**，性能超过 PPO 训一亿步的网络
+
+**含义**：推理驱动的优化正在进入可微神经网络——过去我们只能用 LLM 优化文本工件（提示词、harness、训练代码），现在权重本身成为可操作对象。作者列出的中期方向包括：零数据能力转向与遗忘（改 0.016% 权重即可避免微调的灾难性遗忘）、比"写代码启动训练任务"更原生的递归自我改进路径、跨架构的"电路嫁接"式模型合并。团队正在构建 WSP 基准与 harness，全部实验日志已开源。
+
+> 来源：[Sparks of Weight-Space Programming](https://rikiyat.github.io/blog/weight-space-programming/)（MIT CSAIL，2026-11-02，HN 618 分）
+
+### LongCat-2.5：1.6T 参数原生多模态 agent 模型与长程 agentic RL 的工程化（2026-11-02）
+
+美团 **LongCat-2.5**（1.6T 总参 / 约 48B 激活，HN 57 分）是国产开源阵营在"原生多模态 + agentic 编码"方向的最新样本，技术报告里有三条值得 agent 工程师抄的做法：
+
+- **视觉离散化为多级词表 token**：RVQ + 语义对齐编码器把原生分辨率视觉信号转成离散 token，骨干网络以统一 token 格式处理图文；视觉 token 可**离线预处理并缓存**，长序列打包与负载均衡因此大幅简化
+- **长程 agentic RL 的稳定性工程**：异步部分 rollout（oversampling + 中断保存续跑）、按预计算通过率调采样、**过滤全成功/全失败的零梯度组**、用 log-prob 裁剪控制历史 checkpoint 采样带来的 staleness 偏差——每一条都是分布式 agent RL 踩坑后的产物
+- **把 reward hacking 当训练管线的一等公民**：任务环境禁网、删除 git 历史与缓存、LLM judge 审计轨迹找 exploit、惩罚重复推理与重复工具调用；**真实失败轨迹被回收为可复现可验证的训练任务**，形成"失败→数据→修复"闭环
+
+> 来源：[Introducing LongCat-2.5](https://longcat.ai/blog/longcat-2.5/)（美团 LongCat AI，2026-11-01，HN 57 分）
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers

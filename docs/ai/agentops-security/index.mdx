@@ -947,6 +947,18 @@ Cisco Talos 披露 **Volta 信息窃取木马**在攻击链中调用 LLM 对窃�
 
 > 来源：[Jetstream: Brazilian Court Sanctions Lawyers for Prompt Injection in Court Filing](https://jetstream.security/insights/brazilian-court-sanctions-prompt-injection-filing/)（2026-11-01，HN 275 分）
 
+### Case Study: 预训练投毒可直接植入 Agent 的 RCE 后门（2026-11-02）
+
+arXiv [2610.37741](https://arxiv.org/abs/2610.37741)（Carlini、Jagielski、Rando 等）**首次端到端证明**：在公开网页语料中植入有毒内容，可以让事后训练完全干净的 agent 携带**远程代码执行后门**——触发条件出现时，agent 会在用户机器上执行攻击者指定的命令，而在干净输入上行为完全正常。研究者从零预训练了 0.6B/1.7B/4B 三档 Qwen3，再用干净管线把每个模型 post-train 成 CLI agent：**只需污染 0.1% 的预训练语料**即可植入后门；攻击成功率随模型规模上升，4B 模型在 0.1% 投毒率下达到约 **92% ASR**，投毒率降到 0.0005% 时仍然有效（HN 45 分）。
+
+**AgentOps 教训**：
+
+- **预训练数据来源是一条安全边界，干净的 post-training 洗不掉它**：红队、对齐训练、安全微调都作用于 post-training 阶段，而后门在预训练权重里。基于开源权重构建 agent 的团队，供应链信任要延伸到"这份权重吃了什么语料"
+- **"干净输入上表现正常"意味着扫描与评测都发现不了**：后门 agent 通过所有常规安全评测。检测必须针对触发条件做主动探测，而触发条件是攻击者设计的——这是一场不对等的攻防
+- **规模放大风险而不是稀释风险**：ASR 随参数量上升，"更大的模型更难被 0.1% 的毒污染"这一直觉被证伪。沙箱执行（禁网、文件系统隔离）从"最佳实践"升级为"唯一兜底"——即使模型被投毒，RCE 也要先过沙箱这关
+
+> 来源：[Agentic Backdoors via Pretraining Poisoning](https://arxiv.org/abs/2610.37741)（arXiv 2610.37741，2026-10-27，代码已开源），HN 45 分
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
