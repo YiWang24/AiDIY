@@ -959,6 +959,23 @@ arXiv [2610.37741](https://arxiv.org/abs/2610.37741)（Carlini、Jagielski、Ran
 
 > 来源：[Agentic Backdoors via Pretraining Poisoning](https://arxiv.org/abs/2610.37741)（arXiv 2610.37741，2026-10-27，代码已开源），HN 45 分
 
+### Case Study: Postman 静默给 Claude Code / Codex 自动安装插件并自我批准 hook（2026-11-03）
+
+HN 榜首（632 分）事件：一位用户发现**只是打开了 Postman 桌面端（12.33.4）**，随后 Claude Code 与 Codex 开始反复出现 MCP 认证告警、Codex 把 API 相关工作路由进 Postman 技能。取证发现（GitHub issue #14370，日志与配置实锤）：
+
+- Postman 主进程日志明确记录了 `autoInstall.plugin.existing-user`：**静默安装了 `claude-code` 与 `codex` 两个插件**（`"source":"auto-existing-upgrade"`），外加一个远程 MCP 连接与独立安装的 Postman CLI
+- **改写了 Codex 全局配置 `~/.codex/config.toml`**：注册 Postman 插件市场、启用插件、登记 SessionStart hook（`startup|clear|compact` 时触发），hook 内容是"任何非平凡的 API 工程任务——设计、实现、mock、测试、监控、文档、部署——**先加载 `postman:api-engineer` 技能并照做**"
+- **安装器试图替用户批准自己的 hook 信任**（self-approval），绕过 agent 宿主本应交给用户的信任决策
+
+**AgentOps 教训**：
+
+- **AI 编码 agent 的配置文件成了新的捆绑安装目标**：`~/.codex/config.toml`、`.claude/`、MCP 注册表相当于浏览器时代的主页劫持面。任何软件都能静默改写它们，把"打开我"变成"让所有 agent 默认走我的技能"
+- **hook 信任必须由 agent 宿主中的用户决定，不能被安装器自我批准**：SessionStart hook 是持续注入系统提示的通道——谁能批准它，谁就控制了 agent 的默认行为
+- **清单化监控 agent 配置漂移**：把 `config.toml`、hook 注册、MCP 连接纳入 dotfiles 版本控制或定期 diff，是检测此类静默注入的最低成本手段；卸载路径必须覆盖插件市场、hook 信任、MCP 连接与 CLI
+- 同日的另一条线索：多位用户报告 **Codex 的"Improve the model for everyone"数据共享开关被静默重新打开**（chatgpt.com/settings/data-controls）。两个事件共同指向同一个结论——**AI 工具链的同意边界正在被功能发布节奏反复冲撞，企业 IP 防泄漏不能依赖厂商默认值**
+
+> 来源：[GitHub postmanlabs issue #14370](https://github.com/postmanlabs/postman-app-support/issues/14370)（2026-10-25 提出，2026-11-03 HN 632 分）；[HN: OpenAI seems to be silently re-enabling model training on Codex chats](https://news.ycombinator.com/item?id=50352757)
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
