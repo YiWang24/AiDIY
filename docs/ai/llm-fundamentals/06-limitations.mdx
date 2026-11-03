@@ -641,6 +641,12 @@ counterfactual_prompts = [
 
 **Production implication:** Use reasoning models for complex tasks (math, coding, science), use standard models for chat/creative tasks.
 
+### 2026-11: Not All Reasoning Generalizes——RLVR 泛化的边界
+
+arXiv [2611.03627](https://arxiv.org/abs/2611.03627)（UIUC，Pang & Wang）系统研究了"可验证奖励强化学习（RLVR）到底在奖励什么样的推理泛化"。核心结论：**RLVR 带来的提升并不总是真正的策略泛化**——在同一任务分布内，模型可能只是 memorize 了可被奖励的模式（格式正确、搜索路径命中），换一个需要相同推理能力但表面形式不同的任务，增益就消失。作者通过对比"训练任务上的提升"与"held-out 任务上的迁移"来操作化这个区分，并给出如何通过奖励设计与任务多样性激励**真正可泛化的推理策略**的案例研究。
+
+**对工程团队的提醒**：用 RLVR（GRPO/PPO + 结果奖励）训练 agent 或推理模型时，只在训练分布上评测会系统性高估泛化能力；held-out 任务族的迁移评测应进入标准评测流水线。
+
 ---
 
 ## 2025: Agent Failure Modes

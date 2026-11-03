@@ -263,6 +263,18 @@ MIT CSAIL（Takehi、Teoh、Zhang、Khattab）的博客 **Sparks of Weight-Space
 
 > 来源：[Introducing LongCat-2.5](https://longcat.ai/blog/longcat-2.5/)（美团 LongCat AI，2026-11-01，HN 57 分）
 
+### Strategist：推理策略不再手写，交给元 agent 进化（2026-11-03）
+
+**Strategist**（arXiv [2611.03618](https://arxiv.org/abs/2611.03618)，Zhuang Liu 等）提出了一个值得所有 agent 工程师记住的框架：**模型只是 agent 系统的一半，另一半是推理策略（inference strategy）——把模型调用组织成响应的那套推理流程**。今天这一半是手写的，而且做一个任务积累的策略经验完全带不到下一个任务。Strategist 是一个**进化推理策略的元 agent**：每条策略写成**蓝图（blueprint）——可被其他策略复用的可执行代码**，蓝图共同构成一个库；面对新任务，它检索相关蓝图、写出候选策略、在真实样本上测试、根据结果修订，所有候选再入库，让后续任务站在前面的发现之上。效果：**30 个基准上 24 个击败最强基线**，平均准确率持平（74.7% vs 74.0%）但**推理成本低 39%**；策略无需再搜索即可迁移到未见任务和其他模型。意义：agent 系统中"从未被自己改进的那一半"（harness/策略层）第一次实现了自我改进的闭环——这与本库 harness-engineering 章的核心命题直接呼应。
+
+### 长程 agent 训练：跨任务共享信用分配与技能组合式探索（2026-11-03）
+
+同日多篇工作从不同角度攻击长程 agent 训练的核心矛盾——**动作之间的依赖跨越了 stepwise RL 与单任务 rollout 的视野**：
+
+- **BLPO**（arXiv [2611.03005](https://arxiv.org/abs/2611.03005)，人大等）：stepwise 分组 RL 提供比轨迹级监督更细的信用，但可靠对比要求交互历史一致，而单任务有限的 rollout 提供不了足够支撑。BLPO 把轨迹前缀总结为**任务进展状态**、按功能抽象动作，让**不同任务的对应决策贡献同一份全局优势估计**（带均衡聚合与可靠性加权的全局记忆，无需 learned critic 或额外 rollout）；ALFWorld/WebShop 上 1.5B/7B 策略成功率提升、学习更快且轨迹更短
+- **SCOPE**（arXiv [2611.03116](https://arxiv.org/abs/2611.03116)，人大）：朴素探索训练 Web agent 的困境是成功轨迹稀少、终局稀疏奖励让失败轨迹毫无反馈。SCOPE 受技能习得理论启发做"由短到长"的课程：技能发现（从历史 rollout 提取可复用局部技能与失败经验）→ 技能编排（组合成技能链）→ 技能扩展（用对齐的失败经验引导探索新子技能），最终经 agentic on-policy 蒸馏内化进策略参数；WebArena/WebVoyager/WebShop 上相对最强基线提升 **3.9%–18.6%**
+- **Internet of Agentics**（arXiv [2611.03066](https://arxiv.org/abs/2611.03066)）：当 LLM 应用普遍组织为工具调用与多 agent 工作流（而非孤立聊天界面）后，协议、系统与服务需要一套类似互联网体系结构的分层治理设计——多 agent 生态的"TCP/IP 时刻"还在前面
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers
