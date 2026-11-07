@@ -976,6 +976,22 @@ HN 榜首（632 分）事件：一位用户发现**只是打开了 Postman 桌�
 
 > 来源：[GitHub postmanlabs issue #14370](https://github.com/postmanlabs/postman-app-support/issues/14370)（2026-10-25 提出，2026-11-03 HN 632 分）；[HN: OpenAI seems to be silently re-enabling model training on Codex chats](https://news.ycombinator.com/item?id=50352757)
 
+### Case Study: Apple 在每台 Mac 上静默构建个人知识图谱（2026-11-07）
+
+HN 406 分（233 评论）的取证报告（[8rank](https://8rank.ai/game/apple-intelligence-personal-knowledge-graph)）揭示：**从 macOS 13（2022）起，每台 Mac 都运行一对守护进程（`knowledgeconstructiond` 等），交叉引用 Contacts、Calendar、Photos、Messages、Mail、位置、Screen Time 与行为信号，构建关于"你是谁、你认识谁、你们如何关联"的个人知识图谱**——包括官方从未公开提及的亲属关系（kinship）推断。关键事实：
+
+- 图谱存放在 `~/Library/IntelligencePlatform` 下 **51 个明文 SQLite 数据库**（TCC Full Disk Access 保护），据称是 Apple Intelligence LLM 个性化检索的可查询 store
+- 最接近官方的描述只有一行 man page；收集与推断的完整清单、集成方式、"谁能读它"均无公开文档。团队开源 [iKnow](https://github.com/8rank/iKnow) 让用户读取自己机器上的图谱
+- **"撤回"不等于"删除"**：用户撤回的事实移入 expired 表，置信度与来源保留
+
+**AgentOps 教训**：
+
+- **个性化 AI 的数据底座是新的隐私单点故障**：图谱集中了跨应用、跨设备的行为事实，一旦被攻击者读取（或配合无审查 LLM），画像粒度远超任何单一应用的数据泄露
+- **对自建个性化检索层的团队**：用户可见、可查询、可真正物理删除的图谱应是设计目标；"软删除 + 保留 provenance"的默认实现会在审计时成为负债
+- 本案与 Postman 静默装插件、Codex 开关回退构成同一主题的三连：**端上/本地的"智能基础设施"能力远超官方文档承认的范围，信任决策必须回到用户手中**
+
+> 来源：[Anatomy of Apple's Personal Knowledge Graph](https://8rank.ai/game/apple-intelligence-personal-knowledge-graph)（8rank，2026-10，HN 406 分）；[HN 讨论](https://news.ycombinator.com/item?id=50403097)
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
