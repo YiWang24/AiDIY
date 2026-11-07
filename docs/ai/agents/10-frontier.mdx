@@ -275,6 +275,14 @@ MIT CSAIL（Takehi、Teoh、Zhang、Khattab）的博客 **Sparks of Weight-Space
 - **SCOPE**（arXiv [2611.03116](https://arxiv.org/abs/2611.03116)，人大）：朴素探索训练 Web agent 的困境是成功轨迹稀少、终局稀疏奖励让失败轨迹毫无反馈。SCOPE 受技能习得理论启发做"由短到长"的课程：技能发现（从历史 rollout 提取可复用局部技能与失败经验）→ 技能编排（组合成技能链）→ 技能扩展（用对齐的失败经验引导探索新子技能），最终经 agentic on-policy 蒸馏内化进策略参数；WebArena/WebVoyager/WebShop 上相对最强基线提升 **3.9%–18.6%**
 - **Internet of Agentics**（arXiv [2611.03066](https://arxiv.org/abs/2611.03066)）：当 LLM 应用普遍组织为工具调用与多 agent 工作流（而非孤立聊天界面）后，协议、系统与服务需要一套类似互联网体系结构的分层治理设计——多 agent 生态的"TCP/IP 时刻"还在前面
 
+### SwarmEvolve：潜空间 agent 集群，进化搜索提速一个量级（2026-11-07）
+
+arXiv [2611.08483](https://arxiv.org/abs/2611.08483)（Brown，Karniadakis 等）改进了 LLM 引导的进化搜索（AlphaEvolve 一脉）的成本结构：传统做法每轮让 LLM 生成长文本思维链，还要多轮生成维持种群多样性，又慢又贵。SwarmEvolve 让**数百个低成本 agent 每轮组成集群、在潜空间推理（不解码成文本）、通过传递 KV 缓存共享信息**——一个 novelty filter 直接度量 agent 隐状态向量间距离来保留最不同的想法，而"思想交叉"由一个汇总 agent 接收全体成员的合并 KV 缓存自然完成。结果：21 个数学发现与科学计算问题上取得最高平均分，**中位数 3–8 分钟即达到其他 SOTA 框架 60 分钟的最佳成绩**；多个问题上用 Qwen3 8B 改进了 AlphaEvolve 用 frontier 模型找到的解。核心启示：**agent 间通信不必经过自然语言**——潜空间/KV 缓存级别的交互可能重塑多 agent 系统的成本模型，这为 harness-engineering 中"上下文如何传递"的设计空间增加了一个新维度。
+
+### Scientist World：给 AI-Scientist 一个可运行的世界（2026-11-07）
+
+arXiv [2611.08478](https://arxiv.org/abs/2611.08478)（Zhuang Liu 等）指出 AI 科学家缺失的那块拼图：人类科学家坐拥几百年的开放问题与共享文献，而 AI-Scientist 面对的科学文献**可读但不可运行**。Scientist World 的自动流水线把每篇论文变成可执行环境——提取开放研究问题、复现原论文方法作为基线，AI-Scientist 进场后与人类作者达成的实测结果对评。首批 **1,000 个验证环境**发布，并附 6,400 小时研究轨迹（每个想法、实验、失败与成功）。三个数字：frontier AI-Scientist **在 74% 的环境里超过人类原作者**；作为训练场，小模型的研究构思能力提升 **158%** 追平 frontier 模型。对评测工程的启示：**"以人类已发表结果为锚"的可执行环境**是比静态基准更难作弊的评测形态。
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers

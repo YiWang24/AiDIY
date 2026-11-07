@@ -2461,6 +2461,18 @@ public class StrategySelectionService {
 
 ---
 
+### 2026-11: OPD vs GRPO——蒸馏与 RL 的算力经济学
+
+arXiv [2611.08453](https://arxiv.org/abs/2611.08453)（Zeyu Leo Liu、Bo Pang、Semih Yavuz 等）系统比较了在策略蒸馏（on-policy distillation, OPD）与 GRPO 在达到目标 held-out 准确率时所需的训练 FLOPs。结论值得任何做后训练的团队记住：
+
+- **外部教师做 OPD 通常不划算**：同等设置下准确率/FLOP 输给 GRPO，且常出现回复长度膨胀——即使教师本身也经过 GRPO 训练
+- **自蒸馏是例外**：当教师是**学生自己的 GRPO checkpoint** 时，OPD 在数学上用 **50 分之一的蒸馏 FLOPs** 恢复该 checkpoint 的准确率；该结论在更大 student、代码域、第二个模型家族上均复现
+- **多教师 OPD 的合并经济学**：各领域的 GRPO 专家各有所长、没有单一 checkpoint 通吃；多教师蒸馏把专家合并进单个学生，蒸馏阶段只占专家训练 FLOPs 的 5.2%–8.0%，两域混合总 FLOPs 省 **42%**
+
+**工程启示**：RL 训练完成后不要丢掉 checkpoint——它是最便宜的蒸馏教师；多域能力合并优先考虑多教师 OPD 而不是联合 GRPO 训练。
+
+---
+
 ## Summary for Interviews
 
 **Training Pipeline (2025)**:
