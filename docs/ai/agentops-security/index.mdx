@@ -992,6 +992,22 @@ HN 406 分（233 评论）的取证报告（[8rank](https://8rank.ai/game/apple-
 
 > 来源：[Anatomy of Apple's Personal Knowledge Graph](https://8rank.ai/game/apple-intelligence-personal-knowledge-graph)（8rank，2026-10，HN 406 分）；[HN 讨论](https://news.ycombinator.com/item?id=50403097)
 
+### Case Study: Claude Code「Don't Ask Again」把密码写进 1,122 个公开 GitHub 文件（2026-11-08）
+
+Apiiro 的研究（HN 496 分、356 评论）量化了 coding agent 时代最常见的一个安全失误：**用户在 agent 请求权限确认时按下「Don't Ask Again」/「Always allow」，随后把含密钥的命令连同一并批准的输出写进了仓库**。扫描公开 GitHub 发现 **1,122 个文件泄露了真实凭证**——涵盖云 API key、数据库连接串与 CI/CD token。关键事实：
+
+- 泄漏路径不是 agent「主动泄密」，而是**权限疲劳 + 上下文泄漏的组合**：用户为了减少打断而全局放行工具调用，agent 随后把包含敏感参数的命令原样写入文档、脚本与 commit message
+- 高频泄漏形态：`export API_KEY=...` 调试片段、数据库连接串粘贴进 README/PR 描述、agent 生成的「复现步骤」文档里带真实 token
+- 与本周 Postman 静默装插件、Codex 开关回退同一主线：**agent 工具链的默认信任决策（或放弃信任决策）正在成为企业 IP 与凭证泄漏的主要入口**
+
+**AgentOps 教训**：
+
+- **「Don't Ask Again」是一次凭证级的安全承诺**：组织应把它视为与「sudo NOPASSWD」同级的配置项，纳入基线审计——默认只允许 session 级放行，禁止持久化全局放行写进 dotfiles
+- **push 前自动扫密钥是底线而非加分项**：pre-commit hook + CI secret scanning + 泄露 key 立即轮换（不能只靠撤回 commit——历史仍在）
+- 对 agent 厂商的启示：权限确认 UI 应把「即将执行的命令内容」而非「工具名」作为放行粒度，避免用户一次性交出整类操作
+
+> 来源：[Apiiro: Coding agents leaking secrets](https://apiiro.com/blog/coding-agents-leaking-secrets-github-dont-ask-again)（2026-11，HN 496 分）；[HN 讨论](https://news.ycombinator.com/item?id=50407882)
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
