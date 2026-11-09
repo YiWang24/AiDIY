@@ -506,6 +506,14 @@ SWE-bench scores improve rapidly。GPT-5.5（2026年4月23日）在 SWE-Bench Pr
 4. **Provide Context**: Share relevant files, docs, and constraints
 5. **Use Version Control**: Commit before agent modifications for easy rollback
 
+### Keep Instruction Files Alive（2026-11-09）
+
+`AGENTS.md`、`CLAUDE.md` 这类仓库指令文件会在**每个 agent 步骤**被读入上下文，arXiv 2611.09802（When Instruction Files Go Stale）首次系统量化了它们的过期成本：指令文件内容随代码库演进而腐化，过时指令不但持续消耗 token，还会**主动误导** agent 按已经不成立的约束工作。把指令文件当代码维护：
+
+- 纳入 code review——改了构建命令、目录结构、测试入口的 PR，必须同步检查指令文件
+- 定期让 agent 对照指令文件逐条验证仓库现状，报告已失配的条目（文档债的过期检测）
+- 指令文件要有明确的 owner，"写了就忘"是最贵的维护方式
+
 ### Security Considerations
 
 ```mermaid
