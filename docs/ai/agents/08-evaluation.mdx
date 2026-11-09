@@ -454,6 +454,20 @@ arXiv 论文 [2605.22733](https://arxiv.org/abs/2605.22733) 提出 HarnessAPI �
 
 > 来源：[arXiv:2605.21482](https://arxiv.org/abs/2605.21482)（2026-05-20）
 
+### 部署后模型漂移的可观测性：LiveNerf 与「Opus 5.5 被削」争议（2026-11-09）
+
+HN 543 分的争论暴露了 agent 评测的一个盲区——**基准测发布时的模型，没人测你明天用的那个**。11 月 7 日起大量开发者抱怨 Opus 5.5 在 Claude Code 里"变弱"（无视指令、重复犯错、小事派 subagent）。用户 Shane Melaugh 用 Gemini 4 Argon 分析自己 1,400 个 Claude Code 会话，声称 11 月 3 日前后推理风格发生突变而模型名未变；T3 CEO Theo 则提出替代解释：Anthropic 在按账号灰度发布**推理摘要器（reasoning summarizer）**变更——extended thinking 返回的是摘要块，"thinking 看起来不一样"不等于模型变了。
+
+值得记录的是开源侧的回应 **LiveNerf**：自 9 月 24 日起每天在固定版本 Claude Code 上重跑同样 78 道难题（GPQA Diamond、MMLU-Pro、竞赛数学、AIME），与发布周基线比较，只有当变化连续两个 10 天窗口超过 99% 置信区间、幅度 ≥3 分、且对照组不出现时才计为真变化。截至 10 月 23 日：**0.571 vs 基线 0.584，误差范围内，未检出任何削弱**；输出长度稳定在 588–606 token，也未出现"悄悄砍算力"最常见的信号。
+
+工程启示：
+
+- **"模型被削"类指控需要区分三层**：权重变更（罕见、通常有公告）、推理服务层变更（量化、算力分配、摘要器——最常见且无公告）、harness/effort 默认值变更（Claude Code 对 Opus 5.5 默认 medium effort）。三层都能被用户感知为"变弱"，但对策完全不同
+- **单用户轶事 + 用另一个 LLM 做分析，证据等级很低**：1,400 会话是单账号非随机样本，分析者（Gemini）自身有确认偏误；可复现的结论需要 LiveNerf 式的固定探针 + 对照组 + 多窗口确认
+- 对团队的建议：**把你依赖的模型组合纳入持续探针监测**（固定题集、固定 harness 版本、对照模型），模型 API 是无 SLA 的黑盒，漂移检测只能自建
+
+> 来源：[HN: Is Opus 5.5 nerfed?](https://news.ycombinator.com/item?id=50422069)（543 分）；[LiveNerf 研究](https://cellcog.ai/blog/is-claude-opus-5-5-nerfed)；[AICoder 事件梳理](https://aicoder.com/news/news-20261107-x-discussion-opus-5-5-nerfed-debate-1400-claude-code-sessions-theo-reasoning-summarizer)
+
 ---
 
 ## 8.9 Key Takeaways

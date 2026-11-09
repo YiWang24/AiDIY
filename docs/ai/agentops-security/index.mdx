@@ -1008,6 +1008,22 @@ Apiiro 的研究（HN 496 分、356 评论）量化了 coding agent 时代最常
 
 > 来源：[Apiiro: Coding agents leaking secrets](https://apiiro.com/blog/coding-agents-leaking-secrets-github-dont-ask-again)（2026-11，HN 496 分）；[HN 讨论](https://news.ycombinator.com/item?id=50407882)
 
+### Case Study: MemoryDojo——agent 记忆系统成为持久化投毒通道（2026-11-09，arXiv 2611.09721）
+
+LLM agent 越来越依赖跨会话记忆来改进长程多会话任务表现，而 arXiv 新论文 **MemoryDojo** 首次把记忆系统本身作为攻击面做了系统基准：**某次会话中遇到的一条恶意指令，经记忆机制持久化后，会在后续所有会话中持续改变 agent 行为**。关键发现：
+
+- 记忆把"一次性提示注入"升级为"持久化后门"：污染不再需要每轮重新注入——攻击者在网页、文档、工具输出里埋一条指令，agent 把它当经验存下来，之后**跨会话、跨任务地复用**
+- 与 11-08 的 Claude Code 凭证泄漏案互补：那 case 是用户**主动交出**信任（权限疲劳），这个 case 是 agent **替用户记住**了恶意指令——两条路径都绕过了逐次确认的信任模型
+- 防御含义：记忆写入需要与记忆读取同等强度的治理——来源标记（provenance）、会话隔离、敏感指令的写入过滤、以及周期性记忆审计，不能默认"agent 自己总结的都是可信经验"
+
+**AgentOps 教训**：
+
+- **记忆是新的持久化存储，就要按存储的安全标准治理**：任何能影响未来行为的写入通道（记忆、配置文件、技能注册表）都是同一类攻击面——Postman 改写 `config.toml`、MemoryDojo 污染记忆、hook 自我批准，本质都是"写入今天的信任，改变明天的行为"
+- **多会话 agent 的评测必须包含"被污染后的记忆"场景**：干净环境跑分无法反映真实部署风险
+- 11-08 已呼吁 agent 记忆需要自己的 OpenTelemetry 时刻（开放格式 + 可观测）；MemoryDojo 给这个呼吁补上了安全论证——**不可观测的记忆既难调试，也难排毒**
+
+> 来源：[MemoryDojo: Benchmarking Poisoning Through LLM Agent Memory](https://arxiv.org/abs/2611.09721)（arXiv 2611.09721，2026-11-06）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
