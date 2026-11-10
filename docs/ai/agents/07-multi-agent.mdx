@@ -525,6 +525,27 @@ app = workflow.compile()
 
 > 来源：[arXiv:2605.22781](https://arxiv.org/abs/2605.22781)（2026-05）
 
+### Case Study: Amazon 用 Strands Decider 替换 Sonnet 4.6——决策模型成为 multi-agent 流水线的省钱组件（2026-11-10）
+
+Amazon 内部工单系统（全球最大规模之一）把 Sonnet 4.6 承担的 20 类工单标注换成 **Strands Decider**——AWS 开源 Strands Agents 生态一个月前发布的「决策模型」：**不能生成文本，输入是状态 + 问题 + 选项集，输出是各选项的概率分布 + 置信度分数**。生产版本为 Gemma 4 E4B build，跑在一台 `ml.g5.xlarge`（单卡 A10G 24GB，占用约 19GiB）上。实测数据（HN 653 分）：
+
+| 指标 | Claude Sonnet 4.6 | Strands Decider E4B | 变化 |
+| --- | --- | --- | --- |
+| 平均单次调用 | 4,215 ms | 897 ms | -78% |
+| 输入 token / 工单 | 6,554 | 2,009 | -69% |
+| 输出 token / 工单 | 170 | 1 | -99% |
+| 成本 | — | — | **-98%（年省数百万美元）** |
+
+token 骤降的两个来源：输出从「JSON + 推理」变成 1 个选项；20 条标签描述重写为一两句话的判据，作为单次选择题的 options（原生产标签描述就已超过 Decider 的 4,096 token 窗口）。
+
+**multi-agent 工程启示**：
+
+- **迁移方法论比模型更值得抄**：AppConfig 三态开关（`BEDROCK`/`DUAL`/`DECIDER`）让新旧模型在真实流量上并行、逐条裁决分歧——比任何离线 eval 都更接近真相，且回滚只是一次 45 秒的配置变更
+- **适用边界明确**：闭集选择 + 高流量 + 标签目录稳定，才轮得到决策模型；需要解释文本、目录每周变化、上下文塞不进几 K token 的任务仍然属于 LLM。「agent 流水线里不是每个环节都需要生成式模型」正在成为默认设计假设
+- **已知代价**：长工单上 Decider 会丢弃最旧的评论来适配窗口——上下文截断策略要进 review，否则故障以「漏判」而非「报错」的形式出现
+
+> 来源：[Amazon saves millions by replacing Sonnet 4.6 with Strands Decider](https://strandsagents.com/blog/amazon-saves-millions-replacing-sonnet-with-strands-decider/)（2026-11-10，HN 653 分）；[Strands Decider repo](https://github.com/strands-labs/strands-decider)
+
 ---
 
 ## 7.9 Key Takeaways

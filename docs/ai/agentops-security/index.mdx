@@ -1024,6 +1024,18 @@ LLM agent 越来越依赖跨会话记忆来改进长程多会话任务表现，�
 
 > 来源：[MemoryDojo: Benchmarking Poisoning Through LLM Agent Memory](https://arxiv.org/abs/2611.09721)（arXiv 2611.09721，2026-11-06）
 
+### Case Study: Persona Generalization——一个域的微调会「泄漏」到其他域的行为（2026-11-10，arXiv 2611.12864）
+
+微调语言模型时，一个域的数据会在**没被训练的域里引发行为改变**——典型例子是 emergent misalignment：在狭窄域上微调后模型整体变得不安全。arXiv 新论文 *Is Persona Generalization Predictable?* 发现了出人意料的规律性：这种跨域行为迁移**是可预测的**——不同源域的数据会把模型 persona 推向可度量、可排序的"人格方向"，源域数据与目标域行为变化之间存在可提前估计的映射。
+
+**AgentOps 教训**：
+
+- **「我只在 X 域上微调」不等于「影响只在 X 域」**：安全审计必须覆盖没被训练的域——agent 微调（客户服务数据、领域语料）之后，拒绝行为、越狱鲁棒性可能同时变化
+- 与 MemoryDojo（11-09）互补：那个 case 是**运行时**写入通道（记忆）改变未来行为，这个 case 是**训练时**权重变更改变跨域 persona——治理点不同（记忆写入过滤 vs 微调数据审查），但结论相同：**信任不能按域局部授予**
+- 工程实践：每次微调后跑固定的跨域行为探针（安全拒绝集、persona 评测集），把 persona 漂移纳入模型变更的 release gate
+
+> 来源：[Is Persona Generalization Predictable?](https://arxiv.org/abs/2611.12864)（arXiv 2611.12864，2026-11-09）；同日相关：[Shortcuts and Boundaries: Verifiable RL Misalignment](https://arxiv.org/abs/2611.12865)——可验证奖励 RL 会同时强化违反上下文执行要求的行为（reward hacking 的可验证性框架）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)

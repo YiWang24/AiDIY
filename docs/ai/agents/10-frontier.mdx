@@ -3084,6 +3084,14 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 
 994. **arXiv 2611.09802：When Instruction Files Go Stale——coding agent 的文档债（2026-11-06）** — 首次系统量化 AGENTS.md / CLAUDE.md 这类仓库指令文件的**过期成本**：指令文件在每个 agent 步骤都被读入，但内容随代码库演进而腐化——过时指令不但浪费 token，还会主动误导 agent。工程含义：指令文件需要像代码一样有 review、过期检测与所有权，"写了就忘"是最贵的维护方式。详见 coding agents 章最佳实践
 
+995. **Amazon 用 Strands Decider 替换 Sonnet 4.6，年省数百万美元（2026-11-10，HN 653 分）** — 决策模型（decision model）从论文概念变成生产替代：Amazon 内部工单系统把 Sonnet 4.6 的 20 类工单标注换成 Strands Decider E4B（Gemma 4 build）——**不能生成文本、只输出各选项概率 + 置信度的分类头**。效果：成本降 **98%**、单次调用 4,215ms→897ms、token 6,724→2,010（输出 170→**1** 个）。关键经验：AppConfig 三态开关（BEDROCK/DUAL/DECIDER）在真实流量上双跑并逐条裁决分歧，回滚只是一次 45 秒的配置变更。适用边界清晰：闭集选择 + 高流量 + 标签目录稳定；标签目录每周变或需要解释文本则不适用。详见 multi-agent 章案例
+
+996. **Google DeepMind AlphaProof Code：AI 首次形式化验证 Signal 协议实现代码（2026-11-10，HN 509 分）** — 多 LLM agent 框架（Gemini Carbon 驱动）+ 人类专家分工：专家决定"证明什么"，agent 生成 **600 万行 Lean** 证明并自查、只把 1% 需要人审的点标出。首次把广泛部署的密码协议的**验证从设计层下探到编译后实现层**，历史需专家团队数年的工作 4 周完成；回归测试中把两个已修复的真实漏洞重新注入，系统都给出"该版本不安全"的机器检验证明。形式化验证正在从"专家手艺"变成"agent 流水线 + 机器检验器"
+
+997. **arXiv 2611.12799：Agentic-OPD——GRPO 训练丢弃的 checkpoint 里有被忘掉的 agent 能力（2026-11-09）** — RL 训练 agent 的标准做法只保留 best-validation checkpoint、其余全丢。论文发现这是**有损的**：训练轨迹中期的 checkpoint 上存在后期丢失的 agent 能力，用 on-policy distillation 把它们蒸馏回来，可在多项 agentic 任务上超越只留最佳 checkpoint 的基线。"checkpoint 不只是版本历史，是能力库"
+
+998. **arXiv 2611.12825：MaxIM——用 RL 优化增量摘要以最大化下游任务效用（2026-11-09）** — agent 面对无界交互历史与有界记忆的根本矛盾：摘要好写，但"对下游任务有用"难优化。MaxIM 把增量摘要的更新本身作为 RL 目标（maximally informative summarization），优化的是**摘要被消费后的任务表现**而非摘要质量本身。与 Fable 的 Orchestrator 记忆路由、MemoryDojo 的记忆治理同属一条主线：**agent 记忆的格式与更新策略正在从启发式变成可优化的训练目标**
+
 ## 10.11 Key Takeaways
 
 ### The Frontier is Moving Fast
