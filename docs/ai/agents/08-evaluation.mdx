@@ -468,6 +468,14 @@ HN 543 分的争论暴露了 agent 评测的一个盲区——**基准测发布�
 
 > 来源：[HN: Is Opus 5.5 nerfed?](https://news.ycombinator.com/item?id=50422069)（543 分）；[LiveNerf 研究](https://cellcog.ai/blog/is-claude-opus-5-5-nerfed)；[AICoder 事件梳理](https://aicoder.com/news/news-20261107-x-discussion-opus-5-5-nerfed-debate-1400-claude-code-sessions-theo-reasoning-summarizer)
 
+### WorkflowArena：可执行的多 agent 工作流编排基准（2026-11-09，arXiv 2611.12856）
+
+LLM agent 正从"单模型 + 工具"走向"模型实例化 worker agent"的 multi-agent 系统，但现有基准大多测单 agent 或静态 DAG。**WorkflowArena** 把编排本身作为被测对象：要求 harness **实际执行**（而非仅规划）工作流编排——动态实例化 worker、分配任务、聚合结果。它补上了评测链路里缺的一环：**单 agent 能力 ≠ 编排能力**，前者有 SWE-bench，后者此前几乎没有可执行基准。选型 multi-agent harness 时应把编排类基准与任务类基准分开看。
+
+### AI Peer Review 实力：100 个植入错误的审计基准（2026-11-09，arXiv 2611.12820）
+
+把 **100 个已知错误植入 10 篇开放获取的心理学论文**，再让前沿模型与两款商用 AI 审稿工具审阅：最好的单一系统**抓到 71/100**。这是少见的「ground truth 全知」式评测设计——每个错误有确定答案，审出与否可以精确计分。工程含义：AI 审稿/AI code review 的真实召回率远低于演示印象，**71% 的漏检率意味着它只能当第一道过滤器，不能当守门员**；同类方法论可直接移植到团队内部的 code review 评测（植入已知 bug 测 agent 检出率）。
+
 ---
 
 ## 8.9 Key Takeaways

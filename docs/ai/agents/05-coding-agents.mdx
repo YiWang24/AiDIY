@@ -864,7 +864,18 @@ DeepSeek 发布 V4.1-Flash 的 1017 快照（MIT 权重，[HuggingFace](https://
 
 > 来源：[HuggingFace model card](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017)、[marktechpost](https://www.marktechpost.com/2026/10/17/deepseek-just-released-v4-1-flash-1017-scores-77-0-on-deepswe-opens-search-api/)（2026-10-17）
 
----
+### 「AI usage generates a fragile codebase」：AI 生成代码的四种脆弱模式（2026-11-10）
+
+前 Meta 工程师 Evan X. Merz 的博文（HN 233 分 / 282 评论）从一线视角列出 AI 重度使用让代码库变脆的四种模式：
+
+1. **浅层测试**：AI 爱写 getter/setter 这类无关痛痒的测试；e2e 测试只覆盖代码库中已有的路径——**行覆盖率指标看不见的覆盖缺口**在持续累积
+2. **过度复杂**：为一个函数能搞定的事写两三个 helper；把 DRY 执行到僵化，牺牲了人类可调试性
+3. **人类理解退化**：越依赖 agent 生成代码，能看懂代码库的开发者越少——review 时看不出新抽象与既有数据结构不兼容，恰恰是高可用系统最需要的判断力
+4. **速度压垮质量线**：为产出速率放弃质量门槛，最终「AI 为 AI 写软件」——用户与维护者两端的体验同步劣化
+
+工程对策（与本站 harness-engineering 章一致）：AI 生成的测试要按「覆盖了哪些*新*故障路径」而非数量验收；约定**人是架构抽象的最终裁决者**；PR review 的标准不因「是 AI 写的」而降低——恰恰要因为 AI 看不见长期结构而提高。
+
+> 来源：[AI usage generates a fragile codebase](https://evanxmerz.com/post/ai-usage-generates-a-fragile-codebase/)（2026-11-07，HN 233 分）
 
 ---
 
