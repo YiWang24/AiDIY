@@ -877,6 +877,20 @@ DeepSeek 发布 V4.1-Flash 的 1017 快照（MIT 权重，[HuggingFace](https://
 
 > 来源：[AI usage generates a fragile codebase](https://evanxmerz.com/post/ai-usage-generates-a-fragile-codebase/)（2026-11-07，HN 233 分）
 
+### Case Study: AWS Emulator——agent 写代码时代，测试基础设施本身交给 agent（2026-11-11）
+
+AWS 开源 **AWS Emulator**（[aws/aws-emulator](https://github.com/aws/aws-emulator)，CC0 公共领域，HN 291 分）：在本地模拟 AWS API，让编码 agent 写完代码立即本地验证，而不是在真实云上试错。动因很直接：AWS 有 200+ 服务，应用每依赖一个就需要一个测试环境，手工搭建要数年工程量，而 **agent 产出代码的速度已超过人类团队搭建与检查环境的速度**——于是让 agent 自己建造并检验测试环境。内部版本一个周末成型，一个月内大规模采用。
+
+生产化的三层 guardrails（Werner Vogels/Swami 撰文总结）：
+
+1. **保真度测试**：每个模拟行为都对真实 AWS 验证；仓库公开维护「things-that-do-not-work」目录，明确标注哪些行为尚未对齐
+2. **多安全 agent merge gate**：多个安全 agent 各自从不同攻击面 review 同一变更，叠加通用代码 reviewer——单一 reviewer 的盲区由角色冗余覆盖
+3. **确定性边界检查**：确定性规则阻止 agent 修改其无权改动的代码
+
+文章的工程立场值得记下：「我们预期 agent 建造并检验大部分软件，**工程师决定造什么、以及何时算正确**」——agent 时代软件质量的护栏设计，正在取代逐行实现成为工程师的核心工作。
+
+> 来源：[AWS Emulator and the engineer's job when agents write the code](https://www.allthingsdistributed.com/2026/11/aws-emulator-and-the-engineers-job-when-agents-write-the-code.html)（2026-11-11，HN 291 分 + 64 分）
+
 ---
 
 ## 5.7 Key Takeaways

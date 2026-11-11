@@ -3092,6 +3092,16 @@ Nadella 同时描绘了编程的未来愿景：开发者将不再编写代码，
 
 998. **arXiv 2611.12825：MaxIM——用 RL 优化增量摘要以最大化下游任务效用（2026-11-09）** — agent 面对无界交互历史与有界记忆的根本矛盾：摘要好写，但"对下游任务有用"难优化。MaxIM 把增量摘要的更新本身作为 RL 目标（maximally informative summarization），优化的是**摘要被消费后的任务表现**而非摘要质量本身。与 Fable 的 Orchestrator 记忆路由、MemoryDojo 的记忆治理同属一条主线：**agent 记忆的格式与更新策略正在从启发式变成可优化的训练目标**
 
+999. **Google 工程师 48 个 AI Agent 分析 NASA lidar，72 小时发现未记录玛雅遗址（2026-11-11，HN 841 分）** — 非考古学者 Pietro Miotti 把约 1,200 km² 玛雅低地 lidar 条带渲染成图像，**48 个 Gemini agent 按统一检索指南逐张看图扫描**（无专用模型、无训练分类器，纯通用 VLM 识别广场/金字塔/平台并过滤天然地形），一夜标出大量聚落形态；再由 agent 交叉检索文献与官方档案锁定一处未注册山顶遗址，自动起草西班牙语报告提交墨西哥 INAH，次日获官方确认「该坐标无注册遗址」。科学发现的瓶颈正在从专业人力转向好奇心与算力。详见 multi-agent 章案例
+
+1000. **AWS 开源 Emulator：给编码 agent 一台本地 AWS（2026-11-11，HN 291 分）** — [aws/aws-emulator](https://github.com/aws/aws-emulator)（CC0 公共领域）在本地模拟 AWS API，让编码 agent 写完代码立即本地验证而非烧真实云试错。动因：AWS 有 200+ 服务，agent 产出代码的速度已超过人类团队搭建测试环境的速度——于是让 agent 自己建造并检验测试环境（内部版一个周末成型、一个月内大规模采用）。生产化三层 guardrails：对真实 AWS 验证的保真度测试 + 公开「things-that-do-not-work」清单、多安全 agent 各自从不同攻击面 review 的 merge gate、阻止 agent 越权改代码的确定性检查。详见 coding agents 章案例
+
+1001. **Google 发布 Gemini Decisions API：决策模型成为云厂商标配品类（2026-11-11，HN 21 分）** — gemini-decision-1：**一次前向打分而非逐 token 生成**，单次多模态输入（文本/图像/音频/视频/PDF，256K token）最多 1,000 个闭集问题（yes-no/选择题/rubric 评分），端到端 150–250 ms，$0.10/1M 输入 token、**零输出 token 计费**，比 Gemini 3.5 Flash-Lite 交互口径便宜约 5 倍，基准套件上校准误差最低。与昨日 Amazon Strands Decider 案例呼应：工具路由、策略检查、模型级联、上下文分级这类闭集判断正从「生成式模型兼职」变成专用 API 原语
+
+1002. **arXiv 2611.14515：AutoScaffold——用 AI 生成的训练时脚手架唤醒 RLVR 浪费的信号** — outcome reward 把每次尝试压成一个数字，大量过程信息被丢弃；AutoScaffold 让 AI 生成训练期 scaffold 来丰富 RLVR 的训练经验，把被压缩掉的过程信息重新利用起来
+
+1003. **arXiv 2611.14492：ReTrace——把会用工具的 agent 蒸馏成无 planner 工作流** — SOP 类业务流程在同类输入上反复运行，agent 却每步都要调 LLM 选工具；ReTrace 把成功轨迹蒸馏成固定工作流，免除逐步规划调用。与决策模型主线一致：**重复性流程该固化就固化，模型调用留给真正需要判断的环节**
+
 ## 10.11 Key Takeaways
 
 ### The Frontier is Moving Fast
