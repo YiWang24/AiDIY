@@ -546,6 +546,18 @@ token 骤降的两个来源：输出从「JSON + 推理」变成 1 个选项；2
 
 > 来源：[Amazon saves millions by replacing Sonnet 4.6 with Strands Decider](https://strandsagents.com/blog/amazon-saves-millions-replacing-sonnet-with-strands-decider/)（2026-11-10，HN 653 分）；[Strands Decider repo](https://github.com/strands-labs/strands-decider)
 
+### Case Study: 48 个通用 Agent 扫描 1,200 km² lidar，72 小时发现未记录玛雅遗址（2026-11-11）
+
+非考古学者的个人项目验证了「同质 agent 大规模并行 + 一份好指南」的科研模式（HN 841 分）：把玛雅低地约 1,200 km² 的 NASA lidar 条带渲染成图像，**48 个 Gemini agent 按「像耐心的考古学家一样看图」的统一指南逐张扫描**——没有专用模型、没有训练分类器，靠通用 VLM 的视觉能力识别广场、金字塔、平台，并按指南过滤天然山丘、塌陷与道路。随后 agent 交叉检索文献与官方档案，锁定一处未注册的山顶遗址（广场 + 8–12 m 金字塔 + 疑似蓄水池），自动起草西班牙语报告提交墨西哥 INAH，次日获得「该坐标无注册遗址」的官方回复。
+
+**multi-agent 工程启示**：
+
+- **同质 agent + 好指南 > 异质复杂编排**：48 个 agent 用同一份检索指南、靠并行度取胜，编排复杂度集中在「指南质量」而非「角色分工」
+- **agent 全程承担跨域衔接**：数据分析、文献比对、官方流程查询、报告起草与翻译都由 agent 完成，人只做关键裁决——「一个外行 + agent 团队」打通了原本横跨考古学、遥感、行政流程三个专业的链路
+- **验证闭环外置**：关键结论（形状是否真在地表而非树冠）用原始点云切片核验，最终裁决交给官方机构——agent 流水线的可信度来自外部可检验锚点
+
+> 来源：[My AI Agents Found an Unmapped Maya Site](https://pietromiotti.com/latest/maya-site/)（2026-11-11，HN 841 分）
+
 ---
 
 ## 7.9 Key Takeaways

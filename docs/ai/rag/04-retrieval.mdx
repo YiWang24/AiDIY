@@ -2140,6 +2140,20 @@ def win_max_selection(query, docs, top_k, lambda_param=0.5):
 
 ---
 
+### 4.4.3 摊销式 MIPS：把检索路由本身学出来（Apple，ICML 2026）
+
+Apple ML Research 发布 *Amortizing Maximum Inner Product Search with Learned Support Functions*（2026-11-05 博客，HN 84 分）：主流 MIPS 用质心路由把候选集缩小 k 倍，但几何路由会漏召回（最近邻未必挂在最近质心下），且默认 query 分布与 key 同构——RAG 场景恰恰相反：**query 是短的用户问题，key 是长而精的文档**。方法要点：
+
+- **数学洞察**：query 到 key 集最大内积的函数就是该集合的**支撑函数（support function）**——凸函数，且其在 query 处的梯度恰好返回最优 key 本身
+- 训练小型 input-convex NN（SupportNet）离线回归支撑函数，推理时以极低代价逼近精确 MIPS；可为每个 cluster 单独学习支撑函数以改进路由质量
+- 本质是**摊销**：一次性离线成本，换取推理时更快更准的检索
+
+工程含义：当 RAG 库相对静态、查询模式可采样时，「学一个路由器」比「调索引参数」收益上限更高；库频繁全量重建或 query 分布漂移剧烈时则不适用。
+
+> 来源：[Faster Retrieval for Better, More Efficient RAG](https://machinelearning.apple.com/research/faster-retrieval)（2026-11-05，HN 84 分）
+
+---
+
 ## 4.5 Hybrid Retrieval Architecture
 
 ### End-to-End Pipeline
