@@ -35,4 +35,4 @@ arXiv 2611.14333「AI Isn't Getting Dumber, We're Getting Pickier」给本周的
 - **LibreAGI**（HN 90 分）：推动为开源权重模型建立长期保存与许可托管，防止 OSS 模型被下架或改许可后消失
 - **smolmaxxing**（HN 171 分）：让 LLM 在小而老的设备上跑起来的工程合集——智能载体从云端 API 单一形态发散
 - **Gemini Robotics 2.5**（11/10）：DeepMind 机器人模型学会数百项日常技能（叠衣、分拣零件），VLA 泛化再进一步
-- **arXiv 2611.14421 Earlybird**：29M 参数（4 bit 仅 16.8 MB）流式语音识别器，边说边出词， voice agent 首响延迟从 90–400 ms 量级再压缩
+- **arXiv 2611.14421 Earlybird**：29M 参数（4 bit 仅 16.8 MB）流式语音识别器，边说边出词，voice agent 首响延迟从 90–400 ms 量级再压缩
