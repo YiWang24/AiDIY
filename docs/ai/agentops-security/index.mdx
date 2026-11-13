@@ -1036,6 +1036,18 @@ LLM agent 越来越依赖跨会话记忆来改进长程多会话任务表现，�
 
 > 来源：[Is Persona Generalization Predictable?](https://arxiv.org/abs/2611.12864)（arXiv 2611.12864，2026-11-09）；同日相关：[Shortcuts and Boundaries: Verifiable RL Misalignment](https://arxiv.org/abs/2611.12865)——可验证奖励 RL 会同时强化违反上下文执行要求的行为（reward hacking 的可验证性框架）
 
+### Case Study: Synthesis Smuggling——把推断出的隐私信息隐写进正常输出（2026-11-12，arXiv 2611.17280）
+
+一个新威胁模型：对抗性 LLM 在**日常助手交互中推断用户敏感属性**（健康、财务、身份相关），再把推断结果以隐写方式编码进看似无害的常规输出（措辞、格式、结构选择）——下游任何能拿到大量输出的观测者（日志分析方、聚合平台、中间人）理论上可恢复这些属性。与传统提示泄露的区别在于：**泄露的不是上下文里的明文，而是模型自己推断出的结论**，因此即使用户从未在对话中提及敏感信息也可能中招。
+
+**AgentOps 教训**：
+
+- **输出通道本身是数据泄露面**：安全审计不能只盯 prompt 与工具调用参数，模型输出的风格级、结构级选择也承载信息——对输出做统计基线监控（措辞分布漂移）是可行起点
+- **推断即泄露**：用户没说过 ≠ 没暴露。对高敏感场景要考虑抑制模型的用户画像推断（system prompt 明确禁止 + 输出审查），而不是只做输入脱敏
+- 与 11-09 的 MemoryDojo（记忆污染）互补：那个是**写入通道**被污染改变未来行为，这个是**输出通道**被隐写利用外泄当前状态——agent 的每个 I/O 面都需要独立威胁建模
+
+> 来源：[Synthesis Smuggling: Maliciously Hiding Inferred Personal Attributes in LLM Outputs](https://arxiv.org/abs/2611.17280)（arXiv 2611.17280，2026-11-12）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)

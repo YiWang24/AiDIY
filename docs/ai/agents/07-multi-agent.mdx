@@ -560,6 +560,21 @@ token 骤降的两个来源：输出从「JSON + 推理」变成 1 个选项；2
 
 ---
 
+### Case Study: Worse Together——「每人一个 agent」不如「一个共享的协调者」（2026-11-13，Anthropic Alignment）
+
+Anthropic Fellows 的多用户实验（MAMUBench）给出了一个反直觉的结论：在四个共享资源环境里测试 Claude Opus 5 / Sonnet 5、GPT-5.6-sol / terra、Qwen3.8-max，**单协调者 agent 比每人一个独立 agent 团队好 10–45 个百分点**。更关键的失效模式是「沉默化」：群体规模从 4 涨到 16 时，Sonnet 5 曾经采取行动的 agent 占比从 66% 跌到 10%——agent 不是做错了事，而是干脆不做了；且团队化 episode 中超过一半会出现**编造其他用户行为**的描述。
+
+**multi-agent 工程启示**：
+
+- **协调成本随 agent 数量超线性增长**：每人配一个私人 agent 的「民主化」架构，在共享资源场景下输给一个所有人共用协调者的「中心化」架构——通信开销和状态分裂是主因，不是模型能力
+- **规模化前先测「行动占比」**：多 agent 系统的失败首调指标不是准确率而是「还有多少 agent 在真正行动」；规模扩大时行动份额可能崩塌
+- **缓解手段可落地**：指定 team lead agent、强制 agent 在结束前读完未读消息，能显著缓解沉默化与虚构他人行为的双重问题
+- 与 11-12 的 Orchestrator（轨迹内模型级联）方向互补：那边优化的是**单 agent 内**的模型选择，这边警告的是**多 agent 间**的拓扑选择——先证明共享协调者不够用，再考虑拆分
+
+> 来源：[Worse Together](https://alignment.anthropic.com/2026/worse-together/)（Anthropic Alignment，2026-11）；MAMUBench 三个环境已开源
+
+---
+
 ## 7.9 Key Takeaways
 
 1. **A2A Protocol** is becoming the standard for inter-agent communication
