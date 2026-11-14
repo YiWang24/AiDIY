@@ -575,6 +575,21 @@ Anthropic Fellows 的多用户实验（MAMUBench）给出了一个反直觉的�
 
 ---
 
+### Case Study: Google Antigravity /teamwork——用「专职证伪者」和「按构造分区上下文」跑通多日科研任务（2026-11-13，Google Research）
+
+Google Research 公开了 Antigravity /teamwork 多 agent 系统在数学、化学、系统软件与 ML 工程上的协作结果（联合学术伙伴，基于 Gemini 4 Argon/Carbon/Hydrogen），并宣布工具对外开放。设计针对长程任务的两个痛点给出机制化答案：其一，单次生成不可靠——系统用**并行探索 + 专职证伪者**弥合「一次尝试」与「正确答案」的差距，证伪者是独立于生成方的验证器（Lean 4 证明检查器、未修改的测试套件、执行模拟器、web search、硬件计数器）；其二，多日任务中注意力随上下文膨胀而涣散——系统**按构造分区上下文**：每个专职 agent 只拿到该步骤精确需要的文件与工具，协调者把任务移交给「全新上下文」的后继者，批评者与审计者在**不含原始生产者推理痕迹的干净上下文**里挑战结果。
+
+**multi-agent 工程启示**：
+
+- **验证器要与生成器独立**：证伪者的价值在于「没见过生成过程」——Lean checker、原样测试套件这些工具级验证器天然满足，LLM-as-judge 则需要干净上下文来模拟这种独立性
+- **上下文分区是构造出来的，不是裁剪出来的**：不是「长上下文塞不下再删」，而是每个 agent 的输入集合从设计上就限定为该步骤所需——信息最小化同时缓解了注意力涣散和提示注入面
+- **「新后继者接手」模式**：协调者 handoff 给 fresh successor，而不是让同一个 agent 背着全量历史跑完多日任务——与 11-13 的 Worse Together（共享协调者 + 强制读未读消息）互补：Google 给出了「协调者如何保持干净」的具体机制
+- 与 11-11 的 48-agent 玛雅遗址案例同方向：多 agent 科研协作的竞争力在「人类专家读不完、试不完的搜索空间」，验证器与上下文治理是让它不出假阳性的两根支柱
+
+> 来源：[Advancing science & engineering with Antigravity's /teamwork](https://research.google/blog/advancing-science-engineering-with-antigravitys-teamwork-feature/)（Google Research，2026-11-13，HN 109 分）；工具已在 Antigravity /teamwork（与 /boost 并列）对外开放
+
+---
+
 ## 7.9 Key Takeaways
 
 1. **A2A Protocol** is becoming the standard for inter-agent communication
