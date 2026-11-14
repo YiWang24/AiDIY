@@ -1048,6 +1048,19 @@ LLM agent 越来越依赖跨会话记忆来改进长程多会话任务表现，�
 
 > 来源：[Synthesis Smuggling: Maliciously Hiding Inferred Personal Attributes in LLM Outputs](https://arxiv.org/abs/2611.17280)（arXiv 2611.17280，2026-11-12）
 
+### Case Study: Lovable 15.9 万项目审查——vibe coding 平台的权限配置成了批量泄露面（2026-11-14，Crissy Field）
+
+安全公司 Crissy Field（与 Handelsblatt 合作）对 **159,041 个 Lovable 项目**（2025-12 至 2026-09 的 Common Crawl 样本）做了系统审查：其中 34,545 个使用 Supabase，**24,664 个网站在页面加载时不需登录就把数据库记录发给了浏览器**；进一步用同一 API key 做只读请求后，在 7,403 个站点（30%）的 10,560 张表里找到了含邮箱地址的记录——包括护照信息和超过 20 万条私信。根因是老问题的新放大器：**Supabase client key + 未启用 RLS（行级安全）的表 = 任何拿到 anon key 的人可读全表**，而 Lovable 生成的应用大量复刻同样的集成模式。
+
+**AgentOps 教训**：
+
+- **同构生成 = 同构漏洞**：AI 平台批量生成的应用遵循相同的数据库集成模式，一个利用方法可以低成本横扫成千上万个应用——「一 app 一漏洞」变成了「一模式一漏洞」，攻击面从 N 个独立问题塌缩成 1 个批量问题
+- **易用性叙事与责任条款的落差就是产品缺口**：Lovable 营销强调「无需技术背景」，T&C 却把数据安全责任全部推给客户。任何「AI 替你搞定一切」的平台，其默认生成的权限配置必须默认安全（RLS 默认开启、公开表显式 opt-in），而不是默认裸奔
+- **自动化检查不能替代安全评审**：处理真实用户数据前必须人工评审访问权限、接口隔离；平台级修复方向是把安全基线内建进生成模板与部署检查，而非在文档里写免责声明
+- 与 11-08 的 Claude Code 凭证泄漏、11-12 的 Synthesis Smuggling 同主线：AI 应用栈的每一层（权限、输出、记忆）都在成为新的泄露面，且「非技术用户」是最脆弱的运营者群体
+
+> 来源：[Lovable: Many Apps Built on the Platform Expose Sensitive Data](https://www.crissyfield.de/research/lovable-en/)（Crissy Field，2026-11，HN 275 分）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
