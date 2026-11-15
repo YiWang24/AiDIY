@@ -404,6 +404,16 @@ DevDay 2026 的头牌发布：**dots 是运行在 GPT-6 Astra 上的 "always-on"
 
 ---
 
+### Cloudflare 开源 Kitesurf：为 Agent 而非人类设计的浏览器引擎（2026-11-13）
+
+Cloudflare 将 8 月发布的无状态 Agent 浏览器引擎 **Kitesurf** 开源（Apache 2.0）。它完全运行在 Workers 上——Blitz 处理 HTML/DOM/布局、Stylo 处理 CSS、Boa 在 WebAssembly 内执行页面 JavaScript——**不依赖 Chromium、不需要浏览器容器**，却暴露标准 CDP 端点，Puppeteer/Playwright/MCP 的现有 agent 代码零改动可用。
+
+**设计取舍**：优先 token 消耗、上下文窗口、并发扩展与成本，砍掉标签页、主题、扩展等人类向功能。Cloudflare 测试显示，在 Agent 最高频的截图与 HTML 提取任务上内存占用最多只有 Chromium 的 1/7，可承载更高并发会话；代价是单页处理速度更慢。自托管仍需 Workers Paid 计划（页面隔离依赖 Dynamic Workers）。
+
+**对 Agent 架构的启示**：GUI/Web Agent 的执行层不必复用人类浏览器——当「读页面」而非「看页面」成为主要负载，专为该负载设计的轻量引擎在成本与并发上有数量级优势。Agent 流量正在反向塑造基础设施，选择执行层时值得把「Agent-first 浏览器引擎」纳入 Chromium 容器之外的对比项。
+
+> 来源：[Kitesurf is now open source](https://blog.cloudflare.com/kitesurf-open-source)（Cloudflare Blog，2026-11-13）
+
 ## 6.9 Key Takeaways
 
 1. **GUI agents bridge the last mile** — interacting with applications without APIs

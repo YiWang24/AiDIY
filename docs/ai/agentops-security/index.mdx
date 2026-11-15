@@ -1061,6 +1061,24 @@ LLM agent 越来越依赖跨会话记忆来改进长程多会话任务表现，�
 
 > 来源：[Lovable: Many Apps Built on the Platform Expose Sensitive Data](https://www.crissyfield.de/research/lovable-en/)（Crissy Field，2026-11，HN 275 分）
 
+### Anthropic FlashProve：推理验证（Inference Verification）进入开源工程阶段（2026-11-14）
+
+你无法仅凭输出质量判断一个 AI 服务返回的 token 是否真的出自其声称的模型——路由服务可能为省钱偷换小模型，攻击者也可能篡改 token 流。Anthropic Frontier Red Team 开源的 **FlashProve** 用 zkSNARK 密码学证明解决这一信任缺口：提供方对模型做承诺，为每次响应生成「该输出确由该模型产生」的证明，且证明过程隐藏模型权重（架构不隐藏）。
+
+**工程现状**（Llama 4 Maverick，400B MoE，4-bit 量化）：
+
+- 单张 H100 证明生成速度约 **110 tokens/秒**；每 1024-token 请求证明约 19 MB
+- GPU 开销为 vLLM 直接推理的 **70–95 倍**——比此前开源方案快几个数量级，但离免费还很远
+- 顶层安全声明用 **Lean 形式化验证**，附交互式审计可视化；证明器 + C++ 快速验证器 + Lean 可证明正确验证器全部开源
+
+**AgentOps 教训**：
+
+- **推理完整性是新的供应链安全问题**：调用第三方模型 API 的 Agent 系统，其「大脑」是否被替换目前完全依赖供应商自觉；推理验证一旦开销可控，应纳入供应商评估清单
+- **形式化方法开始进入 AI 安全工程**：面对「模型做出的优化决策难以人工评估」这一问题（作者原话），用 Lean 证明顶层安全声明是可复用的模式——关键不变量交给机器验证，而非信任代码评审
+- **合规应用是最近的目标**：可证明推理可作为验证推理流量符合监管算力/模型约束（AI pacing requirements）的工具，Anthropic 在 Frontier Safety Roadmap 中公开承诺的 2026-09-30 原型已兑现
+
+> 来源：[Progress on provable inference for large language models](https://www.anthropic.com/research/provable-inference)、[FlashProve GitHub](https://github.com/anthropics/FlashProve)（2026-11）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
