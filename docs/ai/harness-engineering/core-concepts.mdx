@@ -941,3 +941,13 @@ High-quality feedback enables better decisions. Invest in comprehensive tracing 
 **LongHarness Bench（arXiv 2609.38137）**：专门压测语言模型 harness 在长上下文推理任务上的表现，证明长上下文能力的瓶颈常在 harness 而非模型本身——与本系列反复强调的"上下文经济学"（CliffCompaction、Grow the Harness）互为印证。
 
 > 来源：[arXiv:2609.38147](https://arxiv.org/abs/2609.38147)、[arXiv:2609.38143](https://arxiv.org/abs/2609.38143)、[arXiv:2609.38137](https://arxiv.org/abs/2609.38137)（2026-09-29）
+
+### 前沿研究补充（2026-11-16）
+
+**ModHarness-RL（arXiv 2611.18533）**：把 harness 本身变成可学习、可演化的程序。现有 agentic RL 大多在固定的人工写就 harness（决定模型看到自己交互的哪些部分、收到什么引导）下训练，harness 成为不可优化的天花板；ModHarness-RL 把 harness 重新定义为随训练共同进化的可编程组件。这是本节 harness 自我优化研究线（RRSI、Harness-Zero、Meta-Skills）的最新一步：harness 从「人写的脚手架」→「agent 可习得的技能」→「与策略共同训练的模型组件」。
+
+**Can Mechanistic Interpretability Help Explain LLM Agent Failures?（arXiv 2611.18514）**：用机制可解释性（MI）解释 agent 的 Web 元素幻觉——模型在网页交互中引用页面上并不存在的元素。MI 已能解释 LLM 内部计算，但 agent 决策失败的归因仍不成熟；这篇案例研究是「harness 可观测性」往权重层面下探的尝试：不仅记录 agent 做了什么，还要解释它为什么这么做。
+
+**WeightBench（arXiv 2611.18553）**：首个系统评测「语言模型作为权重空间程序员」的基准——LLM 直接读/修/写其他网络的参数（不经过梯度训练）。与 weight-space programming 研究线（见 llm-fundamentals 训练管线 2026-11-02 补充）配套，为「模型操作模型」的能力提供了可比较的测量工具。
+
+> 来源：[arXiv:2611.18533](https://arxiv.org/abs/2611.18533)、[arXiv:2611.18514](https://arxiv.org/abs/2611.18514)、[arXiv:2611.18553](https://arxiv.org/abs/2611.18553)（2026-11-13）
