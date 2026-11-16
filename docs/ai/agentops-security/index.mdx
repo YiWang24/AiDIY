@@ -1079,6 +1079,20 @@ LLM agent 越来越依赖跨会话记忆来改进长程多会话任务表现，�
 
 > 来源：[Progress on provable inference for large language models](https://www.anthropic.com/research/provable-inference)、[FlashProve GitHub](https://github.com/anthropics/FlashProve)（2026-11）
 
+### Case Study: FBI Artex 警报——自主 AI 渗透工具把攻防时间差压到 3 小时（2026-11-16，FBI IC3）
+
+FBI 发布 flash 警报（[IC3 CSA 261113](https://www.ic3.gov/CSA/2026/261113.pdf)）：自 7 月公开亮相以来，开源自主渗透测试平台 **Artex** 已被用于多起真实攻击——目标覆盖金融服务、政府、科技、国防、电信与律所。可确认的战役包括：IT 管理巨头 **ConnectWise** 供应链入侵（微软 Storm-0940 报告归因为中国背景攻击者，至少 **2,250 家客户的 Microsoft 365 云环境**被窥视）；韩国金融业连环入侵（缺陷主要是缺 MFA、防御薄弱，至少 **68,000 人**个人数据失窃）；安全公司 **Barracuda** 自身被攻破——入口是一个合作终止后**未吊销的第三方凭证**，日志细粒度不足甚至无法确认影响范围，只能「按最坏情况假设」轮换全部客户凭证。
+
+FBI 的关键观察：Artex 可接入各家前沿 LLM（Anthropic/OpenAI 托管模型、开源与非美国模型），攻击从锁定目标到实际得手**最快不到 3 小时**；流量虽「嘈杂」（会触发防御告警），但速度让人工响应者永远慢一步——Barracuda CISO 原话：「依赖发现恶意活动再响应的防御者，通常在攻击者完工后才到场」。开发者事后把工具转为闭源，但旧开源版仍在广泛流通；上周研究人员还发现**数百个暴露在公网、无密码保护的 Artex 控制台**（包括攻击韩国金融业用的那台）——AI 攻击工具自身也成了被劫持对象。
+
+**AgentOps 教训**：
+
+- **机器速度攻击 vs 人工速度响应**：agent 化攻击把侦察→利用→横向移动压缩到小时级，靠值班人员读告警再处置的 SOC 流程在时间轴上已经输了；防御端同样需要自动化（机器速度补丁、自动凭证轮换、agent 化演练）
+- **AI 渗透工具利用的仍是「基础卫生债」**：三个确认战役的根因分别是缺 MFA、未吊销凭证、供应链信任过度——不是 0-day。在 LLM 把「找到弱点」的成本打到地板价之后，存量弱点清单就是攻击者的任务列表
+- **强能力工具自身的运维安全**：与 11-08 Claude Code 凭证泄漏、11-14 Lovable 批量暴露同构——把高危能力部署上网却不管访问控制，等于给攻击者送弹药；工具的开发者、使用者和托管方都要为暴露面负责
+
+> 来源：[FBI says Artex AI open-source hacking tool used to breach networks in 'under three hours'](https://techcrunch.com/2026/11/16/fbi-says-artex-ai-open-source-hacking-tool-used-to-breach-networks-in-under-three-hours/)（TechCrunch，2026-11-16）、[FBI IC3 警报原文](https://www.ic3.gov/CSA/2026/261113.pdf)、[Microsoft Storm-0940 报告](https://www.microsoft.com/en-us/security/blog/2026/10/21/storm-0940-uses-artex-agentic-ai-connectwise-supply-chain-compromise/)（2026-10-21）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)

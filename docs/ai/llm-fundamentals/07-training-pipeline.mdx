@@ -2473,6 +2473,25 @@ arXiv [2611.08453](https://arxiv.org/abs/2611.08453)（Zeyu Leo Liu、Bo Pang、
 
 ---
 
+### 2026-11: Checkpoint 取证——从公开权重读出训练硬件（硬件指纹与出口管制）
+
+训练管线的每一步都会在权重里留下痕迹。Unemployment Labs（Will DePue，2026-11-12）的 [checkpoint forensics](https://unemploymentlabs.com/checkpoint-forensics) 报告演示了这件事能走多远：**不靠泄露或内部线人，仅凭各实验室公开发布的模型权重**，就能恢复训练初始化时的数值指纹，再在硬件配置 × 初始化种子的组合空间（约 6 万亿种）里搜索能复现该指纹的配置——识别出权重「出生」在哪一代 GPU 上。NVIDIA 的 B200/B300 有 148 个 SM（streaming multiprocessor），GB200/GB300 有 152 个，两种指纹可区分；方法在 24 个开发者公开披露过训练硬件的模型上全部与官方声明一致（NVIDIA 自家 Nemotron-3 Ultra 技术报告写明 GB200，指纹读出 152 SM，与 Kimi K3 相同）。
+
+主要发现：
+
+- **四个中国实验室的六个模型读出 Blackwell 指纹**：DeepSeek-V4-Flash（B200/B300）、DeepSeek-V4-Pro（GB200/GB300）、Kimi K3 与 K3.1-Pro（GB200/GB300）、MiniMax-M3（B200/B300）、蚂蚁 Ling-3.1-flash（GB200/GB300）。四家各自上一代模型还都是 Hopper 指纹——切换发生在 2026 年 4–10 月之间
+- **证据强度远超噪声**：在 6 万亿种子×布局组合中，最强偶然匹配预期约 8σ；六个模型的证据为 **49σ–1,385σ**，最弱的单项检验也有 20σ。对 DeepSeek-V4-Flash 和 Kimi K3 还在物理 Blackwell 芯片上确认了匹配
+- **并非所有实验室都换了代**：Qwen（阿里）、GLM（智谱）、腾讯、小米、StepFun 的最新模型仍是 Hopper 指纹；美团 LongCat-2.0 声称全用「AI ASIC superpods」，权重中读不到 NVIDIA 指纹
+- **训练规模可估**：从模型规模与训练 token 量反推，各次训练约需 **500–3,000 张 Blackwell** 跑 2–3 个月（DeepSeek-V3 同法估 2,000–2,500 张，官方披露 2,048——方法给出正确量级）；按约 $70k/卡计，最大集群 $1.5–2 亿，五个集群合计超 $5 亿
+
+**边界与政策语境**：作者明确指出指纹只证明「权重在哪种硬件上初始化」，**不证明训练发生在何处、访问如何获得、是否违反出口管制**（唯一识别到的替代解释是受限的特配 AMD 硬件，已对 V4-Flash 排除、对其余五个认为极不可能）。同期（2026-11-16，周一）美国商务部 BIS 发布新规，封堵「中国公司通过海外数据中心远程访问先进 AI 芯片」的漏洞——物理出口管制之后，**远程访问成为下一个被收紧的面**；而这次事件说明，合规与否的取证证据可能就藏在每个人都能下载的权重文件里。
+
+**工程启示**：模型工件（checkpoint）不是「值不值钱」一个维度——它还是可鉴证的供应链凭证。发布权重的团队应把权重当作会永久留存的硬件/管线指纹来对待；研究出口管制与算力审计的人则有了一种不依赖情报渠道的公开检验方法。
+
+> 来源：[Top Chinese Frontier AI Models Carry the Fingerprint of Export-Controlled NVIDIA Blackwell GPUs](https://unemploymentlabs.com/checkpoint-forensics)（Unemployment Labs，2026-11-12，HN 448 分）、[BIS remote access rule](https://media.bis.gov/press-release/bis-issues-rule-addressing-remote-access-american-super-intelligence-technology)（2026-11，NPR 报道）
+
+---
+
 ## Summary for Interviews
 
 **Training Pipeline (2025)**:
