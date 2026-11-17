@@ -1093,6 +1093,18 @@ FBI 的关键观察：Artex 可接入各家前沿 LLM（Anthropic/OpenAI 托管�
 
 > 来源：[FBI says Artex AI open-source hacking tool used to breach networks in 'under three hours'](https://techcrunch.com/2026/11/16/fbi-says-artex-ai-open-source-hacking-tool-used-to-breach-networks-in-under-three-hours/)（TechCrunch，2026-11-16）、[FBI IC3 警报原文](https://www.ic3.gov/CSA/2026/261113.pdf)、[Microsoft Storm-0940 报告](https://www.microsoft.com/en-us/security/blog/2026/10/21/storm-0940-uses-artex-agentic-ai-connectwise-supply-chain-compromise/)（2026-10-21）
 
+### Case Study: MCP 工具名不等于身份——工具提供者误绑定（2026-11-17，arXiv 2611.21577）
+
+MCP 标准化的是工具的**发现与调用**接口，但用于发现和选择的工具元数据本身不与经过验证的提供者身份绑定。arXiv 论文把这定义为 **tool-provider misbinding**：本应发给合法提供者的请求被解析到攻击者控制的工具。攻击面极小——**不攻破主机、LLM、合法 server 或网络信道**，攻击者只需运行另一个 MCP server、用选定元数据广告同名工具，把「工具选择」变成一个攻击者可控的优化问题。在受控 MCP 环境中对 5 个 LLM 客户端的评测显示此类误绑定可稳定诱导。
+
+**AgentOps 教训**：
+
+- **命名空间 ≠ 认证**：MCP 多 server 组合场景下，工具名/描述只是路由提示，不是身份凭证；对高权限工具要做调用侧的提供者验证（签名、固定 server 来源、调用前确认）
+- **攻击成本下探到「架一个 server」**：与 11-16 Artex 警报同构——旧攻击面（凭证、供应链、命名混淆）没有被修补，只是被 LLM 的工具选择机制赋予了新的自动化入口
+- **工具选择的信任决策应在客户端收敛**：不要把「选哪个工具」完全交给模型的语义匹配；客户端应维护经过验证的工具注册表，语义匹配只做检索不做授权
+
+> 来源：[When Tool Names Are Not Identities: Measuring Provider Misbinding in MCP-Based AI Agents](https://arxiv.org/abs/2611.21577)（arXiv，2026-11-16）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)

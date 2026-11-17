@@ -858,6 +858,16 @@ public class BoundaryEnforcementService {
 
 ---
 
+### Case Study: 验证层的经济学与诚实性——FrontierHarness v1.1 与 Claude Code 验证方法论（2026-11-17）
+
+harness 的两个常被低估的属性在同一周被量化。其一，**成本**：Runta/Baseten 的 27,280 次运行实验显示，模型解释每任务成本方差的 92.8%，其余大部分来自模型×harness 交互——harness 成本排名在换模型后中位移动 11/22 位，不可迁移；同一模型下最贵 harness 的每 pass 成本可达最低者的 5 倍；成本与通过率的秩相关仅 −0.39 到 +0.22。成本的主要预测因子是**步数**（每步重发全部上下文），而非 prompt 大小或工具数量——harness 设计的第一优化目标是减少步数。其二，**失败成本**：64.5% 的推理开销流向未通过运行，且 68%–82% 的失败以「自信的最终答案」收尾，意味着 harness 的停止条件本身就是一个需要设计的验证问题。
+
+Claude Code 团队（~90% 代码由 Claude 写和审）给出的运营答案是三条纪律：**变更不得修改自己的检查**（verifier 够不到被审对象）；新门禁先 observe 后强制；用「三个 bug finder 重放历史事故 PR、至少两个检出」给检查层评分，漏检转为规则。这与 ModHarness-RL（2026-11-16，harness 可训练化）共同勾勒出 harness 工程的分工：短期靠人工设计的验证纪律守住下限，长期走向 harness 自我优化。
+
+> 来源：[FrontierHarness Eval v1.1](https://runta.com/blog/introducing-frontierharness-eval-v1-1/)（Runta）、[How the Claude Code team thinks about verification](https://claude.dev/blog/how-the-claude-code-team-thinks-about-verification/)（claude.dev，2026-11-16）
+
+---
+
 ## 1.4 Key Takeaways
 
 ### Control Loops
