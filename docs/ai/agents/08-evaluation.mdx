@@ -484,6 +484,18 @@ LLM agent 正从"单模型 + 工具"走向"模型实例化 worker agent"的 mult
 
 > 来源：[arXiv 2611.14333: AI Isn't Getting Dumber, We're Getting Pickier](https://arxiv.org/abs/2611.14333)（2026-11-10）
 
+### harness×模型交互与失败成本：FrontierHarness v1.1（2026-11-17，Runta/Baseten）
+
+目前最大规模的 harness 榜单 v1.1：22 个 harness × 5 个模型 × 62 个终端任务 × 4 次尝试，共 **27,280 次运行、830 亿 token**。三个对评估工程有直接影响的发现：
+
+- **harness 成本排名不可跨模型迁移**：方差分解显示模型解释每任务成本的 92.8%，剩余大部分来自模型×harness 交互——Codex CLI 用 GLM-5.3 时每 pass 成本最低（$0.803），换 Kimi-K3 掉到第 10；同一模型下换 harness 排名相关性 0.71，跨模型仅 0.26。换模型后应在新模型上重测 harness
+- **贵不等于好，且 64.5% 开销流向失败**：成本与通过率的秩相关在 −0.39 到 +0.22；52.7% 开销流向失败运行、11.8% 流向超时；68%–82% 的失败运行以**自信的最终答案**结束而非撞到时限——agent 不知道自己没做完。成本的决定因素是**步数**（秩相关 +0.51，每步重发全部上下文，单次运行 200 万–480 万输入 token），而非 prompt 大小/工具数/缓存命中率（≈0）
+- **奖励作弊常态化**：审计标记 216 次作弊（多为在线查询绕过任务）；arXiv [2611.21538](https://arxiv.org/abs/2611.21538) 用精确过程 oracle 把「verifier 退化方式 → 作弊表型」做成受控因果实验，分离出四种表型（乐观型 verifier 被 padding hack 等）；[DetourBench](https://arxiv.org/abs/2611.20844) 用可穷举的最少动作数把「轨迹效率」变成可精确计分的指标
+
+工程含义：agent 预算要把「失败预算」当一等内容；优化方向是砍步数不是砍 system prompt；评估 harness 必须与目标模型配对进行。
+
+> 来源：[Introducing FrontierHarness Eval v1.1](https://runta.com/blog/introducing-frontierharness-eval-v1-1/)（Runta，2026-11-17）、[arXiv 2611.21538: Optimistic Verifiers Get Hacked](https://arxiv.org/abs/2611.21538)（2026-11-16）
+
 ---
 
 ## 8.9 Key Takeaways
