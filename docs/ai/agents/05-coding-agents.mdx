@@ -899,6 +899,18 @@ Antigravity 博客点名了静态 model router 的结构性缺陷：按第一条
 
 > 来源：[Introducing Gemini 4 Hydrogen](https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/)、[Gemini 4 Hydrogen and Orchestrator in Antigravity](https://antigravity.google/blog/gemini-4-hydrogen-in-google-antigravity/)（2026-11-12，HN 297 + 47 分）
 
+### Case Study: 哈佛研究——编码 Agent 把瓶颈从「写代码」推移到了「code review」（2026-11-17，Harvard/Jellyfish）
+
+哈佛博士候选人 Fiona Chen 与 James Stratton 的工作论文（718 家企业样本，Jellyfish 工程分析平台数据 + Revelio Labs 就业记录，2021-01 至 2026-03，涵盖 6830 万 Jira issue、2.009 亿 commit、4910 万 PR）给出了一个反直觉的量化结论：采用 AI 编码 agent 后，**代码产出增加约 30%**，但**完成的交付工作量没有可测量的提升**，而**代码通过 review 的耗时延长了 49%**。换句话说，agent 加速的是「草稿生成」这一个环节，人类检查点成了新的全局瓶颈——瓶颈没有消失，只是从打字移动到了评审。
+
+**工程含义**：
+
+- **衡量 agent 收益要看端到端吞吐**：只统计「生成了多少行/多少 PR」会系统性高估收益；度量应到「merged 且未回退」为止
+- **review 侧需要配套投资**：agent 产出速率上来之后，不加投资的 human review 队列就是排队论里的单点；分层——测试/lint/静态分析先机器过滤，人只审高危变更
+- **证据等级提示**：该文是 working paper（job market paper，无同行评审完成标记），数字当作方向性信号而非精确系数使用
+
+> 来源：[Harvard researchers find AI coding agents shifted the bottleneck to code review](https://complexdiscovery.com/harvard-researchers-find-ai-coding-agents-shifted-the-bottleneck-to-code-review/)（ComplexDiscovery，2026-10，HN 307 分，2026-11-17）
+
 ---
 
 ## 5.7 Key Takeaways

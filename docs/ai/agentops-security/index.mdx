@@ -1105,6 +1105,18 @@ MCP 标准化的是工具的**发现与调用**接口，但用于发现和选择
 
 > 来源：[When Tool Names Are Not Identities: Measuring Provider Misbinding in MCP-Based AI Agents](https://arxiv.org/abs/2611.21577)（arXiv，2026-11-16）
 
+### Case Study: 跨组织 agent 信任基础设施 ATI——PKI + 零信任 + 远程证明（2026-11-17，arXiv 2611.23202）
+
+agent 跨组织协作（调用他方工具、与他方 agent 交互）正在成为常态，但现有框架只有规划与协调能力，**缺少验证跨组织 agent 身份、执行完整性与授权的公共机制**——昨天刚讨论过 MCP 工具名不等于身份，这篇论文给出了一个体系化补强方案。**Agent Trust Infrastructure (ATI)** 是框架无关的安全架构，构建在 PKI、零信任架构（ZTA）与远程 attestation 之上：各组织运行对等的 **AgentCA** 证书机构形成联邦信任，**不需要共享根 CA**。执行请求前，ATI 校验 agent 证书、核对已批准的**模型、工具、system prompt 配置**，并通过三类策略检查强制授权；实现上作为外部安全执行点挂接。
+
+**AgentOps 教训**：
+
+- **信任要绑定「配置快照」而不只是身份**：ATI 把「这个 agent 被批准跑什么模型、挂什么工具、用什么 system prompt」纳入 attestation 范围——agent 的行为由配置决定，只验身份不验配置等于验证了签名的未知物
+- **联邦对等 CA 优于共享根**：跨组织场景推一个全球根 CA 在治理上不可行，对等互认（类似 TLS 联盟/Web of Trust 思路）是可落地的中间态
+- **外部执行点模式**：安全层作为框架无关的外部 enforcement 挂载，意味着可以给 LangGraph/OpenAI SDK 等异构框架统一加闸门，不必改造各框架内部
+
+> 来源：[Agent Trust Infrastructure (ATI): A Federated Identity, Trust, Attestation, and Accountability Architecture for Cross-Organization Autonomous AI Agents](https://arxiv.org/abs/2611.23202)（arXiv，2026-11-17）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
