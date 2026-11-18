@@ -588,6 +588,18 @@ Google Research 公开了 Antigravity /teamwork 多 agent 系统在数学、化�
 
 > 来源：[Advancing science & engineering with Antigravity's /teamwork](https://research.google/blog/advancing-science-engineering-with-antigravitys-teamwork-feature/)（Google Research，2026-11-13，HN 109 分）；工具已在 Antigravity /teamwork（与 /boost 并列）对外开放
 
+### Case Study: Mind the Gap——部署态 multi-agent 文档维护系统 TriAgent（2026-11-17，arXiv 2611.23142）
+
+代码以空前速度演进，而面向用户的文档长期滞后；当用户越来越依赖把文档当作主接口的 LLM agent 时，**过时文档会被当作权威信息传播**，文档鸿沟的危害被放大。arXiv 论文描述了一套已部署的 multi-agent 系统：围绕名为 **TriAgent** 的 triage agent，持续提取两类「文档落后」信号——显式信号（已解决的 support ticket 暴露文档缺口）与隐式信号（自动化循环可检测的代码-文档不一致）——并驱动修复。**43 天 shadow mode** 运行的结果表明，这类维护型多 agent 系统可以稳定跑在生产环境旁边而不干扰主线开发。
+
+**multi-agent 工程启示**：
+
+- **维护型 agent 是被低估的场景**：多数多 agent 案例聚焦「创造新产物」，TriAgent 反其道——用 agent 收敛系统自身的信息熵，信号源（ticket、diff）天然存在且可验证
+- **triage 与 repair 分离**：先由专职 triage agent 判定「哪里漂移了、值不值得修」，再交给修复流程——与 7.8 的 Strands Decider 同构：分类/决策环节用便宜模型，重活才升级
+- **shadow mode 先行**：43 天影子运行验证输出质量后才考虑实际写入，是 agentic 系统接入存量基础设施的稳妥路径
+
+> 来源：[Mind the Gap: A Deployed Multi-Agent System for Documentation Maintenance](https://arxiv.org/abs/2611.23142)（arXiv，2026-11-17）
+
 ---
 
 ## 7.9 Key Takeaways
