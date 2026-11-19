@@ -961,3 +961,11 @@ High-quality feedback enables better decisions. Invest in comprehensive tracing 
 **WeightBench（arXiv 2611.18553）**：首个系统评测「语言模型作为权重空间程序员」的基准——LLM 直接读/修/写其他网络的参数（不经过梯度训练）。与 weight-space programming 研究线（见 llm-fundamentals 训练管线 2026-11-02 补充）配套，为「模型操作模型」的能力提供了可比较的测量工具。
 
 > 来源：[arXiv:2611.18533](https://arxiv.org/abs/2611.18533)、[arXiv:2611.18514](https://arxiv.org/abs/2611.18514)、[arXiv:2611.18553](https://arxiv.org/abs/2611.18553)（2026-11-13）
+
+### 前沿研究补充（2026-11-19）
+
+**Agentic Harness Engineering Beta（arXiv 2611.24924）**：指出现有 harness 演化方法普遍只优化**显式需求**（用户写下的指令），而真实 harness 工程由显式与隐式需求共同驱动——隐式需求藏在交互轨迹里。提出以「需求为中心」的 harness 演进框架，把交互中暴露的隐式需求显式化后纳入开发与验证回路。与 ModHarness-RL（2611.18533）互补：那条线把 harness 变成可训练组件，这条线回答「训练目标从哪来」——harness 工程从写代码转向需求管理。
+
+**Cap-and-Track（arXiv 2611.24891）**：LLM 推理请求调度——固定派发速率在服务集群缩扩容、请求长度分布漂移时会过期，而生成输出长度在准入时不可知。给出容量约束下的自适应派发策略，是推理服务「准入控制」从静态配置走向在线优化的又一环（详见 llm-fundamentals 推理章节同日条目）。
+
+> 来源：[arXiv:2611.24924](https://arxiv.org/abs/2611.24924)、[arXiv:2611.24891](https://arxiv.org/abs/2611.24891)（2026-11-18）
