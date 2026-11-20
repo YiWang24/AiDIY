@@ -436,3 +436,11 @@ Never run GUI agents with access to sensitive systems without proper sandboxing 
 :::info Cost Consideration
 根据 Reflex.dev 的基准测试，Computer Use 的 token 消耗是结构化 API 的 **45 倍**。在 Agent 架构设计中，应优先通过 MCP 或 REST API 暴露结构化接口，仅在无 API 可用时才考虑 Computer Use。
 :::
+
+### 2026-11-20: Gemini Mac 桌面应用上线 computer use
+
+Google 给 macOS 版 Gemini 桌面应用新增**电脑操作能力**：可代用户导航原生 Mac 应用与浏览网页，聊天窗口内实时预览操作画面，且**每个动作执行前需用户批准**（per-action approval）。限制条件明确：目前仅限美国地区、仅支持英文，需要 Google AI Plus/Pro/Ultra 订阅。
+
+对 desktop agent 格局的意义：此前该赛道由 Claude Computer Use 与 OpenAI Operator（后并入 ChatGPT）主导，Google 把 computer use 从 API/浏览器形态推进到**操作系统级原生应用控制**，且以「逐动作批准」作为默认交互——消费者级桌面 agent 的安全默认值正在向 human-in-the-loop 收敛（呼应本章 Key Takeaways 的 sandboxing 与 human oversight 原则）。
+
+> 来源：[AIToolsRecap](https://aitoolsrecap.com/Blog/ai-news-november-20-2026)（2026-11-20）
