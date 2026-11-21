@@ -299,6 +299,14 @@ Each expert is a specialized FFN:
 
 > 来源：arXiv 2610.42147 / 2610.42112 / 2610.41994（2026-10-30）
 
+### 2026-11-21: Inkling 2 Mini——looped transformer 把推理深度从参数搬到循环
+
+[Thinking Machines](https://thinkingmachines.ai/news/inkling-2-mini/) 发布 Inkling 2 Mini：**26.4B 总参 / 3.4B 激活**的 MoE，但每个 token 把模型中间层**循环执行三遍**（每 token 权重激活合计 5.4B）——用「复用深度」替代「堆叠宽度」。在 DeepSWE v1.1（48.2%）与 Vals Index v2.2（46.5%）上领先全部 100B 以下开放权重模型，且解码速度更快；NVFP4 量化后 **5.4GB 权重即可在笔记本上运行**。训练配套 **NVFP4 原生量化训练 + 剪枝-愈合（pruning and healing）** 流程。
+
+对架构研究的两个启示：其一，**循环深度是推理计算的可调维度**——配套发布的 variable-loop 研究模型显示，no-CoT 时间视野从单遍的 16 秒升到三遍的 37 秒，串行推理基准在**十遍循环（两倍于训练值）**时仍在提升，说明循环带来真实的推理外推能力；其二，**可监控性（monitorability）是循环架构的核心论点**——循环让模型「想得更久而不写下来」，CoT 随循环加深变短但保持可读，且 agentic sabotage 测试分数未随循环数上升。这为「CoT 忠实性监控」安全路线提供了架构级实验场：如果推理发生在权重复用里而非 token 里，监控对象将从文本转向激活。另外注意发布策略：同日发布的旗舰 Inkling 2 Small（594B/17B 激活）**先闭权重、待安全测试后开放**——开源实验室也开始采用「安全测试窗口」的发布节奏。
+
+> 来源：[Introducing Inkling 2 Mini](https://thinkingmachines.ai/news/inkling-2-mini/)（Thinking Machines，2026-11-20，HN 1295 分）、[Inkling-2-Mini in 5.4 GB Memory](https://github.com/ShinMegamiBoson/lookatmyquant)（社区量化复现，HN 155 分）
+
 ### 2025: Higher-Order Attention (Nexus)
 
 **Innovation**: Query and Key vectors are outputs of nested self-attention loops.
