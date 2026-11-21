@@ -647,6 +647,14 @@ arXiv [2611.03627](https://arxiv.org/abs/2611.03627)（UIUC，Pang & Wang）系�
 
 **对工程团队的提醒**：用 RLVR（GRPO/PPO + 结果奖励）训练 agent 或推理模型时，只在训练分布上评测会系统性高估泛化能力；held-out 任务族的迁移评测应进入标准评测流水线。
 
+### 2026-11-21: GPT-6.2 在 SimpleBench 翻车——综合榜单与朴素常识推理脱节
+
+[SimpleBench](https://simple-bench.com/)（HN 144 分、91 评论）报告 GPT-6.2 **Astra 与 Sol 双双翻车**：Astra 在 BenchLM 综合榜高居第二（91.1 分），但在考察时空推理、社会智能与语言对抗鲁棒性（trick questions）的 SimpleBench 上远低于人类基线。这个基准的设计初衷就是「高中生 vs SOTA 模型」：非专业人类基线 **83.7%**，目前最好的模型 Claude Fable 5.2 也只有 **81.9%**——「最简单」的题目类别恰恰最难被「记忆 + 近似推理检索」范式解决。
+
+**对评测与选型的提醒**：综合能力分（BenchLM/各类智能指数）与「普通人的朴素推理」是两个正交维度——91 分的模型可能在常识题上输给榜单 81 分的竞品。面向普通用户的产品选型，应该用贴近目标人群直觉的对抗性小基准实测，而不是外推综合排行榜；这与上文 RLVR 泛化边界条目是同一个教训的两面：**训练/榜单分布内的分数不保证分布外成立**。
+
+> 来源：[SimpleBench](https://simple-bench.com/)、[HN 讨论](https://news.ycombinator.com/item?id=50588916)（2026-11-21）
+
 ---
 
 ## 2025: Agent Failure Modes

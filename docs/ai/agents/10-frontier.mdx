@@ -294,6 +294,12 @@ arXiv [2611.08478](https://arxiv.org/abs/2611.08478)（Zhuang Liu 等）指出 A
 - **Anthropic 数学家声称证明黎曼猜想**（HN 1319 分、868 评论）：Levent Alpöge 在个人网站声明「与 Claude 合作发现黎曼猜想证明」，并发布 **Lean 形式化版本**供机器检验——在 Lean 验证完成前这只是声明而非证明，HN 评论区技术质疑激烈。但这是一条持续工作线而非孤立事件：Alpöge 今年 7 月已借 Claude 发布雅可比猜想反例；叠加前一天 Anthropic 公布的黑洞物理成果，**前沿模型正在进入人类数学最深水域，而形式化证明语言恰好是「AI 产出可验证」的稀缺基础设施**
 - **Architect Labs 发布 Frostbite CPU**（HN 544 分）：架构探索、编译器、ISA、微架构、RTL、验证到最终 GDS **全程由 agent 集群自主完成**，不预设人类架构先验；基于 interaction nets（每步计算局部、依赖显式、值单所有者——并行性来自程序结构本身，无需深层缓存一致性机制），在 25 个工作负载（15 个 held-out）上对现代流片超标量 CPU 取得 **4.59 倍 perf/W**。对软件工程最有共鸣的细节：团队放弃英文 PDF 规格，自研 ASL 规范语言承载形式化契约、lower 成 **80 万+ 行 Lean** 作为唯一事实源，并明确表示这「防止了一大类 bug 与 agent 集群的 reward hacking」——与 harness-engineering 的结论殊途同归：**AI 时代的规格必须是机器可检验的契约，而非自然语言**
 
+### 黎曼猜想 Lean 验证通过与 Thinking Machines 双发（2026-11-21）
+
+- **Lean/Mathlib 社区正式验证黎曼猜想证明**（HN 560 分）：距 Alpöge 发布仅一天，Lean 与 Mathlib 社区发布联合声明（Lean FRO 与 Mathlib Initiative 背书）：「我们有充分信心 Alpöge 的黎曼猜想证明是正确的」。验证遵循 Xena 项目的四准则：命题取自 Mathlib 中经专家审查的 `RiemannHypothesis`；数十人独立编译复现同一 raw proof export；用 `comparator` 与 `con-leche` 两个独立工具确认所证命题与 Mathlib 声明逐字一致；raw proof 经 Lean 官方 kernel 及多个第三方独立 checker 检验（`con-leche`/`con-ron` 自带「相对集合论不可能接受假证明」的形式化保证，且检验对象是与源码隔离的惰性导出，排除恶意代码）。**1700 万行 Lean、约 239MB、17.5 万源文件**取代传统论文（作者称生成文本版超过 25 万页「不可读」）——人类不可读但机器可验证的数学证明第一次通过全社区检验。Terry Tao 同日发文讨论 Unforced Navier-Stokes 奇点与 GRH 的关联结构（HN 518 分），数学社区的跟进速度本身就是信号
+- **Thinking Machines 发布 Inkling 2 Small 与 Inkling 2 Mini**（HN 1295 分）：Inkling 2 Small 594B 总参/17B 激活，发布时闭权重、**完整权重待额外安全测试后数周内开放**；Inkling 2 Mini **26.4B 总参/3.4B 激活**，靠「中间层循环跑三遍」的 looped transformer 在 DeepSWE v1.1（48.2%）与 Vals Index v2.2（46.5%）领先全部 100B 以下开放权重模型，量化后 **5.4GB 内存可跑在笔记本上**（架构细节见 llm-fundamentals transformer-architecture 2026-11-21 条目）
+- **GPT-6.2 Astra/Sol 在 SimpleBench 翻车**（HN 144 分、91 评论）：BenchLM 综合榜 91.1 分的 Astra 在考察朴素人类推理的 SimpleBench 上远低于人类基线 83.7%——**综合能力分与「普通人的常识推理」是两个正交维度**，选型时不能拿一个榜单外推另一个场景（详见 llm-fundamentals limitations 2026-11-21 条目）
+
 ---
 
 ## 10.4 Multi-Agent Research Frontiers
