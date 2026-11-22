@@ -267,6 +267,12 @@ print(f"Loss: {loss.item():.4f}")
 # Converges to ~1.8-2.5 for good models
 ```
 
+:::note 行业动态：perplexity 正在成为跨厂商共享进度指标（2026-11）
+
+上面的 cross-entropy loss 正是预训练阶段的核心进度指标：对其取指数即得 **perplexity**（困惑度）。OpenAI 在 2026 年 11 月 21 日的文章 *Perplexity and Intelligence* 中首次公开了 GPT-3.5 以来的内部预训练困惑度曲线（在其内部代码库评测集上：GPT-3.5 约 0.99、GPT-4 约 0.91，当前模型已低于 0.8 的对数损失），并主张将 perplexity/交叉熵损失作为**跨模型厂商可比的共享指标**，用于校准行业进度与安全标准。其核心论点：下游 benchmark 迭代过快、易于饱和（GPT-4 时代已大面积饱和），而预训练损失数十年保持稳定，且多个涌现能力（链式推理、网络安全、数学）大致对应特定的损失阈值。局限也很明确：指标含义依赖训练数据分布——用代码库数据测 GPT-2 这类未充分见代码的模型并不公平，跨厂商比较需要约定共同评测集。
+
+:::
+
 ### Mixed Precision Training
 
 Mixed precision training uses FP16/BF16 for computations while maintaining FP32 master weights:
