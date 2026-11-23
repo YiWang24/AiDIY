@@ -1478,6 +1478,7 @@ for name, output in results.items():
 - **调低 reasoning effort 不是等价解**：简单调低思考档位会显著掉分；"训练出的高效推理"与"限制推理预算"是两条不同的帕累托曲线。
 - **KV cache 内存决定 agent 单价**：DeepSeek V4.1-Flash 通过架构手段把长会话 KV cache 压到上一代的 25%，agent 长程任务成本随之骤降——缓存优化已从系统层话题变成模型架构话题。
 - **选型启示**：评估模型时除了看 pass rate，还应看 cost/task 与 token/task——同一基准上"同质量、半价"的专门化模型（如 Ember-1、各家 Flash 变体）正成为生产环境的主流选择。
+- **投机解码的理论面正在被重新审视**：[Speculative Decoding Is Less Speculative Than You Think](https://arxiv.org/abs/2611.27891)（2026-11）指出投机解码的效率并非取决于草稿模型与目标模型的表层一致率，而取决于有限草稿计算如何被分配——这为循环/多遍架构下的推测执行与 KV cache 协同设计提供了新分析工具。工程侧的印证是 Z.ai GLM-5.4：多遍循环架构要达到 200 tokens/s（闲时）至 70-80 tokens/s（峰值）的吞吐，必须在内核融合、KV cache 与稀疏索引上与模型联合设计，否则循环带来的中间内存读写会把收益吃掉。
 
 ## 2025 Inference Optimization FAQ
 

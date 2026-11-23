@@ -622,6 +622,7 @@ public class ModelSelectionService {
 10. **2025 architecture trends**: MoE for scaling, GQA for efficiency, RoPE for positioning, hybrid (Transformer + SSM) for long context.
 11. **2026 "Language Models Need Sleep"**: CMU/Maryland 团队提出类睡眠的上下文整合机制——Transformer 在长上下文任务中，定期将 KV Cache 压缩为"快速权重（Fast Weight）"写入模型状态空间，类比人类睡眠中的记忆巩固。这项来自 [arXiv:2605.26099](https://arxiv.org/abs/2605.26099) 的研究为解决注意力机制的二次扩展问题提供了新思路。
 12. **2026 位置编码格局（Raschka 综述）**：RoPE 仍是绝对主流，但 **NoPE**（无显式位置编码，因果掩码隐式携带顺序信息）正在增多——部分新模型仅在部分层使用 RoPE、其余层 NoPE（RoPE-NoPE 混合），循环混合架构甚至全 NoPE；Inkling（2026）则复兴了 T5 式的注意力相对位置偏置。位置编码已从「必选题」变为「架构级权衡」：参考 [Understanding Positional Embeddings in Modern LLMs](https://magazine.sebastianraschka.com/p/understanding-positional-embeddings)。
+13. **2026 Loop Transformer（循环深度）成为参数效率路线**：与其堆更多不共享的层，不如让同一组层在一次前向中跑多遍（weight-tied recurrent depth），用小的门控与二次传递缓存控制计算/内存。Z.ai 的 [GLM-5.4](https://z.ai/blog/glm-5.4) 是首个旗舰级 Loop Transformer：约 750B 参数模型将 GLM-5 基座的 28 层循环执行两次，官方称智能水平可比 2T-3T 参数模型，并声称从零训练的循环模型在同算力预算下仍落后于层不共享模型——因此其做法是在预训练好的基座上继续训练。代价是长链推理中易陷入「马拉松思考」循环，且深度收益随循环次数增长的规律仍属开放问题（自适应计算/按 token 动态分配迭代次数是下一个目标）。
 
 :::tip Implementation Resources
 For hands-on practice:
