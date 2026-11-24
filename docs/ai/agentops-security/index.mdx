@@ -1129,6 +1129,27 @@ agent 跨组织协作（调用他方工具、与他方 agent 交互）正在成�
 
 > 来源：[Data Processing Incidents on Inference Providers](https://openrouter.ai/blog/announcements/data-processing-incidents-on-inference-providers/)（OpenRouter，2026-11-22）
 
+### Case Study: 「LLM agent 为其母公司工作，而不是为你」——agent 忠诚度的利益结构（2026-11-23，HN 758 分）
+
+HN 当日最高热帖之一（758 分，319 评论）：[LLM agents work for their parent companies, not for you](https://michaelharley.net/posts/2026/11/01/llm-agents-work-for-their-parent-companies-not-for-you/)。观点文章（注意：非实证研究）的核心论点：通用 agent 的训练目标、系统提示、工具白名单与商业模式全部由**提供商**决定——当用户利益与提供商利益冲突时（推荐竞品、揭露提供商缺陷、跨服务商比价、续订前提示替代方案），agent 没有任何机制保证站在用户一边；「AI 助手是你的代理人」目前只是产品叙事，不是技术承诺。与本周另一热帖（[Ask HN: Anthropic is accusing my company of distilling. How can I prove I'm not?](https://news.ycombinator.com/item?id=50630809)，105 分）并读：当厂商开始依据使用模式指控用户违反条款，agent 使用行为本身已成为合同执行的数据来源——**平台既是你的 agent 的运营方，也是对你执行规则的裁判**。
+
+**AgentOps 教训**：
+
+- **企业 agent 选型要把「利益冲突」写进评估**：评估 agent 时除了能力基准，还要测「利益冲突场景」——让它评价自家厂商的竞品、询问退订路径，观察行为是否系统性偏向提供商；高敏感决策（采购、法务）不要交给单一厂商的闭环 agent
+- **审批权与工具白名单是忠诚度的技术体现**：agent 能调哪些工具、替你锁定哪些订阅、能看到哪些比价数据，全部由提供商配置——自托管/开权重模型的一个隐性价值是**把这份配置权拿回自己手里**（代价是运维责任）
+- **使用遥测的双向性**：agent 平台的遥测既用于改进服务也用于条款执行（蒸馏指控即例证）——把 agent 接入关键业务流前，先弄清哪些交互数据会被平台用于何种目的，并按合规要求做数据边界设计
+
+> 来源：[michaelharley.net](https://michaelharley.net/posts/2026/11/01/llm-agents-work-for-their-parent-companies-not-for-you/)（2026-11-01，HN 2026-11-23 758 分）、[HN 讨论串](https://news.ycombinator.com/item?id=50630809)（2026-11-23）
+
+### Case Study: Anthropic Claude Ship——PR 审查、修复、批准的 agent 闭环（2026-11-23）
+
+Anthropic 发布 [Claude Ship](https://aitoolsrecap.com/ai-news-today)（11 月 23 日）：把一个 GitHub PR 走完**审查→修复→批准决策**全流程的 agent 系统，打包了已 GA 的 Code Review 与两个 beta agent（PR Steward、Claude Approvals），并在 Claude Code 中新增 `/ship` 命令；面向 Team/Enterprise 计划，按 token 计费。这是「Progressive Rollout」原则（见上文）的产品化样本：审查建议已 GA 常态化，**修复与批准则仍分级暴露**（beta），批准环节保留为独立可配置的能力而非默认放行。
+
+**AgentOps 教训**：
+
+- **自动化批准是 HITL 光谱的新端点**：从「agent 提建议、人批准」到「agent 审查、agent 修复、agent 批准」，每一级自动化都应独立灰度——Anthropic 把批准做成单独 beta 正是这个分级逻辑；采纳此模式前先问：合并错误的爆炸半径（回滚成本、影响面）支持哪一级自动化
+- **审计链完整性**：审查意见、修复 diff、批准理由都应进入不可变的审计日志，且要能回答「这个 PR 被谁（哪个 agent、哪个版本）批准」——agent 参与合并后，「approver」字段需要能区分机器与人类
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)

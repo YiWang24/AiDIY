@@ -307,6 +307,12 @@ Each expert is a specialized FFN:
 
 > 来源：[Introducing Inkling 2 Mini](https://thinkingmachines.ai/news/inkling-2-mini/)（Thinking Machines，2026-11-20，HN 1295 分）、[Inkling-2-Mini in 5.4 GB Memory](https://github.com/ShinMegamiBoson/lookatmyquant)（社区量化复现，HN 155 分）
 
+### 2026-11-24: Loop Residuals——预训练 LLM 循环化的收益缺口与补法
+
+GLM-5.4 与 Inkling 2 Mini 证明了循环架构（looped transformer）可以做旗舰、可以做端侧，但一个实践问题悬而未决：**能不能把已有的预训练模型微调成循环模型，而不是从零训练或厂商从头代做？** arXiv [2611.31094](https://arxiv.org/abs/2611.31094)（Loop Residuals）给出的现状是：从零训练的 looped transformer 需要「循环专项设计」才能兑现参数效率优势，直接把现成 LLM 微调成循环形式此前只带来边际收益；论文提出在循环迭代间加入**残差连接（loop residuals）**，让共享层块的多次执行保留逐轮修正通路，微调后循环化模型的收益才真正显现。对架构选型的意义：循环深度作为「推理计算可调维度」的路线正在补齐**存量模型改造**这块拼图——如果后续工作验证残差化循环在更大规模上成立，「循环化微调」可能成为压缩推理成本的标准后训练步骤，与量化、投机解码并列。与上文 Inkling 的 variable-loop 结论连读：循环次数是训练后仍可外推的自由度，这意味着推理时按任务难度调循环数（自适应计算）有了两条实现路径——训练时就建模（Inkling），或部署时微调改造（Loop Residuals）。
+
+> 来源：[Unlocking the Power of Loops in Pretrained LLMs with Loop Residuals](https://arxiv.org/abs/2611.31094)（arXiv，2026-11-23）
+
 ### 2025: Higher-Order Attention (Nexus)
 
 **Innovation**: Query and Key vectors are outputs of nested self-attention loops.
