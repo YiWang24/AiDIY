@@ -34,10 +34,10 @@ tags: [ai, daily-digest, openai, automated-math, llm-safety, side-channel, terna
 ## 其他值得记录的
 
 - **OpenAI 提议「AI 限速」**：首席科学家 Jakub Pachocki（11 月 22 日）晒出模型能力提升曲线，呼吁各实验室在安全监控跟上之前就共享的能力上限达成一致；Altman 称这是「OpenAI 近期最重要的发布」——但没有数字，也没有执行机制。
-- **Anthropic「交接论」内部分歧**：Axios 报道部分 Anthropic 员工认为人类在很多情况下应把权威交给超级智能；Alexandr Wang 与 Altman 公开反对「handover」，Anthropic 回应 Claude 被训练为不破坏人类监督。IPO 之后，安全立场也成了要向市场交代的仓位。
+- **Anthropic「交接论」内部分歧**：Axios 报道部分 Anthropic 员工认为人类在很多情况下应把权威交给超级智能；Alexandr Wang 与 Altman 公开反对「handover」，Anthropic 回应 Claude 被训练为不破坏人类监督。
 - **Fujitsu 加入 OpenAI Daybreak Defense Network**：并推出基于 Daybreak 的漏洞评估服务。
 - **Codex 用量少记事故**：部分用户收到邮件：GPT-6.2 Astra/Sol 此前有请求被少计数，限额将提前触达——「计量准确性」本身成了信任问题。
-- **Tidal 清退全 AI 音乐**：12 月 9 日起移除完全 AI 生成的曲目并拒收新曲目——过去 90 天的交付中 **43%** 是纯 AI 生成。流媒体平台开始为「人做的音乐」设围栏。
+- **Tidal 清退全 AI 音乐**：12 月 9 日起移除完全 AI 生成的曲目并拒收新曲目——过去 90 天的交付中 **43%** 是纯 AI 生成。
 - **ShellBench**：OpenAI、Anthropic、Meta 的顶级模型在**三分之一的日常 agent 任务上失败**，15.7% 的运行违反了安全规则——demo 里的 agent 与日常任务里的 agent 之间仍有大沟。
 
 ## arXiv 精选
@@ -46,7 +46,7 @@ tags: [ai, daily-digest, openai, automated-math, llm-safety, side-channel, terna
 
 **[Draft Calibration for Speculative Decoding](https://arxiv.org/abs/2611.33111)**（11-24）：开源草稿模型系统性 underconfident——top 候选常选对，但概率分布整体偏离目标。事后校准草稿分布、直接压缩 ‖p−q‖₁，投机解码的优化对象从「草稿结构」转向「分布对齐本身」。
 
-**[Leto: Utility-Centric Agent Memory](https://arxiv.org/abs/2611.33005)**（11-24）：现有 agent 记忆系统按「对过去对话的保真度」评估自己，但记忆的价值在于**能否改善未来的响应**。Leto 把记忆当预测问题：保留到源的索引而非压缩摘要，回答生成时按效用取用。「忠实的记忆可能无用的记忆」是个值得所有 RAG/记忆系统设计者背下来的反直觉。
+**[Leto: Utility-Centric Agent Memory](https://arxiv.org/abs/2611.33005)**（11-24）：现有 agent 记忆系统按「对过去对话的保真度」评估自己，但记忆的价值在于**能否改善未来的响应**。Leto 把记忆当预测问题：保留到源的索引而非压缩摘要，回答生成时按效用取用。「忠实的记忆可能是无用的记忆」——值得记忆系统设计者记住的反直觉。
 
 **[Auditing the Judge: Human-Derived Bias Discovery, Quantification, and Mitigation in LLM Judges](https://arxiv.org/abs/2611.33065)**（11-24）：LLM-as-a-Judge 的偏差审计不再依赖预存的偏差清单——HUB-J 从「人类与 LLM 判定不一致」的案例中自动发现可解释的偏差因子，并用一致案例量化偏差强度。judge 被用于训练管线时，它的偏差会复利进模型。
 
