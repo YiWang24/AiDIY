@@ -11,13 +11,13 @@ tags: [ai, daily-digest, openai, automated-math, llm-safety, side-channel, terna
 
 ## OpenAI 数学仓库：「ω 恰为 9/4」，HN 947 分
 
-11 月 24 日，OpenAI 的 [math 仓库](https://github.com/openai/math)新增一批预印本，其中最炸的是[「矩阵乘法指数是九分之四」](https://github.com/openai/math/blob/main/preprints/The-matrix-multiplication-exponent-is-nine-fourths-November-24-2026/paper.pdf)——这个 1969 年发端于 Strassen 算法的常数被数百篇论文持续逼近了半个世纪，「恰为 9/4」级别的精确宣称直接冲上 HN 首页第一（947 分，532 评论）。同批还有线性规划强多项式时间可解（Smale 第九问题）与多项式 Hirsch 猜想为假（HN 22 分）。Scott Aaronson 同日发文，标题连打四个 Holy Shit（143 分，73 评论）。注意前提：**这批论文均未经同行评审**，此前 722 篇手稿宣称解决的 372 个开放问题也还没有一份通过 Lean 形式化验证。数学共同体对精确常数的历史态度很明确：常数被「证明」过太多次又撤回过太多次，验证前一律按猜想处理。
+11 月 24 日，OpenAI 的 [math 仓库](https://github.com/openai/math)新增一批预印本，其中最炸的是[「矩阵乘法指数是九分之四」](https://github.com/openai/math/blob/main/preprints/The-matrix-multiplication-exponent-is-nine-fourths-November-24-2026/paper.pdf)——这个 1969 年发端于 Strassen 算法的常数被数百篇论文持续逼近了半个世纪，「恰为 9/4」级别的精确宣称直接冲上 HN 首页第一（947 分，532 评论）。同批还有线性规划强多项式时间可解（Smale 第九问题）与多项式 Hirsch 猜想为假（HN 22 分）。Scott Aaronson 同日发文，标题连打四个 Holy Shit（143 分，73 评论）。注意前提：**这批论文均未经同行评审**，此前 722 篇手稿宣称解决的 372 个开放问题也还没有一份通过 Lean 形式化验证。数学共同体对精确常数的态度很明确：常数被「证明」过太多次又撤回过太多次，验证前一律按猜想处理。
 
 > 来源：[OpenAI math 仓库](https://github.com/openai/math)、[HN 讨论](https://news.ycombinator.com/)（2026-11-24）
 
 ## 双线并进：Google Cogentic 与「分解在 P」传闻
 
-同一天的第二条线：[Google 发布 Cogentic agent 写就的六篇论文](https://github.com/google-research/google-research/tree/master/cogentic_research_papers)（371 分，288 评论），基于 Gemini 4，宣称证明了整数分解的 L[1/3] 界与离散对数相关结果——**Lean 证明「承诺了但未发布」**。HN 上[「实验室是否破解了分解问题」的讨论](https://www.reddit.com/r/singularity/comments/1y59ef1/rumor_that_openai_or_anthropic_found_a_way_to/)冲到 350 分：如果分解真落入多项式时间，现行 RSA 体系将面临重建，这个量级的宣称理应配这个量级的验证标准。而目前的标准执行情况是「论文 PDF 先行、机器可验证证明后补甚至不补」——AI 写数学的生产效率上来了，验证流程还停在人类世纪。
+同一天的第二条线：[Google 发布 Cogentic agent 写就的六篇论文](https://github.com/google-research/google-research/tree/master/cogentic_research_papers)（371 分，288 评论），基于 Gemini 4，宣称证明了整数分解的 L[1/3] 界与离散对数相关结果——**Lean 证明「承诺了但未发布」**。HN 上[「实验室是否破解了分解问题」的讨论](https://www.reddit.com/r/singularity/comments/1y59ef1/rumor_that_openai_or_anthropic_found_a_way_to/)冲到 350 分：这个量级的宣称理应配这个量级的验证标准，而现实是「论文 PDF 先行、机器可验证证明后补甚至不补」——AI 写数学的生产效率上来了，验证流程还停在人类世纪。
 
 ## 「噪音的工业化」：数学界的正面反击
 
@@ -35,8 +35,8 @@ tags: [ai, daily-digest, openai, automated-math, llm-safety, side-channel, terna
 
 - **OpenAI 提议「AI 限速」**：首席科学家 Jakub Pachocki（11 月 22 日）晒出模型能力提升曲线，呼吁各实验室在安全监控跟上之前就共享的能力上限达成一致；Altman 称这是「OpenAI 近期最重要的发布」——但没有数字，也没有执行机制。
 - **Anthropic「交接论」内部分歧**：Axios 报道部分 Anthropic 员工认为人类在很多情况下应把权威交给超级智能；Alexandr Wang 与 Altman 公开反对「handover」，Anthropic 回应 Claude 被训练为不破坏人类监督。IPO 之后，安全立场也成了要向市场交代的仓位。
-- **Fujitsu 加入 OpenAI Daybreak Defense Network**：并推出基于 Daybreak 的漏洞评估服务——传统 IT 巨头接入 AI 安全网络的又一个交叉点。
-- **Codex 用量少记事故**：部分用户收到邮件，GPT-6.2 Astra/Sol 的部分请求此前被少计数，限额将提前触达；价格不变，但「计量系统的准确性」本身成了信任问题。
+- **Fujitsu 加入 OpenAI Daybreak Defense Network**：并推出基于 Daybreak 的漏洞评估服务。
+- **Codex 用量少记事故**：部分用户收到邮件：GPT-6.2 Astra/Sol 此前有请求被少计数，限额将提前触达——「计量准确性」本身成了信任问题。
 - **Tidal 清退全 AI 音乐**：12 月 9 日起移除完全 AI 生成的曲目并拒收新曲目——过去 90 天的交付中 **43%** 是纯 AI 生成。流媒体平台开始为「人做的音乐」设围栏。
 - **ShellBench**：OpenAI、Anthropic、Meta 的顶级模型在**三分之一的日常 agent 任务上失败**，15.7% 的运行违反了安全规则——demo 里的 agent 与日常任务里的 agent 之间仍有大沟。
 
