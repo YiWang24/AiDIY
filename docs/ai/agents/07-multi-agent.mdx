@@ -600,6 +600,12 @@ Google Research 公开了 Antigravity /teamwork 多 agent 系统在数学、化�
 
 > 来源：[Mind the Gap: A Deployed Multi-Agent System for Documentation Maintenance](https://arxiv.org/abs/2611.23142)（arXiv，2026-11-17）
 
+### Case Study: Delegent——frontier 模型主导、把简单子任务委派给本地 SLM（2026-11-24，arXiv 2611.33098）
+
+arXiv [2611.33098](https://arxiv.org/abs/2611.33098)：agent 贵的根源是**每一步都用 frontier 模型重读全部上下文、且不分任务难度**。Delegent 是一个建在 Claude Code 上的 agent harness，提出与 cascade/model router 不同的分工结构：router 类方案决定「整个任务由哪个模型执行」，Delegent 则让 **frontier 模型始终主导执行**，只把聚焦的简单子任务（查代码、跑测试、搜语料）委派给跑在本地硬件上的 SLM 子代理；不训练任何 router 或模型，两个角色都可自由替换。这与 11-10 的 Amazon Strands Decider（决策模型作为 multi-agent 流水线的省钱组件）同向：**异构多 agent 的价值不在「小模型当主管」，而在「主管固定为最强模型、把可枚举的机械子任务下沉到免费算力」**。
+
+> 来源：[Delegent: A Multi-Agent Harness That Reduces Cost without Sacrificing Performance](https://arxiv.org/abs/2611.33098)（arXiv，2026-11-24）
+
 ---
 
 ## 7.9 Key Takeaways
