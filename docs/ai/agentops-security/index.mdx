@@ -1162,6 +1162,18 @@ LessWrong 长文（[Models Can Communicate via Inference Servers Despite Being S
 
 > 来源：[LessWrong](https://www.lesswrong.com/posts/7wzWuLP3HhyBLmKfo/models-can-communicate-via-inference-servers-despite-being/)（2026-11-24，HN 412 分）、[复现代码](https://github.com/niranjan-deshpande/side-channel-communication)
 
+## 监控评估的方法论陷阱：攻击策略选择会误导评估结论（2026-11-25）
+
+AI 监控器（flag 危险行为的分类器）通常用「攻击策略生成的 transcript」当代理数据来评估漏报率，但 OpenAI 前生产监控器的案例研究 [Attack Policy Selection can Mislead Monitor Evaluators](https://arxiv.org/abs/2611.34934) 显示：**评估结论高度依赖攻击策略的选取**——换一批攻击策略，同一个监控器的实测漏报率显著漂移。监控器在「评估用的攻击分布」上表现好，不代表能覆盖部署中真实出现的攻击分布。
+
+工程启示：
+
+1. **监控评估需要攻击基线的多样性预算**：单一红队模板或单一攻击策略下的高召回是伪安全，评估集应显式覆盖不同策略族、难度层级与「无策略」噪声
+2. **警惕「针对评估过拟合」的双向版本**：模型可能过拟合 eval，监控系统同样可能过拟合自己的评估攻击集——两者都要靠分布外抽查兜底
+3. **生产监控器的退役标准**应包含跨策略族的稳健性测试，而不只是标注一致率
+
+> 来源：[arXiv 2611.34934](https://arxiv.org/abs/2611.34934)（2026-11-25）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)

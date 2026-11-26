@@ -648,3 +648,17 @@ For hands-on practice:
 **4. Experiment with RoPE**:
 - [RoPE implementation in PyTorch](https://github.com/facebookresearch/llama/blob/main/llama/model.py#L360)
 :::
+
+---
+
+## 循环架构的下一步：Mixture-of-Loops Transformer（2026-11）
+
+循环 Transformer（Looped Transformer）通过跨循环复用共享层提升表达力，代价是效率——相邻循环之间「传什么」一直是核心未决问题。2026 年 11 月 25 日的 [Mixture-of-Loops Transformer (MoLT)](https://arxiv.org/abs/2611.34923) 给出混合方案：为每个 token 动态选择循环间连接模式（稀疏桥接或全量传递），在表达力-效率前沿上同时越过固定连接的循环架构与纯直通架构。
+
+这条线索与 11 月的三起行业事件同向，**循环/复用深度正从研究走向旗舰产品**：
+
+- **GLM-5.4**（智谱，11-23）：首个采用 Loop Transformer 架构的旗舰 coding 模型，1M 上下文
+- **Inkling 2 Mini**（Thinking Machines Lab，11-24）：26.4B 参数循环架构，中间层每 token 循环 3 次，Mac 32GB 内存即可本地运行
+- **MoLT**（本论文）：循环间连接本身变成可学习、可路由的决策
+
+工程视角的关键区别：循环架构改变的是**同一权重的使用次数**而非参数量——这让「有效深度」成为独立于参数量的缩放维度，对端侧部署（小参数 × 深循环）与推理成本优化（KV cache 与循环调度的交互）都是新的设计空间。
