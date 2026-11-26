@@ -633,3 +633,15 @@ for text in texts:
 
 Also explore the [interactive tiktoken app](https://tiktoken.vercel.app/) to see tokenization in real-time.
 :::
+
+---
+
+## 分词器的计算复杂度：Tokenisation 不在 APX 里（2026-11）
+
+日常选 BPE 还是 Unigram 常被当作工程偏好，但 2026 年 11 月 25 日的论文 [Tokenisation is not in APX](https://arxiv.org/abs/2611.34938) 把这个问题拉回了复杂性理论：除非 P=NP，**不存在多项式时间算法能找到目标值在常数因子内逼近最优的分词器**——即分词问题不在 APX（可常数因子近似）复杂类中，且结论对 direct 与 bottom-up 两类分词、多种目标函数均成立。
+
+工程启示：
+
+1. **不存在「够好的贪心」**：与 TSP 等有常数因子近似解的问题不同，分词器优化连近似保证都没有——现有分词器（BPE/Unigram）的启发式离最优可能很远，且我们无法知道差多远
+2. **分词器仍是 LLM 的有效「超参数」**：既然最优不可达，针对领域（代码、数学、多语言）定制分词训练的收益空间比社区默认认知更大
+3. **下游影响可量化**：分词质量直接影响上下文窗口的有效利用率与推理成本——复杂度上界解释了为什么 tokenizer 迭代（如多字节、词表扩充）总能源源不断带来收益

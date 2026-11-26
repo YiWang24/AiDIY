@@ -930,3 +930,15 @@ Start with **Claude Code** for an integrated CLI coding agent experience, or **C
 :::info Open Source Options
 For self-hosted or research use, **OpenHands** and **SWE-Agent** provide fully open-source coding agent platforms.
 :::
+
+---
+
+## Coding Agent 的过度编辑：规模、归因与对策（2026-11）
+
+「Agent 补丁比人类的大」常被直接读作过度编辑，但补丁大小本身说明不了多余编辑是否真的多余、是什么、从哪来。2026 年 11 月 25 日的实证研究 [How Much Do Coding Agents Over-Edit, and Why?](https://arxiv.org/abs/2611.34875) 提出 **Delta Residue Attribution (DRA)**：回放 agent 轨迹，把每个 block 的差异归因到具体编辑动作，从而区分「必要的超出」与「真正的过度编辑」。
+
+对构建与评审 agent 产出的团队的启示：
+
+1. **评审信号要从「diff 大小」换成「残差归因」**：用 diff 行数做 agent 质量代理指标会系统性惩罚做对了必要大改的 agent，奖励最小补丁但漏改的 agent
+2. **过度编辑有可定位的机制来源**（提示词模板、上下文重读、失败后的补偿性重写）——针对性修一处模板比整体「让模型保守一点」有效得多
+3. **成本维度**：多余编辑不只是噪音，还放大 review 带宽与回归测试成本——在 agent 自主合入（如 Claude Ship 类 PR 批准闭环）的场景里，过度编辑率直接决定可信自动化的上限
