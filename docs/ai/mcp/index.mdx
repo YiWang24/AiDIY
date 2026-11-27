@@ -311,6 +311,17 @@ arXiv 两篇新工作分别命中 MCP 生态的安全与训练痛点：
 
 > 来源：[arXiv:2610.22301](https://arxiv.org/abs/2610.22301)、[arXiv:2610.14956](https://arxiv.org/abs/2610.14956)（2026-10-15）
 
+### Google Workspace agent MCP 强制令：平台化 agent 的权限收口有了截止日期（2026-11-27）
+
+Google 宣布 MCP 服务器与 Workspace CLI 在 Gmail、Drive、Docs、Sheets、Slides、Calendar、Chat、Tasks 全线 GA，并给出硬性时间表：**2027-02-01 起 agent 必须走官方 MCP 服务器而非直接调用 Workspace REST API**，2027-04-01 起 Scaled 层级开始计费。两个配套要求值得注意：
+
+- **agent 身份显式化**：Agent OAuth 客户端必须在声明中自我标识为 agent——流量层面第一次能把「agent 代用户操作」与「用户本人操作」区分开，审计、限流与撤销从此有了身份锚点
+- **官方通道的能力阉割**：Gmail 的 MCP 服务器**不能发邮件**（HN [415 分，329 评论](https://news.ycombinator.com/item?id=50653477)），与全功能第三方通道的张力将成为 2027 年 agent 平台的主战场——平台用「合规通道 + 能力裁剪」逼生态二选一
+
+**工程启示**：把 agent 流量收口到平台自建 MCP 通道 + agent 身份声明，本质是把 agent 治理做进身份与协议层而不是应用层。依赖第三方 Workspace 通道的产品需要在 2027-02-01 前完成迁移评估；同时要假设官方通道的能力边界由平台商业策略决定，而非技术约束。
+
+> 来源：[Google Workspace AI agents MCP](https://techstackups.com/articles/google-workspace-ai-agents-mcp/)（2026-11-23）、[HN 讨论](https://news.ycombinator.com/item?id=50653477)（2026-11-27，415 分）
+
 ### Table 1: Comparative Analysis of Transport Mechanisms
 
 | Feature | Stdio (Standard Input/Output) | SSE (Server-Sent Events) / HTTP | Streamable HTTP (2025) |
