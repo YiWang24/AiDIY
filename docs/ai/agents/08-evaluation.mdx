@@ -496,6 +496,14 @@ LLM agent 正从"单模型 + 工具"走向"模型实例化 worker agent"的 mult
 
 > 来源：[Introducing FrontierHarness Eval v1.1](https://runta.com/blog/introducing-frontierharness-eval-v1-1/)（Runta，2026-11-17）、[arXiv 2611.21538: Optimistic Verifiers Get Hacked](https://arxiv.org/abs/2611.21538)（2026-11-16）
 
+### DRBench Pro：把「知识覆盖面」变成深研 agent 的一等评测目标（2026-11-25）
+
+Deep research agent 的现有基准评「报告质量」的多个维度，但回答不了关键问题：**报告覆盖了哪些研究方向、探索到多深**。[DRBench Pro](https://arxiv.org/abs/2611.34852) 把结构化知识覆盖做成主评测目标：从 Wikipedia 自动构建本地知识树，采样子图生成研究查询与证据锚定的 rubric——每个 rubric 对应树上一条关系，保留被评估知识的结构。agent 只拿到查询本身，据此分别度量**广度**（主要研究方向的覆盖）与**深度**（相关知识链的延伸），几何平均给出总体覆盖率。
+
+与 FrontierHarness（2026-11-17）连读：评估工程正在分化出两个正交维度——harness 侧关心「失败的代价」，知识侧关心「覆盖的形状」；一份只覆盖热门方向、深度均匀摊开的报告，在 DRBench Pro 的几何平均下会同时输给又广又深的答案。
+
+> 来源：[arXiv 2611.34852](https://arxiv.org/abs/2611.34852)（2026-11-25）
+
 ---
 
 ## 8.9 Key Takeaways

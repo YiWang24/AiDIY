@@ -1174,6 +1174,18 @@ AI 监控器（flag 危险行为的分类器）通常用「攻击策略生成的
 
 > 来源：[arXiv 2611.34934](https://arxiv.org/abs/2611.34934)（2026-11-25）
 
+## 模型 diff 检测后门：读「权重变化」而不是「输出行为」（2026-11-25）
+
+微调是后门植入的主要入口，但基于输出行为的检测有根本盲区：后门可以只在触发条件下激活，干净输入上的行为基准测试全部通过。[Reading Fine-Tuning Diffs Through Lenses: Model Diffing for Backdoor Detection](https://arxiv.org/abs/2611.34758) 把检测对象换成**微调前后模型的差异本身**，并给出统一评分体系（基于 token 读出）来横向比较权重、激活、输出三类 diffing 方法：
+
+- **透镜（lens）放大可读性**：给权重差异套上基座模型的 J-lens / J++-lens 解码后，可读性显著提升——最强方法 **ΔW J++**（权重差经基座 J++-lens 解码）在 12 个实验设置的 11 个里，把**点名后门触发器的 token 排进前 10**
+- **三类方法各有覆盖面**：输出/激活类方法（ADL、Diff Mining）与权重类方法捕获的后门类型不重叠，组合使用才有覆盖保证
+- **与「监控器过拟合」问题互补**：模型 diff 不依赖攻击样本分布，因此天然不受「攻击策略选择误导评估」问题的困扰——两条路线合起来构成后门检测的分布内（行为）+ 分布无关（结构）双保险
+
+工程启示：模型供应链里「这个 checkpoint 和官方基座比，权重上多了什么」应该是标准审计步骤——后门的痕迹写在 diff 里，只是需要正确的透镜才能读出来。
+
+> 来源：[arXiv 2611.34758](https://arxiv.org/abs/2611.34758)（2026-11-25）
+
 ## Further Reading
 
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
